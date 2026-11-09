@@ -1,0 +1,17 @@
+* text=auto
+*.cpp text eol=crlf
+*.h text eol=crlf
+*.hlsl text eol=crlf
+*.hlsli text eol=crlf
+*.lua text eol=lf
+*.json text eol=lf
+*.pscene text eol=lf
+*.pprefab text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.sh text eol=lf
+*.hdr binary
+*.png binary
+*.glb binary
+*.bin binary
+*.wav binary

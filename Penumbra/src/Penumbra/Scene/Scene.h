@@ -1,0 +1,162 @@
+#pragma once
+
+#include "Penumbra/Core/Base.h"
+#include "Penumbra/Core/Timestep.h"
+#include "Penumbra/Core/UUID.h"
+#include "Penumbra/Scene/Components.h"
+
+#include <entt/entt.hpp>
+
+#include <filesystem>
+#include <optional>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+namespace Penumbra {
+
+	class Entity;
+	class PhysicsWorld;
+	class ScriptEngine;
+	class AudioScene;
+	class PerceptionSystem;
+	class StimSystem;
+	class OverlayList;
+
+	struct TestReport
+	{
+		bool Completed = false;
+		bool Passed = false;
+		uint32_t Assertions = 0;
+		uint32_t Failures = 0;
+		std::vector<std::string> Messages;
+	};
+
+	class Scene
+	{
+	public:
+		Scene();
+		~Scene();
+
+		Scene(const Scene&) = delete;
+		Scene& operator=(const Scene&) = delete;
+
+		// Deep copy used when entering play mode: same UUIDs, no runtime state.
+		static Ref<Scene> Copy(const Ref<Scene>& other);
+
+		Entity CreateEntity(const std::string& name = "Entity");
+		Entity CreateEntityWithUUID(UUID uuid, const std::string& name = "Entity");
+		// Destroys the entity and all of its children. During runtime updates destruction
+		// is deferred to the end of the frame so systems never see dangling entities.
+		void DestroyEntity(Entity entity);
+		Entity DuplicateEntity(Entity entity);
+
+		Entity GetEntityByUUID(UUID uuid);
+		std::optional<Entity> TryGetEntityByUUID(UUID uuid);
+		Entity FindEntityByName(std::string_view name);
+		std::vector<Entity> GetAllEntities();
+		std::vector<Entity> GetRootEntities();
+		size_t GetEntityCount() const { return m_EntityMap.size(); }
+		bool IsEntityPendingDestroy(Entity entity) const;
+
+		// Hierarchy
+		void SetParent(Entity child, Entity parent, bool keepWorldTransform = true);
+		void Unparent(Entity child, bool keepWorldTransform = true);
+		bool IsAncestor(Entity ancestor, Entity entity);
+		glm::mat4 GetWorldTransform(Entity entity);
+		glm::vec3 GetWorldPosition(Entity entity);
+		glm::quat GetWorldRotation(Entity entity);
+		void SetWorldTransform(Entity entity, const glm::mat4& worldTransform);
+
+		Entity GetPrimaryCameraEntity();
+		Entity GetEnvironmentEntity();
+
+		// Runtime
+		void OnRuntimeStart();
+		void OnRuntimeStop();
+		void OnUpdateRuntime(Timestep ts);
+		void OnUpdateEditor(Timestep ts);
+		bool IsRunning() const { return m_IsRunning; }
+		bool IsPaused() const { return m_IsPaused; }
+		void SetPaused(bool paused) { m_IsPaused = paused; }
+		// Advances a paused runtime scene by the given number of frames.
+		void Step(int frames = 1) { m_StepFrames = frames; }
+
+		float GetTime() const { return m_Time; }
+		uint64_t GetFrameCount() const { return m_FrameCount; }
+
+		void OnViewportResize(uint32_t width, uint32_t height);
+		uint32_t GetViewportWidth() const { return m_ViewportWidth; }
+		uint32_t GetViewportHeight() const { return m_ViewportHeight; }
+
+		// Requests (made by scripts) that the host application acts on between frames.
+		void RequestSceneLoad(const std::string& scenePath) { m_RequestedScene = scenePath; }
+		const std::optional<std::string>& GetRequestedScene() const { return m_RequestedScene; }
+		void ClearRequestedScene() { m_RequestedScene.reset(); }
+		void RequestQuit(int exitCode) { m_RequestedQuit = exitCode; }
+		const std::optional<int>& GetRequestedQuit() const { return m_RequestedQuit; }
+		void RequestCursorLock(bool locked) { m_RequestedCursorLock = locked; }
+		std::optional<bool> ConsumeCursorLockRequest();
+
+		TestReport& GetTestReport() { return m_TestReport; }
+
+		PhysicsWorld* GetPhysicsWorld() const { return m_PhysicsWorld.get(); }
+		ScriptEngine* GetScriptEngine() const { return m_ScriptEngine.get(); }
+		AudioScene* GetAudioScene() const { return m_AudioScene.get(); }
+		PerceptionSystem* GetPerceptionSystem() const { return m_PerceptionSystem.get(); }
+		StimSystem* GetStimSystem() const { return m_StimSystem.get(); }
+		OverlayList& GetOverlay() { return *m_Overlay; }
+
+		// Headless runs (tests, CI) create the audio engine without an output device.
+		void SetAudioDeviceEnabled(bool enabled) { m_AudioDeviceEnabled = enabled; }
+
+		entt::registry& GetRegistry() { return m_Registry; }
+
+		const std::filesystem::path& GetFilePath() const { return m_FilePath; }
+		void SetFilePath(const std::filesystem::path& path) { m_FilePath = path; }
+
+		template<typename... Components>
+		auto GetAllEntitiesWith()
+		{
+			return m_Registry.view<Components...>();
+		}
+
+	private:
+		void DestroyEntityImmediate(Entity entity);
+		void FlushPendingDestroys();
+		void UpdateSmokeVolumes(Timestep ts);
+		void RunRuntimeFrame(Timestep ts);
+
+	private:
+		entt::registry m_Registry;
+		std::unordered_map<UUID, entt::entity> m_EntityMap;
+		std::vector<UUID> m_PendingDestroy;
+
+		Scope<PhysicsWorld> m_PhysicsWorld;
+		Scope<ScriptEngine> m_ScriptEngine;
+		Scope<AudioScene> m_AudioScene;
+		Scope<PerceptionSystem> m_PerceptionSystem;
+		Scope<StimSystem> m_StimSystem;
+		Scope<OverlayList> m_Overlay;
+
+		bool m_IsRunning = false;
+		bool m_IsPaused = false;
+		bool m_IsUpdating = false;
+		bool m_AudioDeviceEnabled = true;
+		int m_StepFrames = 0;
+		float m_Time = 0.0f;
+		uint64_t m_FrameCount = 0;
+		uint32_t m_ViewportWidth = 1280;
+		uint32_t m_ViewportHeight = 720;
+
+		std::optional<std::string> m_RequestedScene;
+		std::optional<int> m_RequestedQuit;
+		std::optional<bool> m_RequestedCursorLock;
+		TestReport m_TestReport;
+		std::filesystem::path m_FilePath;
+
+		friend class Entity;
+		friend class SceneSerializer;
+	};
+
+}

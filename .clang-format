@@ -1,0 +1,16 @@
+# Penumbra code style (follows Hazel conventions)
+Language: Cpp
+BasedOnStyle: Microsoft
+UseTab: ForIndentation
+IndentWidth: 4
+TabWidth: 4
+ColumnLimit: 140
+BreakBeforeBraces: Allman
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AccessModifierOffset: -4
+NamespaceIndentation: All
+PointerAlignment: Left
+SortIncludes: false
+FixNamespaceComments: false

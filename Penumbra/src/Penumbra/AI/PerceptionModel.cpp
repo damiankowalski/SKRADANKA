@@ -1,0 +1,82 @@
+#include "pnpch.h"
+#include "Penumbra/AI/PerceptionModel.h"
+
+#include <glm/gtc/constants.hpp>
+
+namespace Penumbra::PerceptionModel {
+
+	float WeberContrast(float backgroundLuminance, float targetLuminance, float floor)
+	{
+		const float lb = std::max(backgroundLuminance, 0.0f);
+		const float lp = std::max(targetLuminance, 0.0f);
+		return std::abs(lb - lp) / std::max({ lb, lp, floor, Epsilon });
+	}
+
+	float Adapt(float adaptation, float environmentLuminance, float dt, float tauBright, float tauDark)
+	{
+		const float tau = std::max(environmentLuminance > adaptation ? tauBright : tauDark, 1e-4f);
+		return adaptation + (environmentLuminance - adaptation) * (1.0f - std::exp(-std::max(dt, 0.0f) / tau));
+	}
+
+	float ContrastThreshold(float adaptation, float observedLuminance, float contrastMin, float darkSensitivity, float glareSensitivity)
+	{
+		const float observed = std::max(observedLuminance, 0.0f) + Epsilon;
+		const float darkness = darkSensitivity / observed;
+		const float glare = glareSensitivity * std::max(0.0f, std::log10(std::max(adaptation, 0.0f) / observed));
+		return contrastMin + darkness + glare;
+	}
+
+	float SizeFactor(float targetRadius, float distance, float referenceAngularSize)
+	{
+		if (distance <= Epsilon)
+			return 1.0f;
+		const float angularSize = 2.0f * std::atan(targetRadius / distance);
+		return std::min(1.0f, angularSize / std::max(referenceAngularSize, Epsilon));
+	}
+
+	float AtmosphereFactor(float opticalDepth) { return std::exp(-std::max(opticalDepth, 0.0f)); }
+
+	float PeripheralFactor(float normalizedAngle, float edgeFactor)
+	{
+		const float t = std::clamp(normalizedAngle, 0.0f, 1.0f);
+		return 1.0f - (1.0f - edgeFactor) * t * t;
+	}
+
+	float MotionFactor(float speed, float peripherality, float motionWeight)
+	{
+		return 1.0f + motionWeight * std::max(speed, 0.0f) * (1.0f + std::clamp(peripherality, 0.0f, 1.0f));
+	}
+
+	float Stimulus(float effectiveContrast, float contrastThreshold, float visibleFraction, float sizeFactor, float peripheral, float motion)
+	{
+		if (visibleFraction <= 0.0f)
+			return 0.0f;
+		return (effectiveContrast / std::max(contrastThreshold, Epsilon)) * visibleFraction * sizeFactor * peripheral * motion;
+	}
+
+	float UpdateSuspicion(float suspicion, float stimulus, float dt, float riseRate, float decayRate)
+	{
+		if (stimulus >= 1.0f)
+			suspicion += riseRate * (stimulus - 1.0f) * dt;
+		else
+			suspicion -= decayRate * dt;
+		return std::clamp(suspicion, 0.0f, 1.0f);
+	}
+
+	AwarenessState StateFromSuspicion(float suspicion, float suspiciousThreshold, float searchingThreshold)
+	{
+		if (suspicion >= 1.0f)
+			return AwarenessState::Alarmed;
+		if (suspicion >= searchingThreshold)
+			return AwarenessState::Searching;
+		if (suspicion >= suspiciousThreshold)
+			return AwarenessState::Suspicious;
+		return AwarenessState::Unaware;
+	}
+
+	float SurfaceLuminance(float albedo, float illuminance, float emissive)
+	{
+		return std::max(albedo, 0.0f) * std::max(illuminance, 0.0f) / glm::pi<float>() + std::max(emissive, 0.0f);
+	}
+
+}

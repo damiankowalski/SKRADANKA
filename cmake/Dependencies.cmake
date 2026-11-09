@@ -1,0 +1,144 @@
+# Third-party dependencies. Every dependency is pinned to an exact tag or commit.
+# All of them are declared SYSTEM so their headers never trip Penumbra's /W4 /WX.
+
+include(FetchContent)
+set(FETCHCONTENT_QUIET OFF)
+
+# ---------------------------------------------------------------------------
+# Libraries with a usable CMake build
+# ---------------------------------------------------------------------------
+
+# GLFW - windowing and input
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+set(USE_MSVC_RUNTIME_LIBRARY_DLL OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(glfw
+    GIT_REPOSITORY https://github.com/glfw/glfw.git
+    GIT_TAG 3.4
+    GIT_SHALLOW TRUE
+    SYSTEM)
+
+# GLM - math
+set(GLM_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLM_BUILD_INSTALL OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(glm
+    GIT_REPOSITORY https://github.com/g-truc/glm.git
+    GIT_TAG 1.0.1
+    GIT_SHALLOW TRUE
+    SYSTEM)
+
+# NVRHI - rendering hardware interface (D3D12 backend only)
+set(NVRHI_WITH_VULKAN OFF CACHE BOOL "" FORCE)
+set(NVRHI_WITH_DX11 OFF CACHE BOOL "" FORCE)
+set(NVRHI_WITH_DX12 ON CACHE BOOL "" FORCE)
+set(NVRHI_WITH_VALIDATION ON CACHE BOOL "" FORCE)
+set(NVRHI_INSTALL OFF CACHE BOOL "" FORCE)
+set(NVRHI_BUILD_SHARED OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(nvrhi
+    GIT_REPOSITORY https://github.com/NVIDIA-RTX/NVRHI.git
+    GIT_TAG bf0bbd9b666a7297492beb1999a4ddc0dfded143
+    SYSTEM)
+
+# Jolt - physics
+set(OVERRIDE_CXX_FLAGS OFF CACHE BOOL "" FORCE)
+set(INTERPROCEDURAL_OPTIMIZATION OFF CACHE BOOL "" FORCE)
+set(USE_STATIC_MSVC_RUNTIME_LIBRARY ON CACHE BOOL "" FORCE)
+set(FLOATING_POINT_EXCEPTIONS_ENABLED OFF CACHE BOOL "" FORCE)
+set(ENABLE_ALL_WARNINGS OFF CACHE BOOL "" FORCE)
+set(ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+set(ENABLE_OBJECT_STREAM OFF CACHE BOOL "" FORCE)
+set(DEBUG_RENDERER_IN_DEBUG_AND_RELEASE OFF CACHE BOOL "" FORCE)
+set(PROFILER_IN_DEBUG_AND_RELEASE OFF CACHE BOOL "" FORCE)
+set(USE_ASSERTS OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(JoltPhysics
+    GIT_REPOSITORY https://github.com/jrouwe/JoltPhysics.git
+    GIT_TAG v5.5.0
+    GIT_SHALLOW TRUE
+    SOURCE_SUBDIR Build
+    SYSTEM)
+
+# EnTT - entity component system
+FetchContent_Declare(EnTT
+    GIT_REPOSITORY https://github.com/skypjack/entt.git
+    GIT_TAG v3.16.0
+    GIT_SHALLOW TRUE
+    SYSTEM)
+
+FetchContent_MakeAvailable(glfw glm nvrhi JoltPhysics EnTT)
+
+# ---------------------------------------------------------------------------
+# Header-only / source-only libraries (wrapped in our own targets).
+# SOURCE_SUBDIR points at a non-existent folder so FetchContent only downloads.
+# ---------------------------------------------------------------------------
+
+macro(penumbra_fetch_sources name repo tag)
+    FetchContent_Declare(${name}
+        GIT_REPOSITORY ${repo}
+        GIT_TAG ${tag}
+        SOURCE_SUBDIR _penumbra_no_cmake)
+    FetchContent_MakeAvailable(${name})
+endmacro()
+
+penumbra_fetch_sources(lua        https://github.com/lua/lua.git                   v5.4.7)
+penumbra_fetch_sources(sol2       https://github.com/ThePhD/sol2.git               v3.5.0)
+penumbra_fetch_sources(miniaudio  https://github.com/mackron/miniaudio.git         0.11.26)
+penumbra_fetch_sources(cgltf      https://github.com/jkuhlmann/cgltf.git           v1.15)
+penumbra_fetch_sources(stb        https://github.com/nothings/stb.git              4e9b368bfc071e97206ea5c6adba68dd0cbf8897)
+penumbra_fetch_sources(json       https://github.com/nlohmann/json.git             v3.12.0)
+penumbra_fetch_sources(imgui      https://github.com/ocornut/imgui.git             v1.92.9-docking)
+penumbra_fetch_sources(imguizmo   https://github.com/CedricGuillemet/ImGuizmo.git  1.83)
+penumbra_fetch_sources(doctest    https://github.com/doctest/doctest.git           v2.5.3)
+
+# Lua 5.4 (C library, compiled as C)
+file(GLOB PN_LUA_SOURCES "${lua_SOURCE_DIR}/*.c")
+list(FILTER PN_LUA_SOURCES EXCLUDE REGEX ".*/(lua|luac|onelua|ltests)\\.c$")
+add_library(pn_lua STATIC ${PN_LUA_SOURCES})
+target_include_directories(pn_lua SYSTEM PUBLIC "${lua_SOURCE_DIR}")
+target_compile_definitions(pn_lua PRIVATE _CRT_SECURE_NO_WARNINGS)
+set_target_properties(pn_lua PROPERTIES FOLDER ThirdParty)
+
+# sol2 (Lua C++ binding)
+add_library(pn_sol2 INTERFACE)
+target_include_directories(pn_sol2 SYSTEM INTERFACE "${sol2_SOURCE_DIR}/include")
+target_compile_definitions(pn_sol2 INTERFACE SOL_ALL_SAFETIES_ON=1 SOL_PRINT_ERRORS=0)
+target_link_libraries(pn_sol2 INTERFACE pn_lua)
+
+# Small single-header libraries
+add_library(pn_miniaudio INTERFACE)
+target_include_directories(pn_miniaudio SYSTEM INTERFACE "${miniaudio_SOURCE_DIR}")
+add_library(pn_cgltf INTERFACE)
+target_include_directories(pn_cgltf SYSTEM INTERFACE "${cgltf_SOURCE_DIR}")
+add_library(pn_stb INTERFACE)
+target_include_directories(pn_stb SYSTEM INTERFACE "${stb_SOURCE_DIR}")
+add_library(pn_json INTERFACE)
+target_include_directories(pn_json SYSTEM INTERFACE "${json_SOURCE_DIR}/single_include")
+add_library(pn_doctest INTERFACE)
+target_include_directories(pn_doctest SYSTEM INTERFACE "${doctest_SOURCE_DIR}")
+
+# Dear ImGui (docking branch) + ImGuizmo, used by the editor only
+add_library(pn_imgui STATIC
+    "${imgui_SOURCE_DIR}/imgui.cpp"
+    "${imgui_SOURCE_DIR}/imgui_draw.cpp"
+    "${imgui_SOURCE_DIR}/imgui_tables.cpp"
+    "${imgui_SOURCE_DIR}/imgui_widgets.cpp"
+    "${imgui_SOURCE_DIR}/imgui_demo.cpp"
+    "${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp"
+    "${imguizmo_SOURCE_DIR}/ImGuizmo.cpp")
+target_include_directories(pn_imgui SYSTEM PUBLIC
+    "${imgui_SOURCE_DIR}"
+    "${imgui_SOURCE_DIR}/backends"
+    "${imguizmo_SOURCE_DIR}")
+target_link_libraries(pn_imgui PUBLIC glfw)
+set_target_properties(pn_imgui PROPERTIES FOLDER ThirdParty)
+
+# ---------------------------------------------------------------------------
+# DirectX Shader Compiler (prebuilt release, pinned) - used at build time only.
+# ---------------------------------------------------------------------------
+FetchContent_Declare(dxc
+    URL https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.9.2609/dxc_2026_09_29.zip
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    SOURCE_SUBDIR _penumbra_no_cmake)
+FetchContent_MakeAvailable(dxc)
+set(PENUMBRA_DXC_EXECUTABLE "${dxc_SOURCE_DIR}/bin/x64/dxc.exe" CACHE FILEPATH "DXC executable" FORCE)

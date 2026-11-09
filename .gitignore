@@ -1,0 +1,15 @@
+# Build output
+/build/
+/out/
+/bin/
+/Export/
+/.vs/
+/.vscode/
+*.user
+CMakeUserPresets.json
+
+# Runtime artifacts
+*.log
+imgui.ini
+/DemoProject/.cache/
+/PenumbraTests/output/
