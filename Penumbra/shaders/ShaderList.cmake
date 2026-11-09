@@ -22,4 +22,6 @@ set(PENUMBRA_SHADERS
     "CubeDownsampleCS|IBL.hlsl|CSDownsample|cs_6_0"
     "IrradianceCS|IBL.hlsl|CSIrradiance|cs_6_0"
     "PrefilterCS|IBL.hlsl|CSPrefilter|cs_6_0"
-    "BRDFLutCS|IBL.hlsl|CSBRDFLut|cs_6_0")
+    "BRDFLutCS|IBL.hlsl|CSBRDFLut|cs_6_0"
+    "ImGuiVS|ImGui.hlsl|VSMain|vs_6_0"
+    "ImGuiPS|ImGui.hlsl|PSMain|ps_6_0")
