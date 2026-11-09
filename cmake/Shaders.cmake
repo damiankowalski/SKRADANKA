@@ -39,7 +39,7 @@ function(penumbra_compile_shaders)
             OUTPUT "${header}"
             COMMAND "${PENUMBRA_DXC_EXECUTABLE}"
                 -nologo -T ${profile} -E ${entry} -HV 2021 -O3 -WX
-                -Zpr -Qstrip_reflect
+                -Qstrip_reflect
                 -I "${ARG_SOURCE_DIR}"
                 ${defineArgs}
                 -Fh "${header}" -Vn "g_Shader_${name}"
