@@ -88,7 +88,7 @@ penumbra_fetch_sources(cgltf      https://github.com/jkuhlmann/cgltf.git        
 penumbra_fetch_sources(stb        https://github.com/nothings/stb.git              4e9b368bfc071e97206ea5c6adba68dd0cbf8897)
 penumbra_fetch_sources(json       https://github.com/nlohmann/json.git             v3.12.0)
 penumbra_fetch_sources(imgui      https://github.com/ocornut/imgui.git             v1.92.9-docking)
-penumbra_fetch_sources(imguizmo   https://github.com/CedricGuillemet/ImGuizmo.git  1.83)
+penumbra_fetch_sources(imguizmo   https://github.com/CedricGuillemet/ImGuizmo.git  105e4fde45e4e74aae8973d98750820ef7aca7e2)
 penumbra_fetch_sources(doctest    https://github.com/doctest/doctest.git           v2.5.3)
 
 # Lua 5.4 (C library, compiled as C)
@@ -118,6 +118,7 @@ add_library(pn_doctest INTERFACE)
 target_include_directories(pn_doctest SYSTEM INTERFACE "${doctest_SOURCE_DIR}")
 
 # Dear ImGui (docking branch) + ImGuizmo, used by the editor only
+if(PENUMBRA_BUILD_EDITOR)
 add_library(pn_imgui STATIC
     "${imgui_SOURCE_DIR}/imgui.cpp"
     "${imgui_SOURCE_DIR}/imgui_draw.cpp"
@@ -125,13 +126,14 @@ add_library(pn_imgui STATIC
     "${imgui_SOURCE_DIR}/imgui_widgets.cpp"
     "${imgui_SOURCE_DIR}/imgui_demo.cpp"
     "${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp"
-    "${imguizmo_SOURCE_DIR}/ImGuizmo.cpp")
+    "${imguizmo_SOURCE_DIR}/src/ImGuizmo.cpp")
 target_include_directories(pn_imgui SYSTEM PUBLIC
     "${imgui_SOURCE_DIR}"
     "${imgui_SOURCE_DIR}/backends"
-    "${imguizmo_SOURCE_DIR}")
+    "${imguizmo_SOURCE_DIR}/src")
 target_link_libraries(pn_imgui PUBLIC glfw)
 set_target_properties(pn_imgui PROPERTIES FOLDER ThirdParty)
+endif()
 
 # ---------------------------------------------------------------------------
 # DirectX Shader Compiler (prebuilt release, pinned) - used at build time only.
