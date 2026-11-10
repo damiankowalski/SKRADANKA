@@ -1,0 +1,181 @@
+{
+  "Format": "PenumbraPrefab",
+  "Version": 1,
+  "Entities": [
+    {
+      "ID": "1000",
+      "Components": {
+        "Tag": {
+          "Tag": "Torch"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "StimResponse": {
+          "Rules": [
+            {
+              "Stim": "Water",
+              "Threshold": 0.3,
+              "Once": false,
+              "Actions": [
+                {
+                  "Type": "DisableLights"
+                },
+                {
+                  "Type": "PlaySound",
+                  "Asset": "Audio/Hiss.wav",
+                  "Value": 0.7
+                },
+                {
+                  "Type": "SpawnPrefab",
+                  "Asset": "Prefabs/Steam.pprefab"
+                }
+              ]
+            },
+            {
+              "Stim": "Fire",
+              "Threshold": 0.3,
+              "Once": false,
+              "Actions": [
+                {
+                  "Type": "EnableLights"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1001",
+      "Components": {
+        "Tag": {
+          "Tag": "Pole"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.6,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.08,
+            1.2,
+            0.08
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.25,
+            0.16,
+            0.1,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      },
+      "Parent": "1000"
+    },
+    {
+      "ID": "1002",
+      "Components": {
+        "Tag": {
+          "Tag": "Flame"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.3,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.16,
+            0.22,
+            0.16
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:sphere",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            1.0,
+            0.6,
+            0.2,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 6.0,
+          "EmissiveColor": [
+            1.0,
+            0.55,
+            0.2
+          ],
+          "Translucent": false
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.62,
+            0.32
+          ],
+          "Intensity": 14.0,
+          "Range": 9.0,
+          "Flicker": 0.15,
+          "CastShadows": false
+        },
+        "StimSource": {
+          "Stim": "Fire",
+          "Delivery": "Continuous",
+          "Radius": 0.5,
+          "Intensity": 1.0
+        }
+      },
+      "Parent": "1000"
+    }
+  ]
+}

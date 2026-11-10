@@ -33,3 +33,4 @@ namespace Penumbra {
 }
 
 #include "Penumbra/Core/Assert.h"
+#include "Penumbra/Core/Log.h"

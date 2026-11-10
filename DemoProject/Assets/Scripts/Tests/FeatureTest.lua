@@ -1,0 +1,217 @@
+-- Feature test scene: exercises every engine system and every function of the Lua API.
+-- Run headless:  PenumbraRuntime --project DemoProject --scene Scenes/FeatureTest.pscene
+--                 --headless --warp --fixed-timestep 0.0166667 --exit-on-test
+-- Every new Lua API function must be called here (see AGENTS.md).
+
+local H = require("Scripts/Tests/Helpers")
+
+local FeatureTest = { Properties = { label = "feature-test", factor = 2.0, flag = true, offset = vec3(1, 2, 3) } }
+
+local function run(self)
+    H.wait(0) -- start on the second frame so frame counters are non-zero
+    -- ---------------------------------------------------------------- properties, log, time
+    test.equal(self.label, "feature-test", "string property")
+    test.near(self.factor, 3.0, 1e-6, "number property overridden by the scene")
+    test.check(self.flag == true, "boolean property")
+    test.check(self.offset == vec3(1, 2, 3), "vec3 property")
+    log.trace("trace"); log.info("info", 1, true); log.warn("warn"); print("print")
+    test.check(time.delta() > 0, "time.delta")
+    test.check(time.frame() >= 1, "time.frame")
+    local start = time.elapsed()
+
+    -- ---------------------------------------------------------------- vec3
+    local a, b = vec3(1, 2, 3), vec3(4, 5, 6)
+    test.check(a + b == vec3(5, 7, 9) and b - a == vec3(3, 3, 3), "vec3 add/sub")
+    test.check(a * 2 == vec3(2, 4, 6) and 2 * a == vec3(2, 4, 6) and a * b == vec3(4, 10, 18), "vec3 mul")
+    test.check(b / 2 == vec3(2, 2.5, 3) and -a == vec3(-1, -2, -3), "vec3 div/neg")
+    test.near(vec3(3, 4, 0):length(), 5, 1e-5, "length")
+    test.near(vec3(0, 0, 9):normalized().z, 1, 1e-5, "normalized")
+    test.near(a:dot(b), 32, 1e-5, "dot")
+    test.check(vec3(1, 0, 0):cross(vec3(0, 1, 0)) == vec3(0, 0, 1), "cross")
+    test.near(a:distance(b), math.sqrt(27), 1e-4, "distance")
+    test.check(a:lerp(b, 0.5) == vec3(2.5, 3.5, 4.5), "lerp")
+    test.check(tostring(a):find("vec3") ~= nil, "tostring")
+    test.check(vec3().x == 0 and vec3(7).y == 7, "constructors")
+
+    -- ---------------------------------------------------------------- scene and entities
+    local e = scene.create("Temp")
+    test.check(e:valid() and e:get_name() == "Temp", "scene.create")
+    e:set_name("Temp2")
+    test.equal(scene.find("Temp2").id, e.id, "set_name/find")
+    test.check(scene.get(e.id) == e, "scene.get")
+    test.check(scene.find("NoSuchEntity") == nil, "find missing")
+    e:set_position(vec3(1, 2, 3))
+    test.check(e:get_position() == vec3(1, 2, 3), "world position")
+    e:set_local_position(vec3(4, 5, 6))
+    test.check(e:get_local_position() == vec3(4, 5, 6), "local position")
+    e:set_rotation(vec3(0, 90, 0))
+    test.near(e:get_rotation().y, 90, 1e-3, "rotation")
+    test.near(e:forward().x, -1, 1e-4, "forward")
+    test.near(e:right().z, -1, 1e-4, "right")
+    test.near(e:up().y, 1, 1e-4, "up")
+    e:set_scale(vec3(2, 2, 2))
+    test.check(e:get_scale() == vec3(2, 2, 2), "scale")
+    e:look_at(vec3(4, 5, 0), true)
+    test.near(e:forward().z, -1, 1e-4, "look_at yaw only")
+
+    e:add("PointLight", { Intensity = 3 })
+    test.check(e:has("PointLight"), "add/has")
+    test.near(e:get("PointLight").Intensity, 3, 1e-6, "get")
+    e:set("PointLight", { Range = 2 })
+    test.near(e:get("PointLight").Range, 2, 1e-6, "set merges")
+    test.near(e:get("PointLight").Intensity, 3, 1e-6, "set keeps other fields")
+    e:remove("PointLight")
+    test.check(not e:has("PointLight"), "remove")
+    test.check(e:get("SpotLight") == nil, "get missing component")
+    test.check(not pcall(function() e:add("NoSuchComponent") end), "unknown component errors")
+
+    local child = scene.create("TempChild")
+    child:set_parent(e)
+    test.check(child:parent() == e and #e:children() == 1, "hierarchy")
+    child:set_parent(nil)
+    test.check(child:parent() == nil, "unparent")
+    test.check(#scene.entities_with("Perception") == 1, "entities_with")
+    local count = scene.count()
+    e:destroy()
+    scene.destroy(child)
+    H.wait(0)
+    test.check(not e:valid() and scene.count() == count - 2, "destroy")
+    test.check(not pcall(function() return e:get_position() end), "destroyed handle errors")
+
+    -- Cross-script access.
+    test.equal(scene.find("Runner"):script().label, "feature-test", "Entity:script")
+
+    -- ---------------------------------------------------------------- input
+    test.check(input.key("W") == false and input.key_pressed("W") == false and input.key_released("W") == false, "keys")
+    test.check(input.mouse_button("Left") == false and input.mouse_pressed("Right") == false, "mouse buttons")
+    local mx, my = input.mouse_position()
+    local dx, dy = input.mouse_delta()
+    test.check(type(mx) == "number" and type(dy) == "number" and type(input.scroll()) == "number", "mouse")
+    input.set_cursor_locked(false)
+    test.check(not pcall(input.key, "NotAKey"), "bad key errors")
+
+    -- ---------------------------------------------------------------- physics
+    local crate = scene.find("Crate")
+    local hit = physics.raycast(vec3(0, 10, 8), vec3(0, -1, 0), 20)
+    test.check(hit ~= nil and hit.entity:get_name() == "Ground", "raycast")
+    test.near(hit.normal.y, 1, 1e-3, "raycast normal")
+    test.check(physics.raycast(vec3(0, 10, 8), vec3(0, -1, 0), 20, hit.entity) == nil, "raycast ignore")
+    test.check(#physics.overlap_sphere(vec3(0, 0, 8), 1) >= 1, "overlap_sphere")
+    test.check(physics.get_gravity().y < 0, "gravity")
+    physics.set_gravity(vec3(0, -9.81, 0))
+    physics.set_velocity(crate, vec3(0, 6, 0))
+    test.near(physics.get_velocity(crate).y, 6, 1e-3, "velocity")
+    physics.add_impulse(crate, vec3(5, 0, 0))
+    physics.add_force(crate, vec3(0, 0, 1))
+    physics.radial_impulse(vec3(0, 0, 0), 0.1, 1)
+    H.wait(0.5)
+    test.check(crate:get_position().x > 4.05, "impulse moved the crate")
+
+    -- ---------------------------------------------------------------- character
+    local player = scene.find("Player")
+    test.check(character.is_grounded(player), "character grounded")
+    local before = player:get_position()
+    character.move(player, vec3(2, 0, 0))
+    H.wait(0.5)
+    character.move(player, vec3(0, 0, 0))
+    test.check(player:get_position().x > before.x + 0.5, "character.move")
+    test.check(type(character.get_velocity(player).x) == "number", "character velocity")
+    character.jump(player, 4)
+    H.wait(0.15)
+    test.check(not character.is_grounded(player), "character.jump")
+    H.wait(1.0)
+
+    -- ---------------------------------------------------------------- audio
+    local speaker = scene.find("Speaker")
+    test.check(audio.play(speaker), "audio.play")
+    test.check(audio.is_playing(speaker), "audio.is_playing")
+    audio.stop(speaker)
+    test.check(not audio.is_playing(speaker), "audio.stop")
+    test.check(audio.play_at("Audio/Bow.wav", vec3(0, 1, 0), 0.5), "audio.play_at")
+
+    -- ---------------------------------------------------------------- AI perception
+    local guard = scene.find("Guard")
+    -- Until now a curtain hid the player; drop it and start from a calm guard.
+    scene.find("Curtain"):destroy()
+    H.wait(0) -- destruction (and the physics body) goes away at the end of the frame
+    ai.set_suspicion(guard, 0)
+    test.equal(ai.state(guard), "Unaware", "guard starts unaware")
+    test.check(ai.luminance(vec3(0, 1, 0)) >= 0, "ai.luminance")
+    local seen = ai.visibility(guard, player)
+    test.equal(seen.total_points, 7, "visibility table")
+    test.check(seen.visible_fraction > 0, "player in view")
+    -- The player stands in front of the bright doorway: the guard must notice the silhouette.
+    H.wait(2.0)
+    test.check(ai.suspicion(guard) > 0.3, "silhouette against the doorway is noticed")
+    test.check(ai.last_stimulus(guard) ~= nil, "ai.last_stimulus")
+    ai.set_suspicion(guard, 0)
+    test.equal(ai.state(guard), "Unaware", "ai.set_suspicion")
+    -- Smoke between them hides the silhouette.
+    scene.instantiate("Prefabs/Smoke.pprefab", vec3(0, 1.5, -3))
+    H.wait(1.0)
+    ai.set_suspicion(guard, 0)
+    H.wait(1.0)
+    test.check(ai.suspicion(guard) < 0.3, "smoke blocks the silhouette")
+    ai.emit_noise(guard:get_position() + vec3(0, 1.6, -2), 10, player)
+    H.wait(0.1)
+    test.check(ai.suspicion(guard) > 0.05, "noise is heard")
+
+    -- ---------------------------------------------------------------- stims (Act/React)
+    local torch = scene.find("Torch")
+    local flame = nil
+    for _, child in ipairs(torch:children()) do
+        if child:get_name() == "Flame" then flame = child end
+    end
+    test.check(flame ~= nil, "torch has a flame")
+    test.check(flame:get("PointLight").Enabled, "torch lit")
+    stim.send(torch, "Water", 1.0)
+    H.wait(0.1)
+    test.check(not flame:get("PointLight").Enabled, "water extinguishes")
+    stim.emit("Fire", torch:get_position(), 1.0, 1.0)
+    H.wait(0.1)
+    test.check(flame:get("PointLight").Enabled, "fire re-ignites")
+    stim.set_lights(torch, false)
+    test.check(not flame:get("PointLight").Enabled, "stim.set_lights")
+    local fireArrow = scene.instantiate("Prefabs/FireArrow.pprefab", vec3(10, 0.5, 0), vec3(0, 0, 0))
+    H.wait(0)
+    physics.set_velocity(fireArrow, vec3(0, 0, -30))
+    H.wait(1.0)
+    test.check(scene.find("PowderKeg") == nil, "fire arrow detonates the powder keg")
+    stim.send(self.entity, "Fire", 0.5)
+    test.check(self.stims["Fire"] ~= nil, "on_stim callback")
+
+    -- ---------------------------------------------------------------- ui
+    ui.text(10, 10, "Feature test", 2, { 1, 1, 1, 1 })
+    ui.rect(0, 0, 10, 10)
+    test.check(ui.width() > 0 and ui.height() > 0, "ui size")
+
+    -- ---------------------------------------------------------------- lifecycle, collisions
+    test.check(self.created, "on_create ran")
+    test.check(self.updates > 10, "on_update runs every frame")
+    test.check(scene.find("Bouncer"):script().collisions > 0, "on_collision callback")
+    test.check(time.elapsed() > start, "time advances")
+    test.check(test.failures() == 0, "no failures so far")
+    test.complete()
+end
+
+function FeatureTest:on_create()
+    self.created = true
+    self.updates = 0
+    self.stims = {}
+    self.sequence = H.sequence(function() run(self) end)
+end
+
+function FeatureTest:on_stim(name, intensity, source)
+    self.stims[name] = intensity
+end
+
+function FeatureTest:on_update(dt)
+    self.updates = self.updates + 1
+    self.sequence(dt)
+end
+
+function FeatureTest:on_destroy()
+    log.info("feature test runner destroyed")
+end
+
+return FeatureTest

@@ -21,7 +21,9 @@ contract for every human or AI agent changing this repository. Read it fully bef
 | `PenumbraRuntime` | Shipping game executable (no editor code) |
 | `PenumbraTests` | doctest unit + integration tests |
 | `DemoProject` | Demo stealth level and the `FeatureTest` scene covering every feature |
-| `docs/` | Design documents (`GAME ENGINE SKRADANKA.md` is the original brief) |
+| `docs/` | Design documents (`GAME ENGINE SKRADANKA.md` is the original brief), API references, examples |
+| `Tools/` | Build/test scripts, `BuildDemoProject.py` (regenerates demo scenes, prefabs, sounds) |
+| `cmake/patches/` | Patches applied to pinned dependencies (each explains why) |
 
 ## Build and test
 
@@ -38,6 +40,9 @@ build\debug\bin\PenumbraTests.exe --trace -tc="*torch*"     :: one case with eng
 * Dependencies are fetched by CMake (`cmake/Dependencies.cmake`), pinned to exact tags/commits.
 * `/W4 /WX` is on for engine code: a warning is a build break. Third-party headers are `SYSTEM`.
 * GPU tests use the WARP software rasterizer when no GPU exists (CI), so they run anywhere.
+* Demo content is generated: edit `Tools/BuildDemoProject.py`, run `python Tools/BuildDemoProject.py`,
+  commit the generated files. Lua scripts and the HDRI are hand-made.
+* Crashes write a symbolized stack to the log and a minidump to `<exe dir>/CrashDumps`.
 
 ## Code style (Hazel conventions)
 
@@ -80,7 +85,7 @@ build\debug\bin\PenumbraTests.exe --trace -tc="*torch*"     :: one case with eng
 
 ## Driving the engine as an agent
 
-The editor and runtime are fully scriptable; see `docs/Automation.md` and the
-`penumbra-build-game` skill. In short: author scenes/prefabs as JSON or through the command API
+The editor and runtime are fully scriptable; see `docs/Automation.md`, `docs/ScriptingAPI.md`,
+`docs/Perception.md` and the `penumbra-build-game` skill. In short: author scenes/prefabs as JSON or through the command API
 (`PenumbraEditor --headless --exec commands.json`), write gameplay in Lua, verify with
 `PenumbraRuntime --headless --scene <scene> --frames N` and scripted `test.*` assertions.

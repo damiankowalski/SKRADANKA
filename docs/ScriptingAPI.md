@@ -1,0 +1,50 @@
+# Lua scripting API
+
+Gameplay is written in Lua 5.4. Bindings: `Penumbra/src/Penumbra/Scripting/ScriptBindings.cpp`.
+Every function below is exercised by `DemoProject/Assets/Scripts/Tests/FeatureTest.lua`.
+
+## Script shape
+
+```lua
+local Door = { Properties = { speed = 2.0, open = false } } -- defaults, overridable per entity
+function Door:on_create() end                    -- after the scene (or the entity) appears
+function Door:on_update(dt) end                  -- every frame
+function Door:on_destroy() end
+function Door:on_collision(other) end            -- physics contact began (other: Entity)
+function Door:on_stim(stim, intensity, source) end
+function Door:on_stim_event(name) end            -- from a ScriptEvent stim action
+return Door
+```
+
+`self.entity` is the owning entity. Errors are logged and disable only the failing instance.
+`require("Scripts/Util")` loads `<Assets>/Scripts/Util.lua`. `io`/`os` are not available.
+
+## Types
+
+**vec3** — `vec3(x,y,z)`, `vec3(s)`, `vec3()`; fields `x y z`; `+ - * /`, unary `-`, `==`, `tostring`;
+`:length() :normalized() :dot(v) :cross(v) :distance(v) :lerp(v,t)`.
+
+**Entity** — `.id`, `:valid()`, `:get_name()/:set_name(s)`, `:get_position()/:set_position(v)` (world),
+`:get_local_position()/:set_local_position(v)`, `:get_rotation()/:set_rotation(deg)`, `:get_scale()/:set_scale(v)`,
+`:forward() :right() :up()`, `:look_at(target, yawOnly?)`, `:has(c) :get(c) :set(c, table) :add(c, table?) :remove(c)`
+(any component by name, e.g. `e:set("PointLight", {Intensity = 5})`; `get` includes runtime state such as
+`Perception.Suspicion`), `:parent() :children() :set_parent(e|nil)`, `:destroy()`, `:script()` (other script's instance).
+
+## Modules
+
+| Module | Functions |
+|---|---|
+| `scene` | `create(name?)`, `find(name)`, `get(id)`, `entities_with(component)`, `instantiate(prefab, pos?, rotDeg?)`, `destroy(e)`, `load(path)`, `quit(code?)`, `count()` |
+| `input` | `key(name)`, `key_pressed(name)`, `key_released(name)`, `mouse_button(btn)`, `mouse_pressed(btn)`, `mouse_position()`, `mouse_delta()`, `scroll()`, `set_cursor_locked(bool)` — keys: `"A".."Z"`, `"0".."9"`, `"F1".."F12"`, `Space`, `Escape`, `Enter`, `LeftShift`, ...; buttons `Left/Right/Middle` |
+| `physics` | `raycast(origin, dir, max, ignore?)` → `{entity, point, normal, distance}` or nil, `overlap_sphere(c, r)`, `add_impulse(e,v)`, `add_force(e,v)`, `set_velocity(e,v)`, `get_velocity(e)`, `radial_impulse(c,r,s)`, `get_gravity()`, `set_gravity(v)` |
+| `character` | `move(e, velocity)`, `jump(e, speed)`, `is_grounded(e)`, `get_velocity(e)` |
+| `audio` | `play(e)`, `stop(e)`, `is_playing(e)`, `play_at(clip, pos, volume?, noiseRadius?)` |
+| `ai` | `state(e)` (`Unaware/Suspicious/Searching/Alarmed`), `suspicion(e)`, `set_suspicion(e,v)`, `last_stimulus(e)`, `visibility(guard, target)` (all perception factors), `luminance(pos)`, `emit_noise(pos, radius, source?)` |
+| `stim` | `emit(name, pos, radius, intensity, source?)`, `send(e, name, intensity, source?)`, `set_lights(e, enabled)` |
+| `ui` | `text(x, y, text, scale?, {r,g,b,a}?)`, `rect(x, y, w, h, color?)`, `width()`, `height()` |
+| `time` | `delta()`, `elapsed()`, `frame()` |
+| `log` | `trace/info/warn/error(...)`, `print(...)` |
+| `test` | `check(cond, msg?)`, `equal(a, b, msg?)`, `near(a, b, eps?, msg?)`, `complete()`, `failures()` |
+
+Freshly spawned entities get physics bodies in the same frame's physics step: set velocities on the next frame
+(see `Player.lua`, `pending_arrow`).
