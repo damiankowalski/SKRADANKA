@@ -26,7 +26,8 @@ target_link_libraries(Penumbra PUBLIC
     pn_stb
     d3d12
     dxgi
-    dxguid)
+    dxguid
+    dbghelp)
 
 # Shader permutations: "<Name>|<file>|<entry>|<profile>[|DEFINE=1,DEFINE2=1]"
 include(${CMAKE_CURRENT_SOURCE_DIR}/shaders/ShaderList.cmake)

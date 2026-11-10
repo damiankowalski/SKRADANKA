@@ -1,0 +1,7 @@
+{
+  "Name": "Penumbra Demo",
+  "StartScene": "Scenes/Stealth.pscene",
+  "AssetDirectory": "Assets",
+  "WindowWidth": 1600,
+  "WindowHeight": 900
+}

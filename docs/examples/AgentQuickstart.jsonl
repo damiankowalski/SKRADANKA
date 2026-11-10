@@ -1,0 +1,14 @@
+# Builds a tiny level from scratch through the automation API, verifies it with a scripted
+# test and renders a screenshot. Run:  PenumbraEditor --headless --exec docs/examples/AgentQuickstart.jsonl
+{"cmd": "project.new", "path": "AgentQuickstartProject", "name": "Agent Quickstart"}
+{"cmd": "entity.create", "name": "Sun", "components": {"Transform": {"Rotation": [-50, 30, 0]}, "DirectionalLight": {"Intensity": 2.0}}}
+{"cmd": "entity.create", "name": "Environment", "components": {"Environment": {"AmbientColor": [0.1, 0.1, 0.12]}}}
+{"cmd": "entity.create", "name": "Ground", "components": {"Transform": {"Translation": [0, -0.5, 0], "Scale": [20, 1, 20]}, "Mesh": {"Mesh": "builtin:cube"}, "BoxCollider": {}}}
+{"cmd": "entity.create", "name": "Ball", "components": {"Transform": {"Translation": [0, 3, 0]}, "Mesh": {"Mesh": "builtin:sphere"}, "Material": {"BaseColor": [0.9, 0.2, 0.1, 1]}, "SphereCollider": {}, "RigidBody": {"Type": "Dynamic"}}}
+{"cmd": "entity.create", "name": "Camera", "components": {"Transform": {"Translation": [0, 2, 6], "Rotation": [-10, 0, 0]}, "Camera": {}}}
+{"cmd": "asset.write", "path": "Scripts/BallTest.lua", "content": "local T = {}\nfunction T:on_update(dt)\n  if time.elapsed() > 2 then\n    test.check(scene.find('Ball'):get_position().y < 0.6, 'ball fell onto the ground')\n    test.complete()\n  end\nend\nreturn T\n"}
+{"cmd": "entity.create", "name": "Test", "components": {"Script": {"Script": "Scripts/BallTest.lua"}}}
+{"cmd": "scene.save", "path": "Scenes/Main.pscene"}
+{"cmd": "test.run", "scene": "Scenes/Main.pscene", "seconds": 5}
+{"cmd": "scene.open", "path": "Scenes/Main.pscene"}
+{"cmd": "render.screenshot", "path": "AgentQuickstart.png", "width": 640, "height": 360}

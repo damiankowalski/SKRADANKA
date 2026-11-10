@@ -21,5 +21,18 @@ Tools\Build.bat debug
 Tools\Test.bat debug
 ```
 
+Play the demo (WASD, mouse, Shift run, C crouch, 1/2 water/fire arrow, left click shoot):
+
+```bat
+build\debug\bin\PenumbraRuntime.exe --project DemoProject
+```
+
+Open it in the editor (`F5` plays, gizmo W/E/R, right-drag + WASD flies):
+
+```bat
+build\debug\bin\PenumbraEditor.exe --project DemoProject
+```
+
 Requires Visual Studio 2022 or newer with the "Desktop development with C++" workload.
+Docs: `docs/Perception.md`, `docs/ScriptingAPI.md`, `docs/Automation.md`, `docs/Components.md`.
 See [AGENTS.md](AGENTS.md) for the architecture, conventions and workflow.

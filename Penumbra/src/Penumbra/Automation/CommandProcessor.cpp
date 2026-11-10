@@ -108,7 +108,6 @@ namespace Penumbra {
 				children.push_back(IdString(child));
 			result["children"] = children;
 			result["components"] = ComponentRegistry::SerializeEntityComponents(entity, { .IncludeRuntimeState = runtime });
-			result["worldPosition"] = json::array();
 			const glm::vec3 position = entity.GetScene()->GetWorldPosition(entity);
 			result["worldPosition"] = { position.x, position.y, position.z };
 			return result;
@@ -667,7 +666,7 @@ namespace Penumbra {
 				return json{ { "path", std::filesystem::absolute(path).string() }, { "drawCalls", renderer->GetStatistics().DrawCalls } };
 			});
 
-		Register("test.run", "scene, seconds?, dt?", "Load a scene, play it until its scripts call test.complete() (or timeout).", [&host](const json& args) {
+		Register("test.run", "scene, seconds?, dt?, allowFailure?", "Load a scene and play it until its scripts call test.complete(); fails unless every assertion passed.", [&host](const json& args) {
 			Ref<Scene> scene = CreateRef<Scene>();
 			std::string error;
 			if (!SceneSerializer::Deserialize(*scene, Project::ResolveAssetPath(RequireString(args, "scene")), error))
@@ -688,7 +687,18 @@ namespace Penumbra {
 			for (const ScriptError& scriptError : play->GetScriptEngine()->GetErrors())
 				errors.push_back(scriptError.Script + ": " + scriptError.Message);
 			host.StopPlay();
-			return json{ { "completed", report.Completed }, { "passed", report.Completed && report.Passed && errors.empty() },
+			const bool passed = report.Completed && report.Passed && errors.empty();
+			if (!passed && !Optional<bool>(args, "allowFailure", false))
+			{
+				std::string summary = !report.Completed ? std::format("test did not complete within {} s", seconds)
+														: std::format("{} of {} assertions failed", report.Failures, report.Assertions);
+				for (const std::string& message : report.Messages)
+					summary += "; " + message;
+				for (const json& scriptError : errors)
+					summary += "; " + scriptError.get<std::string>();
+				throw CommandError(summary);
+			}
+			return json{ { "completed", report.Completed }, { "passed", passed },
 				{ "assertions", report.Assertions }, { "failures", report.Failures }, { "messages", report.Messages }, { "scriptErrors", errors } };
 		});
 	}

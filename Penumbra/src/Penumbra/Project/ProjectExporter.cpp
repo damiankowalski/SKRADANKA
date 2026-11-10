@@ -54,9 +54,10 @@ namespace Penumbra {
 			return result;
 		}
 
-		const std::filesystem::path absoluteOutput = std::filesystem::absolute(outputDirectory, error);
-		const std::filesystem::path absoluteProject = std::filesystem::absolute(projectDirectory, error);
-		if (absoluteOutput.lexically_normal().string().starts_with(absoluteProject.lexically_normal().string() + "\\" + assetDirectory))
+		const std::filesystem::path output = std::filesystem::weakly_canonical(outputDirectory, error);
+		const std::filesystem::path assets = std::filesystem::weakly_canonical(sourceAssets, error);
+		const auto [assetsEnd, unused] = std::mismatch(assets.begin(), assets.end(), output.begin(), output.end());
+		if (assetsEnd == assets.end())
 		{
 			result.Error = "the export directory must not be inside the asset directory";
 			return result;

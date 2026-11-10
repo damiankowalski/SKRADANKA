@@ -49,6 +49,7 @@ namespace Penumbra {
 		std::atomic<bool> m_Running = false;
 		uint16_t m_Port = 0;
 		uintptr_t m_ListenSocket = ~uintptr_t(0);
+		std::atomic<uintptr_t> m_ClientSocket = ~uintptr_t(0);
 		std::thread m_Thread;
 
 		std::mutex m_Mutex;

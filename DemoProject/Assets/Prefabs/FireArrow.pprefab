@@ -1,0 +1,105 @@
+{
+  "Format": "PenumbraPrefab",
+  "Version": 1,
+  "Entities": [
+    {
+      "ID": "1000",
+      "Components": {
+        "Tag": {
+          "Tag": "FireArrow"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "SphereCollider": {
+          "Radius": 0.06
+        },
+        "RigidBody": {
+          "Type": "Dynamic",
+          "Mass": 0.1,
+          "GravityFactor": 0.3,
+          "ContinuousCollision": true,
+          "TransparentToSight": true
+        },
+        "StimSource": {
+          "Stim": "Fire",
+          "Delivery": "Contact",
+          "Intensity": 1.0,
+          "Radius": 1.0,
+          "DestroyOnContact": true
+        }
+      }
+    },
+    {
+      "ID": "1001",
+      "Components": {
+        "Tag": {
+          "Tag": "Shaft"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.05,
+            0.05,
+            0.6
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            1.0,
+            0.45,
+            0.1,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 4.0,
+          "EmissiveColor": [
+            1.0,
+            0.45,
+            0.1
+          ],
+          "Translucent": false
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.5,
+            0.2
+          ],
+          "Intensity": 4.0,
+          "Range": 5.0,
+          "Flicker": 0.2
+        }
+      },
+      "Parent": "1000"
+    }
+  ]
+}

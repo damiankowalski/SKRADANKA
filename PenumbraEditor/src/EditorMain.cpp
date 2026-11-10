@@ -2,6 +2,7 @@
 
 #include "Penumbra/Automation/CommandProcessor.h"
 #include "Penumbra/Core/Application.h"
+#include "Penumbra/Core/CrashHandler.h"
 #include "Penumbra/Core/FileSystem.h"
 #include "Penumbra/Project/Project.h"
 
@@ -55,6 +56,7 @@ int main(int argc, char** argv)
 {
 	const CommandLine args(argc, argv);
 	Log::Init("PenumbraEditor.log");
+	CrashHandler::Install(FileSystem::GetExecutableDirectory() / "CrashDumps", "PenumbraEditor");
 
 	int exitCode = 0;
 	if (args.HasFlag("headless"))
@@ -68,6 +70,7 @@ int main(int argc, char** argv)
 		spec.Maximized = true;
 		spec.UseWarp = args.HasFlag("warp");
 		spec.EnableGraphicsDebugLayer = args.HasFlag("debug-layer");
+		spec.MaxFrames = static_cast<uint64_t>(std::max(args.GetInt("frames").value_or(0), 0));
 		spec.Arguments = args;
 
 		EditorOptions options;

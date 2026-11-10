@@ -34,6 +34,9 @@ namespace Penumbra {
 		void OnRender() override;
 		void OnEvent(Event& event) override;
 
+		// True once the layer ended the run itself (test finished, quit requested, load failure).
+		bool IsFinished() const { return m_Finished; }
+
 	private:
 		bool LoadScene(const std::string& path);
 		void Finish(int exitCode);

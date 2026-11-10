@@ -1,0 +1,36 @@
+{
+  "Format": "PenumbraPrefab",
+  "Version": 1,
+  "Entities": [
+    {
+      "ID": "1000",
+      "Components": {
+        "Tag": {
+          "Tag": "Steam"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "SmokeVolume": {
+          "Radius": 1.2,
+          "Density": 0.6,
+          "Lifetime": 3.0
+        }
+      }
+    }
+  ]
+}

@@ -39,6 +39,8 @@ set(NVRHI_BUILD_SHARED OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(nvrhi
     GIT_REPOSITORY https://github.com/NVIDIA-RTX/NVRHI.git
     GIT_TAG bf0bbd9b666a7297492beb1999a4ddc0dfded143
+    # Drivers without mesh shaders (Intel Xe) crash on the unconditional mesh dispatch signature.
+    PATCH_COMMAND ${CMAKE_COMMAND} -DPATCH=${CMAKE_CURRENT_LIST_DIR}/patches/nvrhi-mesh-signature.patch -P ${CMAKE_CURRENT_LIST_DIR}/ApplyPatch.cmake
     SYSTEM)
 
 # Jolt - physics

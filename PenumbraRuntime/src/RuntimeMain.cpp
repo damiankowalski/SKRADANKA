@@ -1,6 +1,9 @@
 #include "RuntimeLayer.h"
 
+#include "Penumbra/Core/Log.h"
+
 #include "Penumbra/Core/Application.h"
+#include "Penumbra/Core/CrashHandler.h"
 #include "Penumbra/Core/FileSystem.h"
 #include "Penumbra/Project/Project.h"
 
@@ -56,6 +59,7 @@ namespace {
 		}
 
 		Log::Init();
+	CrashHandler::Install(FileSystem::GetExecutableDirectory() / "CrashDumps", "PenumbraRuntime");
 		const std::filesystem::path projectDirectory = args.GetValue("project").value_or(FileSystem::GetExecutableDirectory().string());
 		std::string error;
 		if (!Project::Load(projectDirectory, error))
@@ -95,7 +99,7 @@ namespace {
 			app.PushLayer(layer);
 			app.Run();
 			exitCode = app.GetExitCode();
-			if (options.ExitOnTestComplete && exitCode == 0 && spec.MaxFrames > 0 && app.GetFrameIndex() >= spec.MaxFrames)
+			if (options.ExitOnTestComplete && exitCode == 0 && !layer->IsFinished())
 			{
 				PN_CORE_ERROR("Frame limit reached before the test scene completed");
 				exitCode = 1;

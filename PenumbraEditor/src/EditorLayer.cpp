@@ -194,6 +194,29 @@ namespace Penumbra {
 		m_ChangeOpen = false;
 	}
 
+	json EditorLayer::ExecuteRecorded(const json& request)
+	{
+		CommitPendingChange();
+		const std::string command = request.is_object() ? request.value("cmd", std::string()) : std::string();
+		static const std::unordered_set<std::string> s_ReadOnly = { "help", "log.tail", "project.info", "scene.get", "scene.list",
+			"entity.get", "component.list", "asset.list", "asset.read", "script.errors", "render.screenshot" };
+		if (m_PlayScene || s_ReadOnly.contains(command))
+			return m_Commands->Execute(request);
+
+		Ref<Scene> before = m_EditScene;
+		MarkChanged();
+		json response = m_Commands->Execute(request);
+		if (m_EditScene != before)
+		{
+			// The command replaced the scene (scene.open, project.open...): history restarted already.
+			return response;
+		}
+		CommitPendingChange();
+		if (!m_UndoStack.empty() && m_UndoStack.back() == m_StableSnapshot)
+			m_UndoStack.pop_back(); // nothing actually changed
+		return response;
+	}
+
 	void EditorLayer::RestoreSnapshot(const json& snapshot)
 	{
 		Ref<Scene> scene = CreateRef<Scene>();
@@ -372,13 +395,7 @@ namespace Penumbra {
 	void EditorLayer::OnUpdate(Timestep ts)
 	{
 		m_FrameTime = ts;
-		m_Server.ProcessPending([this](const json& request) {
-			if (!m_PlayScene)
-				MarkChanged();
-			json response = m_Commands->Execute(request);
-			CommitPendingChange();
-			return response;
-		});
+		m_Server.ProcessPending([this](const json& request) { return ExecuteRecorded(request); });
 
 		if (!m_UseSceneCamera)
 			m_Camera.Update(ts, m_ViewportHovered, m_ViewportFocused);
@@ -536,6 +553,9 @@ namespace Penumbra {
 			Application::Get().GetWindow()->SetCursorLocked(false);
 		if (event.Key == Key::F5)
 			m_PlayScene ? StopPlay() : static_cast<void>(StartPlay());
+
+		if (ImGui::GetIO().WantTextInput)
+			return; // typing in a text field: shortcuts belong to the field
 
 		if (control)
 		{
@@ -934,9 +954,7 @@ namespace Penumbra {
 			}
 			else
 			{
-				MarkChanged();
-				const json response = m_Commands->Execute(json::parse(input, nullptr, false));
-				PN_CORE_INFO("{}", response.dump());
+				PN_CORE_INFO("{}", ExecuteRecorded(json::parse(input, nullptr, false)).dump());
 			}
 			ImGui::SetKeyboardFocusHere(-1);
 		}

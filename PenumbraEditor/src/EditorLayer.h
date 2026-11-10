@@ -11,6 +11,7 @@
 #include "Penumbra/Scene/Scene.h"
 
 #include <deque>
+#include <unordered_set>
 #include <nlohmann/json.hpp>
 
 namespace Penumbra {
@@ -80,6 +81,8 @@ namespace Penumbra {
 		void Undo();
 		void Redo();
 		void RestoreSnapshot(const nlohmann::json& snapshot);
+		// Runs an automation command; commands that modify the edit scene become one undo step.
+		nlohmann::json ExecuteRecorded(const nlohmann::json& request);
 
 	private:
 		EditorOptions m_Options;

@@ -70,6 +70,9 @@ namespace Penumbra {
 		if (!m_Running.exchange(false))
 			return;
 		closesocket(static_cast<SOCKET>(m_ListenSocket));
+		// Wake a client thread blocked in recv() on an idle connection.
+		if (const uintptr_t client = m_ClientSocket.exchange(~uintptr_t(0)); client != ~uintptr_t(0))
+			shutdown(static_cast<SOCKET>(client), SD_BOTH);
 		{
 			// Unblock any client thread waiting for the main thread.
 			std::scoped_lock lock(m_Mutex);
@@ -94,7 +97,10 @@ namespace Penumbra {
 			if (client == INVALID_SOCKET)
 				continue; // closed by Stop() or transient error
 			// One client at a time keeps command ordering obvious for agents.
-			ServeClient(static_cast<uintptr_t>(client));
+			m_ClientSocket = static_cast<uintptr_t>(client);
+			if (m_Running)
+				ServeClient(static_cast<uintptr_t>(client));
+			m_ClientSocket = ~uintptr_t(0);
 			closesocket(client);
 		}
 	}
