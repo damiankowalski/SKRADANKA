@@ -1,2 +1,25 @@
 # Every compiled shader permutation used by the renderer.
-set(PENUMBRA_SHADERS "")
+# Format: "<Name>|<file>|<entry point>|<profile>[|DEFINE=1,DEFINE2=1]"
+set(PENUMBRA_SHADERS
+    "MeshVS|Mesh.hlsl|VSMain|vs_6_0"
+    "MeshPrepassPS|Mesh.hlsl|PSPrepass|ps_6_0"
+    "MeshForwardPS|Mesh.hlsl|PSForward|ps_6_0"
+    "ShadowVS|Shadow.hlsl|VSMain|vs_6_0"
+    "FullscreenVS|Post.hlsl|VSFullscreen|vs_6_0"
+    "SkyVS|Post.hlsl|VSSky|vs_6_0"
+    "SkyPS|Post.hlsl|PSSky|ps_6_0"
+    "SSAOPS|Post.hlsl|PSSSAO|ps_6_0"
+    "SSAOBlurPS|Post.hlsl|PSSSAOBlur|ps_6_0"
+    "BloomDownsamplePS|Post.hlsl|PSBloomDownsample|ps_6_0"
+    "BloomUpsamplePS|Post.hlsl|PSBloomUpsample|ps_6_0"
+    "TonemapPS|Post.hlsl|PSTonemap|ps_6_0"
+    "BlitPS|Post.hlsl|PSBlit|ps_6_0"
+    "SmokePS|Effects.hlsl|PSSmoke|ps_6_0"
+    "Overlay2DVS|Effects.hlsl|VSOverlay2D|vs_6_0"
+    "Overlay3DVS|Effects.hlsl|VSOverlay3D|vs_6_0"
+    "OverlayPS|Effects.hlsl|PSOverlay|ps_6_0"
+    "EquirectToCubeCS|IBL.hlsl|CSEquirectToCube|cs_6_0"
+    "CubeDownsampleCS|IBL.hlsl|CSDownsample|cs_6_0"
+    "IrradianceCS|IBL.hlsl|CSIrradiance|cs_6_0"
+    "PrefilterCS|IBL.hlsl|CSPrefilter|cs_6_0"
+    "BRDFLutCS|IBL.hlsl|CSBRDFLut|cs_6_0")
