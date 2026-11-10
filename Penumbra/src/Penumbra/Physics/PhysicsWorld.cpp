@@ -124,6 +124,8 @@ namespace Penumbra {
 
 			bool ShouldCollideLocked(const JPH::Body& body) const override
 			{
+				if (body.IsSensor())
+					return false;
 				return !m_Filter || m_Filter(UUID(body.GetUserData()));
 			}
 
@@ -174,6 +176,7 @@ namespace Penumbra {
 
 		std::unordered_map<UUID, JPH::BodyID> Bodies;
 		std::unordered_map<UUID, JPH::Ref<JPH::CharacterVirtual>> Characters;
+		std::unordered_map<UUID, float> CharacterHeights; // height of the current character shape
 		float Accumulator = 0.0f;
 		bool Started = false;
 
@@ -310,6 +313,16 @@ namespace Penumbra {
 				rigidBody->RuntimeBodyID = bodyID.GetIndexAndSequenceNumber();
 		}
 
+		// Capsule standing on the entity origin (the character's feet).
+		static JPH::Ref<JPH::Shape> MakeCharacterShape(float radius, float height)
+		{
+			const float halfHeight = std::max(height * 0.5f - radius, 0.05f);
+			return JPH::RotatedTranslatedShapeSettings(JPH::Vec3(0.0f, halfHeight + radius, 0.0f), JPH::Quat::sIdentity(),
+				new JPH::CapsuleShape(halfHeight, radius))
+				.Create()
+				.Get();
+		}
+
 		void CreateCharacter(Entity entity)
 		{
 			const UUID uuid = entity.GetUUID();
@@ -317,13 +330,8 @@ namespace Penumbra {
 				return;
 			const auto& controller = entity.GetComponent<CharacterControllerComponent>();
 			const float radius = std::max(controller.Radius, 0.05f);
-			const float halfHeight = std::max(controller.Height * 0.5f - radius, 0.05f);
-
-			// The entity origin is at the character's feet.
-			JPH::Ref<JPH::Shape> capsule = JPH::RotatedTranslatedShapeSettings(JPH::Vec3(0.0f, halfHeight + radius, 0.0f), JPH::Quat::sIdentity(),
-				new JPH::CapsuleShape(halfHeight, radius))
-											   .Create()
-											   .Get();
+			JPH::Ref<JPH::Shape> capsule = MakeCharacterShape(radius, controller.Height);
+			CharacterHeights[uuid] = controller.Height;
 
 			JPH::Ref<JPH::CharacterVirtualSettings> settings = new JPH::CharacterVirtualSettings();
 			settings->mShape = capsule;
@@ -374,6 +382,7 @@ namespace Penumbra {
 			{
 				CharacterCollisions.Remove(it->second);
 				Characters.erase(it);
+				CharacterHeights.erase(uuid);
 			}
 		}
 
@@ -386,6 +395,26 @@ namespace Penumbra {
 				if (!entity)
 					continue;
 				auto& controller = entity->GetComponent<CharacterControllerComponent>();
+
+				// Crouching/standing: a changed Height swaps the capsule. Standing up under a low
+				// ceiling fails, and the component keeps the height the character actually has.
+				float& currentHeight = CharacterHeights[uuid];
+				if (std::abs(controller.Height - currentHeight) > 1e-3f)
+				{
+					const float radius = std::max(controller.Radius, 0.05f);
+					controller.Height = std::max(controller.Height, radius * 2.0f + 0.1f);
+					JPH::Ref<JPH::Shape> shape = MakeCharacterShape(radius, controller.Height);
+					if (character->SetShape(shape, 0.05f, System->GetDefaultBroadPhaseLayerFilter(Layers::Moving),
+							System->GetDefaultLayerFilter(Layers::Moving), {}, {}, *TempAllocator))
+					{
+						character->SetInnerBodyShape(shape);
+						currentHeight = controller.Height;
+					}
+					else
+					{
+						controller.Height = currentHeight;
+					}
+				}
 
 				character->UpdateGroundVelocity();
 				const JPH::Vec3 groundVelocity = character->GetGroundVelocity();

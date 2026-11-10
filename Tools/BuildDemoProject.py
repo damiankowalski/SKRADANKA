@@ -84,7 +84,9 @@ def torch_prefab_entities(doc, position=(0, 0, 0), parent=None, shadows=False):
             Mesh={"Mesh": "builtin:sphere", "CastShadows": False},
             Material=material((1.0, 0.6, 0.2), emissive=6.0, emissive_color=(1.0, 0.55, 0.2)),
             PointLight={"Color": [1.0, 0.62, 0.32], "Intensity": 14.0, "Range": 9.0, "Flicker": 0.15, "CastShadows": shadows},
-            StimSource={"Stim": "Fire", "Delivery": "Continuous", "Radius": 0.5, "Intensity": 1.0})
+            StimSource={"Stim": "Fire", "Delivery": "Continuous", "Radius": 0.5, "Intensity": 1.0},
+            # A generous sensor around the flame: arrows aimed at it register a hit (sensors never block sight).
+            SphereCollider={"Radius": 1.2}, RigidBody={"Type": "Static", "IsTrigger": True})
     return post
 
 

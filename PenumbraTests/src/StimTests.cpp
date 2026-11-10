@@ -170,3 +170,50 @@ TEST_SUITE("Stim")
 		fixture.SceneInstance.OnRuntimeStop();
 	}
 }
+
+TEST_SUITE("Stim")
+{
+	// The demo's torch: reactions on the root, colliders on children, flame 1.3 m above the root.
+	TEST_CASE("Hits on a child collider and splashes near a raised flame reach the object's reactions")
+	{
+		auto buildTorch = [](Scene& scene, const glm::vec3& position) {
+			Entity torch = scene.CreateEntity("Torch");
+			torch.Transform().Translation = position;
+			torch.AddComponent<StimResponseComponent>().Rules.push_back({ "Water", 0.3f, false, { { StimActionType::DisableLights } } });
+			Entity pole = scene.CreateEntity("Pole");
+			scene.SetParent(pole, torch, false);
+			pole.Transform().Translation = { 0.0f, 0.6f, 0.0f };
+			pole.Transform().Scale = { 0.1f, 1.2f, 0.1f };
+			pole.AddComponent<BoxColliderComponent>();
+			Entity flame = scene.CreateEntity("Flame");
+			scene.SetParent(flame, torch, false);
+			flame.Transform().Translation = { 0.0f, 1.3f, 0.0f };
+			flame.AddComponent<PointLightComponent>();
+			return flame;
+		};
+
+		SUBCASE("direct hit on the pole")
+		{
+			StimFixture fixture;
+			Entity flame = buildTorch(fixture.SceneInstance, { 0.0f, 0.0f, -5.0f });
+			fixture.SceneInstance.OnRuntimeStart();
+			CreateArrow(fixture.SceneInstance, "Water", { 0.0f, 0.6f, 0.0f }, { 0.0f, 0.0f, -30.0f });
+			Test::Simulate(fixture.SceneInstance, 0.5f);
+			CHECK_FALSE(flame.GetComponent<PointLightComponent>().Enabled);
+			fixture.SceneInstance.OnRuntimeStop();
+		}
+
+		SUBCASE("splash on the wall right behind the flame")
+		{
+			StimFixture fixture;
+			Entity flame = buildTorch(fixture.SceneInstance, { 0.0f, 0.0f, -5.0f });
+			Test::CreateBox(fixture.SceneInstance, "Wall", { 0.0f, 2.0f, -5.4f }, { 3.0f, 2.0f, 0.1f });
+			fixture.SceneInstance.OnRuntimeStart();
+			// Aimed beside the pole at flame height: misses the torch, hits the wall 0.5 m from the flame.
+			CreateArrow(fixture.SceneInstance, "Water", { 0.3f, 1.3f, 0.0f }, { 0.0f, 0.0f, -30.0f });
+			Test::Simulate(fixture.SceneInstance, 0.5f);
+			CHECK_FALSE(flame.GetComponent<PointLightComponent>().Enabled);
+			fixture.SceneInstance.OnRuntimeStop();
+		}
+	}
+}

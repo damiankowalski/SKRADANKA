@@ -44,6 +44,10 @@ namespace Penumbra {
 		};
 
 		void HandleContactSource(Entity source, Entity other, const glm::vec3& point);
+		// The object that reacts to a hit on this entity: itself or its nearest ancestor with
+		// a StimResponse or Script component.
+		Entity ResolveReceiver(Entity hit);
+		float DistanceToObject(Entity receiver, const glm::vec3& point);
 		void Execute(const PendingAction& pending);
 
 	private:
