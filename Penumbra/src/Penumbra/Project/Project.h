@@ -22,6 +22,12 @@ namespace Penumbra {
 		static constexpr const char* FileName = "project.json";
 
 		static bool Load(const std::filesystem::path& projectFile, std::string& error);
+
+		// Resolves a project argument (folder or project.json) the way users expect from a
+		// command line: absolute paths as given; relative paths against the working directory
+		// first, then against every ancestor of searchRoot (by default the executable's folder),
+		// so "--project DemoProject" works from the repository root and from build/<preset>/bin.
+		static std::filesystem::path Resolve(const std::filesystem::path& path, const std::filesystem::path& searchRoot = {});
 		static bool Create(const std::filesystem::path& directory, const ProjectConfig& config, std::string& error);
 		static bool SaveActive();
 		static void Unload();
