@@ -60,6 +60,38 @@ namespace Penumbra {
 		}
 	}
 
+	namespace {
+		bool IsProject(const std::filesystem::path& path)
+		{
+			std::error_code error;
+			if (std::filesystem::is_directory(path, error))
+				return std::filesystem::is_regular_file(path / Project::FileName, error);
+			return path.filename() == Project::FileName && std::filesystem::is_regular_file(path, error);
+		}
+	}
+
+	std::filesystem::path Project::Resolve(const std::filesystem::path& path, const std::filesystem::path& searchRoot)
+	{
+		if (path.empty() || path.is_absolute())
+			return path;
+		std::error_code error;
+		const std::filesystem::path fromWorkingDirectory = std::filesystem::absolute(path, error).lexically_normal();
+		if (IsProject(fromWorkingDirectory))
+			return fromWorkingDirectory;
+		std::filesystem::path directory = searchRoot.empty() ? FileSystem::GetExecutableDirectory() : searchRoot;
+		while (!directory.empty())
+		{
+			const std::filesystem::path candidate = (directory / path).lexically_normal();
+			if (IsProject(candidate))
+				return candidate;
+			const std::filesystem::path parent = directory.parent_path();
+			if (parent == directory)
+				break;
+			directory = parent;
+		}
+		return fromWorkingDirectory;
+	}
+
 	bool Project::Load(const std::filesystem::path& projectFile, std::string& error)
 	{
 		std::filesystem::path file = projectFile;
@@ -69,7 +101,9 @@ namespace Penumbra {
 		const std::optional<std::string> text = FileSystem::ReadTextFile(file);
 		if (!text)
 		{
-			error = std::format("cannot read project file '{}'", file.string());
+			std::error_code ignored;
+			error = std::format("no project found at '{}' (expected a folder containing {} or the file itself)",
+				std::filesystem::absolute(projectFile, ignored).lexically_normal().string(), FileName);
 			return false;
 		}
 		const nlohmann::json document = nlohmann::json::parse(*text, nullptr, false);

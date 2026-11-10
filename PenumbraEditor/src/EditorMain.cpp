@@ -33,7 +33,7 @@ namespace {
 		CommandProcessor processor(host);
 		if (const std::optional<std::string> project = args.GetValue("project"))
 		{
-			const nlohmann::json opened = processor.Execute({ { "cmd", "project.open" }, { "path", *project } });
+			const nlohmann::json opened = processor.Execute({ { "cmd", "project.open" }, { "path", Project::Resolve(*project).string() } });
 			if (!opened.value("ok", false))
 			{
 				std::puts(opened.dump().c_str());
@@ -74,7 +74,7 @@ int main(int argc, char** argv)
 		spec.Arguments = args;
 
 		EditorOptions options;
-		options.ProjectPath = args.GetValue("project").value_or("");
+		options.ProjectPath = args.GetValue("project") ? Project::Resolve(*args.GetValue("project")) : std::filesystem::path();
 		options.CommandPort = static_cast<uint16_t>(args.GetInt("port").value_or(7777));
 		options.EnableCommandServer = !args.HasFlag("no-server");
 

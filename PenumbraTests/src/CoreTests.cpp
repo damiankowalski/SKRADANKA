@@ -5,6 +5,7 @@
 #include "Penumbra/Core/KeyCodes.h"
 #include "Penumbra/Core/Log.h"
 #include "Penumbra/Math/Math.h"
+#include "Penumbra/Project/Project.h"
 
 #include <unordered_set>
 
@@ -127,5 +128,29 @@ TEST_SUITE("Core")
 		CHECK(Test::Near(Math::SegmentSphereOverlap({ -10.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, 9.0f, glm::vec3(0.0f), 2.0f), 1.0f));
 		CHECK(Math::SegmentSphereOverlap({ -10.0f, 5.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, 20.0f, glm::vec3(0.0f), 2.0f) == 0.0f);
 		CHECK(Test::Near(Math::Luminance(glm::vec3(1.0f)), 1.0f));
+	}
+}
+
+TEST_SUITE("Core")
+{
+	TEST_CASE("Project paths resolve from the working directory or any ancestor of the executable")
+	{
+		const std::filesystem::path root = std::filesystem::temp_directory_path() / "PenumbraTests" / std::to_string(static_cast<uint64_t>(UUID()));
+		const std::filesystem::path bin = root / "build" / "debug" / "bin";
+		std::filesystem::create_directories(bin);
+		REQUIRE(FileSystem::WriteTextFile(root / "Demo" / "project.json", "{}"));
+
+		// Relative to an ancestor of the search root (the repository from build/debug/bin).
+		CHECK(Project::Resolve("Demo", bin) == (root / "Demo").lexically_normal());
+		CHECK(Project::Resolve("Demo/project.json", bin) == (root / "Demo" / "project.json").lexically_normal());
+		// Absolute paths are returned unchanged; unknown ones fall back to the working directory.
+		CHECK(Project::Resolve(root / "Demo", bin) == root / "Demo");
+		CHECK(Project::Resolve("NoSuchProject", bin) == std::filesystem::absolute("NoSuchProject").lexically_normal());
+
+		std::string error;
+		CHECK_FALSE(Project::Load(root / "Missing", error));
+		CHECK(error.find("no project found") != std::string::npos);
+		CHECK(error.find("Missing") != std::string::npos);
+		std::filesystem::remove_all(root);
 	}
 }

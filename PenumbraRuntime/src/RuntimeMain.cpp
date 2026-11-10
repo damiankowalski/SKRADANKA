@@ -60,7 +60,8 @@ namespace {
 
 		Log::Init();
 	CrashHandler::Install(FileSystem::GetExecutableDirectory() / "CrashDumps", "PenumbraRuntime");
-		const std::filesystem::path projectDirectory = args.GetValue("project").value_or(FileSystem::GetExecutableDirectory().string());
+		const std::filesystem::path projectDirectory =
+			args.GetValue("project") ? Project::Resolve(*args.GetValue("project")) : FileSystem::GetExecutableDirectory();
 		std::string error;
 		if (!Project::Load(projectDirectory, error))
 		{
