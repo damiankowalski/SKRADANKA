@@ -17,6 +17,24 @@ namespace Penumbra {
 		constexpr float EdgeFalloff = 0.5f;
 	}
 
+	Entity StimSystem::ResolveReceiver(Entity hit)
+	{
+		for (Entity current = hit; current; current = current.GetParent())
+		{
+			if (current.HasComponent<StimResponseComponent>() || current.HasComponent<ScriptComponent>())
+				return current;
+		}
+		return hit;
+	}
+
+	float StimSystem::DistanceToObject(Entity receiver, const glm::vec3& point)
+	{
+		float closest = glm::length(m_Scene.GetWorldPosition(receiver) - point);
+		for (Entity child : receiver.GetChildren())
+			closest = std::min(closest, DistanceToObject(child, point));
+		return closest;
+	}
+
 	StimSystem::StimSystem(Scene& scene)
 		: m_Scene(scene)
 	{
@@ -91,10 +109,12 @@ namespace Penumbra {
 		{
 			if (receiver.GetUUID() == source || receiver.GetUUID() == exclude || isOwnHierarchy(receiver))
 				continue;
-			const glm::vec3 target = m_Scene.GetWorldPosition(receiver);
-			const float distance = glm::length(target - position);
+			// Measured to the closest part of the object: splashing water next to a torch's
+			// flame reaches the torch even though the torch's origin is on the ground.
+			const float distance = DistanceToObject(receiver, position);
 			if (distance > radius)
 				continue;
+			const glm::vec3 target = m_Scene.GetWorldPosition(receiver);
 			if (requireLineOfSight && physics && distance > Math::Epsilon)
 			{
 				const UUID receiverID = receiver.GetUUID();
@@ -112,10 +132,13 @@ namespace Penumbra {
 		auto* stim = source.TryGetComponent<StimSourceComponent>();
 		if (!stim || !stim->Enabled || stim->Delivery != StimDelivery::Contact)
 			return;
+		// Colliders are often children of the object that owns the reactions (a torch's pole):
+		// the hit is delivered to the nearest self-or-ancestor that can react.
+		Entity receiver = ResolveReceiver(other);
 		// Direct hit at full intensity, then a splash to everything else nearby.
-		Deliver(other, stim->Stim, stim->Intensity, source.GetUUID());
+		Deliver(receiver, stim->Stim, stim->Intensity, source.GetUUID());
 		if (stim->Radius > 0.0f)
-			Emit(stim->Stim, point, stim->Radius, stim->Intensity, source.GetUUID(), stim->RequireLineOfSight, other.GetUUID());
+			Emit(stim->Stim, point, stim->Radius, stim->Intensity, source.GetUUID(), stim->RequireLineOfSight, receiver.GetUUID());
 		if (stim->DestroyOnContact)
 		{
 			stim->Enabled = false;

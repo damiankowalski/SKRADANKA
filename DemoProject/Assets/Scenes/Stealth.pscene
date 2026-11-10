@@ -1569,6 +1569,13 @@
           "Delivery": "Continuous",
           "Radius": 0.5,
           "Intensity": 1.0
+        },
+        "SphereCollider": {
+          "Radius": 1.2
+        },
+        "RigidBody": {
+          "Type": "Static",
+          "IsTrigger": true
         }
       },
       "Parent": "1029"
@@ -1744,6 +1751,13 @@
           "Delivery": "Continuous",
           "Radius": 0.5,
           "Intensity": 1.0
+        },
+        "SphereCollider": {
+          "Radius": 1.2
+        },
+        "RigidBody": {
+          "Type": "Static",
+          "IsTrigger": true
         }
       },
       "Parent": "1032"
@@ -1919,6 +1933,13 @@
           "Delivery": "Continuous",
           "Radius": 0.5,
           "Intensity": 1.0
+        },
+        "SphereCollider": {
+          "Radius": 1.2
+        },
+        "RigidBody": {
+          "Type": "Static",
+          "IsTrigger": true
         }
       },
       "Parent": "1035"
@@ -2094,6 +2115,13 @@
           "Delivery": "Continuous",
           "Radius": 0.5,
           "Intensity": 1.0
+        },
+        "SphereCollider": {
+          "Radius": 1.2
+        },
+        "RigidBody": {
+          "Type": "Static",
+          "IsTrigger": true
         }
       },
       "Parent": "1038"
@@ -2269,6 +2297,13 @@
           "Delivery": "Continuous",
           "Radius": 0.5,
           "Intensity": 1.0
+        },
+        "SphereCollider": {
+          "Radius": 1.2
+        },
+        "RigidBody": {
+          "Type": "Static",
+          "IsTrigger": true
         }
       },
       "Parent": "1041"

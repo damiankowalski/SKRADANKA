@@ -8,6 +8,8 @@ local Player = {
         walk_speed = 2.4,
         run_speed = 5.0,
         crouch_speed = 1.2,
+        stand_height = 1.8,
+        crouch_height = 1.1,
         mouse_sensitivity = 0.12,
         camera_distance = 3.2,
         arrow_speed = 32.0,
@@ -41,16 +43,41 @@ function Player:on_create()
     self.step_timer = 0
     self.cooldown = 0
     self.crouched = false
+    self.visual_height = self.stand_height
+    for _, child in ipairs(self.entity:children()) do
+        if child:get_name() == "Body" then self.body = child end
+        if child:get_name() == "Head" then self.head = child end
+    end
     self.pending_arrow = nil
     self.camera = scene.find("Camera")
     input.set_cursor_locked(true)
 end
 
-function Player:set_crouched(crouched)
-    if crouched == self.crouched then return end
-    self.crouched = crouched
-    -- A crouching thief has a smaller silhouette: fewer points against bright backgrounds.
-    self.entity:set("PerceptionTarget", { SilhouettePoints = scaled_silhouette(crouched and 0.6 or 1.0) })
+-- Crouching shrinks the physics capsule (the engine refuses to stand up under a low ceiling),
+-- the visible body and the silhouette guards see. Everything follows the height the character
+-- actually has, so a blocked stand-up keeps the thief crouched.
+function Player:update_stance(dt, want_crouch)
+    -- Read the height physics settled on last step, then request the new one.
+    local height = self.entity:get("CharacterController").Height
+    self.entity:set("CharacterController", { Height = want_crouch and self.crouch_height or self.stand_height })
+    self.crouched = height < (self.stand_height + self.crouch_height) * 0.5
+
+    -- Smoothly animate the placeholder body towards the capsule height.
+    local previous = self.visual_height
+    self.visual_height = previous + (height - previous) * math.min(dt * 12, 1)
+    local scale = self.visual_height / self.stand_height
+    if self.body then
+        self.body:set_local_position(vec3(0, 0.9 * scale, 0))
+        self.body:set_scale(vec3(0.6, 0.9 * scale, 0.6))
+    end
+    if self.head then
+        -- Crouching hunches the head forward a little.
+        self.head:set_local_position(vec3(0, 1.7 * scale, -0.05 - 0.15 * (1 - scale) / (1 - self.crouch_height / self.stand_height)))
+    end
+    if math.abs(self.visual_height - previous) > 0.001 then
+        -- Fewer, lower silhouette points: harder to spot against bright backgrounds.
+        self.entity:set("PerceptionTarget", { SilhouettePoints = scaled_silhouette(scale) })
+    end
 end
 
 function Player:update_look()
@@ -69,7 +96,7 @@ function Player:update_movement(dt)
     if input.key("D") then move = move + right end
     if input.key("A") then move = move - right end
 
-    self:set_crouched(input.key("C"))
+    self:update_stance(dt, input.key("C"))
     local running = input.key("LeftShift") and not self.crouched
     local speed = self.crouched and self.crouch_speed or (running and self.run_speed or self.walk_speed)
 
@@ -101,7 +128,7 @@ function Player:update_camera()
     local yaw, pitch = math.rad(self.yaw), math.rad(self.pitch)
     local look = vec3(-math.sin(yaw) * math.cos(pitch), math.sin(pitch), -math.cos(yaw) * math.cos(pitch))
     local right = vec3(math.cos(yaw), 0, -math.sin(yaw))
-    local pivot = self.entity:get_position() + vec3(0, self.crouched and 1.1 or 1.6, 0) + right * 0.45
+    local pivot = self.entity:get_position() + vec3(0, self.visual_height - 0.2, 0) + right * 0.45
 
     -- Pull the camera in when a wall is behind the player.
     local distance = self.camera_distance

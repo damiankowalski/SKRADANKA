@@ -177,3 +177,58 @@ TEST_SUITE("Physics")
 		fixture.SceneInstance.OnRuntimeStop();
 	}
 }
+
+TEST_SUITE("Physics")
+{
+	TEST_CASE("Characters crouch by changing height and cannot stand up under a low ceiling")
+	{
+		PhysicsFixture fixture;
+		// A low passage: ceiling underside at 1.4 m, starting at z = -2.
+		Test::CreateBox(fixture.SceneInstance, "Ceiling", { 0.0f, 1.9f, -6.0f }, { 3.0f, 0.5f, 4.0f });
+		Entity player = fixture.SceneInstance.CreateEntity("Player");
+		player.Transform().Translation = { 0.0f, 0.05f, 0.0f };
+		auto& controller = player.AddComponent<CharacterControllerComponent>();
+		fixture.SceneInstance.OnRuntimeStart();
+		Test::Simulate(fixture.SceneInstance, 0.3f);
+
+		// Standing, the passage blocks the character.
+		controller.RuntimeDesiredVelocity = { 0.0f, 0.0f, -2.0f };
+		Test::Simulate(fixture.SceneInstance, 1.5f);
+		CHECK(player.Transform().Translation.z > -2.0f);
+
+		// Crouched, it fits through.
+		controller.Height = 1.1f;
+		Test::Simulate(fixture.SceneInstance, 2.0f);
+		CHECK(controller.Height == doctest::Approx(1.1f));
+		CHECK(player.Transform().Translation.z < -3.0f);
+
+		// Trying to stand up inside the passage is refused.
+		controller.RuntimeDesiredVelocity = glm::vec3(0.0f);
+		controller.Height = 1.8f;
+		fixture.SceneInstance.OnUpdateRuntime(Timestep(1.0f / 60.0f));
+		CHECK(controller.Height == doctest::Approx(1.1f));
+
+		// Out in the open it stands up again.
+		controller.RuntimeDesiredVelocity = { 0.0f, 0.0f, -2.0f };
+		Test::Simulate(fixture.SceneInstance, 3.0f);
+		controller.RuntimeDesiredVelocity = glm::vec3(0.0f);
+		controller.Height = 1.8f;
+		Test::Simulate(fixture.SceneInstance, 0.1f);
+		CHECK(player.Transform().Translation.z < -10.0f);
+		CHECK(controller.Height == doctest::Approx(1.8f));
+		fixture.SceneInstance.OnRuntimeStop();
+	}
+
+	TEST_CASE("Triggers never block raycasts")
+	{
+		PhysicsFixture fixture;
+		Entity trigger = fixture.SceneInstance.CreateEntity("Trigger");
+		trigger.Transform().Translation = { 0.0f, 1.0f, -3.0f };
+		trigger.AddComponent<SphereColliderComponent>().Radius = 1.0f;
+		trigger.AddComponent<RigidBodyComponent>().IsTrigger = true;
+		fixture.SceneInstance.OnRuntimeStart();
+		std::optional<RaycastHit> hit = fixture.SceneInstance.GetPhysicsWorld()->Raycast({ 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, -1.0f }, 10.0f);
+		CHECK_FALSE(hit.has_value());
+		fixture.SceneInstance.OnRuntimeStop();
+	}
+}

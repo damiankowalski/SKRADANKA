@@ -191,7 +191,7 @@ namespace Penumbra {
 	struct CharacterControllerComponent
 	{
 		float Radius = 0.3f;
-		float Height = 1.8f;
+		float Height = 1.8f; // can change at runtime (crouching); the capsule only grows if there is room
 		float MaxSlopeDegrees = 50.0f;
 		float StepHeight = 0.35f;
 		float GravityFactor = 1.0f;
