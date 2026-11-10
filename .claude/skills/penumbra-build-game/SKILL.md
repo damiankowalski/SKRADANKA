@@ -9,7 +9,10 @@ Read `docs/Automation.md` (commands) and `docs/ScriptingAPI.md` (Lua) first. Eng
 changed for game work; if a feature is missing, add it to the engine first (with tests, see AGENTS.md).
 
 1. **Build the tools once**: `Tools\Build.bat debug`. Executables: `build\debug\bin\PenumbraEditor.exe`, `PenumbraRuntime.exe`.
-2. **Create the project** with a command file (JSON Lines) run headless:
+2. **Prefer the `penumbra` MCP tools** when they are available (`.mcp.json`; tools such as `entity_create`,
+   `render_screenshot`): they are the same commands with typed arguments, run in the user's open editor when it is
+   running (otherwise headless; `session_backend` tells which), and screenshots come back as images you can look at.
+   Without MCP, **create the project** with a command file (JSON Lines) run headless:
    ```bat
    build\debug\bin\PenumbraEditor.exe --headless --exec my_commands.jsonl
    ```
@@ -23,7 +26,7 @@ changed for game work; if a feature is missing, add it to the engine first (with
 4. **Verify automatically** - never claim it works without this:
    - a test scene whose script drives the game (inject keys with `input.key` / call functions) and asserts
      with `test.check` + `test.complete`, run with `{"cmd":"test.run","scene":"Scenes/Test.pscene"}`;
-   - `{"cmd":"render.screenshot","path":"shot.png"}` and look at the image;
+   - `render_screenshot` (MCP) or `{"cmd":"render.screenshot","path":"shot.png"}` and look at the image;
    - `{"cmd":"script.errors"}` must be empty after `play` + `simulate`.
 5. **Ship**: `scene.save`, `project.set {"startScene": ...}`, `project.export {"output": "<dir>"}`; the folder
    contains `<Game>.exe` + assets and runs standalone.

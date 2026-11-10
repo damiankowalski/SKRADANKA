@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "penumbra": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c", "Tools\PenumbraMcp.bat"]
+    }
+  }
+}
