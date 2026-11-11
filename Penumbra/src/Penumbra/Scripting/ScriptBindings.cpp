@@ -485,8 +485,8 @@ namespace Penumbra {
 		audio.set_function("stop", [requireAudio](const ScriptEntity& e) { requireAudio().StopSource(e.Resolve()); });
 		audio.set_function("is_playing", [requireAudio](const ScriptEntity& e) { return requireAudio().IsPlaying(e.Resolve()); });
 		audio.set_function("play_at", [requireAudio](const std::string& clip, const glm::vec3& position, sol::optional<float> volume,
-										  sol::optional<float> noiseRadius) {
-			return requireAudio().PlayOneShot(clip, position, volume.value_or(1.0f), noiseRadius.value_or(0.0f));
+										  sol::optional<float> noiseLoudness) {
+			return requireAudio().PlayOneShot(clip, position, volume.value_or(1.0f), noiseLoudness.value_or(0.0f));
 		});
 
 		// --- ai ---------------------------------------------------------------------------
@@ -504,8 +504,35 @@ namespace Penumbra {
 			return *perception;
 		};
 		sol::table ai = lua.create_named_table("ai");
-		ai.set_function("emit_noise", [requirePerception](const glm::vec3& position, float radius, sol::optional<ScriptEntity> source) {
-			requirePerception().EmitNoise(position, radius, source ? source->ID : UUID(UUID::Invalid));
+		ai.set_function("emit_noise", [requirePerception](const glm::vec3& position, float loudness, sol::optional<ScriptEntity> source,
+										  sol::optional<std::string> cause) {
+			requirePerception().EmitNoise(position, loudness, source ? source->ID : UUID(UUID::Invalid), cause.value_or("Noise"));
+		});
+		ai.set_function("noise_range", [](float loudness) { return PerceptionModel::NoiseRange(loudness); });
+		ai.set_function("hearing", [requirePerception, requirePerceptionComponent](const ScriptEntity& observer, const glm::vec3& position,
+									   float loudness) {
+			requirePerceptionComponent(observer);
+			return requirePerception().HearingLevel(observer.Resolve(), position, loudness);
+		});
+		ai.set_function("notify", [requirePerception, requirePerceptionComponent](const ScriptEntity& observer, const glm::vec3& position,
+									  float strength, sol::optional<std::string> cause) {
+			requirePerceptionComponent(observer);
+			return requirePerception().Notify(observer.Resolve(), position, strength, StimulusKind::Reported, cause.value_or("Reported"));
+		});
+		ai.set_function("calm", [requirePerceptionComponent](const ScriptEntity& e) { PerceptionSystem::Calm(requirePerceptionComponent(e)); });
+		ai.set_function("alertness", [requirePerceptionComponent](const ScriptEntity& e) { return requirePerceptionComponent(e).RuntimeAlertness; });
+		ai.set_function("reaction", [requirePerceptionComponent](const ScriptEntity& e, sol::this_state state) {
+			const auto& perception = requirePerceptionComponent(e);
+			sol::state_view view(state);
+			sol::table table = view.create_table();
+			table["state"] = std::string(EnumToString(perception.RuntimeState));
+			table["strength"] = perception.RuntimeReactionStrength;
+			table["time_left"] = perception.RuntimeReactionTime;
+			table["kind"] = std::string(EnumToString(perception.RuntimeStimulusKind));
+			table["cause"] = perception.RuntimeStimulusCause;
+			if (perception.RuntimeHasStimulus)
+				table["position"] = perception.RuntimeLastStimulusPosition;
+			return table;
 		});
 		ai.set_function("luminance", [requirePerception](const glm::vec3& position) { return requirePerception().SampleLuminance(position); });
 		ai.set_function("state", [requirePerceptionComponent](const ScriptEntity& e) {
@@ -513,10 +540,7 @@ namespace Penumbra {
 		});
 		ai.set_function("suspicion", [requirePerceptionComponent](const ScriptEntity& e) { return requirePerceptionComponent(e).RuntimeSuspicion; });
 		ai.set_function("set_suspicion", [requirePerceptionComponent](const ScriptEntity& e, float value) {
-			auto& perception = requirePerceptionComponent(e);
-			perception.RuntimeSuspicion = std::clamp(value, 0.0f, 1.0f);
-			perception.RuntimeState =
-				PerceptionModel::StateFromSuspicion(perception.RuntimeSuspicion, perception.SuspiciousThreshold, perception.SearchingThreshold);
+			requirePerceptionComponent(e).RuntimeSuspicion = std::clamp(value, 0.0f, 1.0f);
 		});
 		ai.set_function("last_stimulus", [requirePerceptionComponent](const ScriptEntity& e) -> sol::optional<glm::vec3> {
 			const auto& perception = requirePerceptionComponent(e);

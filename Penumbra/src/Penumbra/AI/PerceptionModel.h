@@ -50,7 +50,25 @@ namespace Penumbra::PerceptionModel {
 	// 4.6: suspicion counter D in [0, 1].
 	float UpdateSuspicion(float suspicion, float stimulus, float dt, float riseRate, float decayRate);
 
-	AwarenessState StateFromSuspicion(float suspicion, float suspiciousThreshold, float searchingThreshold);
+	// --- Hearing (loudness on a 0-10 designer scale, docs/Perception.md) ----------------------
+
+	constexpr float NoiseReferenceDistance = 1.4f; // a noise is heard at its full loudness this close
+	constexpr float LevelsPerDoubling = 2.0f;      // loudness lost per doubling of distance
+	constexpr float WallLoss = 4.0f;               // levels lost going straight through a wall
+	constexpr float CornerLoss = 1.0f;             // levels lost travelling around corners (navmesh path)
+
+	// How far a noise of the given loudness carries: 1.4 * 2^(L/2) m (L3 ~ 4 m, L6 ~ 11 m, L9 ~ 32 m).
+	float NoiseRange(float loudness);
+	// Loudness left after travelling the distance (<= 0: inaudible).
+	float HeardLevel(float loudness, float distance);
+
+	// --- Reactions --------------------------------------------------------------------------
+
+	// Seconds a stimulus of strength s (0-10) keeps an NPC busy: fullDuration * (s/10)^2.
+	float ReactionDuration(float strength, float fullDuration);
+	// Inverse: the strength still "felt" with timeLeft seconds of reaction remaining.
+	float ReactionStrength(float timeLeft, float fullDuration);
+	AwarenessState StateFromStrength(float strength, float investigateLevel, float searchLevel, float alarmLevel);
 
 	// Maps the luminance of the player's body to the 0..1 HUD light gem on a logarithmic scale
 	// (the eye's response): ~0.15 in near darkness, ~0.5 in dim torchlight, 1 in strong light.

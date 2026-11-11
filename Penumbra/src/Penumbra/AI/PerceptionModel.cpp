@@ -63,15 +63,44 @@ namespace Penumbra::PerceptionModel {
 		return std::clamp(suspicion, 0.0f, 1.0f);
 	}
 
-	AwarenessState StateFromSuspicion(float suspicion, float suspiciousThreshold, float searchingThreshold)
+	float NoiseRange(float loudness)
 	{
-		if (suspicion >= 1.0f)
+		if (loudness <= 0.0f)
+			return 0.0f;
+		return NoiseReferenceDistance * std::exp2(loudness / LevelsPerDoubling);
+	}
+
+	float HeardLevel(float loudness, float distance)
+	{
+		if (loudness <= 0.0f)
+			return 0.0f;
+		return loudness - LevelsPerDoubling * std::log2(std::max(distance, NoiseReferenceDistance) / NoiseReferenceDistance);
+	}
+
+	float ReactionDuration(float strength, float fullDuration)
+	{
+		const float s = std::clamp(strength, 0.0f, 10.0f) / 10.0f;
+		return std::max(fullDuration, 0.0f) * s * s;
+	}
+
+	float ReactionStrength(float timeLeft, float fullDuration)
+	{
+		if (timeLeft <= 0.0f || fullDuration <= 0.0f)
+			return 0.0f;
+		return std::min(10.0f * std::sqrt(timeLeft / fullDuration), 10.0f);
+	}
+
+	AwarenessState StateFromStrength(float strength, float investigateLevel, float searchLevel, float alarmLevel)
+	{
+		if (strength <= 0.0f)
+			return AwarenessState::Unaware;
+		if (strength >= alarmLevel)
 			return AwarenessState::Alarmed;
-		if (suspicion >= searchingThreshold)
+		if (strength >= searchLevel)
 			return AwarenessState::Searching;
-		if (suspicion >= suspiciousThreshold)
-			return AwarenessState::Suspicious;
-		return AwarenessState::Unaware;
+		if (strength >= investigateLevel)
+			return AwarenessState::Investigating;
+		return AwarenessState::Suspicious;
 	}
 
 	float LightGem(float luminance)

@@ -32,8 +32,9 @@ namespace Penumbra {
 	struct NoiseEvent
 	{
 		glm::vec3 Position{ 0.0f };
-		float Radius = 0.0f;
+		float Loudness = 0.0f; // 0-10
 		UUID Source = UUID::Invalid;
+		std::string Cause;     // what made it ("Footstep", "Impact"...), reported to scripts
 	};
 
 	class PerceptionSystem
@@ -49,7 +50,19 @@ namespace Penumbra {
 
 		void Update(Timestep ts);
 
-		void EmitNoise(const glm::vec3& position, float radius, UUID source);
+		// A noise NPCs may hear, processed on the next perception update. Loudness is on the
+		// 0-10 scale of docs/Perception.md (3 = a quiet crack, 9 = a metal bucket on cobbles).
+		void EmitNoise(const glm::vec3& position, float loudness, UUID source, std::string cause = {});
+		// Loudness (0-10) the observer would hear a noise at, after distance, walls and paths
+		// around them; <= 0 means inaudible. Does not include the scene's ambient masking.
+		float HearingLevel(Entity observer, const glm::vec3& position, float loudness, UUID source = UUID::Invalid);
+
+		// Gives the observer a stimulus of the given strength (0-10). It is taken when it is at
+		// least as strong as what the observer is still reacting to; it then sets the reaction
+		// time, the stimulus position and the state. Returns whether it was taken.
+		bool Notify(Entity observer, const glm::vec3& position, float strength, StimulusKind kind, std::string_view cause);
+		// Ends any reaction and clears suspicion (alert memory is kept).
+		static void Calm(PerceptionComponent& perception);
 
 		// Full evaluation of what observer sees of target right now (does not modify state).
 		VisibilityResult ComputeVisibility(Entity observer, Entity target);
@@ -93,6 +106,7 @@ namespace Penumbra {
 			float Stimulus = 0.0f;
 		};
 		std::unordered_map<UUID, ObserverFocus> m_Focus; // last evaluation of each observer
+		std::unordered_map<UUID, UUID> m_Seeing;         // target each observer currently sees clearly (B >= 1)
 		float m_Time = 0.0f;
 	};
 

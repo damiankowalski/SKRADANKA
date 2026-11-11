@@ -10,7 +10,7 @@
 namespace Penumbra {
 
 	// miniaudio-backed audio for a running scene: 3D sources, one-shots and the listener.
-	// Sounds with a NoiseRadius also emit noise events that NPCs can hear.
+	// Sounds with a NoiseLoudness also emit noise events that NPCs can hear.
 	class AudioScene
 	{
 	public:
@@ -30,7 +30,7 @@ namespace Penumbra {
 		bool Play(Entity entity);
 		void StopSource(Entity entity);
 		bool IsPlaying(Entity entity) const;
-		bool PlayOneShot(const std::string& clip, const glm::vec3& position, float volume = 1.0f, float noiseRadius = 0.0f);
+		bool PlayOneShot(const std::string& clip, const glm::vec3& position, float volume = 1.0f, float noiseLoudness = 0.0f);
 
 		bool IsInitialized() const;
 		size_t GetActiveVoiceCount() const;

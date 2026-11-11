@@ -196,7 +196,7 @@ namespace Penumbra {
 				break;
 			case StimActionType::EmitNoise:
 				if (PerceptionSystem* perception = m_Scene.GetPerceptionSystem())
-					perception->EmitNoise(position, action.Radius, pending.Target);
+					perception->EmitNoise(position, action.Value, pending.Target, action.Asset.empty() ? "Stim" : action.Asset);
 				break;
 			case StimActionType::ScriptEvent:
 				if (target)

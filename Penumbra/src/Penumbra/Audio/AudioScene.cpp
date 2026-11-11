@@ -23,7 +23,7 @@ namespace Penumbra {
 			std::unique_ptr<ma_sound> Sound;
 			UUID Owner = UUID::Invalid; // invalid for one-shots
 			glm::vec3 Position{ 0.0f };
-			float NoiseRadius = 0.0f;
+			float NoiseLoudness = 0.0f;
 			float NoiseTimer = 0.0f;
 		};
 
@@ -154,14 +154,14 @@ namespace Penumbra {
 		voice.Sound = std::move(sound);
 		voice.Owner = entity.GetUUID();
 		voice.Position = position;
-		voice.NoiseRadius = source.NoiseRadius;
+		voice.NoiseLoudness = source.NoiseLoudness;
 		voice.NoiseTimer = 0.0f;
 		m_Impl->Voices.push_back(std::move(voice));
 
-		if (source.NoiseRadius > 0.0f)
+		if (source.NoiseLoudness > 0.0f)
 		{
 			if (PerceptionSystem* perception = m_Impl->SceneRef.GetPerceptionSystem())
-				perception->EmitNoise(position, source.NoiseRadius, entity.GetUUID());
+				perception->EmitNoise(position, source.NoiseLoudness, entity.GetUUID());
 		}
 		return true;
 	}
@@ -193,12 +193,12 @@ namespace Penumbra {
 		return voice && voice->Sound && ma_sound_is_playing(voice->Sound.get());
 	}
 
-	bool AudioScene::PlayOneShot(const std::string& clip, const glm::vec3& position, float volume, float noiseRadius)
+	bool AudioScene::PlayOneShot(const std::string& clip, const glm::vec3& position, float volume, float noiseLoudness)
 	{
-		if (noiseRadius > 0.0f)
+		if (noiseLoudness > 0.0f)
 		{
 			if (PerceptionSystem* perception = m_Impl->SceneRef.GetPerceptionSystem())
-				perception->EmitNoise(position, noiseRadius, UUID::Invalid);
+				perception->EmitNoise(position, noiseLoudness, UUID::Invalid);
 		}
 
 		std::unique_ptr<ma_sound> sound = m_Impl->LoadSound(clip);
@@ -259,13 +259,13 @@ namespace Penumbra {
 			}
 
 			const bool playing = ma_sound_is_playing(voice.Sound.get()) && !ma_sound_at_end(voice.Sound.get());
-			if (playing && voice.NoiseRadius > 0.0f && perception)
+			if (playing && voice.NoiseLoudness > 0.0f && perception)
 			{
 				voice.NoiseTimer += ts;
 				if (voice.NoiseTimer >= NoiseInterval)
 				{
 					voice.NoiseTimer = 0.0f;
-					perception->EmitNoise(voice.Position, voice.NoiseRadius, voice.Owner);
+					perception->EmitNoise(voice.Position, voice.NoiseLoudness, voice.Owner);
 				}
 			}
 

@@ -34,6 +34,8 @@ namespace Penumbra {
 		bool Bake(std::string& error);
 		// The navmesh, baked on first use; nullptr when the scene has nothing walkable.
 		const NavMesh* GetNavMesh();
+		// The navmesh only if it has already been baked (never triggers a bake).
+		const NavMesh* GetBakedNavMesh() const { return m_NavMesh.get(); }
 
 		void Update(Timestep ts);
 		void OnEntityDestroyed(Entity entity);

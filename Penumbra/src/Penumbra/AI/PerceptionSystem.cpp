@@ -2,6 +2,7 @@
 #include "Penumbra/AI/PerceptionSystem.h"
 
 #include "Penumbra/AI/PerceptionModel.h"
+#include "Penumbra/Navigation/NavigationSystem.h"
 #include "Penumbra/Physics/PhysicsWorld.h"
 
 #include <glm/gtc/constants.hpp>
@@ -34,10 +35,77 @@ namespace Penumbra {
 	{
 	}
 
-	void PerceptionSystem::EmitNoise(const glm::vec3& position, float radius, UUID source)
+	void PerceptionSystem::EmitNoise(const glm::vec3& position, float loudness, UUID source, std::string cause)
 	{
-		if (radius > 0.0f)
-			m_PendingNoises.push_back({ position, radius, source });
+		if (loudness > 0.0f)
+			m_PendingNoises.push_back({ position, std::min(loudness, 10.0f), source, std::move(cause) });
+	}
+
+	float PerceptionSystem::HearingLevel(Entity observer, const glm::vec3& position, float loudness, UUID source)
+	{
+		const auto& perception = observer.GetComponent<PerceptionComponent>();
+		// Alert memory sharpens the ears: up to 50% further.
+		const float sensitivity = std::max(perception.HearingSensitivity * (1.0f + 0.5f * perception.RuntimeAlertness), 1e-3f);
+		const glm::vec3 feet = m_Scene.GetWorldPosition(observer);
+		const glm::vec3 ear = feet + glm::vec3(0.0f, perception.EyeHeight, 0.0f);
+		const glm::vec3 toEar = ear - position;
+		const float distance = glm::length(toEar);
+		if (distance / sensitivity >= PerceptionModel::NoiseRange(loudness))
+			return 0.0f;
+
+		const float direct = PerceptionModel::HeardLevel(loudness, distance / sensitivity);
+		const PhysicsWorld* physics = m_Scene.GetPhysicsWorld();
+		if (!physics || distance <= Math::Epsilon)
+			return direct;
+		std::vector<UUID> ignore;
+		CollectHierarchy(observer, ignore);
+		auto filter = [&](UUID entity) { return entity != source && IsSightBlocker(entity, ignore); };
+		if (!physics->Raycast(position, toEar / distance, distance, filter))
+			return direct;
+
+		// Occluded: through the wall (heavily muffled) or around it along walkable space, which
+		// stands in for the doorways and corridors sound travels through.
+		float level = direct - PerceptionModel::WallLoss;
+		const NavigationSystem* navigation = m_Scene.GetNavigationSystem();
+		if (const NavMesh* navMesh = navigation ? navigation->GetBakedNavMesh() : nullptr)
+		{
+			if (std::optional<NavPath> path = navMesh->FindPath(position, feet); path && path->Complete)
+				level = std::max(level, PerceptionModel::HeardLevel(loudness, path->Length / sensitivity) - PerceptionModel::CornerLoss);
+		}
+		return level;
+	}
+
+	bool PerceptionSystem::Notify(Entity observer, const glm::vec3& position, float strength, StimulusKind kind, std::string_view cause)
+	{
+		auto& perception = observer.GetComponent<PerceptionComponent>();
+		strength = std::clamp(strength, 0.0f, 10.0f);
+		const float duration = PerceptionModel::ReactionDuration(strength, perception.ReactionDuration);
+		const float current = PerceptionModel::ReactionStrength(perception.RuntimeReactionTime, perception.ReactionDuration);
+		if (duration <= 0.0f || strength + 1e-4f < current)
+			return false;
+
+		perception.RuntimeReactionTime = std::max(perception.RuntimeReactionTime, duration);
+		perception.RuntimeReactionStrength = PerceptionModel::ReactionStrength(perception.RuntimeReactionTime, perception.ReactionDuration);
+		perception.RuntimeState = PerceptionModel::StateFromStrength(perception.RuntimeReactionStrength, perception.InvestigateLevel,
+			perception.SearchLevel, perception.AlarmLevel);
+		perception.RuntimeLastStimulusPosition = position;
+		perception.RuntimeHasStimulus = true;
+		perception.RuntimeStimulusKind = kind;
+		perception.RuntimeStimulusCause = std::string(cause);
+		if (strength >= perception.SearchLevel)
+			perception.RuntimeAlertness = std::max(perception.RuntimeAlertness, strength / 10.0f);
+		return true;
+	}
+
+	void PerceptionSystem::Calm(PerceptionComponent& perception)
+	{
+		perception.RuntimeSuspicion = 0.0f;
+		perception.RuntimeReactionTime = 0.0f;
+		perception.RuntimeReactionStrength = 0.0f;
+		perception.RuntimeState = AwarenessState::Unaware;
+		perception.RuntimeHasStimulus = false;
+		perception.RuntimeStimulusKind = StimulusKind::None;
+		perception.RuntimeStimulusCause.clear();
 	}
 
 	bool PerceptionSystem::IsSightBlocker(UUID entityID, const std::vector<UUID>& ignore)
@@ -292,37 +360,23 @@ namespace Penumbra {
 		if (m_RecentNoises.empty())
 			return;
 
-		const PhysicsWorld* physics = m_Scene.GetPhysicsWorld();
-		for (auto [handle, perception] : m_Scene.GetRegistry().view<PerceptionComponent>().each())
+		// Background noise (rain, machinery...) masks quieter sounds.
+		float masking = 0.0f;
+		if (Entity environment = m_Scene.GetEnvironmentEntity())
+			masking = std::max(environment.GetComponent<EnvironmentComponent>().AmbientNoise, 0.0f);
+
+		for (entt::entity handle : m_Scene.GetRegistry().view<PerceptionComponent>())
 		{
 			Entity observer(handle, &m_Scene);
 			std::vector<UUID> ignore;
 			CollectHierarchy(observer, ignore);
-			const glm::vec3 ear = m_Scene.GetWorldPosition(observer) + glm::vec3(0.0f, perception.EyeHeight, 0.0f);
-
 			for (const NoiseEvent& noise : m_RecentNoises)
 			{
 				if (Contains(ignore, noise.Source))
 					continue;
-				float radius = noise.Radius * perception.HearingSensitivity;
-				const glm::vec3 toEar = ear - noise.Position;
-				const float distance = glm::length(toEar);
-				if (distance >= radius)
-					continue;
-				// Walls muffle sound: occluded noises carry half as far.
-				if (physics && distance > Math::Epsilon)
-				{
-					auto filter = [&](UUID entity) { return entity != noise.Source && IsSightBlocker(entity, ignore); };
-					if (physics->Raycast(noise.Position, toEar / distance, distance, filter))
-						radius *= 0.5f;
-				}
-				if (distance >= radius)
-					continue;
-
-				const float strength = 1.0f - distance / radius;
-				perception.RuntimeSuspicion = std::clamp(perception.RuntimeSuspicion + perception.HearingSuspicion * strength, 0.0f, 1.0f);
-				perception.RuntimeLastStimulusPosition = noise.Position;
-				perception.RuntimeHasStimulus = true;
+				const float level = HearingLevel(observer, noise.Position, noise.Loudness, noise.Source) - masking;
+				if (level > 0.0f)
+					Notify(observer, noise.Position, level, StimulusKind::Heard, noise.Cause.empty() ? std::string_view("Noise") : noise.Cause);
 			}
 		}
 	}
@@ -361,20 +415,51 @@ namespace Penumbra {
 			m_Focus[observer.GetUUID()] = { bestTarget ? bestTarget.GetUUID() : UUID(UUID::Invalid), best.Stimulus };
 			perception.RuntimeVisibleFraction = best.VisibleFraction;
 			perception.RuntimeContrast = best.Contrast;
-			if (bestTarget && best.Stimulus >= 1.0f)
+			m_Seeing[observer.GetUUID()] = bestTarget && best.Stimulus >= 1.0f ? bestTarget.GetUUID() : UUID(UUID::Invalid);
+		}
+
+		// Alert memory makes a guard notice faster.
+		perception.RuntimeSuspicion = PerceptionModel::UpdateSuspicion(perception.RuntimeSuspicion, perception.RuntimeStimulus, dt,
+			perception.SuspicionRise * (1.0f + perception.RuntimeAlertness), perception.SuspicionDecay);
+
+		// The reaction fades: Alarmed -> Searching -> Investigating -> Suspicious -> Unaware.
+		perception.RuntimeReactionTime = std::max(perception.RuntimeReactionTime - dt, 0.0f);
+
+		// Something seen clearly enough is a stimulus of strength 10 * suspicion; while the target
+		// is in sight the observer keeps track of where it is.
+		const auto seeing = m_Seeing.find(observer.GetUUID());
+		std::optional<Entity> seen = seeing != m_Seeing.end() ? m_Scene.TryGetEntityByUUID(seeing->second) : std::nullopt;
+		if (seen)
+		{
+			const glm::vec3 position = m_Scene.GetWorldPosition(*seen);
+			perception.RuntimeLastTarget = seen->GetUUID();
+			const bool taken = perception.RuntimeSuspicion >= perception.SuspiciousThreshold &&
+				Notify(observer, position, 10.0f * perception.RuntimeSuspicion, StimulusKind::Seen, "Seen");
+			if (!taken)
 			{
-				perception.RuntimeLastStimulusPosition = m_Scene.GetWorldPosition(bestTarget);
+				perception.RuntimeLastStimulusPosition = position;
 				perception.RuntimeHasStimulus = true;
-				perception.RuntimeLastTarget = bestTarget.GetUUID();
+				if (perception.RuntimeReactionTime > 0.0f)
+				{
+					perception.RuntimeStimulusKind = StimulusKind::Seen;
+					perception.RuntimeStimulusCause = "Seen";
+				}
 			}
 		}
 
-		perception.RuntimeSuspicion = PerceptionModel::UpdateSuspicion(perception.RuntimeSuspicion, perception.RuntimeStimulus, dt,
-			perception.SuspicionRise, perception.SuspicionDecay);
-		perception.RuntimeState =
-			PerceptionModel::StateFromSuspicion(perception.RuntimeSuspicion, perception.SuspiciousThreshold, perception.SearchingThreshold);
-		if (perception.RuntimeState == AwarenessState::Unaware && perception.RuntimeSuspicion <= 0.0f)
-			perception.RuntimeHasStimulus = false;
+		perception.RuntimeReactionStrength = PerceptionModel::ReactionStrength(perception.RuntimeReactionTime, perception.ReactionDuration);
+		perception.RuntimeState = PerceptionModel::StateFromStrength(perception.RuntimeReactionStrength, perception.InvestigateLevel,
+			perception.SearchLevel, perception.AlarmLevel);
+		if (perception.RuntimeState == AwarenessState::Unaware)
+		{
+			perception.RuntimeAlertness = std::max(perception.RuntimeAlertness - dt / std::max(perception.AlertMemoryTime, 1e-3f), 0.0f);
+			if (perception.RuntimeSuspicion <= 0.0f && !seen)
+			{
+				perception.RuntimeHasStimulus = false;
+				perception.RuntimeStimulusKind = StimulusKind::None;
+				perception.RuntimeStimulusCause.clear();
+			}
+		}
 	}
 
 	void PerceptionSystem::Update(Timestep ts)
@@ -406,6 +491,7 @@ namespace Penumbra {
 		auto destroyed = [&](const auto& entry) { return !m_Scene.TryGetEntityByUUID(entry.first).has_value(); };
 		std::erase_if(m_Focus, destroyed);
 		std::erase_if(m_VisionTimers, destroyed);
+		std::erase_if(m_Seeing, destroyed);
 		std::erase_if(m_TargetLighting, destroyed);
 	}
 

@@ -124,6 +124,7 @@ namespace Penumbra {
 			v("SSAORadius", c.SSAORadius);
 			v("SSAOIntensity", c.SSAOIntensity);
 			v("BloomIntensity", c.BloomIntensity);
+			v("AmbientNoise", c.AmbientNoise);
 		}
 
 		template<typename V>
@@ -195,7 +196,7 @@ namespace Penumbra {
 			v("Spatial", c.Spatial);
 			v("MinDistance", c.MinDistance);
 			v("MaxDistance", c.MaxDistance);
-			v("NoiseRadius", c.NoiseRadius);
+			v("NoiseLoudness", c.NoiseLoudness);
 		}
 
 		template<typename V> void VisitFields(AudioListenerComponent& c, V&& v) { v("Active", c.Active); }
@@ -218,15 +219,23 @@ namespace Penumbra {
 			v("SuspicionRise", c.SuspicionRise);
 			v("SuspicionDecay", c.SuspicionDecay);
 			v("SuspiciousThreshold", c.SuspiciousThreshold);
-			v("SearchingThreshold", c.SearchingThreshold);
 			v("HearingSensitivity", c.HearingSensitivity);
-			v("HearingSuspicion", c.HearingSuspicion);
+			v("ReactionDuration", c.ReactionDuration);
+			v("InvestigateLevel", c.InvestigateLevel);
+			v("SearchLevel", c.SearchLevel);
+			v("AlarmLevel", c.AlarmLevel);
+			v("AlertMemoryTime", c.AlertMemoryTime);
 			v("Adaptation", c.RuntimeAdaptation, FieldKind::Runtime);
 			v("Suspicion", c.RuntimeSuspicion, FieldKind::Runtime);
 			v("Stimulus", c.RuntimeStimulus, FieldKind::Runtime);
 			v("VisibleFraction", c.RuntimeVisibleFraction, FieldKind::Runtime);
 			v("Contrast", c.RuntimeContrast, FieldKind::Runtime);
 			v("State", c.RuntimeState, FieldKind::Runtime);
+			v("ReactionStrength", c.RuntimeReactionStrength, FieldKind::Runtime);
+			v("ReactionTime", c.RuntimeReactionTime, FieldKind::Runtime);
+			v("StimulusKind", c.RuntimeStimulusKind, FieldKind::Runtime);
+			v("StimulusCause", c.RuntimeStimulusCause, FieldKind::Runtime);
+			v("Alertness", c.RuntimeAlertness, FieldKind::Runtime);
 			v("LastStimulusPosition", c.RuntimeLastStimulusPosition, FieldKind::Runtime);
 			v("HasStimulus", c.RuntimeHasStimulus, FieldKind::Runtime);
 		}

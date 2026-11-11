@@ -1,5 +1,7 @@
 #include "TestHelpers.h"
 
+#include "Penumbra/AI/PerceptionModel.h"
+#include "Penumbra/AI/PerceptionSystem.h"
 #include "Penumbra/Navigation/NavigationSystem.h"
 #include "Penumbra/Navigation/NavMesh.h"
 #include "Penumbra/Physics/PhysicsWorld.h"
@@ -175,6 +177,31 @@ TEST_SUITE("Navigation")
 		// A destination nowhere near the navmesh fails cleanly.
 		CHECK_FALSE(navigation.MoveTo(lab.Agent, { 0.0f, 50.0f, 0.0f }));
 		CHECK(lab.AgentState().RuntimeStatus == NavStatus::Failed);
+		lab.SceneInstance.OnRuntimeStop();
+	}
+
+	TEST_CASE("Sound travels around walls along the navmesh")
+	{
+		NavLab lab;
+		// The guard stands behind the wall, 5 m from its middle; the gap is at x = 8..10.
+		Entity guard = lab.SceneInstance.CreateEntity("Guard");
+		guard.Transform().Translation = { 6.0f, 0.0f, -2.0f };
+		guard.AddComponent<PerceptionComponent>();
+		lab.SceneInstance.OnRuntimeStart();
+		PerceptionSystem& perception = *lab.SceneInstance.GetPerceptionSystem();
+
+		const glm::vec3 noise(6.0f, 0.1f, 2.0f);
+		const float straight = glm::distance(noise, glm::vec3(6.0f, 1.65f, -2.0f));
+		const float throughWall = PerceptionModel::HeardLevel(7.0f, straight) - PerceptionModel::WallLoss;
+		std::optional<NavPath> path = lab.Navigation().FindPath(noise, { 6.0f, 0.0f, -2.0f });
+		REQUIRE(path.has_value());
+		const float aroundCorner = PerceptionModel::HeardLevel(7.0f, path->Length) - PerceptionModel::CornerLoss;
+		REQUIRE(aroundCorner > throughWall);
+
+		CHECK(Test::Near(perception.HearingLevel(guard, noise, 7.0f), aroundCorner, 0.05f));
+		// The far end of the wall (the gap is on the other side) is reached only through the wall.
+		const glm::vec3 farNoise(-6.0f, 0.1f, 2.0f);
+		CHECK(perception.HearingLevel(guard, farNoise, 7.0f) < perception.HearingLevel(guard, noise, 7.0f));
 		lab.SceneInstance.OnRuntimeStop();
 	}
 

@@ -35,6 +35,7 @@ namespace Penumbra {
 			{
 				case AwarenessState::Unaware:    return { 0.3f, 0.9f, 0.4f, 1.0f };
 				case AwarenessState::Suspicious: return { 1.0f, 0.9f, 0.2f, 1.0f };
+				case AwarenessState::Investigating: return { 1.0f, 0.72f, 0.15f, 1.0f };
 				case AwarenessState::Searching:  return { 1.0f, 0.55f, 0.1f, 1.0f };
 				case AwarenessState::Alarmed:    return { 1.0f, 0.15f, 0.1f, 1.0f };
 			}
