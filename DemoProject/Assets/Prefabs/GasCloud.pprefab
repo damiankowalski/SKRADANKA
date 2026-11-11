@@ -1,0 +1,89 @@
+{
+  "Format": "PenumbraPrefab",
+  "Version": 1,
+  "Entities": [
+    {
+      "ID": "1000",
+      "Components": {
+        "Tag": {
+          "Tag": "GasCloud"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "StimSource": {
+          "Stim": "Gas",
+          "Delivery": "Continuous",
+          "Radius": 2.5,
+          "Intensity": 1.0
+        },
+        "SmokeVolume": {
+          "Radius": 2.5,
+          "Density": 0.3,
+          "Lifetime": 6.0
+        }
+      }
+    },
+    {
+      "ID": "1001",
+      "Components": {
+        "Tag": {
+          "Tag": "Haze"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            4.5,
+            3.0,
+            4.5
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:sphere",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.45,
+            0.75,
+            0.35,
+            0.18
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.15,
+          "EmissiveColor": [
+            0.4,
+            0.8,
+            0.3
+          ],
+          "Translucent": true
+        }
+      },
+      "Parent": "1000"
+    }
+  ]
+}

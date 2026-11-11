@@ -91,7 +91,12 @@ end
 function WorldEvents:excuse(strength, cause, spread)
     local calmed = ai.explain_away(strength, cause, { spread = spread })
     for _, guard in ipairs(calmed) do
-        audio.play_at("Audio/Mumble.wav", guard:get_position() + vec3(0, 1.6, 0), 0.6)
+        local instance = guard:script()
+        if instance and type(instance.bark) == "function" then
+            instance:bark(cause == "Thunder" and "Just the storm." or "Only the dogs.")
+        else
+            audio.play_at("Audio/Mumble.wav", guard:get_position() + vec3(0, 1.6, 0), 0.6)
+        end
     end
     if #calmed > 0 then log.info(string.format("%d guard(s) put it down to %s", #calmed, cause)) end
     self.excused = self.excused + #calmed

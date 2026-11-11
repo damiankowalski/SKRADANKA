@@ -224,6 +224,18 @@ local function run(self)
     H.wait(1.6)
     test.equal(ai.reaction(guard).cause, "Impact.Metal", "a dropped bucket is heard")
 
+    -- ---------------------------------------------------------------- takedowns, shouts, subtitles
+    local sx, sy = ui.world_to_screen(guard:get_position() + vec3(0, 2, 0))
+    test.check(sx ~= nil and sy ~= nil, "ui.world_to_screen (guard in view)")
+    test.check(ui.world_to_screen(scene.find("Camera"):get_position() - scene.find("Camera"):forward() * 5) == nil,
+        "ui.world_to_screen behind the camera")
+    test.equal(ai.vital_state(guard), "Awake", "ai.vital_state")
+    test.equal(type(ai.shout(guard, 8)), "table", "ai.shout")
+    test.check(ai.knock_out(guard), "ai.knock_out")
+    test.equal(ai.vital_state(guard), "Unconscious", "knocked out")
+    test.check(not ai.knock_out(guard, true), "already down")
+    test.equal(guard:get("PerceptionTarget").Kind, "Body", "a knocked-out guard is a body")
+
     -- ---------------------------------------------------------------- stims (Act/React)
     local torch = scene.find("Torch")
     local flame = nil

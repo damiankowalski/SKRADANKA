@@ -2418,6 +2418,20 @@
           "Height": 1.8
         },
         "Perception": {},
+        "StimResponse": {
+          "Rules": [
+            {
+              "Stim": "Gas",
+              "Threshold": 0.3,
+              "Once": true,
+              "Actions": [
+                {
+                  "Type": "Knockout"
+                }
+              ]
+            }
+          ]
+        },
         "Script": {
           "Script": "Scripts/Guard.lua",
           "Properties": {
@@ -2472,6 +2486,448 @@
       "ID": "1052",
       "Components": {
         "Tag": {
+          "Tag": "WP_5"
+        },
+        "Transform": {
+          "Translation": [
+            12,
+            0,
+            10
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1053",
+      "Components": {
+        "Tag": {
+          "Tag": "WP_6"
+        },
+        "Transform": {
+          "Translation": [
+            12,
+            0,
+            1
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1054",
+      "Components": {
+        "Tag": {
+          "Tag": "WP_7"
+        },
+        "Transform": {
+          "Translation": [
+            -2,
+            0,
+            1
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1055",
+      "Components": {
+        "Tag": {
+          "Tag": "WP_S1"
+        },
+        "Transform": {
+          "Translation": [
+            -9,
+            0,
+            -5
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1056",
+      "Components": {
+        "Tag": {
+          "Tag": "WP_S2"
+        },
+        "Transform": {
+          "Translation": [
+            -3,
+            0,
+            -9
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1057",
+      "Components": {
+        "Tag": {
+          "Tag": "Guard2"
+        },
+        "Transform": {
+          "Translation": [
+            12,
+            0.05,
+            10
+          ],
+          "Rotation": [
+            0,
+            180,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "CharacterController": {
+          "Radius": 0.3,
+          "Height": 1.8
+        },
+        "Perception": {},
+        "StimResponse": {
+          "Rules": [
+            {
+              "Stim": "Gas",
+              "Threshold": 0.3,
+              "Once": true,
+              "Actions": [
+                {
+                  "Type": "Knockout"
+                }
+              ]
+            }
+          ]
+        },
+        "Script": {
+          "Script": "Scripts/Guard.lua",
+          "Properties": {
+            "waypoints": "WP_5,WP_6,WP_7",
+            "catch_scene": "Scenes/AILab.pscene"
+          }
+        }
+      }
+    },
+    {
+      "ID": "1058",
+      "Components": {
+        "Tag": {
+          "Tag": "Model"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            0,
+            180,
+            0
+          ],
+          "Scale": [
+            0.8,
+            0.8,
+            0.8
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Characters/Knight.glb",
+          "HiddenNodes": [
+            "1H_Sword_Offhand",
+            "2H_Sword",
+            "Round_Shield",
+            "Rectangle_Shield",
+            "Spike_Shield"
+          ]
+        },
+        "Animator": {
+          "Clip": "Idle",
+          "BlendDuration": 0.2
+        }
+      },
+      "Parent": "1057"
+    },
+    {
+      "ID": "1059",
+      "Components": {
+        "Tag": {
+          "Tag": "Servant"
+        },
+        "Transform": {
+          "Translation": [
+            -9,
+            0.05,
+            -5
+          ],
+          "Rotation": [
+            0,
+            90,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "CharacterController": {
+          "Radius": 0.3,
+          "Height": 1.8
+        },
+        "Perception": {
+          "FieldOfView": 140.0
+        },
+        "StimResponse": {
+          "Rules": [
+            {
+              "Stim": "Gas",
+              "Threshold": 0.3,
+              "Once": true,
+              "Actions": [
+                {
+                  "Type": "Knockout"
+                }
+              ]
+            }
+          ]
+        },
+        "Script": {
+          "Script": "Scripts/Servant.lua",
+          "Properties": {
+            "waypoints": "WP_S1,WP_S2",
+            "bell": "Bell"
+          }
+        }
+      }
+    },
+    {
+      "ID": "1060",
+      "Components": {
+        "Tag": {
+          "Tag": "Model"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            0,
+            180,
+            0
+          ],
+          "Scale": [
+            0.8,
+            0.8,
+            0.8
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Characters/Knight.glb",
+          "HiddenNodes": [
+            "1H_Sword_Offhand",
+            "1H_Sword",
+            "2H_Sword",
+            "Badge_Shield",
+            "Round_Shield",
+            "Rectangle_Shield",
+            "Spike_Shield",
+            "Knight_Helmet",
+            "Knight_Cape"
+          ]
+        },
+        "Animator": {
+          "Clip": "Idle",
+          "BlendDuration": 0.2
+        }
+      },
+      "Parent": "1059"
+    },
+    {
+      "ID": "1061",
+      "Components": {
+        "Tag": {
+          "Tag": "Bell"
+        },
+        "Transform": {
+          "Translation": [
+            -13.5,
+            0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.15,
+            1.2,
+            0.15
+          ],
+          "Offset": [
+            0,
+            1.2,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1062",
+      "Components": {
+        "Tag": {
+          "Tag": "Post"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.2,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.15,
+            2.4,
+            0.15
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.3,
+            0.2,
+            0.12,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1061"
+    },
+    {
+      "ID": "1063",
+      "Components": {
+        "Tag": {
+          "Tag": "BellBody"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            2.3,
+            0.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.35,
+            0.4,
+            0.35
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.6,
+            0.45,
+            0.15,
+            1.0
+          ],
+          "Roughness": 0.3,
+          "Metallic": 0.9,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1061"
+    },
+    {
+      "ID": "1064",
+      "Components": {
+        "Tag": {
           "Tag": "Player"
         },
         "Transform": {
@@ -2505,7 +2961,7 @@
       }
     },
     {
-      "ID": "1053",
+      "ID": "1065",
       "Components": {
         "Tag": {
           "Tag": "Model"
@@ -2541,10 +2997,10 @@
           "BlendDuration": 0.2
         }
       },
-      "Parent": "1052"
+      "Parent": "1064"
     },
     {
-      "ID": "1054",
+      "ID": "1066",
       "Components": {
         "Tag": {
           "Tag": "Debug"
