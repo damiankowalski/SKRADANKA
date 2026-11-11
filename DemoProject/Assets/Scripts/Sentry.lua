@@ -28,7 +28,7 @@ function Sentry:on_update(dt)
         self.alarm_timer = self.alarm_timer or self.reset_after
         self.alarm_timer = self.alarm_timer - dt
         if self.alarm_timer <= 0 then
-            ai.set_suspicion(self.entity, 0)
+            ai.calm(self.entity)
             self.alarm_timer = nil
         end
     end

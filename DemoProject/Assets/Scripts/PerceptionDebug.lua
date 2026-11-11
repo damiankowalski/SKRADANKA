@@ -6,6 +6,7 @@ local PerceptionDebug = { Properties = { guard = "Guard", player = "Player" } }
 local STATE_COLORS = {
     Unaware = { 0.4, 0.9, 0.5, 1 },
     Suspicious = { 1.0, 0.9, 0.2, 1 },
+    Investigating = { 1.0, 0.72, 0.15, 1 },
     Searching = { 1.0, 0.55, 0.1, 1 },
     Alarmed = { 1.0, 0.2, 0.15, 1 },
 }
@@ -34,12 +35,19 @@ function PerceptionDebug:on_update(dt)
     local t = self.player_entity:get("PerceptionTarget")
     local state = ai.state(self.guard_entity)
 
-    ui.rect(10, 50, 470, 330, { 0, 0, 0, 0.55 })
+    local reaction = ai.reaction(self.guard_entity)
+    ui.rect(10, 50, 470, 396, { 0, 0, 0, 0.55 })
     local y = 60
     y = line(y, string.format("GUARD  %s   suspicion %.2f", state, p.Suspicion), STATE_COLORS[state])
     ui.rect(20, y, 440, 8, { 0.2, 0.2, 0.2, 1 })
     ui.rect(20, y, 440 * p.Suspicion, 8, STATE_COLORS[state])
     y = y + 18
+    y = line(y, string.format("reaction %.1f/10  %.0f s left  (%s: %s)", reaction.strength, reaction.time_left, reaction.kind,
+        reaction.cause ~= "" and reaction.cause or "-"), STATE_COLORS[state])
+    ui.rect(20, y, 440, 8, { 0.2, 0.2, 0.2, 1 })
+    ui.rect(20, y, 44 * reaction.strength, 8, STATE_COLORS[state])
+    y = y + 18
+    y = line(y, string.format("alert memory %.2f   navigation %s", ai.alertness(self.guard_entity), nav.status(self.guard_entity)))
     y = line(y, string.format("stimulus B      %.2f  (>= 1 noticed)", v.stimulus), v.stimulus >= 1 and { 1, 0.5, 0.4, 1 } or nil)
     y = line(y, string.format("visible points  %d / %d", v.visible_points, v.total_points))
     y = line(y, string.format("player  Lp      %.4f", v.target_luminance))

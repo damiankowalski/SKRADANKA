@@ -1,9 +1,11 @@
 #include "pnpch.h"
 #include "Penumbra/Scene/Scene.h"
 
+#include "Penumbra/AI/PerceptionModel.h"
 #include "Penumbra/AI/PerceptionSystem.h"
 #include "Penumbra/Animation/AnimationSystem.h"
 #include "Penumbra/Audio/AudioScene.h"
+#include "Penumbra/Navigation/NavigationSystem.h"
 #include "Penumbra/Physics/PhysicsWorld.h"
 #include "Penumbra/Scene/Entity.h"
 #include "Penumbra/Scripting/ScriptEngine.h"
@@ -133,6 +135,8 @@ namespace Penumbra {
 		{
 			if (m_ScriptEngine)
 				m_ScriptEngine->OnEntityDestroyed(entity);
+			if (m_NavigationSystem)
+				m_NavigationSystem->OnEntityDestroyed(entity);
 			if (m_PhysicsWorld)
 				m_PhysicsWorld->OnEntityDestroyed(entity);
 			if (m_AudioScene)
@@ -335,10 +339,17 @@ namespace Penumbra {
 		m_AudioScene = CreateScope<AudioScene>(*this, m_AudioDeviceEnabled);
 		m_PerceptionSystem = CreateScope<PerceptionSystem>(*this);
 		m_StimSystem = CreateScope<StimSystem>(*this);
+		m_NavigationSystem = CreateScope<NavigationSystem>(*this);
 		m_ScriptEngine = CreateScope<ScriptEngine>(*this);
 
 		m_IsUpdating = true;
 		m_PhysicsWorld->Start();
+		// Scenes that declare navmesh settings bake before scripts start (others bake on first use).
+		if (!m_Registry.view<NavMeshComponent>().empty())
+		{
+			std::string error;
+			m_NavigationSystem->Bake(error);
+		}
 		m_AudioScene->Start();
 		m_ScriptEngine->Start();
 		m_IsUpdating = false;
@@ -355,6 +366,7 @@ namespace Penumbra {
 		FlushPendingDestroys();
 
 		m_ScriptEngine.reset();
+		m_NavigationSystem.reset();
 		m_StimSystem.reset();
 		m_PerceptionSystem.reset();
 		if (m_AudioScene)
@@ -385,11 +397,14 @@ namespace Penumbra {
 		m_Overlay->Clear();
 
 		m_ScriptEngine->Update(ts);
+		m_NavigationSystem->Update(ts);
 		m_PhysicsWorld->Step(ts);
 		for (const ContactEvent& contact : m_PhysicsWorld->ConsumeContactEvents())
 		{
 			m_ScriptEngine->OnCollision(contact.EntityA, contact.EntityB);
 			m_StimSystem->OnContact(contact.EntityA, contact.EntityB, contact.Point);
+			EmitImpactNoise(contact.EntityA, contact.EntityB, contact.Point, contact.Speed);
+			EmitImpactNoise(contact.EntityB, contact.EntityA, contact.Point, contact.Speed);
 		}
 		m_StimSystem->Update(ts);
 		m_PerceptionSystem->Update(ts);
@@ -407,6 +422,34 @@ namespace Penumbra {
 	void Scene::OnUpdateEditor(Timestep)
 	{
 		// The editor scene is static; rendering reads it directly.
+	}
+
+	void Scene::EmitImpactNoise(UUID object, UUID other, const glm::vec3& point, float speed)
+	{
+		constexpr float Cooldown = 0.25f; // a bouncing or rolling object does not chatter
+		std::optional<Entity> entity = TryGetEntityByUUID(object);
+		if (!entity)
+			return;
+		SurfaceComponent* surface = entity->TryGetComponent<SurfaceComponent>();
+		const RigidBodyComponent* body = entity->TryGetComponent<RigidBodyComponent>();
+		if (!surface || surface->ImpactLoudness <= 0.0f || !body || body->Type != RigidBodyType::Dynamic)
+			return;
+		if (surface->RuntimeLastImpactTime >= 0.0f && m_Time - surface->RuntimeLastImpactTime < Cooldown)
+			return;
+
+		float modifier = 0.0f;
+		if (std::optional<Entity> hit = TryGetEntityByUUID(other))
+		{
+			if (const SurfaceComponent* hitSurface = hit->TryGetComponent<SurfaceComponent>())
+				modifier = hitSurface->NoiseModifier;
+		}
+		const float loudness = PerceptionModel::ImpactLoudness(surface->ImpactLoudness, speed, modifier);
+		if (loudness <= 0.0f)
+			return;
+		surface->RuntimeLastImpactTime = m_Time;
+		m_PerceptionSystem->EmitNoise(point, loudness, object, "Impact." + surface->Material);
+		if (!surface->ImpactSound.empty())
+			m_AudioScene->PlayOneShot(surface->ImpactSound, point, std::clamp(loudness / 10.0f, 0.1f, 1.0f), 0.0f);
 	}
 
 	void Scene::UpdateSmokeVolumes(Timestep ts)

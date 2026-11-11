@@ -36,7 +36,7 @@ namespace {
 		auto& response = keg.AddComponent<StimResponseComponent>();
 		response.Rules.push_back({ "Fire", 0.5f, true,
 			{ { StimActionType::EmitStim, "Fire", 1.0f, 3.0f }, { StimActionType::RadialImpulse, "", 50.0f, 4.0f },
-				{ StimActionType::EmitNoise, "", 0.0f, 30.0f }, { StimActionType::Destroy } } });
+				{ StimActionType::EmitNoise, "Explosion", 10.0f, 0.0f }, { StimActionType::Destroy } } });
 		return keg;
 	}
 
@@ -120,7 +120,8 @@ TEST_SUITE("Stim")
 		CHECK_FALSE(fixture.SceneInstance.TryGetEntityByUUID(secondID).has_value());
 		CHECK(fixture.SceneInstance.TryGetEntityByUUID(farID).has_value());
 		CHECK(glm::length(crate.Transform().Translation - glm::vec3(-1.5f, 0.3f, -6.0f)) > 0.5f);
-		CHECK(guard.GetComponent<PerceptionComponent>().RuntimeSuspicion > 0.0f); // heard the blast
+		CHECK(guard.GetComponent<PerceptionComponent>().RuntimeReactionStrength > 0.0f); // heard the blast
+		CHECK(guard.GetComponent<PerceptionComponent>().RuntimeStimulusCause == "Explosion");
 		fixture.SceneInstance.OnRuntimeStop();
 	}
 

@@ -139,10 +139,35 @@ TEST_SUITE("Perception")
 		CHECK(PerceptionModel::UpdateSuspicion(0.9f, 100.0f, 1.0f, 0.6f, 0.1f) == 1.0f);
 		CHECK(PerceptionModel::UpdateSuspicion(0.05f, 0.0f, 1.0f, 0.6f, 0.1f) == 0.0f);
 
-		CHECK(PerceptionModel::StateFromSuspicion(0.1f, 0.3f, 0.7f) == AwarenessState::Unaware);
-		CHECK(PerceptionModel::StateFromSuspicion(0.3f, 0.3f, 0.7f) == AwarenessState::Suspicious);
-		CHECK(PerceptionModel::StateFromSuspicion(0.8f, 0.3f, 0.7f) == AwarenessState::Searching);
-		CHECK(PerceptionModel::StateFromSuspicion(1.0f, 0.3f, 0.7f) == AwarenessState::Alarmed);
+	}
+
+	TEST_CASE("Loudness carries 1.4 * 2^(L/2) metres and loses two levels per doubling of distance")
+	{
+		CHECK(PerceptionModel::NoiseRange(0.0f) == 0.0f);
+		CHECK(Test::Near(PerceptionModel::NoiseRange(3.0f), 3.96f, 0.01f));
+		CHECK(Test::Near(PerceptionModel::NoiseRange(6.0f), 11.2f, 0.01f));
+		CHECK(Test::Near(PerceptionModel::NoiseRange(9.0f), 31.68f, 0.01f));
+		CHECK(Test::Near(PerceptionModel::HeardLevel(9.0f, 1.0f), 9.0f));  // full loudness up close
+		CHECK(Test::Near(PerceptionModel::HeardLevel(9.0f, 2.8f), 7.0f));  // one doubling
+		CHECK(Test::Near(PerceptionModel::HeardLevel(9.0f, 11.2f), 3.0f)); // three doublings
+		CHECK(Test::Near(PerceptionModel::HeardLevel(6.0f, PerceptionModel::NoiseRange(6.0f)), 0.0f));
+	}
+
+	TEST_CASE("Reactions last in proportion to the stimulus and step down through the states")
+	{
+		CHECK(Test::Near(PerceptionModel::ReactionDuration(10.0f, 90.0f), 90.0f));
+		CHECK(Test::Near(PerceptionModel::ReactionDuration(3.0f, 90.0f), 8.1f));
+		CHECK(Test::Near(PerceptionModel::ReactionDuration(9.0f, 90.0f), 72.9f));
+		CHECK(PerceptionModel::ReactionDuration(-1.0f, 90.0f) == 0.0f);
+		for (float s : { 1.0f, 4.5f, 8.0f })
+			CHECK(Test::Near(PerceptionModel::ReactionStrength(PerceptionModel::ReactionDuration(s, 60.0f), 60.0f), s));
+
+		using PerceptionModel::StateFromStrength;
+		CHECK(StateFromStrength(0.0f, 4.0f, 7.0f, 9.0f) == AwarenessState::Unaware);
+		CHECK(StateFromStrength(2.0f, 4.0f, 7.0f, 9.0f) == AwarenessState::Suspicious);
+		CHECK(StateFromStrength(5.0f, 4.0f, 7.0f, 9.0f) == AwarenessState::Investigating);
+		CHECK(StateFromStrength(7.5f, 4.0f, 7.0f, 9.0f) == AwarenessState::Searching);
+		CHECK(StateFromStrength(9.0f, 4.0f, 7.0f, 9.0f) == AwarenessState::Alarmed);
 	}
 
 	TEST_CASE("Scenario 1: dark player in a dark corner against a dark wall is not detected")
@@ -286,7 +311,7 @@ TEST_SUITE("Perception")
 		CHECK(smoky.Contrast < clear.Contrast * 0.1f);
 	}
 
-	TEST_CASE("Walls block sight completely and noises through walls carry half as far")
+	TEST_CASE("Walls block sight completely and muffle noises by four levels")
 	{
 		StealthLab lab;
 		lab.Wall(-9.0f, 0.3f, 2.0f);
@@ -296,15 +321,92 @@ TEST_SUITE("Perception")
 		CHECK(lab.Visibility().VisiblePoints == 0);
 		CHECK(lab.TimeToSuspicion(0.3f, 3.0f) < 0.0f);
 
-		// 6 m away behind the partition: a 10 m noise is muffled to 5 m and not heard...
-		lab.SceneInstance.GetPerceptionSystem()->EmitNoise({ 0.0f, 1.0f, -6.0f }, 10.0f, UUID::Invalid);
+		PerceptionSystem& perception = *lab.SceneInstance.GetPerceptionSystem();
+		const glm::vec3 behind(0.0f, 1.0f, -6.0f); // ~6.1 m from the ear, behind the partition
+		const float open = PerceptionModel::HeardLevel(5.0f, glm::distance(behind, glm::vec3(0.0f, 1.65f, 0.0f)));
+		CHECK(Test::Near(perception.HearingLevel(lab.Guard, behind, 5.0f), open - PerceptionModel::WallLoss, 0.01f));
+
+		// A loudness-5 noise is muffled below hearing...
+		perception.EmitNoise(behind, 5.0f, UUID::Invalid, "Crack");
 		lab.SceneInstance.OnUpdateRuntime(Timestep(1.0f / 60.0f));
-		CHECK(lab.Perception().RuntimeSuspicion == 0.0f);
-		// ...a 16 m one is (muffled to 8 m).
-		lab.SceneInstance.GetPerceptionSystem()->EmitNoise({ 0.0f, 1.0f, -6.0f }, 16.0f, UUID::Invalid);
+		CHECK(lab.Perception().RuntimeState == AwarenessState::Unaware);
+		// ...a loudness-9 one gets through faintly (9 - 4.2 for distance - 4 for the wall) and
+		// only makes him wonder. Without the partition it would be investigated (see below).
+		perception.EmitNoise(behind, 9.0f, UUID::Invalid, "Bucket");
 		lab.SceneInstance.OnUpdateRuntime(Timestep(1.0f / 60.0f));
-		CHECK(lab.Perception().RuntimeSuspicion > 0.0f);
+		CHECK(lab.Perception().RuntimeState == AwarenessState::Suspicious);
+		CHECK(Test::Near(lab.Perception().RuntimeReactionStrength, PerceptionModel::HeardLevel(9.0f, 6.1f) - 4.0f, 0.1f));
+		CHECK(PerceptionModel::HeardLevel(9.0f, 6.1f) >= 4.0f);
 		CHECK(lab.Perception().RuntimeHasStimulus);
+		CHECK(lab.Perception().RuntimeStimulusCause == "Bucket");
+		lab.SceneInstance.OnRuntimeStop();
+	}
+
+	TEST_CASE("A noise keeps a guard busy as long as it was strong, then he calms down")
+	{
+		StealthLab lab;
+		lab.Wall(-9.0f, 0.3f);
+		lab.Player.Transform().Translation = { 0.0f, 0.0f, 40.0f }; // far away and behind
+		lab.Start();
+		PerceptionSystem& perception = *lab.SceneInstance.GetPerceptionSystem();
+		auto busyFor = [&](float loudness) {
+			PerceptionSystem::Calm(lab.Perception());
+			perception.EmitNoise({ 0.0f, 1.65f, -1.4f }, loudness, UUID::Invalid); // heard at full loudness
+			float time = 0.0f;
+			lab.SceneInstance.OnUpdateRuntime(Timestep(0.1f));
+			while (lab.Perception().RuntimeState != AwarenessState::Unaware && time < 200.0f)
+			{
+				lab.SceneInstance.OnUpdateRuntime(Timestep(0.1f));
+				time += 0.1f;
+			}
+			return time;
+		};
+		const float quiet = busyFor(3.0f);
+		const float loud = busyFor(9.0f);
+		CHECK(quiet > 6.0f);
+		CHECK(quiet < 10.0f);  // 90 * 0.3^2 = 8.1 s
+		CHECK(loud > 65.0f);   // 90 * 0.9^2 = 72.9 s
+		CHECK(loud < 80.0f);
+		CHECK(lab.Perception().RuntimeAlertness > 0.0f); // the loud one left him more alert
+
+		// While reacting to a loud noise, quieter ones do not pull him around...
+		PerceptionSystem::Calm(lab.Perception());
+		perception.EmitNoise({ 0.0f, 1.65f, -1.4f }, 8.0f, UUID::Invalid, "Bucket");
+		lab.SceneInstance.OnUpdateRuntime(Timestep(0.1f));
+		perception.EmitNoise({ 1.4f, 1.65f, 0.0f }, 3.0f, UUID::Invalid, "Creak");
+		lab.SceneInstance.OnUpdateRuntime(Timestep(0.1f));
+		CHECK(lab.Perception().RuntimeStimulusCause == "Bucket");
+		// ...and background noise masks quiet sounds completely.
+		PerceptionSystem::Calm(lab.Perception());
+		lab.SceneInstance.GetEnvironmentEntity().GetComponent<EnvironmentComponent>().AmbientNoise = 6.0f;
+		perception.EmitNoise({ 0.0f, 1.65f, -1.4f }, 5.0f, UUID::Invalid);
+		lab.SceneInstance.OnUpdateRuntime(Timestep(0.1f));
+		CHECK(lab.Perception().RuntimeState == AwarenessState::Unaware);
+		lab.SceneInstance.OnRuntimeStop();
+	}
+
+	TEST_CASE("Objects hitting the floor make noise by speed, weight class and surface")
+	{
+		CHECK(PerceptionModel::ImpactLoudness(9.0f, 0.5f, 0.0f) == 0.0f); // resting contact
+		CHECK(Test::Near(PerceptionModel::ImpactLoudness(9.0f, 4.0f, 0.0f), 9.0f));
+		CHECK(Test::Near(PerceptionModel::ImpactLoudness(9.0f, 2.0f, 0.0f), 7.0f));
+		CHECK(Test::Near(PerceptionModel::ImpactLoudness(9.0f, 4.0f, -3.0f), 6.0f)); // on carpet
+		CHECK(PerceptionModel::ImpactLoudness(9.0f, 64.0f, 2.0f) == 10.0f);
+
+		// A metal bucket dropped 1.2 m in front of the guard: he hears it and goes to look.
+		StealthLab lab;
+		lab.Player.Transform().Translation = { 0.0f, 0.0f, 40.0f };
+		Entity bucket = Test::CreateBox(lab.SceneInstance, "Bucket", { 0.0f, 1.2f, -3.0f }, { 0.15f, 0.2f, 0.15f });
+		bucket.AddComponent<RigidBodyComponent>().Type = RigidBodyType::Dynamic;
+		auto& surface = bucket.AddComponent<SurfaceComponent>();
+		surface.Material = "Metal";
+		surface.ImpactLoudness = 9.0f;
+		lab.Start();
+		Test::Simulate(lab.SceneInstance, 1.0f);
+		CHECK(lab.Perception().RuntimeStimulusCause == "Impact.Metal");
+		CHECK(lab.Perception().RuntimeStimulusKind == StimulusKind::Heard);
+		CHECK(static_cast<int>(lab.Perception().RuntimeState) >= static_cast<int>(AwarenessState::Investigating));
+		CHECK(Test::Near(lab.Perception().RuntimeLastStimulusPosition, { 0.0f, 0.0f, -3.0f }, 0.3f));
 		lab.SceneInstance.OnRuntimeStop();
 	}
 

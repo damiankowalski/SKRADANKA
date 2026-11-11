@@ -72,7 +72,8 @@
                 },
                 {
                   "Type": "EmitNoise",
-                  "Radius": 35.0
+                  "Value": 10.0,
+                  "Asset": "Explosion"
                 },
                 {
                   "Type": "PlaySound",

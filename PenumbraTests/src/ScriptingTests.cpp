@@ -196,7 +196,18 @@ TEST_SUITE("Scripting")
 
 		CHECK(fixture.Run("return ai.state(scene.find('Guard'))") == "\"Unaware\"");
 		fixture.Run("ai.set_suspicion(scene.find('Guard'), 0.8)");
+		CHECK(fixture.Run("return math.abs(ai.suspicion(scene.find('Guard')) - 0.8) < 1e-4") == "true");
+		CHECK(fixture.Run("return ai.notify(scene.find('Guard'), vec3(1, 0, 2), 8, 'Shout')") == "true");
 		CHECK(fixture.Run("return ai.state(scene.find('Guard'))") == "\"Searching\"");
+		CHECK(fixture.Run("return ai.reaction(scene.find('Guard')).cause") == "\"Shout\"");
+		CHECK(fixture.Run("return ai.reaction(scene.find('Guard')).kind") == "\"Reported\"");
+		CHECK(fixture.Run("return ai.reaction(scene.find('Guard')).position.z == 2") == "true");
+		CHECK(fixture.Run("return ai.notify(scene.find('Guard'), vec3(0, 0, 0), 2)") == "false"); // weaker: ignored
+		CHECK(fixture.Run("return ai.alertness(scene.find('Guard')) > 0.7") == "true");
+		fixture.Run("ai.calm(scene.find('Guard'))");
+		CHECK(fixture.Run("return ai.state(scene.find('Guard'))") == "\"Unaware\"");
+		CHECK(fixture.Run("return math.floor(ai.noise_range(6))") == "11");
+		CHECK(fixture.Run("return ai.hearing(scene.find('Guard'), vec3(0, 1.6, -1.4), 5) > 4.9") == "true");
 		CHECK(fixture.Run("return ai.visibility(scene.find('Guard'), scene.find('Player')).total_points") == "7");
 		CHECK(fixture.Run("return ai.luminance(vec3(0, 1, 0)) >= 0") == "true");
 		fixture.Run("ai.emit_noise(vec3(0, 1.6, -1), 10)");

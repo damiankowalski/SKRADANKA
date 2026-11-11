@@ -2533,7 +2533,8 @@
                 },
                 {
                   "Type": "EmitNoise",
-                  "Radius": 35.0
+                  "Value": 10.0,
+                  "Asset": "Explosion"
                 },
                 {
                   "Type": "PlaySound",
@@ -2623,7 +2624,8 @@
                 },
                 {
                   "Type": "EmitNoise",
-                  "Radius": 35.0
+                  "Value": 10.0,
+                  "Asset": "Explosion"
                 },
                 {
                   "Type": "PlaySound",
@@ -2713,7 +2715,8 @@
                 },
                 {
                   "Type": "EmitNoise",
-                  "Radius": 35.0
+                  "Value": 10.0,
+                  "Asset": "Explosion"
                 },
                 {
                   "Type": "PlaySound",
@@ -3078,6 +3081,263 @@
       "ID": "1063",
       "Components": {
         "Tag": {
+          "Tag": "HallCarpet"
+        },
+        "Transform": {
+          "Translation": [
+            10,
+            0.01,
+            -12
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            10.6,
+            0.02,
+            7.2
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.35,
+            0.08,
+            0.07,
+            1.0
+          ],
+          "Roughness": 0.9,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        },
+        "Surface": {
+          "Material": "Carpet",
+          "NoiseModifier": -2.0
+        }
+      }
+    },
+    {
+      "ID": "1064",
+      "Components": {
+        "Tag": {
+          "Tag": "Grate"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.01,
+            5
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            3,
+            0.02,
+            3
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.3,
+            0.32,
+            0.34,
+            1.0
+          ],
+          "Roughness": 0.35,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        },
+        "Surface": {
+          "Material": "Metal",
+          "NoiseModifier": 2.5
+        }
+      }
+    },
+    {
+      "ID": "1065",
+      "Components": {
+        "Tag": {
+          "Tag": "Lawn"
+        },
+        "Transform": {
+          "Translation": [
+            -12,
+            0.01,
+            11
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            6,
+            0.02,
+            5
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.12,
+            0.2,
+            0.08,
+            1.0
+          ],
+          "Roughness": 0.9,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        },
+        "Surface": {
+          "Material": "Grass",
+          "NoiseModifier": -1.0
+        }
+      }
+    },
+    {
+      "ID": "1066",
+      "Components": {
+        "Tag": {
+          "Tag": "Bucket"
+        },
+        "Transform": {
+          "Translation": [
+            -8,
+            1.2,
+            4
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.3,
+            0.4,
+            0.3
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.45,
+            0.45,
+            0.48,
+            1.0
+          ],
+          "Roughness": 0.3,
+          "Metallic": 0.8,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        },
+        "RigidBody": {
+          "Type": "Dynamic",
+          "Mass": 2.0,
+          "Friction": 0.5
+        },
+        "Surface": {
+          "Material": "Metal",
+          "NoiseModifier": 2.5,
+          "ImpactLoudness": 9.0,
+          "ImpactSound": "Audio/Clang.wav"
+        }
+      }
+    },
+    {
+      "ID": "1067",
+      "Components": {
+        "Tag": {
+          "Tag": "Navigation"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "NavMesh": {}
+      }
+    },
+    {
+      "ID": "1068",
+      "Components": {
+        "Tag": {
           "Tag": "Gate"
         },
         "Transform": {
@@ -3114,7 +3374,7 @@
       }
     },
     {
-      "ID": "1064",
+      "ID": "1069",
       "Components": {
         "Tag": {
           "Tag": "GateArch"
@@ -3166,7 +3426,7 @@
       }
     },
     {
-      "ID": "1065",
+      "ID": "1070",
       "Components": {
         "Tag": {
           "Tag": "Player"
@@ -3202,7 +3462,7 @@
       }
     },
     {
-      "ID": "1066",
+      "ID": "1071",
       "Components": {
         "Tag": {
           "Tag": "Model"
@@ -3238,10 +3498,10 @@
           "BlendDuration": 0.2
         }
       },
-      "Parent": "1065"
+      "Parent": "1070"
     },
     {
-      "ID": "1067",
+      "ID": "1072",
       "Components": {
         "Tag": {
           "Tag": "Ambience"

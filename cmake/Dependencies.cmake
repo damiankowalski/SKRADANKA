@@ -92,6 +92,7 @@ penumbra_fetch_sources(json       https://github.com/nlohmann/json.git          
 penumbra_fetch_sources(imgui      https://github.com/ocornut/imgui.git             v1.92.9-docking)
 penumbra_fetch_sources(imguizmo   https://github.com/CedricGuillemet/ImGuizmo.git  105e4fde45e4e74aae8973d98750820ef7aca7e2)
 penumbra_fetch_sources(doctest    https://github.com/doctest/doctest.git           v2.5.3)
+penumbra_fetch_sources(recastnavigation https://github.com/recastnavigation/recastnavigation.git v1.6.0)
 
 # Lua 5.4 (C library, compiled as C)
 file(GLOB PN_LUA_SOURCES "${lua_SOURCE_DIR}/*.c")
@@ -118,6 +119,16 @@ add_library(pn_json INTERFACE)
 target_include_directories(pn_json SYSTEM INTERFACE "${json_SOURCE_DIR}/single_include")
 add_library(pn_doctest INTERFACE)
 target_include_directories(pn_doctest SYSTEM INTERFACE "${doctest_SOURCE_DIR}")
+
+# Recast (navmesh generation) + Detour (navmesh queries), built as one static library.
+file(GLOB PN_RECAST_SOURCES
+    "${recastnavigation_SOURCE_DIR}/Recast/Source/*.cpp"
+    "${recastnavigation_SOURCE_DIR}/Detour/Source/*.cpp")
+add_library(pn_recast STATIC ${PN_RECAST_SOURCES})
+target_include_directories(pn_recast SYSTEM PUBLIC
+    "${recastnavigation_SOURCE_DIR}/Recast/Include"
+    "${recastnavigation_SOURCE_DIR}/Detour/Include")
+set_target_properties(pn_recast PROPERTIES FOLDER ThirdParty)
 
 # Dear ImGui (docking branch) + ImGuizmo, used by the editor only
 if(PENUMBRA_BUILD_EDITOR)

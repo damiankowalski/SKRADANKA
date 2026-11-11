@@ -57,7 +57,26 @@ namespace Penumbra {
 	{
 		static constexpr std::pair<AwarenessState, std::string_view> Values[] = {
 			{ AwarenessState::Unaware, "Unaware" }, { AwarenessState::Suspicious, "Suspicious" },
-			{ AwarenessState::Searching, "Searching" }, { AwarenessState::Alarmed, "Alarmed" }
+			{ AwarenessState::Investigating, "Investigating" }, { AwarenessState::Searching, "Searching" },
+			{ AwarenessState::Alarmed, "Alarmed" }
+		};
+	};
+
+	template<>
+	struct EnumNames<StimulusKind>
+	{
+		static constexpr std::pair<StimulusKind, std::string_view> Values[] = {
+			{ StimulusKind::None, "None" }, { StimulusKind::Heard, "Heard" }, { StimulusKind::Seen, "Seen" },
+			{ StimulusKind::Reported, "Reported" }
+		};
+	};
+
+	template<>
+	struct EnumNames<NavStatus>
+	{
+		static constexpr std::pair<NavStatus, std::string_view> Values[] = {
+			{ NavStatus::Idle, "Idle" }, { NavStatus::Moving, "Moving" }, { NavStatus::Arrived, "Arrived" },
+			{ NavStatus::Failed, "Failed" }, { NavStatus::Stuck, "Stuck" }
 		};
 	};
 

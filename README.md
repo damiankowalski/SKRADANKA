@@ -11,6 +11,9 @@ shadow" flag.
 * Lua 5.4 gameplay scripting (sol2), EnTT entity-component system, JSON scenes and prefabs
 * Silhouette-contrast NPC perception with eye adaptation, peripheral/motion sensitivity, smoke,
   hearing and a suspicion meter (`docs/GAME ENGINE SKRADANKA.md`, `docs/Perception.md`)
+* Guards that patrol and search on a [Recast/Detour](https://github.com/recastnavigation/recastnavigation)
+  navmesh, hear on a 0-10 loudness scale (sound travels around corners, floors change footsteps) and
+  react for as long as the stimulus was strong
 * Act/React elemental system: water arrows douse torches, fire arrows ignite powder kegs
 * Editor with gizmos, play mode and a JSON automation API so AI agents can build games end-to-end
 * One-command export of a standalone game
@@ -38,5 +41,5 @@ build\debug\bin\PenumbraEditor.exe --project DemoProject
 folder above the executable, so the commands work from the repository root and from `build\debug\bin`.
 
 Requires Visual Studio 2022 or newer with the "Desktop development with C++" workload.
-Docs: `docs/Perception.md`, `docs/ScriptingAPI.md`, `docs/Automation.md`, `docs/Components.md`.
+Docs: `docs/Perception.md`, `docs/ScriptingAPI.md`, `docs/Automation.md`, `docs/Components.md`; plans in `docs/Roadmap.md`.
 See [AGENTS.md](AGENTS.md) for the architecture, conventions and workflow.

@@ -46,7 +46,7 @@ TEST_SUITE("Audio")
 		scene.OnRuntimeStop();
 	}
 
-	TEST_CASE("Sounds with a noise radius are heard by NPCs")
+	TEST_CASE("Sounds with a noise loudness are heard by NPCs")
 	{
 		Test::TemporaryProject project;
 		Test::WriteToneWav(project.GetAssetDirectory() / "Audio" / "Crash.wav", 0.2f);
@@ -57,10 +57,11 @@ TEST_SUITE("Audio")
 		guard.AddComponent<PerceptionComponent>();
 		scene.OnRuntimeStart();
 
-		CHECK(scene.GetAudioScene()->PlayOneShot("Audio/Crash.wav", { 3.0f, 1.6f, 0.0f }, 1.0f, 10.0f));
+		CHECK(scene.GetAudioScene()->PlayOneShot("Audio/Crash.wav", { 3.0f, 1.6f, 0.0f }, 1.0f, 8.0f));
 		scene.OnUpdateRuntime(Timestep(1.0f / 60.0f));
 		const auto& perception = guard.GetComponent<PerceptionComponent>();
-		CHECK(perception.RuntimeSuspicion > 0.1f);
+		CHECK(perception.RuntimeReactionStrength > 5.0f);
+		CHECK(perception.RuntimeStimulusKind == StimulusKind::Heard);
 		CHECK(perception.RuntimeHasStimulus);
 		CHECK(Test::Near(perception.RuntimeLastStimulusPosition, { 3.0f, 1.6f, 0.0f }));
 		scene.OnRuntimeStop();

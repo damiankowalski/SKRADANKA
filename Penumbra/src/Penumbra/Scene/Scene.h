@@ -21,6 +21,7 @@ namespace Penumbra {
 	class AudioScene;
 	class PerceptionSystem;
 	class StimSystem;
+	class NavigationSystem;
 	class OverlayList;
 
 	struct TestReport
@@ -105,6 +106,7 @@ namespace Penumbra {
 		AudioScene* GetAudioScene() const { return m_AudioScene.get(); }
 		PerceptionSystem* GetPerceptionSystem() const { return m_PerceptionSystem.get(); }
 		StimSystem* GetStimSystem() const { return m_StimSystem.get(); }
+		NavigationSystem* GetNavigationSystem() const { return m_NavigationSystem.get(); }
 		OverlayList& GetOverlay() { return *m_Overlay; }
 
 		// Headless runs (tests, CI) create the audio engine without an output device.
@@ -125,6 +127,8 @@ namespace Penumbra {
 		void DestroyEntityImmediate(Entity entity);
 		void FlushPendingDestroys();
 		void UpdateSmokeVolumes(Timestep ts);
+		// Dynamic objects with a Surface ImpactLoudness make a noise (and sound) when they hit something.
+		void EmitImpactNoise(UUID object, UUID other, const glm::vec3& point, float speed);
 		void RunRuntimeFrame(Timestep ts);
 
 	private:
@@ -137,6 +141,7 @@ namespace Penumbra {
 		Scope<AudioScene> m_AudioScene;
 		Scope<PerceptionSystem> m_PerceptionSystem;
 		Scope<StimSystem> m_StimSystem;
+		Scope<NavigationSystem> m_NavigationSystem;
 		Scope<OverlayList> m_Overlay;
 
 		bool m_IsRunning = false;

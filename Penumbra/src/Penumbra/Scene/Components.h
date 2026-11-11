@@ -154,6 +154,8 @@ namespace Penumbra {
 		float SSAORadius = 0.5f;
 		float SSAOIntensity = 1.0f;
 		float BloomIntensity = 0.04f;
+		// Background noise level (0-10: wind, rain, machinery) that masks quieter sounds for NPCs.
+		float AmbientNoise = 0.0f;
 	};
 
 	// ------------------------------------------------------------------------
@@ -254,8 +256,8 @@ namespace Penumbra {
 		bool Spatial = true;
 		float MinDistance = 1.0f;
 		float MaxDistance = 30.0f;
-		// How far (meters) NPCs can hear this sound while it plays. 0 = inaudible to AI.
-		float NoiseRadius = 0.0f;
+		// Loudness (0-10, see docs/Perception.md) NPCs hear while it plays. 0 = inaudible to AI.
+		float NoiseLoudness = 0.0f;
 	};
 
 	struct AudioListenerComponent
@@ -267,12 +269,23 @@ namespace Penumbra {
 	// AI perception (see docs/GAME ENGINE SKRADANKA.md, "ShadowProto")
 	// ------------------------------------------------------------------------
 
+	// What an NPC is doing about the strongest stimulus it is still reacting to. The state
+	// follows the remaining reaction strength (0-10) and steps down as the reaction fades.
 	enum class AwarenessState : uint8_t
 	{
-		Unaware = 0,
-		Suspicious,
-		Searching,
-		Alarmed
+		Unaware = 0,   // patrolling
+		Suspicious,    // something faint: stop, turn and look
+		Investigating, // walk over and have a look
+		Searching,     // search the area around the stimulus
+		Alarmed        // the intruder is (or was just) seen: chase, raise the alarm
+	};
+
+	enum class StimulusKind : uint8_t
+	{
+		None = 0,
+		Heard,
+		Seen,
+		Reported // injected by a script (another guard's shout, a scripted event...)
 	};
 
 	struct PerceptionComponent
@@ -292,11 +305,19 @@ namespace Penumbra {
 		float ReferenceAngularSize = 0.05f; // radians - target size at which S reaches 1
 		float SuspicionRise = 0.6f;     // r_rise
 		float SuspicionDecay = 0.08f;   // r_decay
-		float SuspiciousThreshold = 0.3f;
-		float SearchingThreshold = 0.7f;
-		// Hearing: a noise of radius R at distance d is heard when d < R * HearingSensitivity.
+		float SuspiciousThreshold = 0.3f; // suspicion D from which a sighting is a stimulus of strength 10 * D
+		// Hearing: a noise of loudness L (0-10) carries 1.4 * 2^(L/2) metres, losing 2 levels per
+		// doubling of distance; HearingSensitivity scales the distances (2 = hears twice as far).
 		float HearingSensitivity = 1.0f;
-		float HearingSuspicion = 0.35f; // suspicion added by a clearly heard noise
+		// Reactions: a stimulus of strength s (0-10) keeps the NPC busy ReactionDuration * (s/10)^2
+		// seconds. The remaining strength picks the state: >= AlarmLevel Alarmed, >= SearchLevel
+		// Searching, >= InvestigateLevel Investigating, > 0 Suspicious.
+		float ReactionDuration = 90.0f;
+		float InvestigateLevel = 4.0f;
+		float SearchLevel = 7.0f;
+		float AlarmLevel = 9.0f;
+		// After a search the NPC stays more alert (hears further, notices faster) for this long.
+		float AlertMemoryTime = 120.0f;
 
 		// Runtime only
 		float RuntimeAdaptation = 0.05f; // L_a
@@ -305,9 +326,28 @@ namespace Penumbra {
 		float RuntimeVisibleFraction = 0.0f;
 		float RuntimeContrast = 0.0f;
 		AwarenessState RuntimeState = AwarenessState::Unaware;
+		float RuntimeReactionStrength = 0.0f; // remaining strength (0-10) of the current reaction
+		float RuntimeReactionTime = 0.0f;     // seconds left
+		StimulusKind RuntimeStimulusKind = StimulusKind::None;
+		std::string RuntimeStimulusCause;     // noise name ("Footstep", "Impact"...), "Seen" or a script's label
+		float RuntimeAlertness = 0.0f;        // 0-1 memory of recent searches
 		glm::vec3 RuntimeLastStimulusPosition{ 0.0f };
 		bool RuntimeHasStimulus = false;
 		UUID RuntimeLastTarget = UUID::Invalid;
+	};
+
+	// What a floor or an object is made of, for the noises made on it and with it. Footsteps
+	// (scripted, see Scripts/AI/Noises.lua) and impacts add NoiseModifier of the surface they
+	// land on; dynamic objects with an ImpactLoudness make noise when they hit something.
+	struct SurfaceComponent
+	{
+		std::string Material = "Stone"; // reported with the noise: "Footstep.Metal", "Impact.Wood"...
+		float NoiseModifier = 0.0f;     // loudness levels added on this surface (carpet -2, moss -3, metal grate +2.5)
+		float ImpactLoudness = 0.0f;    // loudness (0-10) of this object hitting a neutral floor at 4 m/s; 0 = silent
+		std::string ImpactSound;        // optional clip played on impacts
+
+		// Runtime only
+		float RuntimeLastImpactTime = -1.0f;
 	};
 
 	// Something NPCs can see: the player. Silhouette points are local offsets sampled
@@ -389,7 +429,7 @@ namespace Penumbra {
 		EmitStim,          // Asset = stim name, Value = intensity, Radius = radius
 		RadialImpulse,     // Value = impulse strength, Radius = radius
 		PlaySound,         // Asset = clip path
-		EmitNoise,         // Radius = noise radius heard by NPCs
+		EmitNoise,         // Value = loudness (0-10) heard by NPCs, Asset = optional cause name
 		ScriptEvent        // calls on_stim_event(self, Asset) on the entity's script
 	};
 
@@ -418,6 +458,52 @@ namespace Penumbra {
 	};
 
 	// ------------------------------------------------------------------------
+	// Navigation
+	// ------------------------------------------------------------------------
+
+	// Navmesh build settings for the scene (put it on one entity, e.g. the level root). The
+	// navmesh is baked from every static, solid collider when the game starts and rebuilt when
+	// one of them is destroyed. Scenes without this component bake with the defaults on first use.
+	struct NavMeshComponent
+	{
+		float CellSize = 0.15f;      // horizontal voxel size, metres
+		float CellHeight = 0.1f;     // vertical voxel size, metres
+		float AgentRadius = 0.35f;   // walls are kept this far from paths
+		float AgentHeight = 1.8f;    // minimum clearance
+		float AgentMaxClimb = 0.4f;  // highest step an agent walks up
+		float AgentMaxSlope = 45.0f; // degrees
+
+		// Runtime only
+		uint32_t RuntimePolygons = 0;
+		float RuntimeBuildMilliseconds = 0.0f;
+	};
+
+	enum class NavStatus : uint8_t
+	{
+		Idle = 0, // not moving under navigation control
+		Moving,   // following a path
+		Arrived,  // reached the destination (or the closest reachable point)
+		Failed,   // no path: the agent or the destination is off the navmesh
+		Stuck     // blocked for a while; the script decides what to do
+	};
+
+	// Lets the navigation system walk a character (CharacterController) along navmesh paths:
+	// nav.move_to(entity, position) from Lua. Added automatically by nav.move_to when missing.
+	struct NavAgentComponent
+	{
+		float Speed = 1.4f;             // metres per second
+		float TurnSpeed = 540.0f;       // degrees per second when turning to face the path
+		float StoppingDistance = 0.3f;  // arrival tolerance, metres
+		bool FaceMovement = true;       // rotate the entity towards the direction of travel
+
+		// Runtime only
+		NavStatus RuntimeStatus = NavStatus::Idle;
+		glm::vec3 RuntimeDestination{ 0.0f };
+		float RuntimeRemainingDistance = 0.0f;
+		bool RuntimePartialPath = false; // the destination is unreachable; walking to the closest point
+	};
+
+	// ------------------------------------------------------------------------
 	// Prefab bookkeeping
 	// ------------------------------------------------------------------------
 
@@ -436,6 +522,6 @@ namespace Penumbra {
 		DirectionalLightComponent, PointLightComponent, SpotLightComponent, EnvironmentComponent, RigidBodyComponent, BoxColliderComponent,
 		SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent, CharacterControllerComponent, ScriptComponent,
 		AudioSourceComponent, AudioListenerComponent, PerceptionComponent, PerceptionTargetComponent, SmokeVolumeComponent, FlameComponent,
-		StimSourceComponent, StimResponseComponent, PrefabComponent>;
+		StimSourceComponent, StimResponseComponent, NavMeshComponent, NavAgentComponent, SurfaceComponent, PrefabComponent>;
 
 }

@@ -515,6 +515,69 @@
       "ID": "1013",
       "Components": {
         "Tag": {
+          "Tag": "Bucket"
+        },
+        "Transform": {
+          "Translation": [
+            -3,
+            0.2,
+            1
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.3,
+            0.4,
+            0.3
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.45,
+            0.45,
+            0.48,
+            1.0
+          ],
+          "Roughness": 0.3,
+          "Metallic": 0.8,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        },
+        "RigidBody": {
+          "Type": "Dynamic",
+          "Mass": 2.0,
+          "Friction": 0.5
+        },
+        "Surface": {
+          "Material": "Metal",
+          "NoiseModifier": 2.5,
+          "ImpactLoudness": 9.0,
+          "ImpactSound": ""
+        }
+      }
+    },
+    {
+      "ID": "1014",
+      "Components": {
+        "Tag": {
           "Tag": "Torch"
         },
         "Transform": {
@@ -570,7 +633,7 @@
       }
     },
     {
-      "ID": "1014",
+      "ID": "1015",
       "Components": {
         "Tag": {
           "Tag": "Pole"
@@ -620,10 +683,10 @@
           ]
         }
       },
-      "Parent": "1013"
+      "Parent": "1014"
     },
     {
-      "ID": "1015",
+      "ID": "1016",
       "Components": {
         "Tag": {
           "Tag": "Wrap"
@@ -667,10 +730,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1013"
+      "Parent": "1014"
     },
     {
-      "ID": "1016",
+      "ID": "1017",
       "Components": {
         "Tag": {
           "Tag": "Flame"
@@ -722,10 +785,10 @@
           "IsTrigger": true
         }
       },
-      "Parent": "1013"
+      "Parent": "1014"
     },
     {
-      "ID": "1017",
+      "ID": "1018",
       "Components": {
         "Tag": {
           "Tag": "PowderKeg"
@@ -783,7 +846,7 @@
       }
     },
     {
-      "ID": "1018",
+      "ID": "1019",
       "Components": {
         "Tag": {
           "Tag": "Runner"

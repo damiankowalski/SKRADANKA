@@ -51,7 +51,8 @@ def material(color, roughness=0.8, metallic=0.0, emissive=0.0, emissive_color=(1
             "EmissiveIntensity": emissive, "EmissiveColor": list(emissive_color), "Translucent": translucent}
 
 
-def box(doc, name, position, size, color, parent=None, emissive=0.0, emissive_color=(1, 1, 1), collider=True, roughness=0.85):
+def box(doc, name, position, size, color, parent=None, emissive=0.0, emissive_color=(1, 1, 1), collider=True, roughness=0.85,
+        surface=None):
     components = {
         "Transform": transform(position, scale=size),
         "Mesh": {"Mesh": "builtin:cube"},
@@ -59,7 +60,44 @@ def box(doc, name, position, size, color, parent=None, emissive=0.0, emissive_co
     }
     if collider:
         components["BoxCollider"] = {"HalfExtents": [0.5, 0.5, 0.5]}
+    if surface:
+        components["Surface"] = SURFACES[surface]
     return doc.add(name, parent, **components)
+
+
+# Floor materials and how they change footsteps and impacts (loudness levels, 0-10 scale; see
+# Scripts/AI/Noises.lua). Floors are thin collider boxes laid over the ground.
+SURFACES = {
+    "Stone": {"Material": "Stone", "NoiseModifier": 0.0},
+    "Carpet": {"Material": "Carpet", "NoiseModifier": -2.0},
+    "Grass": {"Material": "Grass", "NoiseModifier": -1.0},
+    "Moss": {"Material": "Moss", "NoiseModifier": -3.0},
+    "Wood": {"Material": "Wood", "NoiseModifier": 0.5},
+    "Metal": {"Material": "Metal", "NoiseModifier": 2.5},
+}
+SURFACE_COLORS = {"Carpet": (0.35, 0.08, 0.07), "Grass": (0.12, 0.2, 0.08), "Moss": (0.1, 0.17, 0.09),
+                  "Wood": (0.32, 0.22, 0.13), "Metal": (0.3, 0.32, 0.34)}
+
+
+def floor_patch(doc, name, surface, center, size):
+    """A walkable floor of another material, 2 cm thick, over the ground."""
+    x, z = center
+    w, d = size
+    return box(doc, name, (x, 0.01, z), (w, 0.02, d), SURFACE_COLORS[surface], surface=surface,
+               roughness=0.35 if surface == "Metal" else 0.9)
+
+
+def noisy_object(doc, name, position, size, material, loudness, sound, color):
+    """A small dynamic object that makes noise when it falls or is knocked over."""
+    return doc.add(name, Transform=transform(position, scale=size), Mesh={"Mesh": "builtin:cylinder" if material == "Metal" else "builtin:cube"},
+                   Material=material_of(color, material), BoxCollider={"HalfExtents": [0.5, 0.5, 0.5]},
+                   RigidBody={"Type": "Dynamic", "Mass": 2.0 if material == "Metal" else 4.0, "Friction": 0.5},
+                   Surface={"Material": material, "NoiseModifier": SURFACES[material]["NoiseModifier"],
+                            "ImpactLoudness": loudness, "ImpactSound": sound})
+
+
+def material_of(color, surface):
+    return material(color, roughness=0.3 if surface == "Metal" else 0.85, metallic=0.8 if surface == "Metal" else 0.0)
 
 
 # --------------------------------------------------------------------------------------------
@@ -120,7 +158,7 @@ def build_prefabs():
             StimResponse={"Rules": [{"Stim": "Fire", "Threshold": 0.5, "Once": True, "Actions": [
                 {"Type": "EmitStim", "Asset": "Fire", "Value": 1.0, "Radius": 3.5},
                 {"Type": "RadialImpulse", "Value": 40.0, "Radius": 5.0},
-                {"Type": "EmitNoise", "Radius": 35.0},
+                {"Type": "EmitNoise", "Value": 10.0, "Asset": "Explosion"},
                 {"Type": "PlaySound", "Asset": "Audio/Explosion.wav", "Value": 1.0},
                 {"Type": "SpawnPrefab", "Asset": "Prefabs/Smoke.pprefab"},
                 {"Type": "Destroy"}]}]})
@@ -162,12 +200,12 @@ def add_player(doc, position, yaw=0.0):
     return player
 
 
-def add_guard(doc, name, position, yaw, waypoints, lantern=False, character=WATCHMAN):
+def add_guard(doc, name, position, yaw, waypoints, lantern=False, character=WATCHMAN, **properties):
     guard = doc.add(name,
                     Transform=transform(position, (0, yaw, 0)),
                     CharacterController={"Radius": 0.3, "Height": 1.8},
                     Perception={},
-                    Script={"Script": "Scripts/Guard.lua", "Properties": {"waypoints": ",".join(waypoints)}})
+                    Script={"Script": "Scripts/Guard.lua", "Properties": {"waypoints": ",".join(waypoints), **properties}})
     character_model(doc, guard, character)
     if lantern:
         doc.add("Lantern", guard, Transform=transform((0.25, 1.2, -0.3), (-15, 0, 0)),
@@ -237,7 +275,7 @@ def build_stealth_level():
                 StimResponse={"Rules": [{"Stim": "Fire", "Threshold": 0.5, "Once": True, "Actions": [
                     {"Type": "EmitStim", "Asset": "Fire", "Value": 1.0, "Radius": 3.5},
                     {"Type": "RadialImpulse", "Value": 40.0, "Radius": 5.0},
-                    {"Type": "EmitNoise", "Radius": 35.0},
+                    {"Type": "EmitNoise", "Value": 10.0, "Asset": "Explosion"},
                     {"Type": "PlaySound", "Asset": "Audio/Explosion.wav", "Value": 1.0},
                     {"Type": "SpawnPrefab", "Asset": "Prefabs/Smoke.pprefab"},
                     {"Type": "Destroy"}]}]})
@@ -248,6 +286,13 @@ def build_stealth_level():
         doc.add(name, Transform=transform(position))
     add_guard(doc, "GuardA", (-10, 0.05, -4), 90, ["WP_A1", "WP_A2", "WP_A3", "WP_A4"])
     add_guard(doc, "GuardB", (14, 0.05, 12), 180, ["WP_B1", "WP_B2"], lantern=True, character=KNIGHT)
+
+    # Floors that change how loud footsteps are, and a bucket waiting to be knocked off a crate.
+    floor_patch(doc, "HallCarpet", "Carpet", (10, -12), (10.6, 7.2))
+    floor_patch(doc, "Grate", "Metal", (0, 5), (3, 3))
+    floor_patch(doc, "Lawn", "Grass", (-12, 11), (6, 5))
+    noisy_object(doc, "Bucket", (-8, 1.2, 4), (0.3, 0.4, 0.3), "Metal", 9.0, "Audio/Clang.wav", (0.45, 0.45, 0.48))
+    doc.add("Navigation", Transform=transform(), NavMesh={})
 
     # The exit gate (south-east corner) and the player start (dark north-west corner).
     doc.add("Gate", Transform=transform((17, 1.5, 18)), BoxCollider={"HalfExtents": [1.5, 1.5, 1.0]},
@@ -317,6 +362,55 @@ def build_perception_lab():
     doc.save("Scenes/PerceptionLab.pscene")
 
 
+def build_ai_lab():
+    """Guard behaviour lab: a patrolling guard, two rooms joined by doorways (sound goes around
+    corners, guards walk the navmesh), floors of every material and noisy objects on a table.
+    The player's noise probe (- / = and G) makes test noises of any loudness; the HUD shows the
+    guard's reaction, what caused it and how long it will last."""
+    doc = Document("PenumbraScene")
+    add_environment(doc, ambient=0.006, map_intensity=0.1, fog=0.0, moon=0.06)
+    doc.add("Camera", Transform=transform((0, 3, 8)), Camera={"VerticalFOV": 65.0})
+    doc.add("Navigation", Transform=transform(), NavMesh={})
+
+    stone, dark = (0.3, 0.29, 0.28), (0.2, 0.2, 0.21)
+    box(doc, "Ground", (0, -0.5, 0), (30, 1, 24), (0.22, 0.21, 0.2), surface="Stone")
+    for name, position, size in (("WallNorth", (0, 2, -12), (30, 4, 0.6)), ("WallSouth", (0, 2, 12), (30, 4, 0.6)),
+                                 ("WallEast", (15, 2, 0), (0.6, 4, 24)), ("WallWest", (-15, 2, 0), (0.6, 4, 24))):
+        box(doc, name, position, size, dark)
+
+    # The house: two rooms (carpet west, wooden floor east) with doors to the yard and between them.
+    for name, position, size in (("HouseFrontWest", (-9.5, 2, -2), (5, 4, 0.4)), ("HouseFrontMiddle", (0, 2, -2), (10, 4, 0.4)),
+                                 ("HouseFrontEast", (9.5, 2, -2), (5, 4, 0.4)), ("HouseSideWest", (-12, 2, -7), (0.4, 4, 10)),
+                                 ("HouseSideEast", (12, 2, -7), (0.4, 4, 10)), ("PartitionNorth", (0, 2, -10), (0.4, 4, 4)),
+                                 ("PartitionSouth", (0, 2, -4), (0.4, 4, 4))):
+        box(doc, name, position, size, stone)
+    floor_patch(doc, "WestRoomCarpet", "Carpet", (-6, -7), (11.6, 9.6))
+    floor_patch(doc, "EastRoomFloor", "Wood", (6, -7), (11.6, 9.6))
+
+    # Yard floors: a metal grate, a lawn and a moss patch next to plain cobbles.
+    floor_patch(doc, "Grate", "Metal", (-8, 6), (4, 4))
+    floor_patch(doc, "Lawn", "Grass", (8, 6), (6, 6))
+    floor_patch(doc, "Moss", "Moss", (0, 8), (3, 3))
+
+    # A table in the east room with a metal bucket and a wooden box to knock off.
+    box(doc, "Table", (6, 0.45, -6), (2.0, 0.9, 1.0), (0.3, 0.2, 0.12), surface="Wood")
+    noisy_object(doc, "Bucket", (6.6, 1.12, -6), (0.3, 0.4, 0.3), "Metal", 9.0, "Audio/Clang.wav", (0.45, 0.45, 0.48))
+    noisy_object(doc, "WoodenBox", (5.4, 1.07, -6), (0.3, 0.3, 0.3), "Wood", 5.0, "Audio/Thud.wav", (0.4, 0.28, 0.15))
+    for i, (x, z) in enumerate(((-4, 4), (4, 1), (-11, -10))):
+        box(doc, f"Crate{i}", (x, 0.5, z), (1, 1, 1), (0.3, 0.2, 0.12), surface="Wood")
+
+    # Light: torches by the doors and in the east room; the west room stays dark.
+    for x, z in ((-6, -1.3), (6, -1.3), (11.3, -9)):
+        torch_prefab_entities(doc, (x, 0, z))
+
+    for name, position in (("WP_1", (-10, 0, 8)), ("WP_2", (10, 0, 8)), ("WP_3", (6, 0, -4)), ("WP_4", (-6, 0, -9))):
+        doc.add(name, Transform=transform(position))
+    add_guard(doc, "Guard", (-10, 0.05, 8), 90, ["WP_1", "WP_2", "WP_3", "WP_4"], catch_scene="Scenes/AILab.pscene")
+    add_player(doc, (-13, 0.05, 10), yaw=-135)
+    doc.add("Debug", Transform=transform(), Script={"Script": "Scripts/PerceptionDebug.lua"})
+    doc.save("Scenes/AILab.pscene")
+
+
 def build_feature_test():
     doc = Document("PenumbraScene")
     add_environment(doc, ambient=0.02, map_intensity=0.2, fog=0.0)
@@ -333,6 +427,7 @@ def build_feature_test():
     doc.add("Bouncer", Transform=transform((-4, 3, 8), scale=(0.5, 0.5, 0.5)), Mesh={"Mesh": "builtin:sphere"},
             SphereCollider={}, RigidBody={"Type": "Dynamic", "Restitution": 0.5}, Script={"Script": "Scripts/Tests/Bouncer.lua"})
     doc.add("Speaker", Transform=transform((2, 1, 2)), AudioSource={"Clip": "Audio/Wind.wav", "Loop": True})
+    noisy_object(doc, "Bucket", (-3, 0.2, 1), (0.3, 0.4, 0.3), "Metal", 9.0, "", (0.45, 0.45, 0.48))
     torch_prefab_entities(doc, (5, 0, -2))
     doc.add("PowderKeg", Transform=transform((10, 0.45, -5), scale=(0.7, 0.9, 0.7)), Mesh={"Mesh": "builtin:cylinder"},
             BoxCollider={}, StimResponse={"Rules": [{"Stim": "Fire", "Threshold": 0.5, "Once": True, "Actions": [
@@ -382,6 +477,28 @@ def build_audio():
     write_wav("Alarm.wav", [0.5 * math.sin(2 * math.pi * (500 if (i // (RATE // 8)) % 2 else 700) * i / RATE) for i in range(RATE)])
     write_wav("Win.wav", [0.4 * math.sin(2 * math.pi * f * i / RATE) * math.exp(-(i % (RATE // 4)) / (RATE * 0.15))
                           for f, i in ((392 if j < RATE // 4 else 523 if j < RATE // 2 else 659, j) for j in range(int(RATE * 0.75)))])
+    # Metal: a few inharmonic partials ringing out after a noisy strike (bucket, grate).
+    n = noise(6)
+    write_wav("Clang.wav", [(0.35 * n() * math.exp(-i / (RATE * 0.01)) +
+                             sum(a * math.sin(2 * math.pi * f * i / RATE) for f, a in ((523, 0.3), (1131, 0.22), (1873, 0.15), (2647, 0.1)))
+                             * math.exp(-i / (RATE * 0.35))) * 0.8 for i in range(int(RATE * 1.2))])
+    n = noise(7)
+    write_wav("Footstep_Metal.wav", [(n() * math.exp(-i / (RATE * 0.012)) * 0.5 +
+                                      (0.25 * math.sin(2 * math.pi * 910 * i / RATE) + 0.15 * math.sin(2 * math.pi * 1530 * i / RATE))
+                                      * math.exp(-i / (RATE * 0.08))) for i in range(int(RATE * 0.3))])
+    n = noise(8)
+    write_wav("Footstep_Wood.wav", [(n() * 0.4 * math.exp(-i / (RATE * 0.015)) + 0.5 * math.sin(2 * math.pi * 180 * i / RATE)
+                                     * math.exp(-i / (RATE * 0.04))) for i in range(int(RATE * 0.15))])
+    n = noise(9)
+    value, samples = 0.0, []
+    for i in range(int(RATE * 0.12)):
+        value += (n() - value) * 0.08  # low-passed: soft floors only thump
+        samples.append(value * 2.0 * math.exp(-i / (RATE * 0.03)))
+    write_wav("Footstep_Soft.wav", samples)
+    n = noise(10)
+    write_wav("Thud.wav", [(n() * 0.3 * math.exp(-i / (RATE * 0.02)) + 0.7 * math.sin(2 * math.pi * 95 * i / RATE)
+                            * math.exp(-i / (RATE * 0.09))) for i in range(int(RATE * 0.35))])
+
     # Wind: low-passed noise with a slow swell; loops seamlessly (starts and ends near zero).
     n = noise(5)
     value, samples = 0.0, []
@@ -404,5 +521,6 @@ if __name__ == "__main__":
     build_stealth_level()
     build_feature_test()
     build_perception_lab()
+    build_ai_lab()
     build_audio()
     print(f"Demo project written to {ROOT}")

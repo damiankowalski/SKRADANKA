@@ -3,7 +3,8 @@
 Implementation of the "ShadowProto" silhouette-contrast model from `GAME ENGINE SKRADANKA.md`.
 Code: `Penumbra/src/Penumbra/AI/` — `PerceptionModel` (pure formulas), `LuminanceProvider`
 (brightness sources), `PerceptionSystem` (per-frame evaluation). Tests: `PenumbraTests/src/PerceptionTests.cpp`
-(formulas plus the seven scenarios of section 8 as end-to-end tests).
+(formulas plus the seven scenarios of section 8 as end-to-end tests) and `NavigationTests.cpp` (sound around
+corners, the AI lab guard end to end).
 
 ## Pipeline (per guard, 10 Hz; suspicion integrates every frame)
 
@@ -24,9 +25,63 @@ Code: `Penumbra/src/Penumbra/AI/` — `PerceptionModel` (pure formulas), `Lumina
 5. **Factors** — size `S` (angular size vs. `ReferenceAngularSize`), peripheral `P(θ)` (1 → `PeripheralFactor`
    at the cone edge), motion `M = 1 + m·speed·(1 + peripherality)`.
 6. **Stimulus** `B = (C_eff / C_t)·f·S·P·M`; suspicion `D` rises by `r_rise·(B−1)·dt` when `B ≥ 1`, else decays.
-   States: Unaware < 0.3 ≤ Suspicious < 0.7 ≤ Searching < 1.0 = Alarmed.
-7. **Hearing** — noise events (`ai.emit_noise`, footsteps, audio sources with `NoiseRadius`, explosions)
-   add suspicion `HearingSuspicion·(1 − d/R)`; walls halve the radius.
+   From `SuspiciousThreshold` (0.3) a sighting is a stimulus of strength `10·D` (see Reactions).
+7. **Hearing** — noise events on a 0–10 loudness scale (see Hearing) become stimuli of the strength that
+   reaches the guard.
+
+## Hearing: the loudness scale
+
+Every noise has a **loudness** `L` from 0 to 10 — one table for designers (`Scripts/AI/Noises.lua` in the
+demo; `Surface.ImpactLoudness` for physical objects; `AudioSource.NoiseLoudness`; the `EmitNoise` stim action).
+
+| L | carries | example |
+|---|---|---|
+| 1 | ~2 m | sneaking on stone |
+| 3 | ~4 m | walking, a quiet crack |
+| 5 | ~8 m | running on stone |
+| 7 | ~16 m | running on a metal grate |
+| 9 | ~32 m | a metal bucket dropped on cobbles |
+| 10 | ~45 m | an explosion |
+
+A noise carries `1.4·2^(L/2)` m and loses 2 levels per doubling of distance (`HeardLevel`; full loudness
+within 1.4 m). What reaches the guard:
+
+* **open line** — `HeardLevel(L, d)`;
+* **through a wall** — 4 levels less (`WallLoss`);
+* **around it** — when the navmesh connects the noise and the guard, the walking distance with 1 level of
+  corner loss (`CornerLoss`). Sound goes through doorways and along corridors like Thief's room graph,
+  without authoring rooms. The louder of the two wins.
+
+`HearingSensitivity` scales the distances; alert memory adds up to 50%. `Environment.AmbientNoise` (rain,
+machinery, a storm) is subtracted from everything heard: it masks quiet sounds.
+
+Footsteps add the floor's `Surface.NoiseModifier` (carpet −2, grass −1, moss −3, wood +0.5, metal grate
++2.5); dynamic objects with `Surface.ImpactLoudness` make `ImpactLoudness + 2·log2(speed / 4 m/s)` plus the
+modifier of what they hit (silent below 1 m/s, 0.25 s cooldown).
+
+## Reactions: strength sets the duration
+
+A stimulus has a **strength** `s` (0–10): what was heard, `10·D` for what was seen, or the value a script
+passes to `ai.notify`. It keeps the guard busy
+
+```
+T(s) = ReactionDuration · (s/10)²      (default 90 s: s = 3 → 8 s, 5 → 22 s, 7 → 44 s, 9 → 73 s)
+```
+
+and the strength *remaining* (`10·√(t_left / ReactionDuration)`) sets the state, so a reaction steps down
+as it fades: **Alarmed** (≥ 9) → **Searching** (≥ 7) → **Investigating** (≥ 4) → **Suspicious** (> 0) →
+**Unaware**. A new stimulus is taken only when it is at least as strong as what is left (a guard hunting
+after a crash ignores a creaking board); while the intruder is in sight the stimulus position follows him.
+A reaction ≥ `SearchLevel` leaves **alert memory** (`Alertness`, fading over `AlertMemoryTime` once calm):
+up to 50% better hearing and up to twice as fast noticing.
+
+The engine decides how long and how strongly; the guard's script decides what to do meanwhile
+(`ai.reaction(e)` gives state, strength, time left, kind, cause and position). The demo's
+`Scripts/Guard.lua`: patrol along the navmesh; Suspicious — stop and look, walk over if it lasts longer
+than `glance_patience`; Investigating — go there, look around, check spots nearby; Searching — hurry there
+and search the area, darkest spots first; Alarmed — chase while the player is seen, else search. Every
+activity ends when the reaction does and the guard walks back to his route (`AILab` scene, end-to-end test
+"The AI lab guard patrols…").
 
 ## Light gem (player HUD)
 
@@ -42,7 +97,9 @@ Guards evaluate vision at 10 Hz each, on staggered phases (no frame-time spikes)
 the test sources; physics rays (Jolt) dominate.
 
 `Scenes/PerceptionLab.pscene` (one guard, a campfire, the player; F1 shows every factor live) is the
-place to tune these values by feel.
+place to tune vision by feel; `Scenes/AILab.pscene` (a patrolling guard, two rooms, floors of every
+material, a bucket to knock off a table) is the place for hearing and behaviour. In both the player's
+noise probe makes a test noise of any loudness: `-` / `=` pick the loudness, `G` makes it where you aim.
 
 ## Deliberate deviation: the contrast threshold
 
@@ -72,6 +129,11 @@ of what it looks at (view probes plus the visible target samples).
 | `AdaptBrightTime` / `AdaptDarkTime` | `τ` (s) | 0.5 / 6 |
 | `MotionFactor` | `m_motion` | 0.3 |
 | `SuspicionRise` / `SuspicionDecay` | rates | 0.6 / 0.08 |
+| `SuspiciousThreshold` | `D` from which a sighting is a stimulus | 0.3 |
+| `HearingSensitivity` | distance multiplier for hearing | 1 |
+| `ReactionDuration` | seconds a strength-10 stimulus lasts | 90 |
+| `InvestigateLevel` / `SearchLevel` / `AlarmLevel` | state thresholds (strength) | 4 / 7 / 9 |
+| `AlertMemoryTime` | seconds alert memory lasts once calm | 120 |
 | `FieldOfView`, `PeripheralFactor`, `ViewDistance`, `EyeHeight` | cone | 120°, 0.2, 25 m, 1.65 m |
 
 ## Swapping the brightness source

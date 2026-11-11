@@ -25,6 +25,7 @@ namespace Penumbra {
 		UUID EntityA = UUID::Invalid;
 		UUID EntityB = UUID::Invalid;
 		glm::vec3 Point{ 0.0f };
+		float Speed = 0.0f; // closing speed along the contact normal when the contact began, m/s
 	};
 
 	// Returns true when the body owned by the entity should be considered by the query.
@@ -53,6 +54,9 @@ namespace Penumbra {
 		std::optional<RaycastHit> Raycast(const glm::vec3& origin, const glm::vec3& direction, float maxDistance,
 			const PhysicsEntityFilter& filter = {}) const;
 		std::vector<UUID> OverlapSphere(const glm::vec3& center, float radius) const;
+		// World-space triangles of every static, solid body (the navmesh input). Indices are
+		// appended relative to the vertices already in the output.
+		void CollectStaticTriangles(std::vector<glm::vec3>& vertices, std::vector<uint32_t>& indices) const;
 
 		void AddImpulse(Entity entity, const glm::vec3& impulse);
 		void AddForce(Entity entity, const glm::vec3& force);

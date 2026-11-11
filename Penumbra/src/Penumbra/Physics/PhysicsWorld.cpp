@@ -11,6 +11,7 @@
 #include <Jolt/Core/JobSystemThreadPool.h>
 #include <Jolt/Core/TempAllocator.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
+#include <Jolt/Physics/Body/BodyLock.h>
 #include <Jolt/Physics/Character/CharacterVirtual.h>
 #include <Jolt/Physics/Collision/CastResult.h>
 #include <Jolt/Physics/Collision/CollideShape.h>
@@ -143,8 +144,11 @@ namespace Penumbra {
 				if (a == 0 || b == 0)
 					return;
 				const JPH::RVec3 point = manifold.GetWorldSpaceContactPointOn1(0);
+				// Called before the solver: the velocities are those of the moment of impact.
+				const JPH::Vec3 relative = body1.GetPointVelocity(point) - body2.GetPointVelocity(point);
+				const float speed = std::abs(relative.Dot(manifold.mWorldSpaceNormal));
 				std::scoped_lock lock(m_Mutex);
-				m_Events.push_back({ UUID(a), UUID(b), glm::vec3(point.GetX(), point.GetY(), point.GetZ()) });
+				m_Events.push_back({ UUID(a), UUID(b), glm::vec3(point.GetX(), point.GetY(), point.GetZ()), speed });
 			}
 
 			std::vector<ContactEvent> Consume()
@@ -618,6 +622,35 @@ namespace Penumbra {
 				result.emplace_back(userData);
 		}
 		return result;
+	}
+
+	void PhysicsWorld::CollectStaticTriangles(std::vector<glm::vec3>& vertices, std::vector<uint32_t>& indices) const
+	{
+		constexpr int BatchSize = 64; // >= JPH::Shape::cGetTrianglesMinTrianglesRequested
+		std::array<JPH::Float3, BatchSize * 3> batch;
+		for (const auto& [uuid, bodyID] : m_Impl->Bodies)
+		{
+			JPH::BodyLockRead lock(m_Impl->System->GetBodyLockInterface(), bodyID);
+			if (!lock.Succeeded())
+				continue;
+			const JPH::Body& body = lock.GetBody();
+			if (!body.IsStatic() || body.IsSensor())
+				continue;
+			const JPH::TransformedShape shape = body.GetTransformedShape();
+			JPH::Shape::GetTrianglesContext context;
+			shape.GetTrianglesStart(context, JPH::AABox::sBiggest(), JPH::RVec3::sZero());
+			for (;;)
+			{
+				const int count = shape.GetTrianglesNext(context, BatchSize, batch.data());
+				if (count <= 0)
+					break;
+				for (int i = 0; i < count * 3; ++i)
+				{
+					indices.push_back(static_cast<uint32_t>(vertices.size()));
+					vertices.emplace_back(batch[static_cast<size_t>(i)].x, batch[static_cast<size_t>(i)].y, batch[static_cast<size_t>(i)].z);
+				}
+			}
+		}
 	}
 
 	void PhysicsWorld::AddImpulse(Entity entity, const glm::vec3& impulse)
