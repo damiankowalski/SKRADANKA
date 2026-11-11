@@ -294,96 +294,45 @@
       "ID": "1007",
       "Components": {
         "Tag": {
-          "Tag": "Body"
+          "Tag": "Model"
         },
         "Transform": {
           "Translation": [
             0,
-            0.9,
+            0,
             0
           ],
           "Rotation": [
             0,
-            0,
+            180,
             0
           ],
           "Scale": [
-            0.6,
-            0.9,
-            0.6
+            0.8,
+            0.8,
+            0.8
           ]
         },
         "Mesh": {
-          "Mesh": "builtin:capsule"
+          "Mesh": "Models/Characters/Knight.glb",
+          "HiddenNodes": [
+            "Knight_Cape",
+            "1H_Sword_Offhand",
+            "2H_Sword",
+            "Badge_Shield",
+            "Rectangle_Shield",
+            "Spike_Shield"
+          ]
         },
-        "Material": {
-          "BaseColor": [
-            0.45,
-            0.12,
-            0.1,
-            1.0
-          ],
-          "Roughness": 0.9,
-          "Metallic": 0.0,
-          "EmissiveIntensity": 0.0,
-          "EmissiveColor": [
-            1,
-            1,
-            1
-          ],
-          "Translucent": false
+        "Animator": {
+          "Clip": "Idle",
+          "BlendDuration": 0.2
         }
       },
       "Parent": "1006"
     },
     {
       "ID": "1008",
-      "Components": {
-        "Tag": {
-          "Tag": "Head"
-        },
-        "Transform": {
-          "Translation": [
-            0,
-            1.7,
-            -0.05
-          ],
-          "Rotation": [
-            0,
-            0,
-            0
-          ],
-          "Scale": [
-            0.3,
-            0.3,
-            0.3
-          ]
-        },
-        "Mesh": {
-          "Mesh": "builtin:sphere"
-        },
-        "Material": {
-          "BaseColor": [
-            0.55,
-            0.45,
-            0.38,
-            1.0
-          ],
-          "Roughness": 0.9,
-          "Metallic": 0.0,
-          "EmissiveIntensity": 0.0,
-          "EmissiveColor": [
-            1,
-            1,
-            1
-          ],
-          "Translucent": false
-        }
-      },
-      "Parent": "1006"
-    },
-    {
-      "ID": "1009",
       "Components": {
         "Tag": {
           "Tag": "Player"
@@ -410,99 +359,46 @@
       }
     },
     {
+      "ID": "1009",
+      "Components": {
+        "Tag": {
+          "Tag": "Model"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            0,
+            180,
+            0
+          ],
+          "Scale": [
+            0.8,
+            0.8,
+            0.8
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Characters/Thief.glb",
+          "HiddenNodes": [
+            "Knife",
+            "Knife_Offhand",
+            "2H_Crossbow",
+            "Throwable"
+          ]
+        },
+        "Animator": {
+          "Clip": "Idle",
+          "BlendDuration": 0.2
+        }
+      },
+      "Parent": "1008"
+    },
+    {
       "ID": "1010",
-      "Components": {
-        "Tag": {
-          "Tag": "Body"
-        },
-        "Transform": {
-          "Translation": [
-            0,
-            0.9,
-            0
-          ],
-          "Rotation": [
-            0,
-            0,
-            0
-          ],
-          "Scale": [
-            0.6,
-            0.9,
-            0.6
-          ]
-        },
-        "Mesh": {
-          "Mesh": "builtin:capsule"
-        },
-        "Material": {
-          "BaseColor": [
-            0.12,
-            0.12,
-            0.14,
-            1.0
-          ],
-          "Roughness": 0.9,
-          "Metallic": 0.0,
-          "EmissiveIntensity": 0.0,
-          "EmissiveColor": [
-            1,
-            1,
-            1
-          ],
-          "Translucent": false
-        }
-      },
-      "Parent": "1009"
-    },
-    {
-      "ID": "1011",
-      "Components": {
-        "Tag": {
-          "Tag": "Head"
-        },
-        "Transform": {
-          "Translation": [
-            0,
-            1.7,
-            -0.05
-          ],
-          "Rotation": [
-            0,
-            0,
-            0
-          ],
-          "Scale": [
-            0.3,
-            0.3,
-            0.3
-          ]
-        },
-        "Mesh": {
-          "Mesh": "builtin:sphere"
-        },
-        "Material": {
-          "BaseColor": [
-            0.5,
-            0.42,
-            0.35,
-            1.0
-          ],
-          "Roughness": 0.9,
-          "Metallic": 0.0,
-          "EmissiveIntensity": 0.0,
-          "EmissiveColor": [
-            1,
-            1,
-            1
-          ],
-          "Translucent": false
-        }
-      },
-      "Parent": "1009"
-    },
-    {
-      "ID": "1012",
       "Components": {
         "Tag": {
           "Tag": "Crate"
@@ -551,7 +447,7 @@
       }
     },
     {
-      "ID": "1013",
+      "ID": "1011",
       "Components": {
         "Tag": {
           "Tag": "Bouncer"
@@ -587,7 +483,7 @@
       }
     },
     {
-      "ID": "1014",
+      "ID": "1012",
       "Components": {
         "Tag": {
           "Tag": "Speaker"
@@ -616,7 +512,7 @@
       }
     },
     {
-      "ID": "1015",
+      "ID": "1013",
       "Components": {
         "Tag": {
           "Tag": "Torch"
@@ -674,7 +570,7 @@
       }
     },
     {
-      "ID": "1016",
+      "ID": "1014",
       "Components": {
         "Tag": {
           "Tag": "Pole"
@@ -724,10 +620,10 @@
           ]
         }
       },
-      "Parent": "1015"
+      "Parent": "1013"
     },
     {
-      "ID": "1017",
+      "ID": "1015",
       "Components": {
         "Tag": {
           "Tag": "Flame"
@@ -795,10 +691,10 @@
           "IsTrigger": true
         }
       },
-      "Parent": "1015"
+      "Parent": "1013"
     },
     {
-      "ID": "1018",
+      "ID": "1016",
       "Components": {
         "Tag": {
           "Tag": "PowderKeg"
@@ -856,7 +752,7 @@
       }
     },
     {
-      "ID": "1019",
+      "ID": "1017",
       "Components": {
         "Tag": {
           "Tag": "Runner"

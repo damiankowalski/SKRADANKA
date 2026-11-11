@@ -1,6 +1,8 @@
 #include "pnpch.h"
 #include "Penumbra/Asset/Importers.h"
 
+#include "Penumbra/Math/Math.h"
+
 #define CGLTF_IMPLEMENTATION
 #include <cgltf.h>
 
@@ -92,12 +94,24 @@ namespace Penumbra {
 			return static_cast<TextureIndex>(cgltf_image_index(data, view.texture->image));
 		}
 
-		void AppendPrimitive(MeshData& mesh, const cgltf_primitive& primitive, const glm::mat4& world, uint32_t materialIndex)
+		// How the vertices of a primitive are bound to the skeleton (skeletal files only).
+		struct PrimitiveSkin
+		{
+			bool UseJointAttributes = false; // skinned primitive: JOINTS_0/WEIGHTS_0 index the skin's joints
+			uint32_t JointOffset = 0;        // palette index of the skin's first joint
+			uint32_t JointCount = 0;
+			uint32_t RigidJoint = 0;         // palette entry used by rigid (non-skinned) primitives
+		};
+
+		void AppendPrimitive(MeshData& mesh, const cgltf_primitive& primitive, const glm::mat4& world, uint32_t materialIndex,
+			const std::string& nodeName, const PrimitiveSkin* skin)
 		{
 			const cgltf_accessor* positions = nullptr;
 			const cgltf_accessor* normals = nullptr;
 			const cgltf_accessor* tangents = nullptr;
 			const cgltf_accessor* texcoords = nullptr;
+			const cgltf_accessor* joints = nullptr;
+			const cgltf_accessor* weights = nullptr;
 			for (cgltf_size i = 0; i < primitive.attributes_count; i++)
 			{
 				const cgltf_attribute& attribute = primitive.attributes[i];
@@ -109,6 +123,10 @@ namespace Penumbra {
 					tangents = attribute.data;
 				else if (attribute.type == cgltf_attribute_type_texcoord && attribute.index == 0)
 					texcoords = attribute.data;
+				else if (attribute.type == cgltf_attribute_type_joints && attribute.index == 0)
+					joints = attribute.data;
+				else if (attribute.type == cgltf_attribute_type_weights && attribute.index == 0)
+					weights = attribute.data;
 			}
 			if (!positions || positions->count == 0)
 				return;
@@ -116,6 +134,8 @@ namespace Penumbra {
 			const glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(world)));
 			const bool flipWinding = glm::determinant(glm::mat3(world)) < 0.0f;
 			const uint32_t baseVertex = static_cast<uint32_t>(mesh.Vertices.size());
+			const bool useJoints = skin && skin->UseJointAttributes && skin->JointCount > 0 && joints && weights &&
+								   joints->count >= positions->count && weights->count >= positions->count;
 
 			for (cgltf_size i = 0; i < positions->count; i++)
 			{
@@ -130,11 +150,40 @@ namespace Penumbra {
 				if (texcoords && cgltf_accessor_read_float(texcoords, i, value, 2))
 					vertex.TexCoord = glm::vec2(value[0], value[1]);
 				mesh.Vertices.push_back(vertex);
+
+				if (!skin)
+					continue;
+				SkinVertex skinVertex;
+				skinVertex.Joints = glm::uvec4(skin->RigidJoint);
+				skinVertex.Weights = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+				if (useJoints)
+				{
+					cgltf_uint jointValues[4] = { 0, 0, 0, 0 };
+					float weightValues[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+					cgltf_accessor_read_uint(joints, i, jointValues, 4);
+					cgltf_accessor_read_float(weights, i, weightValues, 4);
+					float sum = 0.0f;
+					for (int k = 0; k < 4; k++)
+					{
+						// Out-of-range joints (broken files) lose their influence instead of reading garbage.
+						if (jointValues[k] >= skin->JointCount || !(weightValues[k] > 0.0f))
+							weightValues[k] = 0.0f;
+						skinVertex.Joints[k] = skin->JointOffset + std::min<uint32_t>(jointValues[k], skin->JointCount - 1);
+						skinVertex.Weights[k] = weightValues[k];
+						sum += weightValues[k];
+					}
+					if (sum > 1e-6f)
+						skinVertex.Weights /= sum;
+					else
+						skinVertex.Weights = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+				}
+				mesh.SkinVertices.push_back(skinVertex);
 			}
 
 			Submesh submesh;
 			submesh.IndexOffset = static_cast<uint32_t>(mesh.Indices.size());
 			submesh.MaterialIndex = materialIndex;
+			submesh.Node = nodeName;
 			if (primitive.indices)
 			{
 				for (cgltf_size i = 0; i + 2 < primitive.indices->count; i += 3)
@@ -142,6 +191,8 @@ namespace Penumbra {
 					uint32_t a = static_cast<uint32_t>(cgltf_accessor_read_index(primitive.indices, i));
 					uint32_t b = static_cast<uint32_t>(cgltf_accessor_read_index(primitive.indices, i + 1));
 					uint32_t c = static_cast<uint32_t>(cgltf_accessor_read_index(primitive.indices, i + 2));
+					if (a >= positions->count || b >= positions->count || c >= positions->count)
+						continue;
 					if (flipWinding)
 						std::swap(b, c);
 					mesh.Indices.insert(mesh.Indices.end(), { baseVertex + a, baseVertex + b, baseVertex + c });
@@ -162,25 +213,265 @@ namespace Penumbra {
 				mesh.Submeshes.push_back(submesh);
 		}
 
+		std::string NodeName(const cgltf_data* data, const cgltf_node* node)
+		{
+			return node->name ? std::string(node->name) : std::format("Node{}", cgltf_node_index(data, node));
+		}
+
+		uint32_t MaterialOf(const cgltf_data* data, const cgltf_primitive& primitive, uint32_t defaultMaterial)
+		{
+			return primitive.material ? static_cast<uint32_t>(cgltf_material_index(data, primitive.material)) : defaultMaterial;
+		}
+
+		glm::mat4 WorldTransform(const cgltf_node* node)
+		{
+			float matrix[16];
+			cgltf_node_transform_world(node, matrix);
+			return glm::make_mat4(matrix);
+		}
+
+		NodeTransform LocalTransform(const cgltf_node* node)
+		{
+			NodeTransform transform;
+			if (node->has_matrix)
+			{
+				Math::DecomposeTransform(glm::make_mat4(node->matrix), transform.Translation, transform.Rotation, transform.Scale);
+				return transform;
+			}
+			if (node->has_translation)
+				transform.Translation = glm::make_vec3(node->translation);
+			if (node->has_rotation)
+				transform.Rotation = glm::normalize(glm::quat(node->rotation[3], node->rotation[0], node->rotation[1], node->rotation[2]));
+			if (node->has_scale)
+				transform.Scale = glm::make_vec3(node->scale);
+			return transform;
+		}
+
+		// Static files: every node's mesh is baked into one rigid mesh.
 		void VisitNode(MeshData& mesh, const cgltf_data* data, const cgltf_node* node, uint32_t defaultMaterial)
 		{
 			if (node->mesh)
 			{
-				float matrix[16];
-				cgltf_node_transform_world(node, matrix);
-				const glm::mat4 world = glm::make_mat4(matrix);
+				const glm::mat4 world = WorldTransform(node);
+				const std::string name = NodeName(data, node);
 				for (cgltf_size p = 0; p < node->mesh->primitives_count; p++)
 				{
 					const cgltf_primitive& primitive = node->mesh->primitives[p];
-					if (primitive.type != cgltf_primitive_type_triangles)
-						continue;
-					const uint32_t material = primitive.material ? static_cast<uint32_t>(cgltf_material_index(data, primitive.material)) : defaultMaterial;
-					AppendPrimitive(mesh, primitive, world, material);
+					if (primitive.type == cgltf_primitive_type_triangles)
+						AppendPrimitive(mesh, primitive, world, MaterialOf(data, primitive, defaultMaterial), name, nullptr);
 				}
 			}
 			for (cgltf_size i = 0; i < node->children_count; i++)
 				VisitNode(mesh, data, node->children[i], defaultMaterial);
 		}
+
+		// Files with skins or animations: the node hierarchy becomes the skeleton, skinned primitives
+		// keep their joint weights and every other primitive is rigidly bound to its own node.
+		class SkeletonBuilder
+		{
+		public:
+			SkeletonBuilder(const cgltf_data* data, MeshData& mesh, uint32_t defaultMaterial)
+				: m_Data(data), m_Mesh(mesh), m_DefaultMaterial(defaultMaterial), m_NodeToSkeleton(data->nodes_count, -1)
+			{
+			}
+
+			void Build(const std::vector<const cgltf_node*>& roots)
+			{
+				for (const cgltf_node* root : roots)
+					AddNode(root, -1);
+				AddSkins();
+				for (const cgltf_node* root : roots)
+					AddMeshes(root);
+				AddAnimations();
+				ComputeJointBounds();
+			}
+
+		private:
+			int32_t SkeletonIndex(const cgltf_node* node) const { return m_NodeToSkeleton[cgltf_node_index(m_Data, node)]; }
+
+			// Depth-first pre-order keeps parents before their children.
+			void AddNode(const cgltf_node* node, int32_t parent)
+			{
+				const size_t index = cgltf_node_index(m_Data, node);
+				if (m_NodeToSkeleton[index] >= 0)
+					return;
+				SkeletonNode skeletonNode;
+				skeletonNode.Name = NodeName(m_Data, node);
+				skeletonNode.Parent = parent;
+				skeletonNode.Rest = LocalTransform(node);
+				const int32_t self = static_cast<int32_t>(m_Mesh.Skeleton.Nodes.size());
+				m_NodeToSkeleton[index] = self;
+				m_Mesh.Skeleton.Nodes.push_back(std::move(skeletonNode));
+				for (cgltf_size i = 0; i < node->children_count; i++)
+					AddNode(node->children[i], self);
+			}
+
+			void AddSkins()
+			{
+				for (cgltf_size s = 0; s < m_Data->skins_count; s++)
+				{
+					const cgltf_skin& skin = m_Data->skins[s];
+					m_SkinJointOffset.push_back(static_cast<uint32_t>(m_Mesh.Joints.size()));
+					for (cgltf_size j = 0; j < skin.joints_count; j++)
+					{
+						SkinJoint joint;
+						const int32_t node = SkeletonIndex(skin.joints[j]);
+						if (node < 0)
+							PN_CORE_WARN("glTF skin {}: joint {} is not part of the scene", s, j);
+						joint.Node = static_cast<uint32_t>(std::max(node, 0));
+						float matrix[16];
+						if (skin.inverse_bind_matrices && cgltf_accessor_read_float(skin.inverse_bind_matrices, j, matrix, 16))
+							joint.InverseBind = glm::make_mat4(matrix);
+						m_Mesh.Joints.push_back(joint);
+					}
+				}
+			}
+
+			uint32_t RigidJoint(const cgltf_node* node)
+			{
+				const int32_t skeletonNode = SkeletonIndex(node);
+				if (const auto it = m_RigidJoints.find(skeletonNode); it != m_RigidJoints.end())
+					return it->second;
+				// Vertices are baked with the node's rest transform, so the palette entry undoes it.
+				SkinJoint joint;
+				joint.Node = static_cast<uint32_t>(std::max(skeletonNode, 0));
+				joint.InverseBind = glm::inverse(WorldTransform(node));
+				const uint32_t index = static_cast<uint32_t>(m_Mesh.Joints.size());
+				m_Mesh.Joints.push_back(joint);
+				m_RigidJoints.emplace(skeletonNode, index);
+				return index;
+			}
+
+			void AddMeshes(const cgltf_node* node)
+			{
+				if (node->mesh)
+				{
+					const std::string name = NodeName(m_Data, node);
+					for (cgltf_size p = 0; p < node->mesh->primitives_count; p++)
+					{
+						const cgltf_primitive& primitive = node->mesh->primitives[p];
+						if (primitive.type != cgltf_primitive_type_triangles)
+							continue;
+						bool hasJoints = false;
+						for (cgltf_size a = 0; a < primitive.attributes_count; a++)
+							hasJoints |= primitive.attributes[a].type == cgltf_attribute_type_joints;
+
+						PrimitiveSkin binding;
+						glm::mat4 transform(1.0f);
+						if (node->skin && hasJoints)
+						{
+							// Skinned meshes ignore their node transform: vertices are in bind space (glTF 2.0).
+							binding.UseJointAttributes = true;
+							binding.JointOffset = m_SkinJointOffset[cgltf_skin_index(m_Data, node->skin)];
+							binding.JointCount = static_cast<uint32_t>(node->skin->joints_count);
+						}
+						else
+						{
+							// Rigid parts (capes, weapons in a hand slot) follow their node, which follows its parent bone.
+							transform = WorldTransform(node);
+							binding.RigidJoint = RigidJoint(node);
+						}
+						AppendPrimitive(m_Mesh, primitive, transform, MaterialOf(m_Data, primitive, m_DefaultMaterial), name, &binding);
+					}
+				}
+				for (cgltf_size i = 0; i < node->children_count; i++)
+					AddMeshes(node->children[i]);
+			}
+
+			void AddAnimations()
+			{
+				for (cgltf_size a = 0; a < m_Data->animations_count; a++)
+				{
+					const cgltf_animation& source = m_Data->animations[a];
+					AnimationClip clip;
+					clip.Name = source.name ? source.name : std::format("Animation{}", a);
+					for (cgltf_size c = 0; c < source.channels_count; c++)
+					{
+						std::optional<AnimationChannel> channel = ReadChannel(source.channels[c]);
+						if (!channel)
+						{
+							PN_CORE_WARN("glTF animation '{}': channel {} skipped (unsupported target or bad keyframes)", clip.Name, c);
+							continue;
+						}
+						clip.Duration = std::max(clip.Duration, channel->Times.back());
+						clip.Channels.push_back(std::move(*channel));
+					}
+					m_Mesh.Animations.push_back(std::move(clip));
+				}
+			}
+
+			std::optional<AnimationChannel> ReadChannel(const cgltf_animation_channel& source) const
+			{
+				if (!source.target_node || !source.sampler || !source.sampler->input || !source.sampler->output)
+					return std::nullopt;
+				const int32_t node = SkeletonIndex(source.target_node);
+				if (node < 0)
+					return std::nullopt;
+
+				AnimationChannel channel;
+				channel.Node = static_cast<uint32_t>(node);
+				size_t components = 3;
+				switch (source.target_path)
+				{
+					case cgltf_animation_path_type_translation: channel.Path = AnimationPath::Translation; break;
+					case cgltf_animation_path_type_rotation:    channel.Path = AnimationPath::Rotation; components = 4; break;
+					case cgltf_animation_path_type_scale:       channel.Path = AnimationPath::Scale; break;
+					default:                                    return std::nullopt; // morph target weights are not supported
+				}
+				switch (source.sampler->interpolation)
+				{
+					case cgltf_interpolation_type_step:         channel.Interpolation = AnimationInterpolation::Step; break;
+					case cgltf_interpolation_type_cubic_spline: channel.Interpolation = AnimationInterpolation::CubicSpline; break;
+					default:                                    channel.Interpolation = AnimationInterpolation::Linear; break;
+				}
+
+				const cgltf_accessor* input = source.sampler->input;
+				const cgltf_accessor* output = source.sampler->output;
+				channel.Times.resize(input->count);
+				for (cgltf_size k = 0; k < input->count; k++)
+				{
+					if (!cgltf_accessor_read_float(input, k, &channel.Times[k], 1) || !std::isfinite(channel.Times[k]) ||
+						(k > 0 && channel.Times[k] < channel.Times[k - 1]))
+						return std::nullopt;
+				}
+				channel.Values.resize(output->count, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+				for (cgltf_size k = 0; k < output->count; k++)
+				{
+					if (!cgltf_accessor_read_float(output, k, &channel.Values[k][0], components))
+						return std::nullopt;
+				}
+				const size_t stride = channel.Interpolation == AnimationInterpolation::CubicSpline ? 3 : 1;
+				if (channel.Times.empty() || channel.Values.size() != channel.Times.size() * stride)
+					return std::nullopt;
+				return channel;
+			}
+
+			void ComputeJointBounds()
+			{
+				for (size_t v = 0; v < m_Mesh.SkinVertices.size(); v++)
+				{
+					const SkinVertex& skin = m_Mesh.SkinVertices[v];
+					for (int k = 0; k < 4; k++)
+					{
+						if (skin.Weights[k] <= 0.0f || skin.Joints[k] >= m_Mesh.Joints.size())
+							continue;
+						SkinJoint& joint = m_Mesh.Joints[skin.Joints[k]];
+						const glm::vec3& position = m_Mesh.Vertices[v].Position;
+						joint.BoundsMin = joint.HasBounds ? glm::min(joint.BoundsMin, position) : position;
+						joint.BoundsMax = joint.HasBounds ? glm::max(joint.BoundsMax, position) : position;
+						joint.HasBounds = true;
+					}
+				}
+			}
+
+		private:
+			const cgltf_data* m_Data;
+			MeshData& m_Mesh;
+			uint32_t m_DefaultMaterial;
+			std::vector<int32_t> m_NodeToSkeleton;   // cgltf node index -> skeleton node (-1: not in the scene)
+			std::vector<uint32_t> m_SkinJointOffset; // cgltf skin index -> its first palette entry
+			std::unordered_map<int32_t, uint32_t> m_RigidJoints; // skeleton node -> palette entry
+		};
 
 	}
 
@@ -252,19 +543,28 @@ namespace Penumbra {
 		const uint32_t defaultMaterial = static_cast<uint32_t>(mesh.Materials.size());
 		mesh.Materials.push_back(MaterialData{ .Name = "Default" });
 
-		const cgltf_scene* scene = data->scene ? data->scene : (data->scenes_count > 0 ? &data->scenes[0] : nullptr);
-		if (scene)
+		std::vector<const cgltf_node*> roots;
+		if (const cgltf_scene* scene = data->scene ? data->scene : (data->scenes_count > 0 ? &data->scenes[0] : nullptr))
 		{
-			for (cgltf_size i = 0; i < scene->nodes_count; i++)
-				VisitNode(mesh, data.get(), scene->nodes[i], defaultMaterial);
+			roots.assign(scene->nodes, scene->nodes + scene->nodes_count);
 		}
 		else
 		{
 			for (cgltf_size i = 0; i < data->nodes_count; i++)
 			{
 				if (!data->nodes[i].parent)
-					VisitNode(mesh, data.get(), &data->nodes[i], defaultMaterial);
+					roots.push_back(&data->nodes[i]);
 			}
+		}
+
+		if (data->skins_count > 0 || data->animations_count > 0)
+		{
+			SkeletonBuilder(data.get(), mesh, defaultMaterial).Build(roots);
+		}
+		else
+		{
+			for (const cgltf_node* root : roots)
+				VisitNode(mesh, data.get(), root, defaultMaterial);
 		}
 
 		if (mesh.Indices.empty())

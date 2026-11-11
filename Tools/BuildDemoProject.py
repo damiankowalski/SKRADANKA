@@ -135,11 +135,19 @@ def build_prefabs():
 # Characters
 # --------------------------------------------------------------------------------------------
 
-def character_body(doc, parent, color, head_color):
-    doc.add("Body", parent, Transform=transform((0, 0.9, 0), scale=(0.6, 0.9, 0.6)), Mesh={"Mesh": "builtin:capsule"},
-            Material=material(color, roughness=0.9))
-    doc.add("Head", parent, Transform=transform((0, 1.7, -0.05), scale=(0.3, 0.3, 0.3)), Mesh={"Mesh": "builtin:sphere"},
-            Material=material(head_color, roughness=0.9))
+# Skinned, animated characters (KayKit Adventurers, CC0; see Models/Characters/README.md). One file
+# carries several weapons and accessories: each character hides the parts it does not use.
+THIEF = ("Thief.glb", ["Knife", "Knife_Offhand", "2H_Crossbow", "Throwable"])
+WATCHMAN = ("Knight.glb", ["Knight_Cape", "1H_Sword_Offhand", "2H_Sword", "Badge_Shield", "Rectangle_Shield", "Spike_Shield"])
+KNIGHT = ("Knight.glb", ["1H_Sword_Offhand", "2H_Sword", "Round_Shield", "Rectangle_Shield", "Spike_Shield"])
+
+
+def character_model(doc, parent, character):
+    """The visible body: faces -Z like the entity (glTF models face +Z) and is about 1.8 m tall."""
+    model, hidden = character
+    doc.add("Model", parent, Transform=transform(rotation=(0, 180, 0), scale=(0.8, 0.8, 0.8)),
+            Mesh={"Mesh": f"Models/Characters/{model}", "HiddenNodes": hidden},
+            Animator={"Clip": "Idle", "BlendDuration": 0.2})
 
 
 def add_player(doc, position, yaw=0.0):
@@ -149,17 +157,17 @@ def add_player(doc, position, yaw=0.0):
                      PerceptionTarget={"Reflectance": 0.25},
                      AudioListener={},
                      Script={"Script": "Scripts/Player.lua"})
-    character_body(doc, player, (0.12, 0.12, 0.14), (0.5, 0.42, 0.35))
+    character_model(doc, player, THIEF)
     return player
 
 
-def add_guard(doc, name, position, yaw, waypoints, lantern=False):
+def add_guard(doc, name, position, yaw, waypoints, lantern=False, character=WATCHMAN):
     guard = doc.add(name,
                     Transform=transform(position, (0, yaw, 0)),
                     CharacterController={"Radius": 0.3, "Height": 1.8},
                     Perception={},
                     Script={"Script": "Scripts/Guard.lua", "Properties": {"waypoints": ",".join(waypoints)}})
-    character_body(doc, guard, (0.45, 0.12, 0.1), (0.55, 0.45, 0.38))
+    character_model(doc, guard, character)
     if lantern:
         doc.add("Lantern", guard, Transform=transform((0.25, 1.2, -0.3), (-15, 0, 0)),
                 SpotLight={"Color": [1.0, 0.85, 0.6], "Intensity": 30.0, "Range": 14.0, "InnerAngle": 18.0, "OuterAngle": 32.0,
@@ -238,7 +246,7 @@ def build_stealth_level():
                            ("WP_B1", (14, 0, 12)), ("WP_B2", (14, 0, -4))):
         doc.add(name, Transform=transform(position))
     add_guard(doc, "GuardA", (-10, 0.05, -4), 90, ["WP_A1", "WP_A2", "WP_A3", "WP_A4"])
-    add_guard(doc, "GuardB", (14, 0.05, 12), 180, ["WP_B1", "WP_B2"], lantern=True)
+    add_guard(doc, "GuardB", (14, 0.05, 12), 180, ["WP_B1", "WP_B2"], lantern=True, character=KNIGHT)
 
     # The exit gate (south-east corner) and the player start (dark north-west corner).
     doc.add("Gate", Transform=transform((17, 1.5, 18)), BoxCollider={"HalfExtents": [1.5, 1.5, 1.0]},
@@ -258,9 +266,9 @@ def build_feature_test():
     box(doc, "Doorway", (0, 3, -9), (12, 6, 0.4), (0.3, 0.3, 0.3), emissive=2.0)
     box(doc, "Curtain", (0, 2, -3), (6, 4, 0.2), (0.3, 0.3, 0.3))
     guard = doc.add("Guard", Transform=transform((0, 0.05, 0)), CharacterController={}, Perception={})
-    character_body(doc, guard, (0.45, 0.12, 0.1), (0.55, 0.45, 0.38))
+    character_model(doc, guard, WATCHMAN)
     player = doc.add("Player", Transform=transform((0, 0.05, -6)), CharacterController={}, PerceptionTarget={})
-    character_body(doc, player, (0.12, 0.12, 0.14), (0.5, 0.42, 0.35))
+    character_model(doc, player, THIEF)
     doc.add("Crate", Transform=transform((4, 0.5, 8)), Mesh={"Mesh": "builtin:cube"}, Material=material((0.4, 0.3, 0.2)),
             BoxCollider={}, RigidBody={"Type": "Dynamic"})
     doc.add("Bouncer", Transform=transform((-4, 3, 8), scale=(0.5, 0.5, 0.5)), Mesh={"Mesh": "builtin:sphere"},

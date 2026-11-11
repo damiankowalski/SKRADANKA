@@ -2,6 +2,7 @@
 #include "Penumbra/Scene/Scene.h"
 
 #include "Penumbra/AI/PerceptionSystem.h"
+#include "Penumbra/Animation/AnimationSystem.h"
 #include "Penumbra/Audio/AudioScene.h"
 #include "Penumbra/Physics/PhysicsWorld.h"
 #include "Penumbra/Scene/Entity.h"
@@ -394,6 +395,7 @@ namespace Penumbra {
 		m_PerceptionSystem->Update(ts);
 		UpdateSmokeVolumes(ts);
 		m_AudioScene->Update(ts);
+		AnimationSystem::Update(*this, ts);
 
 		m_IsUpdating = false;
 		FlushPendingDestroys();
