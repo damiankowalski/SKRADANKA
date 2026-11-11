@@ -1,6 +1,7 @@
 #include "EditorLayer.h"
 
 #include "Penumbra/Automation/CommandProcessor.h"
+#include "Penumbra/Automation/McpServer.h"
 #include "Penumbra/Core/Application.h"
 #include "Penumbra/Core/CrashHandler.h"
 #include "Penumbra/Core/FileSystem.h"
@@ -50,16 +51,51 @@ namespace {
 		return ok ? 0 : 1;
 	}
 
+	// MCP server on stdin/stdout for Claude Code / Claude Desktop (see docs/Automation.md).
+	// --backend auto|headless|editor picks where tools run; --port is the editor's command port.
+	int RunMcp(const CommandLine& args, int protocolFd)
+	{
+		McpServerSpecification spec;
+		const std::string backend = args.GetValue("backend").value_or("auto");
+		const std::optional<McpBackend> mode = McpBackendFromString(backend);
+		if (!mode)
+		{
+			PN_CORE_CRITICAL("--backend must be auto, headless or editor (got '{}')", backend);
+			return 2;
+		}
+		spec.Backend = *mode;
+		spec.EditorPort = static_cast<uint16_t>(args.GetInt("port").value_or(7777));
+
+		HeadlessAutomationHost host;
+		host.SetUseWarp(args.HasFlag("warp"));
+		CommandProcessor processor(host);
+		if (const std::optional<std::string> project = args.GetValue("project"))
+		{
+			// Opens the project for the headless backend; the editor backend uses the editor's project.
+			const nlohmann::json opened = processor.Execute({ { "cmd", "project.open" }, { "path", Project::Resolve(*project).string() } });
+			if (!opened.value("ok", false))
+				PN_CORE_ERROR("MCP: cannot open project: {}", opened.value("error", std::string()));
+		}
+		McpServer server(processor, spec);
+		return McpServer::RunStdio(server, protocolFd);
+	}
+
 }
 
 int main(int argc, char** argv)
 {
 	const CommandLine args(argc, argv);
+	// In MCP mode stdout carries the protocol: reserve it before anything can log.
+	const int mcpProtocolFd = args.HasFlag("mcp") ? McpServer::ReserveStdout() : -1;
 	Log::Init("PenumbraEditor.log");
 	CrashHandler::Install(FileSystem::GetExecutableDirectory() / "CrashDumps", "PenumbraEditor");
 
 	int exitCode = 0;
-	if (args.HasFlag("headless"))
+	if (args.HasFlag("mcp"))
+	{
+		exitCode = RunMcp(args, mcpProtocolFd);
+	}
+	else if (args.HasFlag("headless"))
 	{
 		exitCode = RunHeadless(args);
 	}

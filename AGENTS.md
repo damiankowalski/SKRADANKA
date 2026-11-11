@@ -17,7 +17,7 @@ contract for every human or AI agent changing this repository. Read it fully bef
 | `Penumbra/src/Penumbra/Scripting` | Lua 5.4 + sol2: `ScriptEngine`, the whole Lua API in `ScriptBindings.cpp` |
 | `Penumbra/src/Penumbra/AI` | Silhouette-contrast perception (`PerceptionModel`, `PerceptionSystem`) |
 | `Penumbra/src/Penumbra/Stim` | Act/React elemental interactions (`StimSystem`) |
-| `Penumbra/src/Penumbra/Automation` | JSON command API used by the editor, CLI and AI agents |
+| `Penumbra/src/Penumbra/Automation` | JSON command API used by the editor, CLI and AI agents; TCP command server; MCP server |
 | `PenumbraEditor` | Editor executable (ImGui, gizmos, command server) |
 | `PenumbraRuntime` | Shipping game executable (no editor code) |
 | `PenumbraTests` | doctest unit + integration tests |
@@ -89,5 +89,6 @@ build\debug\bin\PenumbraTests.exe --trace -tc="*torch*"     :: one case with eng
 
 The editor and runtime are fully scriptable; see `docs/Automation.md`, `docs/ScriptingAPI.md`,
 `docs/Perception.md` and the `penumbra-build-game` skill. In short: author scenes/prefabs as JSON or through the command API
-(`PenumbraEditor --headless --exec commands.json`), write gameplay in Lua, verify with
+(`PenumbraEditor --headless --exec commands.json`, or the `penumbra` MCP server from `.mcp.json`, which drives the open
+editor live), write gameplay in Lua, verify with
 `PenumbraRuntime --headless --scene <scene> --frames N` and scripted `test.*` assertions.

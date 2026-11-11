@@ -3,10 +3,11 @@
 Everything an editor user can do is available as JSON commands, so tools and AI agents can build,
 test and ship a game without a human. Implementation: `Penumbra/src/Penumbra/Automation/CommandProcessor.cpp`.
 
-## Three ways in
+## Four ways in
 
 | Way | Use |
 |---|---|
+| MCP server: `PenumbraEditor --mcp` (registered in `.mcp.json`) | Claude Code / Claude Desktop call every command as a typed tool; `render_screenshot` returns the image. See [MCP server](#mcp-server). |
 | `PenumbraEditor --headless --exec cmds.jsonl [--project dir] [--warp]` | Batch, no window. Prints one JSON response per line; exit code 0 only if every command succeeded. |
 | Running editor, TCP `127.0.0.1:7777` (`--port`) | One JSON request per line, one JSON response line back. Executes on the editor's main thread; the editor shows every change live and each command is undoable. |
 | Editor console | Type a JSON command (edit mode) or Lua (play mode). |
@@ -41,3 +42,38 @@ are decimal strings. Asset paths are relative to the project's asset directory a
 5. `scene.save`, `project.set {startScene}`, `project.export {output}`.
 
 `docs/examples/AgentQuickstart.jsonl` is a complete example and runs in CI.
+
+## MCP server
+
+`PenumbraEditor --mcp` speaks the [Model Context Protocol](https://modelcontextprotocol.io) (JSON-RPC 2.0 over
+stdin/stdout, protocol 2025-11-25, older versions negotiated). Implementation: `Penumbra/src/Penumbra/Automation/McpServer.cpp`.
+
+* **Claude Code**: the repository's `.mcp.json` registers it as `penumbra` (through `Tools\PenumbraMcp.bat`, which runs
+  `build\release` if built, else `build\debug`; `PENUMBRA_MCP_BUILD=debug` forces debug). Build once, start `claude` in the
+  repository root, approve the server, then `/mcp` shows its tools.
+* **Claude Desktop**: add to `%APPDATA%\Claude\claude_desktop_config.json`:
+  ```json
+  { "mcpServers": { "penumbra": { "command": "C:\\path\\to\\Penumbra\\build\\release\\bin\\PenumbraEditor.exe", "args": ["--mcp"] } } }
+  ```
+
+**Tools.** Every command is a tool named with `_` for `.` (`entity.create` → `entity_create`); its input schema comes
+from the command table (argument strings + the type table in `Automation/CommandSchema.cpp`, which a test keeps complete).
+Read-only commands carry `readOnlyHint`. Command failures come back as tool results with `isError: true` and the
+engine's message. `render_screenshot` returns the PNG as image content (`path` is optional: give it to also keep the file).
+
+**Backends.** Where tools run is chosen with `--backend` (default `auto`):
+
+| Backend | Behaviour |
+|---|---|
+| `editor` | Forwards every call to the running editor's command server (`127.0.0.1:7777`, `--port` to change), one connection per call. The user watches each change live and can undo it. |
+| `headless` | An in-process engine without a window (`--project <dir>` opens a project at start, `--warp` renders without a GPU). |
+| `auto` | On the first call: the editor if it answers, otherwise headless. |
+
+The `session_backend` tool shows the current backend and switches it (`{"mode": "editor"}` after starting the editor).
+
+**Resources.** `penumbra://components` (component list with defaults), `penumbra://scene` (the open scene document) and
+`penumbra://docs/{Automation,ScriptingAPI,Components,Perception}.md`.
+
+stdout carries only protocol messages: the server redirects the engine log (and anything else the process prints) to
+stderr before starting. Tests: the `Mcp` doctest suite drives the server in memory (including the editor backend against a
+real command server); CTest `Automation.McpStdio` runs the executable over stdio (`PenumbraTests/mcp/`).

@@ -1,11 +1,8 @@
-#include "CommandServer.h"
-
-#include "Penumbra/Core/Log.h"
+#include "pnpch.h"
+#include "Penumbra/Automation/CommandServer.h"
 
 #include <WinSock2.h>
 #include <WS2tcpip.h>
-
-#include <format>
 
 namespace Penumbra {
 
@@ -169,6 +166,130 @@ namespace Penumbra {
 			request->Done = true;
 		}
 		m_Completed.notify_all();
+	}
+
+	// ------------------------------------------------------------------------------------------
+	// Client
+	// ------------------------------------------------------------------------------------------
+
+	CommandClient::CommandClient(std::string host, uint16_t port)
+		: m_Host(std::move(host)), m_Port(port)
+	{
+		WSADATA data{};
+		m_WinsockReady = WSAStartup(MAKEWORD(2, 2), &data) == 0;
+	}
+
+	CommandClient::~CommandClient()
+	{
+		if (m_WinsockReady)
+			WSACleanup();
+	}
+
+	uintptr_t CommandClient::Connect(std::chrono::milliseconds timeout, std::string& error)
+	{
+		const uintptr_t invalid = ~uintptr_t(0);
+		if (!m_WinsockReady)
+		{
+			error = "WSAStartup failed";
+			return invalid;
+		}
+		sockaddr_in address{};
+		address.sin_family = AF_INET;
+		address.sin_port = htons(m_Port);
+		if (inet_pton(AF_INET, m_Host.c_str(), &address.sin_addr) != 1)
+		{
+			error = std::format("invalid IPv4 address '{}'", m_Host);
+			return invalid;
+		}
+		SOCKET socketHandle = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+		if (socketHandle == INVALID_SOCKET)
+		{
+			error = "cannot create a socket";
+			return invalid;
+		}
+
+		// Non-blocking connect with a timeout: a refused loopback connection otherwise takes
+		// seconds on Windows because of SYN retransmissions.
+		u_long nonBlocking = 1;
+		ioctlsocket(socketHandle, FIONBIO, &nonBlocking);
+		bool connected = connect(socketHandle, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == 0;
+		if (!connected && WSAGetLastError() == WSAEWOULDBLOCK)
+		{
+			fd_set writable, failed;
+			FD_ZERO(&writable);
+			FD_ZERO(&failed);
+			FD_SET(socketHandle, &writable);
+			FD_SET(socketHandle, &failed);
+			timeval wait{};
+			wait.tv_sec = static_cast<long>(timeout.count() / 1000);
+			wait.tv_usec = static_cast<long>((timeout.count() % 1000) * 1000);
+			connected = select(0, nullptr, &writable, &failed, &wait) > 0 && FD_ISSET(socketHandle, &writable);
+		}
+		if (!connected)
+		{
+			closesocket(socketHandle);
+			error = std::format("no command server at {}:{} (is the editor running?)", m_Host, m_Port);
+			return invalid;
+		}
+		nonBlocking = 0;
+		ioctlsocket(socketHandle, FIONBIO, &nonBlocking);
+		BOOL noDelay = TRUE;
+		setsockopt(socketHandle, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<const char*>(&noDelay), sizeof(noDelay));
+		return static_cast<uintptr_t>(socketHandle);
+	}
+
+	bool CommandClient::IsReachable(std::chrono::milliseconds timeout)
+	{
+		std::string error;
+		const uintptr_t socketHandle = Connect(timeout, error);
+		if (socketHandle == ~uintptr_t(0))
+			return false;
+		closesocket(static_cast<SOCKET>(socketHandle));
+		return true;
+	}
+
+	std::optional<nlohmann::json> CommandClient::Send(const nlohmann::json& request, std::string& error, std::chrono::milliseconds connectTimeout)
+	{
+		const uintptr_t handle = Connect(connectTimeout, error);
+		if (handle == ~uintptr_t(0))
+			return std::nullopt;
+		const SOCKET socketHandle = static_cast<SOCKET>(handle);
+
+		std::optional<nlohmann::json> response;
+		if (!SendAll(socketHandle, request.dump() + "\n"))
+		{
+			error = std::format("cannot send to {}:{}", m_Host, m_Port);
+		}
+		else
+		{
+			std::string buffer;
+			char chunk[8192];
+			size_t newline = std::string::npos;
+			while (newline == std::string::npos)
+			{
+				const int received = recv(socketHandle, chunk, sizeof(chunk), 0);
+				if (received <= 0)
+					break;
+				const size_t searchFrom = buffer.size();
+				buffer.append(chunk, static_cast<size_t>(received));
+				newline = buffer.find('\n', searchFrom);
+			}
+			if (newline == std::string::npos)
+			{
+				error = std::format("the connection to {}:{} closed before a response arrived", m_Host, m_Port);
+			}
+			else
+			{
+				nlohmann::json parsed = nlohmann::json::parse(buffer.substr(0, newline), nullptr, false);
+				if (parsed.is_discarded())
+					error = "the command server sent invalid JSON";
+				else
+					response = std::move(parsed);
+			}
+		}
+		shutdown(socketHandle, SD_BOTH);
+		closesocket(socketHandle);
+		return response;
 	}
 
 }

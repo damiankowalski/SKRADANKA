@@ -5,10 +5,11 @@ penumbra_configure_target(PenumbraTests)
 target_link_libraries(PenumbraTests PRIVATE Penumbra pn_doctest)
 target_compile_definitions(PenumbraTests PRIVATE
     PENUMBRA_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data"
-    PENUMBRA_DEMO_PROJECT_DIR="${PROJECT_SOURCE_DIR}/DemoProject")
+    PENUMBRA_DEMO_PROJECT_DIR="${PROJECT_SOURCE_DIR}/DemoProject"
+    PENUMBRA_DOCS_DIR="${PROJECT_SOURCE_DIR}/docs")
 
 # Each doctest test suite is registered separately so CTest reports them individually.
-foreach(suite Core Scene Serialization Assets Animation Physics Audio Scripting Perception Stim Automation Renderer)
+foreach(suite Core Scene Serialization Assets Animation Physics Audio Scripting Perception Stim Automation Mcp Renderer)
     add_test(NAME Unit.${suite} COMMAND PenumbraTests --test-suite=${suite} --no-colors)
 endforeach()
 set_tests_properties(Unit.Renderer PROPERTIES LABELS gpu)
@@ -32,5 +33,10 @@ if(PENUMBRA_BUILD_EDITOR)
     add_test(NAME Editor.Smoke
         COMMAND PenumbraEditor --warp --frames 30 --no-server --project "${PROJECT_SOURCE_DIR}/DemoProject"
         WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/AgentQuickstart")
-    set_tests_properties(Automation.EditorCLI Editor.Smoke PROPERTIES LABELS gpu TIMEOUT 600)
+    # Claude Code / Claude Desktop drive the editor through "PenumbraEditor --mcp" over stdio.
+    add_test(NAME Automation.McpStdio
+        COMMAND ${CMAKE_COMMAND} -DEDITOR=$<TARGET_FILE:PenumbraEditor>
+                -DSESSION=${CMAKE_CURRENT_SOURCE_DIR}/mcp/StdioSession.jsonl -P ${CMAKE_CURRENT_SOURCE_DIR}/mcp/StdioTest.cmake
+        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/AgentQuickstart")
+    set_tests_properties(Automation.EditorCLI Automation.McpStdio Editor.Smoke PROPERTIES LABELS gpu TIMEOUT 600)
 endif()
