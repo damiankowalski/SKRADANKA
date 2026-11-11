@@ -7,6 +7,8 @@
 #include <DetourNavMeshQuery.h>
 #include <Recast.h>
 
+#include <glm/gtc/constants.hpp>
+
 namespace Penumbra {
 
 	namespace {
@@ -27,18 +29,14 @@ namespace Penumbra {
 		template<typename T>
 		using RecastPtr = std::unique_ptr<T, RecastDeleter>;
 
-		// Detour's random point query takes a plain function pointer: the state of the caller's
-		// generator is reached through this pointer for the duration of the call.
-		thread_local uint32_t* s_RandomState = nullptr;
-
-		float NextRandom()
+		// xorshift32: deterministic and good enough for picking search spots. Returns [0, 1).
+		float NextRandom(uint32_t& state)
 		{
-			// xorshift32: deterministic and good enough for picking search spots.
-			uint32_t x = *s_RandomState;
+			uint32_t x = state != 0 ? state : 0x9E3779B9u;
 			x ^= x << 13;
 			x ^= x >> 17;
 			x ^= x << 5;
-			*s_RandomState = x != 0 ? x : 0x9E3779B9u;
+			state = x;
 			return static_cast<float>(x >> 8) / static_cast<float>(1u << 24);
 		}
 
@@ -281,21 +279,27 @@ namespace Penumbra {
 		if (centerRef == 0)
 			return std::nullopt;
 
-		if (randomState == 0)
-			randomState = 0x9E3779B9u;
-		s_RandomState = &randomState;
-		std::optional<glm::vec3> result;
-		// The query picks polygons touching the circle, so a point can fall slightly outside it.
-		for (int attempt = 0; attempt < 8 && !result; ++attempt)
+		// Uniform samples in the disc, snapped to the navmesh and kept when inside the radius and
+		// reachable from the centre (Detour's own query samples whole polygons, which on large
+		// open floors mostly lands outside a small radius).
+		const glm::vec3 snapExtents(0.5f, 2.0f, 0.5f);
+		std::array<dtPolyRef, MaxPathPolygons> polygons{};
+		for (int attempt = 0; attempt < 16; ++attempt)
 		{
+			const float angle = glm::two_pi<float>() * NextRandom(randomState);
+			const float distance = radius * std::sqrt(NextRandom(randomState));
+			const glm::vec3 candidate = start + glm::vec3(std::cos(angle) * distance, 0.0f, std::sin(angle) * distance);
 			dtPolyRef ref = 0;
 			glm::vec3 point(0.0f);
-			if (dtStatusSucceed(m_Query->findRandomPointAroundCircle(centerRef, &start.x, radius, &filter, NextRandom, &ref, &point.x)) &&
-				ref != 0 && glm::distance(glm::vec2(point.x, point.z), glm::vec2(start.x, start.z)) <= radius)
-				result = point;
+			m_Query->findNearestPoly(Ptr(candidate), Ptr(snapExtents), &filter, &ref, &point.x);
+			if (ref == 0 || glm::distance(glm::vec2(point.x, point.z), glm::vec2(start.x, start.z)) > radius)
+				continue;
+			int count = 0;
+			const dtStatus status = m_Query->findPath(centerRef, ref, &start.x, &point.x, &filter, polygons.data(), &count, MaxPathPolygons);
+			if (dtStatusSucceed(status) && count > 0 && polygons[static_cast<size_t>(count - 1)] == ref)
+				return point;
 		}
-		s_RandomState = nullptr;
-		return result;
+		return std::nullopt;
 	}
 
 	std::vector<glm::vec3> NavMesh::GetDebugEdges() const

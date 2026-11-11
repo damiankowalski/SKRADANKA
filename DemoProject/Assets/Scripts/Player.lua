@@ -2,8 +2,11 @@
 --
 -- Controls: WASD move, Shift run, C crouch, Space jump, mouse look,
 --           1 = water arrow, 2 = fire arrow, left mouse = shoot, Esc = release the mouse.
+-- Noise probe (when the noise_probe property is on): - / = pick a loudness, G makes that noise
+-- where you aim. The HUD shows the floor under you and how loud your last step was.
 
 local LightGem = require("Scripts/LightGem")
+local Noises = require("Scripts/AI/Noises")
 
 local Player = {
     Properties = {
@@ -15,6 +18,7 @@ local Player = {
         mouse_sensitivity = 0.12,
         camera_distance = 3.2,
         arrow_speed = 32.0,
+        noise_probe = true,
     }
 }
 
@@ -52,6 +56,10 @@ function Player:on_create()
         if child:get_name() == "Model" then self.model = child end
     end
     self.pending_arrow = nil
+    self.airborne = false
+    self.fall_speed = 0
+    self.last_step = nil -- { loudness, material } of the last footstep, for the HUD
+    self.probe_loudness = 5
     self.camera = scene.find("Camera")
     input.set_cursor_locked(true)
 end
@@ -107,16 +115,42 @@ function Player:update_movement(dt)
 
     self:update_animation(dt, running)
 
-    -- Footsteps make noise guards can hear: running is loud, sneaking is nearly silent.
-    if moving and character.is_grounded(self.entity) then
+    -- Footsteps make noise guards can hear: running is loud, sneaking is nearly silent, and the
+    -- floor matters (carpet and moss muffle, metal rings). See Scripts/AI/Noises.lua.
+    local grounded = character.is_grounded(self.entity)
+    if moving and grounded then
         self.step_timer = self.step_timer - dt
         if self.step_timer <= 0 then
-            self.step_timer = running and 0.3 or 0.5
-            local radius = self.crouched and 1.0 or (running and 12.0 or 4.0)
-            local feet = self.entity:get_position()
-            ai.emit_noise(feet, radius, self.entity)
-            audio.play_at("Audio/Footstep.wav", feet, self.crouched and 0.15 or (running and 0.7 or 0.35))
+            local gait = self.crouched and "crouch" or (running and "run" or "walk")
+            self.step_timer = Noises.footsteps[gait].interval
+            local loudness, material = Noises.footstep(self.entity, gait)
+            self.last_step = { loudness = loudness, material = material }
         end
+    end
+
+    -- Landing from a jump or a fall is loud in proportion to the falling speed.
+    local velocity = character.get_velocity(self.entity)
+    if not grounded then
+        self.airborne = true
+        self.fall_speed = math.max(self.fall_speed, -velocity.y)
+    elseif self.airborne then
+        local loudness = Noises.landing(self.entity, self.fall_speed)
+        if loudness > 0 then self.last_step = { loudness = loudness, material = "landing" } end
+        self.airborne = false
+        self.fall_speed = 0
+    end
+end
+
+-- Debug tool for tuning guards: make a noise of a chosen loudness where the camera aims.
+function Player:update_noise_probe()
+    if not self.noise_probe then return end
+    if input.key_pressed("Minus") then self.probe_loudness = math.max(self.probe_loudness - 1, 1) end
+    if input.key_pressed("Equal") then self.probe_loudness = math.min(self.probe_loudness + 1, 10) end
+    if input.key_pressed("G") and self.aim_origin then
+        local hit = physics.raycast(self.aim_origin, self.aim_direction, 40, self.entity)
+        local point = hit and hit.point or (self.aim_origin + self.aim_direction * 10)
+        ai.emit_noise(point, self.probe_loudness, self.entity, "Probe")
+        audio.play_at("Audio/Clang.wav", point, self.probe_loudness / 10)
     end
 end
 
@@ -176,13 +210,12 @@ function Player:update_arrows(dt)
         local arrow = scene.instantiate(ARROWS[self.arrow].prefab, origin)
         arrow:look_at(origin + self.aim_direction)
         self.pending_arrow = { entity = arrow, velocity = self.aim_direction * self.arrow_speed }
-        audio.play_at("Audio/Bow.wav", origin, 0.6)
         if self.model then
             anim.play(self.model, "1H_Ranged_Shoot", 0.05, false)
             anim.set_speed(self.model, 1.5)
             self.shoot_timer = 0.45
         end
-        ai.emit_noise(origin, 3.0, self.entity)
+        Noises.emit("Bow", origin, self.entity)
         self.cooldown = 0.6
     end
 end
@@ -195,6 +228,13 @@ function Player:draw_hud(dt)
     local arrow = ARROWS[self.arrow]
     ui.text(20, h - 40, arrow.name .. " arrow  [1/2]", 2, arrow.color)
     if self.crouched then ui.text(w / 2 + 70, h - 58, "crouching", 2, { 0.7, 0.7, 0.7, 1 }) end
+    if self.noise_probe then
+        local step = self.last_step
+        local floor = Noises.surface_under(self.entity)
+        ui.text(20, h - 70, string.format("floor %s   last step %s", floor,
+            step and string.format("%.1f/10 (%s)", step.loudness, step.material) or "-"), 1.5, { 0.7, 0.7, 0.7, 1 })
+        ui.text(20, h - 92, string.format("noise probe %d/10  [- =] G", self.probe_loudness), 1.5, { 0.7, 0.7, 0.7, 1 })
+    end
 end
 
 function Player:on_update(dt)
@@ -204,6 +244,7 @@ function Player:on_update(dt)
     self:update_movement(dt)
     self:update_camera()
     self:update_arrows(dt)
+    self:update_noise_probe()
     self:draw_hud(dt)
 end
 
