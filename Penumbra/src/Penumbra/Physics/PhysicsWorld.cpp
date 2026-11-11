@@ -572,6 +572,19 @@ namespace Penumbra {
 
 	void PhysicsWorld::OnEntityDestroyed(Entity entity) { m_Impl->RemoveEntity(entity.GetUUID()); }
 
+	void PhysicsWorld::RemoveCharacter(Entity entity)
+	{
+		const UUID uuid = entity.GetUUID();
+		if (const auto it = m_Impl->Characters.find(uuid); it != m_Impl->Characters.end())
+		{
+			m_Impl->CharacterCollisions.Remove(it->second);
+			m_Impl->Characters.erase(it);
+			m_Impl->CharacterHeights.erase(uuid);
+		}
+	}
+
+	bool PhysicsWorld::HasCharacter(UUID entity) const { return m_Impl->Characters.contains(entity); }
+
 	std::optional<RaycastHit> PhysicsWorld::Raycast(const glm::vec3& origin, const glm::vec3& direction, float maxDistance,
 		const PhysicsEntityFilter& filter) const
 	{

@@ -150,6 +150,25 @@ def build_prefabs():
         doc.add("Shaft", arrow, **components)
         doc.save(f"Prefabs/{name}.pprefab")
 
+    # Gas arrow: bursts into a sleeping-gas cloud where it lands (Scripts/GasArrow.lua).
+    doc = Document("PenumbraPrefab")
+    arrow = doc.add("GasArrow", Transform=transform(), SphereCollider={"Radius": 0.06},
+                    RigidBody={"Type": "Dynamic", "Mass": 0.1, "GravityFactor": 0.3, "ContinuousCollision": True,
+                               "TransparentToSight": True},
+                    Script={"Script": "Scripts/GasArrow.lua"})
+    doc.add("Shaft", arrow, Transform=transform(scale=(0.05, 0.05, 0.6)), Mesh={"Mesh": "builtin:cube", "CastShadows": False},
+            Material=material((0.4, 0.8, 0.3), emissive=1.5, emissive_color=(0.4, 0.9, 0.3)))
+    doc.save("Prefabs/GasArrow.pprefab")
+    # The cloud: a continuous Gas stim for a few seconds (NPCs with a Gas -> Knockout rule fall
+    # asleep in it), a little smoke for the eyes and a faint green haze for the player.
+    doc = Document("PenumbraPrefab")
+    cloud = doc.add("GasCloud", Transform=transform(),
+                    StimSource={"Stim": "Gas", "Delivery": "Continuous", "Radius": 2.5, "Intensity": 1.0},
+                    SmokeVolume={"Radius": 2.5, "Density": 0.3, "Lifetime": 6.0})
+    doc.add("Haze", cloud, Transform=transform(scale=(4.5, 3.0, 4.5)), Mesh={"Mesh": "builtin:sphere", "CastShadows": False},
+            Material=material((0.45, 0.75, 0.35, 0.18), emissive=0.15, emissive_color=(0.4, 0.8, 0.3), translucent=True))
+    doc.save("Prefabs/GasCloud.pprefab")
+
     doc = Document("PenumbraPrefab")
     doc.add("PowderKeg",
             Transform=transform(scale=(0.7, 0.9, 0.7)),
@@ -208,6 +227,7 @@ def add_guard(doc, name, position, yaw, waypoints, lantern=False, character=WATC
                     Transform=transform(position, (0, yaw, 0)),
                     CharacterController={"Radius": 0.3, "Height": 1.8},
                     Perception={},
+                    StimResponse=SLEEPS_IN_GAS,
                     Script={"Script": "Scripts/Guard.lua", "Properties": {"waypoints": ",".join(waypoints), **properties}})
     character_model(doc, guard, character)
     if lantern:
@@ -215,6 +235,29 @@ def add_guard(doc, name, position, yaw, waypoints, lantern=False, character=WATC
                 SpotLight={"Color": [1.0, 0.85, 0.6], "Intensity": 30.0, "Range": 14.0, "InnerAngle": 18.0, "OuterAngle": 32.0,
                            "CastShadows": True})
     return guard
+
+
+# NPCs breathe: sleeping gas knocks them out (see Prefabs/GasCloud.pprefab).
+SLEEPS_IN_GAS = {"Rules": [{"Stim": "Gas", "Threshold": 0.3, "Once": True, "Actions": [{"Type": "Knockout"}]}]}
+
+
+def add_servant(doc, name, position, yaw, waypoints, bell="Bell"):
+    """A servant doing chores between waypoints; alarmed, he runs to the bell (Scripts/Servant.lua)."""
+    servant = doc.add(name, Transform=transform(position, (0, yaw, 0)), CharacterController={"Radius": 0.3, "Height": 1.8},
+                      Perception={"FieldOfView": 140.0}, StimResponse=SLEEPS_IN_GAS,
+                      Script={"Script": "Scripts/Servant.lua", "Properties": {"waypoints": ",".join(waypoints), "bell": bell}})
+    character_model(doc, servant, COOK)
+    return servant
+
+
+def add_bell(doc, position, name="Bell"):
+    """An alarm bell on a post: ringing it calls every guard (Scripts/Servant.lua)."""
+    bell = doc.add(name, Transform=transform(position), BoxCollider={"HalfExtents": [0.15, 1.2, 0.15], "Offset": [0, 1.2, 0]})
+    doc.add("Post", bell, Transform=transform((0, 1.2, 0), scale=(0.15, 2.4, 0.15)), Mesh={"Mesh": "builtin:cube"},
+            Material=material((0.3, 0.2, 0.12)))
+    doc.add("BellBody", bell, Transform=transform((0, 2.3, 0.2), scale=(0.35, 0.4, 0.35)), Mesh={"Mesh": "builtin:cylinder"},
+            Material=material((0.6, 0.45, 0.15), roughness=0.3, metallic=0.9))
+    return bell
 
 
 def add_cook(doc, name, position, yaw, zone_center, radius=14.0):
@@ -321,6 +364,10 @@ def build_stealth_level():
 
     # Life in the house: the cook at work in the hall, a storm now and then, dogs beyond the walls.
     add_cook(doc, "Cook", (13, 0.05, -14.6), 180, (10, 0, -12))
+    for name, position in (("WP_S1", (6, 0, -10)), ("WP_S2", (14, 0, -10)), ("WP_S3", (10, 0, -5))):
+        doc.add(name, Transform=transform(position))
+    add_servant(doc, "Servant", (6, 0.05, -10), 90, ["WP_S1", "WP_S2", "WP_S3"])
+    add_bell(doc, (11, 0, 16.5))
     add_world_events(doc, windows=("Window",), dogs_position=(0, 1, 28))
 
     # The exit gate (south-east corner) and the player start (dark north-west corner).
@@ -442,6 +489,13 @@ def build_ai_lab():
     for name, position in (("WP_1", (-10, 0, 8)), ("WP_2", (10, 0, 8)), ("WP_3", (6, 0, -4)), ("WP_4", (-6, 0, -9))):
         doc.add(name, Transform=transform(position))
     add_guard(doc, "Guard", (-10, 0.05, 8), 90, ["WP_1", "WP_2", "WP_3", "WP_4"], catch_scene="Scenes/AILab.pscene")
+    # A second guard walks the yard (shouts carry between them), a servant tidies the west room.
+    for name, position in (("WP_5", (12, 0, 10)), ("WP_6", (12, 0, 1)), ("WP_7", (-2, 0, 1)),
+                           ("WP_S1", (-9, 0, -5)), ("WP_S2", (-3, 0, -9))):
+        doc.add(name, Transform=transform(position))
+    add_guard(doc, "Guard2", (12, 0.05, 10), 180, ["WP_5", "WP_6", "WP_7"], catch_scene="Scenes/AILab.pscene", character=KNIGHT)
+    add_servant(doc, "Servant", (-9, 0.05, -5), 90, ["WP_S1", "WP_S2"])
+    add_bell(doc, (-13.5, 0, 0))
     add_player(doc, (-13, 0.05, 10), yaw=-135)
     doc.add("Debug", Transform=transform(), Script={"Script": "Scripts/PerceptionDebug.lua"})
     doc.save("Scenes/AILab.pscene")
@@ -569,6 +623,18 @@ def build_audio():
         phase += 2 * math.pi * frequency / RATE
         samples.append(0.35 * (math.sin(phase) + 0.3 * math.sin(2 * phase)) * math.sin(math.pi * t) ** 0.6)
     write_wav("Howl.wav", samples)
+    # The alarm bell: two strokes of inharmonic partials ringing out.
+    length = int(RATE * 2.5)
+    samples = []
+    for i in range(length):
+        t = i / RATE
+        value = 0.0
+        for start in (0.0, 0.9):
+            if t >= start:
+                s = t - start
+                value += sum(a * math.sin(2 * math.pi * f * s) for f, a in ((440, 0.3), (1107, 0.2), (1870, 0.12), (2633, 0.08))) * math.exp(-s / 0.7)
+        samples.append(value * 0.7)
+    write_wav("Bell.wav", samples)
     # "Hmm, just the weather": a short low hum.
     length = int(RATE * 0.6)
     write_wav("Mumble.wav", [0.4 * (math.sin(2 * math.pi * 140 * i / RATE) + 0.4 * math.sin(2 * math.pi * 280 * i / RATE))

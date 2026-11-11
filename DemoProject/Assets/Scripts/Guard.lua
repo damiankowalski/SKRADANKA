@@ -8,6 +8,12 @@
 --   Investigating walk to the stimulus, look around, check a few spots nearby
 --   Searching     hurry there, then search the area, darkest spots first
 --   Alarmed       run at the intruder; catching him restarts the level. Lost him: search.
+--
+-- He talks: a line for every change of mind (subtitles above his head), and when he starts a
+-- search or raises the alarm he shouts, which sends guards within earshot to the same place
+-- (ai.shout). Knocked out (blackjack, gas) he falls and stays down: a body others may find.
+
+local Actor = require("Scripts/AI/Actor")
 
 local Guard = {
     Properties = {
@@ -21,11 +27,23 @@ local Guard = {
         investigate_radius = 3.0,
         search_radius = 7.0,
         catch_distance = 1.2,
+        shout_loudness = 8.0,    -- how far his shouts carry (0-10 loudness scale)
         catch_scene = "Scenes/Stealth.pscene", -- loaded when the player is caught
     }
 }
 
 local RANK = { Unaware = 0, Suspicious = 1, Investigating = 2, Searching = 3, Alarmed = 4 }
+
+-- What he says when his state changes (the voice is a placeholder sound; the words are subtitles).
+local LINES = {
+    Suspicious = { "Hm?", "What was that?", "Who's there?" },
+    Investigating = { "I'd better take a look.", "Something over there...", "Let's have a look." },
+    Searching = { "Someone's here!", "Show yourself!", "I know you're here!" },
+    Alarmed = { "Intruder!", "Stop right there!", "There you are!" },
+    Calm = { "Must have been rats.", "Nothing there.", "Hm. Imagining things." },
+    Body = { "A body! Sound the alarm!", "Someone's been attacked!" },
+    Shout = { "What's going on?", "Coming!", "On my way!" },
+}
 
 local function parse_waypoints(list)
     local points = {}
@@ -41,6 +59,7 @@ local function parse_waypoints(list)
 end
 
 function Guard:on_create()
+    Actor.init(self)
     self.points = parse_waypoints(self.waypoints)
     self.index = 1
     self.wait = 0
@@ -48,9 +67,6 @@ function Guard:on_create()
     self.caught_timer = nil
     self.state = "Unaware"
     self:reset_activity()
-    for _, child in ipairs(self.entity:children()) do
-        if child:get_name() == "Model" then self.model = child end
-    end
 end
 
 function Guard:reset_activity()
@@ -62,41 +78,9 @@ function Guard:reset_activity()
     self.stimulus = nil
 end
 
--- Plays a clip; moving clips run at a rate matching the guard's ground speed.
-function Guard:animate(clip, reference)
-    if not self.model then return end
-    anim.play(self.model, clip, 0.25, true)
-    local rate = 1.0
-    if reference then
-        local velocity = character.get_velocity(self.entity)
-        rate = math.max(0.6, math.min(vec3(velocity.x, 0, velocity.z):length() / reference, 1.8))
-    end
-    anim.set_speed(self.model, rate)
-end
-
--- Walks to the target along the navmesh. A new path is only requested when the goal moves,
--- so calling this every frame is cheap. Returns true once there (or when it cannot get closer).
-function Guard:go(target, speed, clip, reference)
-    if not self.goal or self.goal:distance(target) > 0.5 or nav.status(self.entity) == "Idle" then
-        self.goal = target
-        nav.move_to(self.entity, target, speed)
-    end
-    local status = nav.status(self.entity)
-    if status == "Moving" then
-        self:animate(clip or "Walking_B", reference or 1.0)
-        return false
-    end
-    return true -- Arrived, or Failed / Stuck: either way, carry on with the next step
-end
-
-function Guard:stand(clip)
-    if nav.status(self.entity) == "Moving" then nav.stop(self.entity) end
-    self.goal = nil
-    self:animate(clip or "Idle")
-end
-
-function Guard:face(position)
-    if position then self.entity:look_at(position, true) end
+-- Said from outside (e.g. WorldEvents: "Just the storm.").
+function Guard:bark(lines, sound)
+    Actor.bark(self, lines, sound)
 end
 
 -- A spot worth checking near the centre: reachable, preferably dark, not checked yet.
@@ -119,12 +103,13 @@ end
 
 -- Go to the stimulus, look around, then check spots nearby until the reaction is over.
 function Guard:check_area(dt, center, speed, radius, prefer_dark)
+    local hurry = speed > self.walk_speed
     if self.phase == "go" then
-        if self:go(center, speed, speed > self.walk_speed and "Running_B" or "Walking_B", speed > self.walk_speed and 2.4 or 1.0) then
+        if Actor.go(self, center, speed, hurry and "Running_B" or "Walking_B", hurry and 2.4 or 1.0) then
             self.phase, self.timer = "look", self.look_time
         end
     elseif self.phase == "look" then
-        self:stand("Look_Around")
+        Actor.stand(self, "Look_Around")
         self.timer = self.timer - dt
         if self.timer <= 0 then
             self.spot = self:pick_spot(center, radius, prefer_dark)
@@ -132,21 +117,21 @@ function Guard:check_area(dt, center, speed, radius, prefer_dark)
             self.timer = self.look_time
         end
     elseif self.phase == "spot" then
-        if self:go(self.spot, speed) then self.phase, self.timer = "look", self.look_time end
+        if Actor.go(self, self.spot, speed) then self.phase, self.timer = "look", self.look_time end
     end
 end
 
 function Guard:patrol(dt)
     if #self.points == 0 then
-        self:stand("Idle")
+        Actor.stand(self, "Idle")
         return
     end
     if self.wait > 0 then
         self.wait = self.wait - dt
-        self:stand("Idle")
+        Actor.stand(self, "Idle")
         return
     end
-    if self:go(self.points[self.index], self.walk_speed) then
+    if Actor.go(self, self.points[self.index], self.walk_speed) then
         self.index = self.index % #self.points + 1
         self.wait = self.wait_time
         self.goal = nil
@@ -156,12 +141,34 @@ end
 function Guard:catch()
     self.caught_timer = 3.0
     nav.stop(self.entity)
-    self:animate("Cheer")
+    Actor.animate(self, "Cheer")
     character.move(self.player, vec3(0, 0, 0))
     audio.play_at("Audio/Alarm.wav", self.entity:get_position(), 1.0)
 end
 
+-- A new state: say something, and shout when it is serious (unless he is only passing on what
+-- someone else shouted, so the news spreads without echoing back and forth).
+function Guard:on_state_change(previous, state, reaction)
+    local rising = RANK[state] > RANK[previous]
+    if rising then
+        if reaction.cause == "Body" then
+            Actor.bark(self, LINES.Body, "Audio/Alert.wav")
+        elseif reaction.cause == "Shout" or reaction.cause == "Bell" then
+            Actor.bark(self, LINES.Shout, "Audio/Alert.wav")
+        else
+            Actor.bark(self, LINES[state], RANK[state] >= 3 and "Audio/Alert.wav" or "Audio/Mumble.wav")
+        end
+        if RANK[state] >= 3 and reaction.kind ~= "Reported" then
+            local alerted = ai.shout(self.entity, self.shout_loudness)
+            if #alerted > 0 then log.trace(string.format("Guard shout reached %d guard(s)", #alerted)) end
+        end
+    elseif state == "Unaware" and RANK[previous] >= 2 then
+        Actor.bark(self, LINES.Calm)
+    end
+end
+
 function Guard:on_update(dt)
+    if Actor.down(self, dt) then return end
     if self.caught_timer then
         self.caught_timer = self.caught_timer - dt
         ui.text(ui.width() / 2 - 150, ui.height() / 2 - 20, "YOU HAVE BEEN CAUGHT", 4, { 1, 0.2, 0.15, 1 })
@@ -172,9 +179,7 @@ function Guard:on_update(dt)
     local reaction = ai.reaction(self.entity)
     local state = reaction.state
     if state ~= self.state then
-        if RANK[state] > RANK[self.state] then
-            audio.play_at("Audio/Alert.wav", self.entity:get_position(), 0.5)
-        end
+        self:on_state_change(self.state, state, reaction)
         -- A calmer state keeps the place being checked; a new or stronger one starts over.
         if RANK[state] > RANK[self.state] or state == "Unaware" then self:reset_activity() end
         self.state = state
@@ -192,8 +197,8 @@ function Guard:on_update(dt)
     elseif state == "Suspicious" then
         self.glance = self.glance + dt
         if self.glance < self.glance_patience or not reaction.position then
-            self:stand("Look_Around")
-            self:face(reaction.position)
+            Actor.stand(self, "Look_Around")
+            if reaction.position then self.entity:look_at(reaction.position, true) end
         else
             self:check_area(dt, center, self.walk_speed, self.investigate_radius, false)
         end
@@ -206,7 +211,7 @@ function Guard:on_update(dt)
         local seeing = reaction.kind == "Seen" and self.player and self.player:valid() and
             self.player:get_position():distance(center) < 1.0
         if seeing then
-            self:go(reaction.position, self.run_speed, "Running_B", 2.4)
+            Actor.go(self, center, self.run_speed, "Running_B", 2.4)
             if self.entity:get_position():distance(self.player:get_position()) < self.catch_distance then
                 self:catch()
             end
@@ -214,6 +219,7 @@ function Guard:on_update(dt)
             self:check_area(dt, center, self.run_speed, self.search_radius, true)
         end
     end
+    Actor.draw_bark(self, dt)
 end
 
 return Guard

@@ -3,6 +3,7 @@
 
 #include "Penumbra/AI/PerceptionModel.h"
 #include "Penumbra/Navigation/NavigationSystem.h"
+#include "Penumbra/Scene/JsonSerialization.h"
 #include "Penumbra/Physics/PhysicsWorld.h"
 
 #include <glm/gtc/constants.hpp>
@@ -80,8 +81,75 @@ namespace Penumbra {
 		return level;
 	}
 
+	bool PerceptionSystem::IsAwake(Entity entity)
+	{
+		const VitalityComponent* vitality = entity.TryGetComponent<VitalityComponent>();
+		return !vitality || vitality->State == VitalState::Awake;
+	}
+
+	bool PerceptionSystem::KnockOut(Entity npc, VitalState state)
+	{
+		if (state == VitalState::Awake || !IsAwake(npc))
+			return false;
+		auto& vitality = npc.HasComponent<VitalityComponent>() ? npc.GetComponent<VitalityComponent>() : npc.AddComponent<VitalityComponent>();
+		vitality.State = state;
+		if (PerceptionComponent* perception = npc.TryGetComponent<PerceptionComponent>())
+			Calm(*perception);
+		if (NavigationSystem* navigation = m_Scene.GetNavigationSystem())
+			navigation->Stop(npc);
+		if (npc.HasComponent<CharacterControllerComponent>())
+		{
+			if (PhysicsWorld* physics = m_Scene.GetPhysicsWorld())
+				physics->RemoveCharacter(npc);
+			npc.RemoveComponent<CharacterControllerComponent>();
+		}
+
+		// A body on the floor: low, long silhouette points around where it fell.
+		auto& target = npc.HasComponent<PerceptionTargetComponent>() ? npc.GetComponent<PerceptionTargetComponent>()
+																	   : npc.AddComponent<PerceptionTargetComponent>();
+		target.Kind = TargetKind::Body;
+		target.SilhouettePoints = { { 0.0f, 0.25f, 0.0f }, { 0.0f, 0.2f, 0.45f }, { 0.0f, 0.2f, -0.45f }, { 0.0f, 0.15f, 0.85f },
+			{ 0.0f, 0.15f, -0.85f }, { 0.3f, 0.2f, 0.0f }, { -0.3f, 0.2f, 0.0f } };
+		target.Radius = 0.4f;
+		target.Reflectance = 0.15f; // dark clothes and armour against the floor
+		PN_CORE_TRACE("'{}' is {}", npc.GetName(), EnumToString(state));
+		return true;
+	}
+
+	std::vector<Entity> PerceptionSystem::Shout(Entity speaker, float loudness)
+	{
+		std::vector<Entity> alerted;
+		const PerceptionComponent* said = speaker.TryGetComponent<PerceptionComponent>();
+		if (!said || !IsAwake(speaker) || !said->RuntimeHasStimulus || said->RuntimeReactionStrength <= 0.0f)
+			return alerted;
+		const glm::vec3 mouth = m_Scene.GetWorldPosition(speaker) + glm::vec3(0.0f, said->EyeHeight, 0.0f);
+		const float strength = std::max(said->RuntimeReactionStrength - 1.0f, 0.0f); // second-hand news
+		const glm::vec3 where = said->RuntimeLastStimulusPosition;
+		float masking = 0.0f;
+		if (Entity environment = m_Scene.GetEnvironmentEntity())
+			masking = std::max(environment.GetComponent<EnvironmentComponent>().AmbientNoise, 0.0f);
+
+		std::vector<Entity> listeners;
+		for (entt::entity handle : m_Scene.GetRegistry().view<PerceptionComponent>())
+			listeners.emplace_back(handle, &m_Scene);
+		std::sort(listeners.begin(), listeners.end(),
+			[](Entity a, Entity b) { return static_cast<uint64_t>(a.GetUUID()) < static_cast<uint64_t>(b.GetUUID()); });
+		for (Entity listener : listeners)
+		{
+			if (listener == speaker || !IsAwake(listener))
+				continue;
+			if (HearingLevel(listener, mouth, loudness, speaker.GetUUID()) - masking <= 0.0f)
+				continue;
+			if (Notify(listener, where, strength, StimulusKind::Reported, "Shout"))
+				alerted.push_back(listener);
+		}
+		return alerted;
+	}
+
 	bool PerceptionSystem::Notify(Entity observer, const glm::vec3& position, float strength, StimulusKind kind, std::string_view cause)
 	{
+		if (!IsAwake(observer))
+			return false;
 		auto& perception = observer.GetComponent<PerceptionComponent>();
 		strength = std::clamp(strength, 0.0f, 10.0f);
 		const float duration = PerceptionModel::ReactionDuration(strength, perception.ReactionDuration);
@@ -116,7 +184,7 @@ namespace Penumbra {
 		for (Entity observer : observers)
 		{
 			auto& perception = observer.GetComponent<PerceptionComponent>();
-			if (perception.RuntimeReactionTime <= 0.0f || perception.RuntimeStimulusKind == StimulusKind::Seen)
+			if (!IsAwake(observer) || perception.RuntimeReactionTime <= 0.0f || perception.RuntimeStimulusKind == StimulusKind::Seen)
 				continue;
 			if (center && glm::distance(m_Scene.GetWorldPosition(observer), *center) > radius)
 				continue;
@@ -402,6 +470,8 @@ namespace Penumbra {
 		for (entt::entity handle : m_Scene.GetRegistry().view<PerceptionComponent>())
 		{
 			Entity observer(handle, &m_Scene);
+			if (!IsAwake(observer))
+				continue;
 			std::vector<UUID> ignore;
 			CollectHierarchy(observer, ignore);
 			for (const NoiseEvent& noise : m_RecentNoises)
@@ -424,11 +494,17 @@ namespace Penumbra {
 			float bestStimulus = 0.0f;
 			VisibilityResult best;
 			Entity bestTarget;
+			std::vector<Entity> bodies;
 			for (auto [handle, targetComponent] : m_Scene.GetRegistry().view<PerceptionTargetComponent>().each())
 			{
 				Entity target(handle, &m_Scene);
 				if (target == observer)
 					continue;
+				if (targetComponent.Kind == TargetKind::Body)
+				{
+					bodies.push_back(target);
+					continue;
+				}
 				const VisibilityResult visibility = ComputeVisibility(observer, target);
 				if (!bestTarget || visibility.Stimulus > bestStimulus)
 				{
@@ -449,6 +525,16 @@ namespace Penumbra {
 			m_Focus[observer.GetUUID()] = { bestTarget ? bestTarget.GetUUID() : UUID(UUID::Invalid), best.Stimulus };
 			perception.RuntimeVisibleFraction = best.VisibleFraction;
 			perception.RuntimeContrast = best.Contrast;
+
+			// Bodies are judged by the same eyes (a body in the dark goes unnoticed) and found once.
+			std::unordered_set<UUID>& noticed = m_NoticedBodies[observer.GetUUID()];
+			for (Entity body : bodies)
+			{
+				if (noticed.contains(body.GetUUID()) || ComputeVisibility(observer, body).Stimulus < 1.0f)
+					continue;
+				noticed.insert(body.GetUUID());
+				Notify(observer, m_Scene.GetWorldPosition(body), perception.BodyAlarm, StimulusKind::Seen, "Body");
+			}
 			m_Seeing[observer.GetUUID()] = bestTarget && best.Stimulus >= 1.0f ? bestTarget.GetUUID() : UUID(UUID::Invalid);
 		}
 
@@ -517,7 +603,8 @@ namespace Penumbra {
 				visionElapsed = timer->second;
 				timer->second = 0.0f;
 			}
-			UpdateObserver(observer, ts, visionElapsed);
+			if (IsAwake(observer))
+				UpdateObserver(observer, ts, visionElapsed);
 		}
 
 		// Targets last: velocity, light gem and the exposure from this frame's evaluations.
@@ -526,6 +613,7 @@ namespace Penumbra {
 		std::erase_if(m_Focus, destroyed);
 		std::erase_if(m_VisionTimers, destroyed);
 		std::erase_if(m_Seeing, destroyed);
+		std::erase_if(m_NoticedBodies, destroyed);
 		std::erase_if(m_TargetLighting, destroyed);
 	}
 

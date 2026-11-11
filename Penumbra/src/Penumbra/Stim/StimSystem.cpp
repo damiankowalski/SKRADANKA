@@ -198,6 +198,13 @@ namespace Penumbra {
 				if (PerceptionSystem* perception = m_Scene.GetPerceptionSystem())
 					perception->EmitNoise(position, action.Value, pending.Target, action.Asset.empty() ? "Stim" : action.Asset);
 				break;
+			case StimActionType::Knockout:
+				if (target)
+				{
+					if (PerceptionSystem* perception = m_Scene.GetPerceptionSystem())
+						perception->KnockOut(*target, action.Asset == "Dead" ? VitalState::Dead : VitalState::Unconscious);
+				}
+				break;
 			case StimActionType::ScriptEvent:
 				if (target)
 				{

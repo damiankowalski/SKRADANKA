@@ -48,7 +48,7 @@ namespace Penumbra {
 			{ StimActionType::Destroy, "Destroy" }, { StimActionType::SpawnPrefab, "SpawnPrefab" },
 			{ StimActionType::EmitStim, "EmitStim" }, { StimActionType::RadialImpulse, "RadialImpulse" },
 			{ StimActionType::PlaySound, "PlaySound" }, { StimActionType::EmitNoise, "EmitNoise" },
-			{ StimActionType::ScriptEvent, "ScriptEvent" }
+			{ StimActionType::ScriptEvent, "ScriptEvent" }, { StimActionType::Knockout, "Knockout" }
 		};
 	};
 
@@ -59,6 +59,20 @@ namespace Penumbra {
 			{ AwarenessState::Unaware, "Unaware" }, { AwarenessState::Suspicious, "Suspicious" },
 			{ AwarenessState::Investigating, "Investigating" }, { AwarenessState::Searching, "Searching" },
 			{ AwarenessState::Alarmed, "Alarmed" }
+		};
+	};
+
+	template<>
+	struct EnumNames<TargetKind>
+	{
+		static constexpr std::pair<TargetKind, std::string_view> Values[] = { { TargetKind::Intruder, "Intruder" }, { TargetKind::Body, "Body" } };
+	};
+
+	template<>
+	struct EnumNames<VitalState>
+	{
+		static constexpr std::pair<VitalState, std::string_view> Values[] = {
+			{ VitalState::Awake, "Awake" }, { VitalState::Unconscious, "Unconscious" }, { VitalState::Dead, "Dead" }
 		};
 	};
 

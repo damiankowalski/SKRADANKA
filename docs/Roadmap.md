@@ -18,17 +18,35 @@ thunder that masks footsteps), dogs, and the competition between a distraction a
 (`ai.explain_away`, `Diligence`). Out of scope, decided together: rain visuals (needs a particle system,
 M-L), realistic voices and howls (need CC0 sound packs), NPC daily schedules (L).
 
+**C1. Takedowns, bodies and talking guards**: the use key (#22), blackjack (#13), sleeping gas (#11),
+bodies found by other guards and carried away (#14), shouts that spread the news, barks with subtitles
+and a servant who runs to the alarm bell (#17). Out of scope: real voices (need recordings), ragdolls (a
+body is a death animation, carried rigidly on the shoulders; ragdolls would be a package of their own, L).
+
 ## Next
 
-### B. Thief's workshop (~5.5 sessions)
+### Arrows that matter (~2.5 sessions, next)
 
-Frob/use key (#22), moss arrows (#8, the floor side is done), light switches (#24), doors that block sight
+Arrows are too safe today: they only affect objects with response rules.
+
+* **Harm** (~1): health on `Vitality` and a `Damage` stim action; fire arrows hurt and kill (a dead NPC is a
+  body like a knocked-out one). A guard hit by any arrow raises the alarm and searches towards where it came
+  from, not where it hit. Arrows make an impact noise by surface (about 3-4), so a near miss is heard.
+* **Arrows seen in flight** (~1.5): a flying arrow is a short-lived perception target judged by the same
+  contrast model: a dark arrow against a bright wall or sky is noticed, against darkness it is not, and a
+  burning arrow in the dark stands out. It is tiny (the size factor keeps distant ones unseen) but fast
+  (the motion factor needs a cap), and it crosses a view cone between two 10 Hz vision updates, so the
+  whole flight segment since the last update is tested. A guard who sees one checks where it came from.
+* Small: carried bodies sit on the shoulder instead of hanging beside the player.
+
+### C2. Mission loop (~2 sessions)
+
+Loot, objectives and difficulty (#21) with an end-of-mission summary; pickpocketing (#23) on the use key.
+
+### B. Thief's workshop (~5 sessions)
+
+Moss arrows (#8, the floor side is done), light switches (#24), doors that block sight
 and sound and that guards open (#20, navmesh links), lockpicking (#19).
-
-### C. Mission loop (~8 sessions)
-
-Blackjack knockouts and unconscious/dead states (#13), gas (#11), guards noticing bodies and carrying them
-(#14), loot, objectives and difficulty (#21), pickpocketing (#23).
 
 ### Later: movement and UI (~12+ sessions)
 

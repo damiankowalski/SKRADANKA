@@ -286,4 +286,29 @@ TEST_SUITE("Scripting")
 		}
 		scene.OnRuntimeStop();
 	}
+
+	TEST_CASE("ui.world_to_screen projects through the primary camera; knockouts and shouts from Lua")
+	{
+		ScriptFixture fixture;
+		Entity camera = fixture.SceneInstance.CreateEntity("Camera");
+		camera.AddComponent<CameraComponent>().Primary = true; // at the origin, looking down -Z
+		Entity guard = fixture.SceneInstance.CreateEntity("Guard");
+		guard.AddComponent<PerceptionComponent>();
+		fixture.SceneInstance.OnViewportResize(800, 600);
+		fixture.SceneInstance.OnRuntimeStart();
+
+		CHECK(fixture.Run("local x, y = ui.world_to_screen(vec3(0, 0, -5)); return math.abs(x - 400) < 0.5 and math.abs(y - 300) < 0.5") ==
+			"true");
+		CHECK(fixture.Run("local x, y = ui.world_to_screen(vec3(1, 1, -5)); return x > 400 and y < 300") == "true"); // right and up
+		CHECK(fixture.Run("return ui.world_to_screen(vec3(0, 0, 5)) == nil") == "true");                         // behind
+
+		CHECK(fixture.Run("return ai.vital_state(scene.find('Guard'))") == "\"Awake\"");
+		CHECK(fixture.Run("return #ai.shout(scene.find('Guard'))") == "0");
+		CHECK(fixture.Run("return ai.knock_out(scene.find('Guard'))") == "true");
+		CHECK(fixture.Run("return ai.knock_out(scene.find('Guard'), true)") == "false");
+		CHECK(fixture.Run("return ai.vital_state(scene.find('Guard'))") == "\"Unconscious\"");
+		CHECK(fixture.Run("return scene.find('Guard'):get('PerceptionTarget').Kind") == "\"Body\"");
+		fixture.SceneInstance.OnRuntimeStop();
+	}
 }
+

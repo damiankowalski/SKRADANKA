@@ -31,18 +31,18 @@ the status column only records what the engine already has. Costs are to be esti
 | 8 | **Moss arrows** | Carpet a floor with moss to walk silently | Missing (#4 is in place: a moss patch is a floor with `NoiseModifier` -3) |
 | 9 | **Rope arrows** | Stick into wood, climb the rope | Missing (needs climbing + material tags) |
 | 10 | **Noisemaker arrows** | Lure guards away with a noise | Easy: investigate/search behaviour exists, only the arrow is missing (deliberately skipped for now) |
-| 11 | **Gas arrows / gas mines** | Knock out groups silently | Missing (stim exists, knockout state missing) |
+| 11 | **Gas arrows / gas mines** | Knock out groups silently | Gas arrows: yes (`Prefabs/GasArrow`, a Gas cloud and the `Knockout` stim action); mines not yet |
 | 12 | **Broadhead arrows, flash bombs, mines** | Combat tools; flash blinds AI | Partial (stims); blindness would hook into eye adaptation |
-| 13 | **Blackjack knockouts** | Non-lethal takedown from behind | Missing (AI states: unconscious/dead) |
-| 14 | **Carrying and hiding bodies** | Bodies left in the light alert other guards | Missing (AI noticing bodies = a perception target "body") |
+| 13 | **Blackjack knockouts** | Non-lethal takedown from behind | Yes: `Vitality` (Awake/Unconscious/Dead), `ai.knock_out`, F from behind on an NPC not on alert |
+| 14 | **Carrying and hiding bodies** | Bodies left in the light alert other guards | Yes: bodies are perception targets of kind Body (found once, by the same contrast model: dark corners hide them); E carries and puts them down |
 | 15 | **Guard alert levels** | Graded suspicion ("must have been rats…"), search, alarm, calming down | Yes: reactions last in proportion to the stimulus (90 s·(s/10)²) and step down Alarmed → Searching → Investigating → Suspicious; alert memory |
 | 16 | **Search behaviour** | Guards investigate the last known position, search nearby hiding spots, give up | Yes: navmesh pathfinding; investigate the spot, search spots around it (darkest first), give up, back to the route |
-| 17 | **AI barks and communication** | Spoken lines reveal AI state; guards alert each other, servants flee to raise the alarm | Missing (audio exists; no voice system or AI-to-AI messages) |
+| 17 | **AI barks and communication** | Spoken lines reveal AI state; guards alert each other, servants flee to raise the alarm | Yes: subtitled lines above heads (placeholder voices), `ai.shout` spreads the news to guards within earshot, servants run to the alarm bell |
 | 18 | **Patrols and schedules** | Predictable routes the player learns | Yes (waypoints, walked along the navmesh) |
 | 19 | **Lockpicking** | Timed picking of doors and chests | Missing (no doors yet) |
 | 20 | **Doors** | Open/closed doors block sight and sound, can be locked | Missing |
 | 21 | **Loot and objectives by difficulty** | Steal enough loot; harder difficulties add objectives and a no-kill rule | Missing (Lua can implement it; no objective/inventory system) |
-| 22 | **Frobbing (interaction)** | One "use" key for doors, items, switches, pickpocketing | Missing |
+| 22 | **Frobbing (interaction)** | One "use" key for doors, items, switches, pickpocketing | Yes: E uses whatever offers `on_use` (and picks up bodies) |
 | 23 | **Pickpocketing** | Steal keys and purses from guards' belts | Missing (needs #22) |
 | 24 | **Light switches and lamps** | Turn electric lights off (Thief 2) to create shadows | Easy (lights have `Enabled`; needs #22) |
 | 25 | **Leaning / peeking** | Lean around corners with minimal exposure | Missing (camera/silhouette offset) |

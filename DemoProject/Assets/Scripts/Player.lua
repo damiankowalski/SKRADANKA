@@ -1,7 +1,9 @@
 -- Third-person thief: movement, over-the-shoulder camera, footstep noise, arrows and HUD.
 --
 -- Controls: WASD move, Shift run, C crouch, Space jump, mouse look,
---           1 = water arrow, 2 = fire arrow, left mouse = shoot, Esc = release the mouse.
+--           1 = water arrow, 2 = fire arrow, 3 = gas arrow, left mouse = shoot,
+--           E = use (pick up / drop a body, or whatever the object offers: on_use / use_prompt),
+--           F = blackjack (knocks out an NPC from behind who is not on alert), Esc = release the mouse.
 -- Noise probe (when the noise_probe property is on): - / = pick a loudness, G makes that noise
 -- where you aim. The HUD shows the floor under you and how loud your last step was.
 
@@ -25,7 +27,11 @@ local Player = {
 local ARROWS = {
     { name = "Water", prefab = "Prefabs/WaterArrow.pprefab", color = { 0.4, 0.7, 1.0, 1.0 } },
     { name = "Fire", prefab = "Prefabs/FireArrow.pprefab", color = { 1.0, 0.55, 0.2, 1.0 } },
+    { name = "Gas", prefab = "Prefabs/GasArrow.pprefab", color = { 0.55, 0.9, 0.4, 1.0 } },
 }
+
+local REACH = 2.2          -- metres: how far E and F reach
+local CARRY_SLOWDOWN = 0.6 -- speed multiplier with a body on the shoulders
 
 local STANDING = {
     vec3(0, 1.70, 0), vec3(-0.22, 1.45, 0), vec3(0.22, 1.45, 0), vec3(0, 1.15, 0),
@@ -60,6 +66,8 @@ function Player:on_create()
     self.fall_speed = 0
     self.last_step = nil -- { loudness, material } of the last footstep, for the HUD
     self.probe_loudness = 5
+    self.carrying = nil     -- body on the shoulders: { entity, points }
+    self.swing_cooldown = 0
     self.camera = scene.find("Camera")
     input.set_cursor_locked(true)
 end
@@ -100,8 +108,9 @@ function Player:update_movement(dt)
     if input.key("A") then move = move - right end
 
     self:update_stance(dt, input.key("C"))
-    local running = input.key("LeftShift") and not self.crouched
+    local running = input.key("LeftShift") and not self.crouched and not self.carrying
     local speed = self.crouched and self.crouch_speed or (running and self.run_speed or self.walk_speed)
+    if self.carrying then speed = speed * CARRY_SLOWDOWN end
 
     local moving = move:length() > 0.01
     if moving then
@@ -204,6 +213,8 @@ function Player:update_arrows(dt)
 
     if input.key_pressed("1") then self.arrow = 1 end
     if input.key_pressed("2") then self.arrow = 2 end
+    if input.key_pressed("3") then self.arrow = 3 end
+    if self.carrying then return end -- hands full
     self.cooldown = math.max(self.cooldown - dt, 0)
     if input.mouse_pressed("Left") and self.cooldown <= 0 and self.aim_origin then
         local origin = self.aim_origin + self.aim_direction * 0.8
@@ -226,7 +237,9 @@ function Player:draw_hud(dt)
     LightGem.draw(LightGem.update(self.gem, target.LightGem or 0, dt), w / 2, h - 50)
 
     local arrow = ARROWS[self.arrow]
-    ui.text(20, h - 40, arrow.name .. " arrow  [1/2]", 2, arrow.color)
+    ui.text(20, h - 40, arrow.name .. " arrow  [1/2/3]", 2, arrow.color)
+    local prompt = self:interaction_prompt()
+    if prompt then ui.text(w / 2 - #prompt * 6, h / 2 + 40, prompt, 2, { 1, 1, 1, 0.85 }) end
     if self.crouched then ui.text(w / 2 + 70, h - 58, "crouching", 2, { 0.7, 0.7, 0.7, 1 }) end
     if self.noise_probe then
         local step = self.last_step
@@ -244,8 +257,134 @@ function Player:on_update(dt)
     self:update_movement(dt)
     self:update_camera()
     self:update_arrows(dt)
+    self:update_hands(dt)
     self:update_noise_probe()
     self:draw_hud(dt)
+end
+
+-- ------------------------------------------------------------------ hands: use, blackjack, bodies
+
+local function flat(v) return vec3(v.x, 0, v.z) end
+
+-- The NPC (with Perception) nearest in front of the player within reach, matching the filter.
+function Player:npc_in_front(filter)
+    local position = self.entity:get_position()
+    local forward = flat(self.entity:forward()):normalized()
+    local best, best_distance = nil, REACH
+    for _, npc in ipairs(scene.entities_with("Perception")) do
+        local offset = flat(npc:get_position() - position)
+        local distance = offset:length()
+        if npc ~= self.entity and distance < best_distance and (distance < 0.3 or offset:normalized():dot(forward) > 0.5) and filter(npc) then
+            best, best_distance = npc, distance
+        end
+    end
+    return best
+end
+
+function Player:body_in_reach()
+    return self:npc_in_front(function(npc) return ai.vital_state(npc) ~= "Awake" end)
+end
+
+-- The object under the crosshair that offers on_use (itself or an ancestor with such a script).
+function Player:usable_in_reach()
+    if not self.aim_origin then return nil end
+    local hit = physics.raycast(self.aim_origin, self.aim_direction, REACH + 3.2, self.entity)
+    if not hit or not hit.entity or hit.point:distance(self.entity:get_position()) > REACH + 0.8 then return nil end
+    local entity = hit.entity
+    while entity do
+        local instance = entity:has("Script") and entity:script() or nil
+        if instance and type(instance.on_use) == "function" then return entity, instance end
+        entity = entity:parent()
+    end
+    return nil
+end
+
+-- Blackjack target: an awake NPC in front, whose back is turned and who is not on alert.
+function Player:blackjack_target()
+    return self:npc_in_front(function(npc) return ai.vital_state(npc) == "Awake" end)
+end
+
+local function from_behind(attacker, npc)
+    local to_attacker = flat(attacker:get_position() - npc:get_position()):normalized()
+    return flat(npc:forward()):normalized():dot(to_attacker) < -0.2
+end
+
+function Player:interaction_prompt()
+    if self.carrying then return "[E] put the body down" end
+    if self:body_in_reach() then return "[E] pick up the body" end
+    local _, usable = self:usable_in_reach()
+    if usable then return "[E] " .. (usable.use_prompt or "use") end
+    local npc = self:blackjack_target()
+    if npc and from_behind(self.entity, npc) then return "[F] knock out" end
+    return nil
+end
+
+-- E: drop the body, pick one up, or use what is in front. Returns what happened (for tests).
+function Player:use()
+    if self.carrying then return self:drop_body() end
+    local body = self:body_in_reach()
+    if body then return self:pick_up(body) end
+    local entity, usable = self:usable_in_reach()
+    if usable then
+        usable:on_use(self.entity)
+        return "used"
+    end
+    return nil
+end
+
+function Player:pick_up(body)
+    -- Over the shoulders it is not a separate body anyone can find; it becomes one again when put down.
+    self.carrying = { entity = body, target = body:get("PerceptionTarget") }
+    if self.carrying.target then body:remove("PerceptionTarget") end
+    body:set_parent(self.entity)
+    body:set_local_position(vec3(0, 1.05, 0.05))
+    body:set_rotation(vec3(0, 90, 0))
+    Noises.emit("Rustle", self.entity:get_position(), self.entity)
+    return "carry"
+end
+
+function Player:drop_body()
+    local body = self.carrying.entity
+    local target = self.carrying.target
+    self.carrying = nil
+    if not body:valid() then return "drop" end
+    body:set_parent(nil)
+    local forward = flat(self.entity:forward()):normalized()
+    local spot = self.entity:get_position() + forward * 0.9
+    local floor = physics.raycast(spot + vec3(0, 1, 0), vec3(0, -1, 0), 3, self.entity)
+    body:set_position(floor and floor.point or spot)
+    body:set_rotation(vec3(0, self.yaw, 0))
+    if target then body:add("PerceptionTarget", target) end
+    Noises.emit("BodyDrop", body:get_position(), self.entity)
+    return "drop"
+end
+
+-- F: knock out an NPC from behind if he is not on alert; otherwise he notices the attack.
+function Player:blackjack()
+    if self.swing_cooldown > 0 or self.carrying then return nil end
+    self.swing_cooldown = 0.8
+    if self.model then
+        anim.play(self.model, "1H_Melee_Attack_Chop", 0.05, false)
+        self.shoot_timer = 0.5
+    end
+    local npc = self:blackjack_target()
+    if not npc then return "miss" end
+    local state = ai.state(npc)
+    if from_behind(self.entity, npc) and state ~= "Searching" and state ~= "Alarmed" then
+        ai.knock_out(npc)
+        Noises.emit("Blackjack", npc:get_position() + vec3(0, 1.6, 0), self.entity)
+        return "knockout"
+    end
+    -- Seen coming or already on guard: he blocks and raises the alarm.
+    ai.notify(npc, self.entity:get_position(), 9.5, "Attack")
+    Noises.emit("Blackjack", npc:get_position() + vec3(0, 1.6, 0), self.entity)
+    return "blocked"
+end
+
+function Player:update_hands(dt)
+    self.swing_cooldown = math.max(self.swing_cooldown - dt, 0)
+    if input.key_pressed("E") then self:use() end
+    if input.key_pressed("F") then self:blackjack() end
 end
 
 return Player

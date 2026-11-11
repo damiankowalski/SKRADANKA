@@ -83,6 +83,25 @@ and search the area, darkest spots first; Alarmed — chase while the player is 
 activity ends when the reaction does and the guard walks back to his route (`AILab` scene, end-to-end test
 "The AI lab guard patrols…").
 
+## Takedowns, bodies and shouts
+
+* **Vitality** — `ai.knock_out(e, dead?)` (the player's blackjack, the `Knockout` stim action of sleeping gas)
+  sets `Vitality.State` to Unconscious or Dead. A downed NPC perceives nothing, stops walking, loses its
+  physics character (lies where it fell) and becomes a **body**: a `PerceptionTarget` of kind Body with low,
+  long silhouette points and dark reflectance.
+* **Bodies** are seen through the same contrast model as the player — a body in a dark corner goes
+  unnoticed, one in torchlight does not. A body is found once per guard: a Seen stimulus of strength
+  `BodyAlarm` (8: a search around it) that no storm can explain away. Carrying a body (Player.lua: E)
+  removes its target until it is put down.
+* **Shouts** — `ai.shout(e, loudness)`: every other awake NPC who would hear a noise of that loudness from the
+  speaker's mouth (distance, walls, paths around them, ambient masking) gets a Reported stimulus at the
+  speaker's stimulus position, one level weaker. The demo guard shouts when he starts a search or raises the
+  alarm (not when he is only passing on a shout, so news spreads without echoing). The servant runs to the
+  alarm bell instead; ringing it reports the trouble to every guard at strength 9.
+* **Lines** — guards say a line on every change of mind ("Hm?", "I'd better take a look.", "Must have been
+  rats."), shown above their heads with `ui.world_to_screen` (`Scripts/AI/Actor.lua`). Voices are a
+  placeholder sound.
+
 ## Events and distractions
 
 Things happen without the player and compete with him for the guards' attention (`Scripts/World/`, odds
@@ -161,6 +180,7 @@ of what it looks at (view probes plus the visible target samples).
 | `InvestigateLevel` / `SearchLevel` / `AlarmLevel` | state thresholds (strength) | 4 / 7 / 9 |
 | `AlertMemoryTime` | seconds alert memory lasts once calm | 120 |
 | `Diligence` | levels added to his reaction against distractions | 0 |
+| `BodyAlarm` | strength of the reaction to finding a body | 8 |
 | `FieldOfView`, `PeripheralFactor`, `ViewDistance`, `EyeHeight` | cone | 120°, 0.2, 25 m, 1.65 m |
 
 ## Swapping the brightness source

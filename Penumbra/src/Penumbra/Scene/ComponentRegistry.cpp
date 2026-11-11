@@ -226,6 +226,7 @@ namespace Penumbra {
 			v("AlarmLevel", c.AlarmLevel);
 			v("AlertMemoryTime", c.AlertMemoryTime);
 			v("Diligence", c.Diligence);
+			v("BodyAlarm", c.BodyAlarm);
 			v("Adaptation", c.RuntimeAdaptation, FieldKind::Runtime);
 			v("Suspicion", c.RuntimeSuspicion, FieldKind::Runtime);
 			v("Stimulus", c.RuntimeStimulus, FieldKind::Runtime);
@@ -244,6 +245,7 @@ namespace Penumbra {
 		template<typename V>
 		void VisitFields(PerceptionTargetComponent& c, V&& v)
 		{
+			v("Kind", c.Kind);
 			v("SilhouettePoints", c.SilhouettePoints);
 			v("Reflectance", c.Reflectance);
 			v("Radius", c.Radius);
@@ -286,6 +288,8 @@ namespace Penumbra {
 			v("RemainingDistance", c.RuntimeRemainingDistance, FieldKind::Runtime);
 			v("PartialPath", c.RuntimePartialPath, FieldKind::Runtime);
 		}
+
+		template<typename V> void VisitFields(VitalityComponent& c, V&& v) { v("State", c.State); }
 
 		template<typename V>
 		void VisitFields(SmokeVolumeComponent& c, V&& v)
@@ -467,6 +471,7 @@ namespace Penumbra {
 			registry.push_back(MakeInfo<AudioListenerComponent>("AudioListener"));
 			registry.push_back(MakeInfo<PerceptionComponent>("Perception"));
 			registry.push_back(MakeInfo<PerceptionTargetComponent>("PerceptionTarget"));
+			registry.push_back(MakeInfo<VitalityComponent>("Vitality"));
 			registry.push_back(MakeInfo<SmokeVolumeComponent>("SmokeVolume"));
 			registry.push_back(MakeInfo<FlameComponent>("Flame"));
 			registry.push_back(MakeInfo<StimSourceComponent>("StimSource"));

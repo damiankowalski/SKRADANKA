@@ -357,7 +357,7 @@ TEST_SUITE("Navigation")
 			for (auto [handle, script] : scene.GetRegistry().view<ScriptComponent>().each())
 			{
 				const auto property = script.Properties.find("waypoints");
-				if (script.Script != "Scripts/Guard.lua" || property == script.Properties.end())
+				if ((script.Script != "Scripts/Guard.lua" && script.Script != "Scripts/Servant.lua") || property == script.Properties.end())
 					continue;
 				std::vector<glm::vec3> points;
 				std::stringstream names(std::get<std::string>(property->second));
