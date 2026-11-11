@@ -5,6 +5,7 @@
 #include "Penumbra/Asset/AssetManager.h"
 #include "Penumbra/Core/Application.h"
 #include "Penumbra/Core/Input.h"
+#include "Penumbra/Navigation/NavigationSystem.h"
 #include "Penumbra/Project/Project.h"
 #include "Penumbra/Project/ProjectExporter.h"
 #include "Penumbra/Renderer/RenderDevice.h"
@@ -467,6 +468,32 @@ namespace Penumbra {
 				debug.Sphere(scene.GetWorldPosition(Entity(handle, &scene)), smoke.Radius, { 0.7f, 0.7f, 0.7f, 0.3f });
 		}
 
+		// The navmesh exists while the game runs (it is baked from the physics world).
+		if (NavigationSystem* navigation = scene.GetNavigationSystem(); m_ShowNavMesh && navigation)
+		{
+			if (const NavMesh* navMesh = navigation->GetNavMesh())
+			{
+				const std::vector<glm::vec3> edges = navMesh->GetDebugEdges();
+				const glm::vec3 lift(0.0f, 0.05f, 0.0f);
+				for (size_t i = 0; i + 1 < edges.size(); i += 2)
+					debug.Line(edges[i] + lift, edges[i + 1] + lift, { 0.2f, 0.6f, 1.0f, 0.5f });
+			}
+			for (auto [handle, agent] : scene.GetRegistry().view<NavAgentComponent>().each())
+			{
+				Entity entity(handle, &scene);
+				const std::vector<glm::vec3>* path = navigation->GetAgentPath(entity.GetUUID());
+				if (!path || path->empty())
+					continue;
+				glm::vec3 previous = scene.GetWorldPosition(entity) + glm::vec3(0.0f, 0.1f, 0.0f);
+				for (const glm::vec3& corner : *path)
+				{
+					debug.Line(previous, corner + glm::vec3(0.0f, 0.1f, 0.0f), { 1.0f, 0.9f, 0.2f, 1.0f });
+					previous = corner + glm::vec3(0.0f, 0.1f, 0.0f);
+				}
+				debug.Sphere(agent.RuntimeDestination, 0.15f, { 1.0f, 0.9f, 0.2f, 1.0f });
+			}
+		}
+
 		if (m_ShowColliders)
 		{
 			const glm::vec4 color(0.3f, 1.0f, 0.5f, 0.8f);
@@ -703,6 +730,7 @@ namespace Penumbra {
 			ImGui::MenuItem("Grid", nullptr, &m_ShowGrid);
 			ImGui::MenuItem("Colliders", nullptr, &m_ShowColliders);
 			ImGui::MenuItem("Perception debug", nullptr, &m_ShowPerception);
+			ImGui::MenuItem("Navmesh (play mode)", nullptr, &m_ShowNavMesh);
 			ImGui::MenuItem("Game camera", nullptr, &m_UseSceneCamera);
 			ImGui::EndMenu();
 		}

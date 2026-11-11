@@ -53,6 +53,9 @@ namespace Penumbra {
 		std::optional<RaycastHit> Raycast(const glm::vec3& origin, const glm::vec3& direction, float maxDistance,
 			const PhysicsEntityFilter& filter = {}) const;
 		std::vector<UUID> OverlapSphere(const glm::vec3& center, float radius) const;
+		// World-space triangles of every static, solid body (the navmesh input). Indices are
+		// appended relative to the vertices already in the output.
+		void CollectStaticTriangles(std::vector<glm::vec3>& vertices, std::vector<uint32_t>& indices) const;
 
 		void AddImpulse(Entity entity, const glm::vec3& impulse);
 		void AddForce(Entity entity, const glm::vec3& force);

@@ -21,6 +21,7 @@ namespace Penumbra {
 	class AudioScene;
 	class PerceptionSystem;
 	class StimSystem;
+	class NavigationSystem;
 	class OverlayList;
 
 	struct TestReport
@@ -105,6 +106,7 @@ namespace Penumbra {
 		AudioScene* GetAudioScene() const { return m_AudioScene.get(); }
 		PerceptionSystem* GetPerceptionSystem() const { return m_PerceptionSystem.get(); }
 		StimSystem* GetStimSystem() const { return m_StimSystem.get(); }
+		NavigationSystem* GetNavigationSystem() const { return m_NavigationSystem.get(); }
 		OverlayList& GetOverlay() { return *m_Overlay; }
 
 		// Headless runs (tests, CI) create the audio engine without an output device.
@@ -137,6 +139,7 @@ namespace Penumbra {
 		Scope<AudioScene> m_AudioScene;
 		Scope<PerceptionSystem> m_PerceptionSystem;
 		Scope<StimSystem> m_StimSystem;
+		Scope<NavigationSystem> m_NavigationSystem;
 		Scope<OverlayList> m_Overlay;
 
 		bool m_IsRunning = false;

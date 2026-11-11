@@ -107,6 +107,7 @@ namespace Penumbra {
 		bool m_ShowGrid = true;
 		bool m_ShowColliders = false;
 		bool m_ShowPerception = true;
+		bool m_ShowNavMesh = false;
 		bool m_UseSceneCamera = false;
 
 		std::deque<nlohmann::json> m_UndoStack;

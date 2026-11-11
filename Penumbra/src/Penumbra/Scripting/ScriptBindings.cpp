@@ -7,6 +7,7 @@
 #include "Penumbra/Asset/AssetManager.h"
 #include "Penumbra/Audio/AudioScene.h"
 #include "Penumbra/Core/Input.h"
+#include "Penumbra/Navigation/NavigationSystem.h"
 #include "Penumbra/Physics/PhysicsWorld.h"
 #include "Penumbra/Scene/ComponentRegistry.h"
 #include "Penumbra/Scene/JsonSerialization.h"
@@ -453,8 +454,16 @@ namespace Penumbra {
 			return *controller;
 		};
 		sol::table character = lua.create_named_table("character");
-		character.set_function("move", [requireController](const ScriptEntity& e, const glm::vec3& velocity) {
-			requireController(e).RuntimeDesiredVelocity = velocity;
+		character.set_function("move", [requireController, scene](const ScriptEntity& e, const glm::vec3& velocity) {
+			auto& controller = requireController(e);
+			// Steering by hand takes the character back from navigation.
+			if (NavigationSystem* navigation = scene->GetNavigationSystem())
+			{
+				const NavAgentComponent* agent = e.Resolve().TryGetComponent<NavAgentComponent>();
+				if (agent && agent->RuntimeStatus == NavStatus::Moving)
+					navigation->Stop(e.Resolve());
+			}
+			controller.RuntimeDesiredVelocity = velocity;
 		});
 		character.set_function("jump", [requireController](const ScriptEntity& e, float speed) {
 			auto& controller = requireController(e);
@@ -533,6 +542,69 @@ namespace Penumbra {
 			table["visible_points"] = result.VisiblePoints;
 			table["total_points"] = result.TotalPoints;
 			return table;
+		});
+
+		// --- nav (navmesh pathfinding) ----------------------------------------------------
+		auto requireNavigation = [scene]() -> NavigationSystem& {
+			NavigationSystem* navigation = scene->GetNavigationSystem();
+			if (!navigation)
+				throw std::runtime_error("navigation is only available while the scene is running");
+			return *navigation;
+		};
+		sol::table nav = lua.create_named_table("nav");
+		nav.set_function("move_to", [requireNavigation](const ScriptEntity& e, const glm::vec3& destination, sol::optional<float> speed) {
+			Entity entity = e.Resolve();
+			if (!entity.HasComponent<CharacterControllerComponent>())
+				throw std::runtime_error(std::format("'{}' has no CharacterController", entity.GetName()));
+			return requireNavigation().MoveTo(entity, destination, speed ? std::optional<float>(*speed) : std::nullopt);
+		});
+		nav.set_function("stop", [requireNavigation](const ScriptEntity& e) { requireNavigation().Stop(e.Resolve()); });
+		nav.set_function("status", [](const ScriptEntity& e) {
+			const NavAgentComponent* agent = e.Resolve().TryGetComponent<NavAgentComponent>();
+			return std::string(EnumToString(agent ? agent->RuntimeStatus : NavStatus::Idle));
+		});
+		nav.set_function("remaining", [](const ScriptEntity& e) {
+			const NavAgentComponent* agent = e.Resolve().TryGetComponent<NavAgentComponent>();
+			return agent && agent->RuntimeStatus == NavStatus::Moving ? agent->RuntimeRemainingDistance : 0.0f;
+		});
+		nav.set_function("path", [requireNavigation](const glm::vec3& from, const glm::vec3& to, sol::this_state state) -> sol::object {
+			std::optional<NavPath> path = requireNavigation().FindPath(from, to);
+			if (!path)
+				return sol::lua_nil;
+			sol::state_view view(state);
+			sol::table points = view.create_table();
+			for (size_t i = 0; i < path->Points.size(); ++i)
+				points[i + 1] = path->Points[i];
+			sol::table table = view.create_table();
+			table["points"] = points;
+			table["length"] = path->Length;
+			table["complete"] = path->Complete;
+			return table;
+		});
+		nav.set_function("distance", [requireNavigation](const glm::vec3& from, const glm::vec3& to) -> sol::optional<float> {
+			std::optional<NavPath> path = requireNavigation().FindPath(from, to);
+			if (!path || !path->Complete)
+				return sol::nullopt;
+			return path->Length;
+		});
+		nav.set_function("closest_point", [requireNavigation](const glm::vec3& point, sol::optional<float> radius) -> sol::optional<glm::vec3> {
+			std::optional<glm::vec3> result = requireNavigation().ClosestPoint(point, radius.value_or(1.5f));
+			return result ? sol::optional<glm::vec3>(*result) : sol::nullopt;
+		});
+		nav.set_function("random_point", [requireNavigation](const glm::vec3& center, float radius) -> sol::optional<glm::vec3> {
+			std::optional<glm::vec3> result = requireNavigation().RandomPoint(center, radius);
+			return result ? sol::optional<glm::vec3>(*result) : sol::nullopt;
+		});
+		nav.set_function("rebuild", [requireNavigation]() {
+			std::string error;
+			const bool built = requireNavigation().Bake(error);
+			if (!built)
+				Log::Write(LogLevel::Warn, "Lua", error);
+			return built;
+		});
+		nav.set_function("polygon_count", [requireNavigation]() {
+			const NavMesh* navMesh = requireNavigation().GetNavMesh();
+			return navMesh ? static_cast<double>(navMesh->GetPolygonCount()) : 0.0;
 		});
 
 		// --- stim -------------------------------------------------------------------------

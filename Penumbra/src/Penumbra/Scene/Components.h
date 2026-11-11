@@ -418,6 +418,52 @@ namespace Penumbra {
 	};
 
 	// ------------------------------------------------------------------------
+	// Navigation
+	// ------------------------------------------------------------------------
+
+	// Navmesh build settings for the scene (put it on one entity, e.g. the level root). The
+	// navmesh is baked from every static, solid collider when the game starts and rebuilt when
+	// one of them is destroyed. Scenes without this component bake with the defaults on first use.
+	struct NavMeshComponent
+	{
+		float CellSize = 0.15f;      // horizontal voxel size, metres
+		float CellHeight = 0.1f;     // vertical voxel size, metres
+		float AgentRadius = 0.35f;   // walls are kept this far from paths
+		float AgentHeight = 1.8f;    // minimum clearance
+		float AgentMaxClimb = 0.4f;  // highest step an agent walks up
+		float AgentMaxSlope = 45.0f; // degrees
+
+		// Runtime only
+		uint32_t RuntimePolygons = 0;
+		float RuntimeBuildMilliseconds = 0.0f;
+	};
+
+	enum class NavStatus : uint8_t
+	{
+		Idle = 0, // not moving under navigation control
+		Moving,   // following a path
+		Arrived,  // reached the destination (or the closest reachable point)
+		Failed,   // no path: the agent or the destination is off the navmesh
+		Stuck     // blocked for a while; the script decides what to do
+	};
+
+	// Lets the navigation system walk a character (CharacterController) along navmesh paths:
+	// nav.move_to(entity, position) from Lua. Added automatically by nav.move_to when missing.
+	struct NavAgentComponent
+	{
+		float Speed = 1.4f;             // metres per second
+		float TurnSpeed = 540.0f;       // degrees per second when turning to face the path
+		float StoppingDistance = 0.3f;  // arrival tolerance, metres
+		bool FaceMovement = true;       // rotate the entity towards the direction of travel
+
+		// Runtime only
+		NavStatus RuntimeStatus = NavStatus::Idle;
+		glm::vec3 RuntimeDestination{ 0.0f };
+		float RuntimeRemainingDistance = 0.0f;
+		bool RuntimePartialPath = false; // the destination is unreachable; walking to the closest point
+	};
+
+	// ------------------------------------------------------------------------
 	// Prefab bookkeeping
 	// ------------------------------------------------------------------------
 
@@ -436,6 +482,6 @@ namespace Penumbra {
 		DirectionalLightComponent, PointLightComponent, SpotLightComponent, EnvironmentComponent, RigidBodyComponent, BoxColliderComponent,
 		SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent, CharacterControllerComponent, ScriptComponent,
 		AudioSourceComponent, AudioListenerComponent, PerceptionComponent, PerceptionTargetComponent, SmokeVolumeComponent, FlameComponent,
-		StimSourceComponent, StimResponseComponent, PrefabComponent>;
+		StimSourceComponent, StimResponseComponent, NavMeshComponent, NavAgentComponent, PrefabComponent>;
 
 }

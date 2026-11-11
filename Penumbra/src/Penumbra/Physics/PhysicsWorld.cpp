@@ -11,6 +11,7 @@
 #include <Jolt/Core/JobSystemThreadPool.h>
 #include <Jolt/Core/TempAllocator.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
+#include <Jolt/Physics/Body/BodyLock.h>
 #include <Jolt/Physics/Character/CharacterVirtual.h>
 #include <Jolt/Physics/Collision/CastResult.h>
 #include <Jolt/Physics/Collision/CollideShape.h>
@@ -618,6 +619,35 @@ namespace Penumbra {
 				result.emplace_back(userData);
 		}
 		return result;
+	}
+
+	void PhysicsWorld::CollectStaticTriangles(std::vector<glm::vec3>& vertices, std::vector<uint32_t>& indices) const
+	{
+		constexpr int BatchSize = 64; // >= JPH::Shape::cGetTrianglesMinTrianglesRequested
+		std::array<JPH::Float3, BatchSize * 3> batch;
+		for (const auto& [uuid, bodyID] : m_Impl->Bodies)
+		{
+			JPH::BodyLockRead lock(m_Impl->System->GetBodyLockInterface(), bodyID);
+			if (!lock.Succeeded())
+				continue;
+			const JPH::Body& body = lock.GetBody();
+			if (!body.IsStatic() || body.IsSensor())
+				continue;
+			const JPH::TransformedShape shape = body.GetTransformedShape();
+			JPH::Shape::GetTrianglesContext context;
+			shape.GetTrianglesStart(context, JPH::AABox::sBiggest(), JPH::RVec3::sZero());
+			for (;;)
+			{
+				const int count = shape.GetTrianglesNext(context, BatchSize, batch.data());
+				if (count <= 0)
+					break;
+				for (int i = 0; i < count * 3; ++i)
+				{
+					indices.push_back(static_cast<uint32_t>(vertices.size()));
+					vertices.emplace_back(batch[static_cast<size_t>(i)].x, batch[static_cast<size_t>(i)].y, batch[static_cast<size_t>(i)].z);
+				}
+			}
+		}
 	}
 
 	void PhysicsWorld::AddImpulse(Entity entity, const glm::vec3& impulse)

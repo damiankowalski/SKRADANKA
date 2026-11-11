@@ -243,6 +243,32 @@ namespace Penumbra {
 		}
 
 		template<typename V>
+		void VisitFields(NavMeshComponent& c, V&& v)
+		{
+			v("CellSize", c.CellSize);
+			v("CellHeight", c.CellHeight);
+			v("AgentRadius", c.AgentRadius);
+			v("AgentHeight", c.AgentHeight);
+			v("AgentMaxClimb", c.AgentMaxClimb);
+			v("AgentMaxSlope", c.AgentMaxSlope);
+			v("Polygons", c.RuntimePolygons, FieldKind::Runtime);
+			v("BuildMilliseconds", c.RuntimeBuildMilliseconds, FieldKind::Runtime);
+		}
+
+		template<typename V>
+		void VisitFields(NavAgentComponent& c, V&& v)
+		{
+			v("Speed", c.Speed);
+			v("TurnSpeed", c.TurnSpeed);
+			v("StoppingDistance", c.StoppingDistance);
+			v("FaceMovement", c.FaceMovement);
+			v("Status", c.RuntimeStatus, FieldKind::Runtime);
+			v("Destination", c.RuntimeDestination, FieldKind::Runtime);
+			v("RemainingDistance", c.RuntimeRemainingDistance, FieldKind::Runtime);
+			v("PartialPath", c.RuntimePartialPath, FieldKind::Runtime);
+		}
+
+		template<typename V>
 		void VisitFields(SmokeVolumeComponent& c, V&& v)
 		{
 			v("Radius", c.Radius);
@@ -426,6 +452,8 @@ namespace Penumbra {
 			registry.push_back(MakeInfo<FlameComponent>("Flame"));
 			registry.push_back(MakeInfo<StimSourceComponent>("StimSource"));
 			registry.push_back(MakeInfo<StimResponseComponent>("StimResponse"));
+			registry.push_back(MakeInfo<NavMeshComponent>("NavMesh"));
+			registry.push_back(MakeInfo<NavAgentComponent>("NavAgent"));
 			registry.push_back(MakeInfo<PrefabComponent>("Prefab"));
 			return registry;
 		}

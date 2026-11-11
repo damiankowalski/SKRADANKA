@@ -61,6 +61,15 @@ namespace Penumbra {
 		};
 	};
 
+	template<>
+	struct EnumNames<NavStatus>
+	{
+		static constexpr std::pair<NavStatus, std::string_view> Values[] = {
+			{ NavStatus::Idle, "Idle" }, { NavStatus::Moving, "Moving" }, { NavStatus::Arrived, "Arrived" },
+			{ NavStatus::Failed, "Failed" }, { NavStatus::Stuck, "Stuck" }
+		};
+	};
+
 	template<typename E>
 	std::string_view EnumToString(E value)
 	{

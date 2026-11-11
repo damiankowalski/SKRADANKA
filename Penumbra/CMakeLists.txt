@@ -25,6 +25,7 @@ target_link_libraries(Penumbra PUBLIC
     pn_miniaudio
     pn_cgltf
     pn_stb
+    pn_recast
     d3d12
     dxgi
     dxguid
