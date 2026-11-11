@@ -26,7 +26,8 @@ Tools\Build.bat debug
 Tools\Test.bat debug
 ```
 
-Play the demo (WASD, mouse, Shift run, C crouch, 1/2 water/fire arrow, left click shoot):
+Play the demo (WASD, mouse, Shift run, C crouch, 1/2/3 water/fire/gas arrow, left click shoot, E use / carry a body,
+F blackjack from behind):
 
 ```bat
 build\debug\bin\PenumbraRuntime.exe --project DemoProject
