@@ -171,6 +171,9 @@ namespace Penumbra {
 		nvrhi::BufferDesc vertexDesc;
 		vertexDesc.byteSize = mesh->Vertices.size() * sizeof(Vertex);
 		vertexDesc.isVertexBuffer = true;
+		const bool skinned = mesh->IsSkinned();
+		if (skinned)
+			vertexDesc.structStride = sizeof(Vertex);
 		vertexDesc.debugName = mesh->Name + ".Vertices";
 		vertexDesc.initialState = nvrhi::ResourceStates::VertexBuffer;
 		vertexDesc.keepInitialState = true;
@@ -184,10 +187,25 @@ namespace Penumbra {
 		indexDesc.keepInitialState = true;
 		gpu.IndexBuffer = m_Device->createBuffer(indexDesc);
 
+		if (skinned)
+		{
+			nvrhi::BufferDesc skinDesc;
+			skinDesc.byteSize = mesh->SkinVertices.size() * sizeof(SkinVertex);
+			skinDesc.structStride = sizeof(SkinVertex);
+			skinDesc.debugName = mesh->Name + ".Skin";
+			skinDesc.initialState = nvrhi::ResourceStates::ShaderResource;
+			skinDesc.keepInitialState = true;
+			gpu.SkinBuffer = m_Device->createBuffer(skinDesc);
+			if (!gpu.SkinBuffer)
+				return nullptr;
+		}
+
 		if (!gpu.VertexBuffer || !gpu.IndexBuffer)
 			return nullptr;
 		commandList->writeBuffer(gpu.VertexBuffer, mesh->Vertices.data(), vertexDesc.byteSize);
 		commandList->writeBuffer(gpu.IndexBuffer, mesh->Indices.data(), indexDesc.byteSize);
+		if (gpu.SkinBuffer)
+			commandList->writeBuffer(gpu.SkinBuffer, mesh->SkinVertices.data(), mesh->SkinVertices.size() * sizeof(SkinVertex));
 		return &m_Meshes.emplace(mesh.get(), std::move(gpu)).first->second;
 	}
 

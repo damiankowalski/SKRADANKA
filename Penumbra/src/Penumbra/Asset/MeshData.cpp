@@ -3,6 +3,26 @@
 
 namespace Penumbra {
 
+	int32_t Skeleton::FindNode(std::string_view name) const
+	{
+		for (size_t i = 0; i < Nodes.size(); i++)
+		{
+			if (Nodes[i].Name == name)
+				return static_cast<int32_t>(i);
+		}
+		return -1;
+	}
+
+	const AnimationClip* MeshData::FindAnimation(std::string_view name) const
+	{
+		for (const AnimationClip& clip : Animations)
+		{
+			if (clip.Name == name)
+				return &clip;
+		}
+		return nullptr;
+	}
+
 	void MeshData::ComputeBounds()
 	{
 		Bounds = BoundingBox{};

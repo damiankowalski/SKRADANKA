@@ -89,6 +89,14 @@ namespace Penumbra::GPU {
 	};
 	static_assert(sizeof(ShadowConstants) == 112, "ShadowConstants must match Shadow.hlsl");
 
+	struct SkinningConstants
+	{
+		uint32_t VertexCount;
+		uint32_t JointCount;
+		uint32_t Padding[2];
+	};
+	static_assert(sizeof(SkinningConstants) == 16, "SkinningConstants must match Skinning.hlsl");
+
 	struct PostConstants
 	{
 		glm::vec4 Params0{ 0.0f };

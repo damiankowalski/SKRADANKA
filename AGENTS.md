@@ -9,7 +9,8 @@ contract for every human or AI agent changing this repository. Read it fully bef
 |---|---|
 | `Penumbra/src/Penumbra/Core` | Application loop, window (GLFW), input, logging, file system, UUID |
 | `Penumbra/src/Penumbra/Scene` | ECS (EnTT): `Scene`, `Entity`, `Components.h`, JSON serialization, prefabs |
-| `Penumbra/src/Penumbra/Asset` | glTF / texture importers, built-in primitives, `AssetManager` cache |
+| `Penumbra/src/Penumbra/Asset` | glTF / texture importers (meshes, skins, clips), built-in primitives, `AssetManager` cache |
+| `Penumbra/src/Penumbra/Animation` | Keyframe sampling, pose blending, skinning palettes, `AnimationSystem` (Animator component) |
 | `Penumbra/src/Penumbra/Renderer` | NVRHI D3D12 device, scene renderer, shaders in `Penumbra/shaders` |
 | `Penumbra/src/Penumbra/Physics` | Jolt wrapper (`PhysicsWorld`): bodies, characters, raycasts, contacts |
 | `Penumbra/src/Penumbra/Audio` | miniaudio wrapper (`AudioScene`) |
@@ -41,7 +42,8 @@ build\debug\bin\PenumbraTests.exe --trace -tc="*torch*"     :: one case with eng
 * `/W4 /WX` is on for engine code: a warning is a build break. Third-party headers are `SYSTEM`.
 * GPU tests use the WARP software rasterizer when no GPU exists (CI), so they run anywhere.
 * Demo content is generated: edit `Tools/BuildDemoProject.py`, run `python Tools/BuildDemoProject.py`,
-  commit the generated files. Lua scripts and the HDRI are hand-made.
+  commit the generated files. Lua scripts and the HDRI are hand-made. Character models come from
+  `Tools/ImportCharacters.py` (KayKit, CC0; see `DemoProject/Assets/Models/Characters/README.md`).
 * Crashes write a symbolized stack to the log and a minidump to `<exe dir>/CrashDumps`.
 
 ## Code style (Hazel conventions)
@@ -66,7 +68,7 @@ build\debug\bin\PenumbraTests.exe --trace -tc="*torch*"     :: one case with eng
 3. **Runtime state is separate.** Fields prefixed `Runtime` are never written to scene files and are
    read-only through the generic APIs.
 4. **Simulation order** (per frame, `Scene::RunRuntimeFrame`): scripts → physics (fixed 60 Hz) →
-   contacts → stims → perception → smoke → audio → deferred destruction. Do not destroy entities
+   contacts → stims → perception → smoke → audio → animation → deferred destruction. Do not destroy entities
    immediately inside systems: `Scene::DestroyEntity` defers during updates.
 5. **Shared lighting math.** Light falloff lives in `Scene/LightUtils.h` and is mirrored in
    `shaders/Lighting.hlsli`. Change both or neither — perception must agree with what is rendered.

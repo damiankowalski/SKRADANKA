@@ -53,6 +53,12 @@ namespace Penumbra::Test {
 	// Writes a mono 16-bit PCM WAV file containing a sine tone.
 	void WriteToneWav(const std::filesystem::path& path, float seconds, float frequency = 440.0f, uint32_t sampleRate = 22050);
 
+	// A self-contained skinned glTF (TestAssets.cpp): a 2-unit tall bar skinned to joints "Root"
+	// (origin) and "Upper" (y = 1), a rigid "Hat" triangle on Upper at y = 2, and three clips:
+	// "Bend" (Upper rotates 90 degrees about +Z over 1 s, linear), "Slide" (Root jumps to x = 1 at
+	// 0.5 s, step) and "Grow" (Root scales 1 -> 2 over 1 s, cubic spline with flat tangents).
+	std::string MakeSkinnedGltf();
+
 	// Runs a started scene for the given simulated time at a fixed 60 Hz frame rate.
 	void Simulate(Scene& scene, float seconds, float frameTime = 1.0f / 60.0f);
 

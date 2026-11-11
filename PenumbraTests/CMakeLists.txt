@@ -8,7 +8,7 @@ target_compile_definitions(PenumbraTests PRIVATE
     PENUMBRA_DEMO_PROJECT_DIR="${PROJECT_SOURCE_DIR}/DemoProject")
 
 # Each doctest test suite is registered separately so CTest reports them individually.
-foreach(suite Core Scene Serialization Assets Physics Audio Scripting Perception Stim Automation Renderer)
+foreach(suite Core Scene Serialization Assets Animation Physics Audio Scripting Perception Stim Automation Renderer)
     add_test(NAME Unit.${suite} COMMAND PenumbraTests --test-suite=${suite} --no-colors)
 endforeach()
 set_tests_properties(Unit.Renderer PROPERTIES LABELS gpu)

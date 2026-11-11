@@ -65,6 +65,29 @@ namespace Penumbra {
 		std::string Mesh = "builtin:cube";
 		bool CastShadows = true;
 		bool Visible = true;
+		// Source-file node names whose geometry is not drawn (e.g. unused weapons of a character).
+		std::vector<std::string> HiddenNodes;
+	};
+
+	// Plays the skeletal animation clips of the entity's mesh (a glTF with skins/animations).
+	// Changing Clip (from the editor, Lua or the automation API) crossfades to the new clip.
+	struct AnimatorComponent
+	{
+		std::string Clip;           // clip to play; empty = rest pose
+		float Speed = 1.0f;         // playback rate multiplier
+		bool Loop = true;
+		bool Playing = true;        // false freezes the current frame
+		float BlendDuration = 0.2f; // seconds of crossfade when Clip changes
+
+		// Runtime only
+		std::string RuntimeClip;          // clip currently playing (lags Clip by one update)
+		float RuntimeTime = 0.0f;         // seconds into RuntimeClip
+		std::string RuntimePreviousClip;  // clip being faded out
+		float RuntimePreviousTime = 0.0f;
+		float RuntimeBlend = 1.0f;        // 0..1 weight of RuntimeClip during a crossfade
+		float RuntimeFadeDuration = 0.0f; // duration of the current crossfade
+		float RuntimeRequestedFade = -1.0f; // one-shot crossfade override for the next clip change (anim.play)
+		bool RuntimeFinished = false;     // a non-looping clip reached its end
 	};
 
 	// Overrides every material of the mesh. Without it the mesh's own (glTF) materials are used.
@@ -396,7 +419,7 @@ namespace Penumbra {
 	};
 
 	// Components copied when duplicating entities / entering play mode.
-	using AllComponents = ComponentGroup<TransformComponent, RelationshipComponent, CameraComponent, MeshComponent, MaterialComponent,
+	using AllComponents = ComponentGroup<TransformComponent, RelationshipComponent, CameraComponent, MeshComponent, AnimatorComponent, MaterialComponent,
 		DirectionalLightComponent, PointLightComponent, SpotLightComponent, EnvironmentComponent, RigidBodyComponent, BoxColliderComponent,
 		SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent, CharacterControllerComponent, ScriptComponent,
 		AudioSourceComponent, AudioListenerComponent, PerceptionComponent, PerceptionTargetComponent, SmokeVolumeComponent,

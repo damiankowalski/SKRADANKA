@@ -13,6 +13,9 @@ namespace Penumbra {
 	{
 		nvrhi::BufferHandle VertexBuffer;
 		nvrhi::BufferHandle IndexBuffer;
+		// Skinned meshes only: per-vertex joints/weights. Their VertexBuffer is also readable as a
+		// structured buffer by the skinning compute shader.
+		nvrhi::BufferHandle SkinBuffer;
 		std::shared_ptr<const MeshData> Source; // keeps the CPU data alive while the GPU copy exists
 	};
 
