@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Penumbra/Animation/AnimationData.h"
+
 #include <glm/glm.hpp>
 
 #include <limits>
@@ -55,6 +57,7 @@ namespace Penumbra {
 		uint32_t IndexOffset = 0;
 		uint32_t IndexCount = 0;
 		uint32_t MaterialIndex = 0;
+		std::string Node; // name of the source node, so parts can be hidden (MeshComponent::HiddenNodes)
 	};
 
 	struct BoundingBox
@@ -73,7 +76,9 @@ namespace Penumbra {
 	};
 
 	// CPU-side mesh: node transforms of the source file are baked into the vertices,
-	// so one MeshData is a single rigid object made of material-separated submeshes.
+	// so one MeshData is a single object made of material-separated submeshes.
+	// Files with skins or animations also carry a skeleton: every vertex is then bound to
+	// palette joints (rigid nodes to their own node) and the clips animate the skeleton.
 	struct MeshData
 	{
 		std::string Name;
@@ -82,7 +87,17 @@ namespace Penumbra {
 		std::vector<Submesh> Submeshes;
 		std::vector<MaterialData> Materials;
 		std::vector<TextureData> Textures;
-		BoundingBox Bounds;
+		BoundingBox Bounds; // bind pose
+
+		// Skeletal data (empty for static meshes).
+		Penumbra::Skeleton Skeleton;
+		std::vector<SkinJoint> Joints;     // skinning palette
+		std::vector<SkinVertex> SkinVertices; // parallel to Vertices when skinned
+		std::vector<AnimationClip> Animations;
+
+		bool IsSkinned() const { return !Joints.empty() && SkinVertices.size() == Vertices.size(); }
+		// Returns nullptr when there is no clip with that name.
+		const AnimationClip* FindAnimation(std::string_view name) const;
 
 		void ComputeBounds();
 		// Generates per-vertex tangents (MikkTSpace-style accumulation) from UVs.

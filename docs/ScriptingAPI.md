@@ -41,6 +41,7 @@ return Door
 | `audio` | `play(e)`, `stop(e)`, `is_playing(e)`, `play_at(clip, pos, volume?, noiseRadius?)` |
 | `ai` | `state(e)` (`Unaware/Suspicious/Searching/Alarmed`), `suspicion(e)`, `set_suspicion(e,v)`, `last_stimulus(e)`, `visibility(guard, target)` (all perception factors), `luminance(pos)`, `emit_noise(pos, radius, source?)` |
 | `stim` | `emit(name, pos, radius, intensity, source?)`, `send(e, name, intensity, source?)`, `set_lights(e, enabled)` |
+| `anim` | `play(e, clip, fade?, loop?)` (crossfades over `fade` s, default the Animator's `BlendDuration`; replaying the current clip only restarts a finished one-shot; unknown clips error), `set_speed(e, rate)`, `is_playing(e, clip?)`, `clips(e)` → names. `e` needs an Animator (on the entity with the Mesh). |
 | `ui` | `text(x, y, text, scale?, {r,g,b,a}?)`, `rect(x, y, w, h, color?)`, `width()`, `height()` |
 | `time` | `delta()`, `elapsed()`, `frame()` |
 | `log` | `trace/info/warn/error(...)`, `print(...)` |

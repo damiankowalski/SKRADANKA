@@ -2923,96 +2923,45 @@
       "ID": "1059",
       "Components": {
         "Tag": {
-          "Tag": "Body"
+          "Tag": "Model"
         },
         "Transform": {
           "Translation": [
             0,
-            0.9,
+            0,
             0
           ],
           "Rotation": [
             0,
-            0,
+            180,
             0
           ],
           "Scale": [
-            0.6,
-            0.9,
-            0.6
+            0.8,
+            0.8,
+            0.8
           ]
         },
         "Mesh": {
-          "Mesh": "builtin:capsule"
+          "Mesh": "Models/Characters/Knight.glb",
+          "HiddenNodes": [
+            "Knight_Cape",
+            "1H_Sword_Offhand",
+            "2H_Sword",
+            "Badge_Shield",
+            "Rectangle_Shield",
+            "Spike_Shield"
+          ]
         },
-        "Material": {
-          "BaseColor": [
-            0.45,
-            0.12,
-            0.1,
-            1.0
-          ],
-          "Roughness": 0.9,
-          "Metallic": 0.0,
-          "EmissiveIntensity": 0.0,
-          "EmissiveColor": [
-            1,
-            1,
-            1
-          ],
-          "Translucent": false
+        "Animator": {
+          "Clip": "Idle",
+          "BlendDuration": 0.2
         }
       },
       "Parent": "1058"
     },
     {
       "ID": "1060",
-      "Components": {
-        "Tag": {
-          "Tag": "Head"
-        },
-        "Transform": {
-          "Translation": [
-            0,
-            1.7,
-            -0.05
-          ],
-          "Rotation": [
-            0,
-            0,
-            0
-          ],
-          "Scale": [
-            0.3,
-            0.3,
-            0.3
-          ]
-        },
-        "Mesh": {
-          "Mesh": "builtin:sphere"
-        },
-        "Material": {
-          "BaseColor": [
-            0.55,
-            0.45,
-            0.38,
-            1.0
-          ],
-          "Roughness": 0.9,
-          "Metallic": 0.0,
-          "EmissiveIntensity": 0.0,
-          "EmissiveColor": [
-            1,
-            1,
-            1
-          ],
-          "Translucent": false
-        }
-      },
-      "Parent": "1058"
-    },
-    {
-      "ID": "1061",
       "Components": {
         "Tag": {
           "Tag": "GuardB"
@@ -3048,99 +2997,47 @@
       }
     },
     {
+      "ID": "1061",
+      "Components": {
+        "Tag": {
+          "Tag": "Model"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            0,
+            180,
+            0
+          ],
+          "Scale": [
+            0.8,
+            0.8,
+            0.8
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Characters/Knight.glb",
+          "HiddenNodes": [
+            "1H_Sword_Offhand",
+            "2H_Sword",
+            "Round_Shield",
+            "Rectangle_Shield",
+            "Spike_Shield"
+          ]
+        },
+        "Animator": {
+          "Clip": "Idle",
+          "BlendDuration": 0.2
+        }
+      },
+      "Parent": "1060"
+    },
+    {
       "ID": "1062",
-      "Components": {
-        "Tag": {
-          "Tag": "Body"
-        },
-        "Transform": {
-          "Translation": [
-            0,
-            0.9,
-            0
-          ],
-          "Rotation": [
-            0,
-            0,
-            0
-          ],
-          "Scale": [
-            0.6,
-            0.9,
-            0.6
-          ]
-        },
-        "Mesh": {
-          "Mesh": "builtin:capsule"
-        },
-        "Material": {
-          "BaseColor": [
-            0.45,
-            0.12,
-            0.1,
-            1.0
-          ],
-          "Roughness": 0.9,
-          "Metallic": 0.0,
-          "EmissiveIntensity": 0.0,
-          "EmissiveColor": [
-            1,
-            1,
-            1
-          ],
-          "Translucent": false
-        }
-      },
-      "Parent": "1061"
-    },
-    {
-      "ID": "1063",
-      "Components": {
-        "Tag": {
-          "Tag": "Head"
-        },
-        "Transform": {
-          "Translation": [
-            0,
-            1.7,
-            -0.05
-          ],
-          "Rotation": [
-            0,
-            0,
-            0
-          ],
-          "Scale": [
-            0.3,
-            0.3,
-            0.3
-          ]
-        },
-        "Mesh": {
-          "Mesh": "builtin:sphere"
-        },
-        "Material": {
-          "BaseColor": [
-            0.55,
-            0.45,
-            0.38,
-            1.0
-          ],
-          "Roughness": 0.9,
-          "Metallic": 0.0,
-          "EmissiveIntensity": 0.0,
-          "EmissiveColor": [
-            1,
-            1,
-            1
-          ],
-          "Translucent": false
-        }
-      },
-      "Parent": "1061"
-    },
-    {
-      "ID": "1064",
       "Components": {
         "Tag": {
           "Tag": "Lantern"
@@ -3175,10 +3072,10 @@
           "CastShadows": true
         }
       },
-      "Parent": "1061"
+      "Parent": "1060"
     },
     {
-      "ID": "1065",
+      "ID": "1063",
       "Components": {
         "Tag": {
           "Tag": "Gate"
@@ -3217,7 +3114,7 @@
       }
     },
     {
-      "ID": "1066",
+      "ID": "1064",
       "Components": {
         "Tag": {
           "Tag": "GateArch"
@@ -3269,7 +3166,7 @@
       }
     },
     {
-      "ID": "1067",
+      "ID": "1065",
       "Components": {
         "Tag": {
           "Tag": "Player"
@@ -3305,99 +3202,46 @@
       }
     },
     {
-      "ID": "1068",
+      "ID": "1066",
       "Components": {
         "Tag": {
-          "Tag": "Body"
+          "Tag": "Model"
         },
         "Transform": {
           "Translation": [
             0,
-            0.9,
+            0,
             0
           ],
           "Rotation": [
             0,
-            0,
+            180,
             0
           ],
           "Scale": [
-            0.6,
-            0.9,
-            0.6
+            0.8,
+            0.8,
+            0.8
           ]
         },
         "Mesh": {
-          "Mesh": "builtin:capsule"
-        },
-        "Material": {
-          "BaseColor": [
-            0.12,
-            0.12,
-            0.14,
-            1.0
-          ],
-          "Roughness": 0.9,
-          "Metallic": 0.0,
-          "EmissiveIntensity": 0.0,
-          "EmissiveColor": [
-            1,
-            1,
-            1
-          ],
-          "Translucent": false
-        }
-      },
-      "Parent": "1067"
-    },
-    {
-      "ID": "1069",
-      "Components": {
-        "Tag": {
-          "Tag": "Head"
-        },
-        "Transform": {
-          "Translation": [
-            0,
-            1.7,
-            -0.05
-          ],
-          "Rotation": [
-            0,
-            0,
-            0
-          ],
-          "Scale": [
-            0.3,
-            0.3,
-            0.3
+          "Mesh": "Models/Characters/Thief.glb",
+          "HiddenNodes": [
+            "Knife",
+            "Knife_Offhand",
+            "2H_Crossbow",
+            "Throwable"
           ]
         },
-        "Mesh": {
-          "Mesh": "builtin:sphere"
-        },
-        "Material": {
-          "BaseColor": [
-            0.5,
-            0.42,
-            0.35,
-            1.0
-          ],
-          "Roughness": 0.9,
-          "Metallic": 0.0,
-          "EmissiveIntensity": 0.0,
-          "EmissiveColor": [
-            1,
-            1,
-            1
-          ],
-          "Translucent": false
+        "Animator": {
+          "Clip": "Idle",
+          "BlendDuration": 0.2
         }
       },
-      "Parent": "1067"
+      "Parent": "1065"
     },
     {
-      "ID": "1070",
+      "ID": "1067",
       "Components": {
         "Tag": {
           "Tag": "Ambience"

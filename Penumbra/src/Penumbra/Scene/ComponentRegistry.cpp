@@ -44,6 +44,21 @@ namespace Penumbra {
 			v("Mesh", c.Mesh);
 			v("CastShadows", c.CastShadows);
 			v("Visible", c.Visible);
+			v("HiddenNodes", c.HiddenNodes);
+		}
+
+		template<typename V>
+		void VisitFields(AnimatorComponent& c, V&& v)
+		{
+			v("Clip", c.Clip);
+			v("Speed", c.Speed);
+			v("Loop", c.Loop);
+			v("Playing", c.Playing);
+			v("BlendDuration", c.BlendDuration);
+			v("CurrentClip", c.RuntimeClip, FieldKind::Runtime);
+			v("Time", c.RuntimeTime, FieldKind::Runtime);
+			v("Blend", c.RuntimeBlend, FieldKind::Runtime);
+			v("Finished", c.RuntimeFinished, FieldKind::Runtime);
 		}
 
 		template<typename V>
@@ -390,6 +405,7 @@ namespace Penumbra {
 			registry.push_back(MakeInfo<TransformComponent>("Transform", false));
 			registry.push_back(MakeInfo<CameraComponent>("Camera"));
 			registry.push_back(MakeInfo<MeshComponent>("Mesh"));
+			registry.push_back(MakeInfo<AnimatorComponent>("Animator"));
 			registry.push_back(MakeInfo<MaterialComponent>("Material"));
 			registry.push_back(MakeInfo<DirectionalLightComponent>("DirectionalLight"));
 			registry.push_back(MakeInfo<PointLightComponent>("PointLight"));

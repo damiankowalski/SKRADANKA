@@ -8,7 +8,8 @@ Fields prefixed `Runtime` in C++ are read-only state, visible through `entity.ge
 |---|---|
 | Tag, Transform | Name; local translation / rotation (Euler degrees) / scale. Always present. |
 | Camera | Perspective camera; the `Primary` one renders the game. |
-| Mesh, Material | `builtin:cube/sphere/plane/capsule/cylinder` or a glTF path; Material overrides all mesh materials (PBR, emission, textures, translucency). |
+| Mesh, Material | `builtin:cube/sphere/plane/capsule/cylinder` or a glTF path; `HiddenNodes` lists source-file node names not to draw (unused weapons). Material overrides all mesh materials (PBR, emission, textures, translucency). |
+| Animator | Plays the skeletal clips of a skinned/animated glTF on the same entity: `Clip`, `Speed`, `Loop`, `Playing`, `BlendDuration` (crossfade seconds when `Clip` changes); runtime: `CurrentClip`, `Time`, `Blend`, `Finished`. Driven from Lua with `anim.*`. |
 | DirectionalLight, PointLight, SpotLight | Lights; `CastShadows`, `Flicker` (torches), `Enabled`. |
 | Environment | HDRI map, ambient, exposure, fog (also the perception atmosphere), SSAO, bloom. |
 | RigidBody | Static / Dynamic / Kinematic body, mass, friction, `IsTrigger`, `ContinuousCollision`, `TransparentToSight`. |

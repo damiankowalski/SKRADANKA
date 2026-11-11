@@ -25,5 +25,6 @@ set(PENUMBRA_SHADERS
     "IrradianceCS|IBL.hlsl|CSIrradiance|cs_6_0"
     "PrefilterCS|IBL.hlsl|CSPrefilter|cs_6_0"
     "BRDFLutCS|IBL.hlsl|CSBRDFLut|cs_6_0"
+    "SkinningCS|Skinning.hlsl|CSMain|cs_6_0"
     "ImGuiVS|ImGui.hlsl|VSMain|vs_6_0"
     "ImGuiPS|ImGui.hlsl|PSMain|ps_6_0")

@@ -13,3 +13,6 @@ CMakeUserPresets.json
 imgui.ini
 /DemoProject/.cache/
 /PenumbraTests/output/
+
+# Python
+__pycache__/

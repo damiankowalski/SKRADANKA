@@ -3,6 +3,8 @@
 
 #include "Penumbra/AI/PerceptionModel.h"
 #include "Penumbra/AI/PerceptionSystem.h"
+#include "Penumbra/Animation/AnimationSystem.h"
+#include "Penumbra/Asset/AssetManager.h"
 #include "Penumbra/Audio/AudioScene.h"
 #include "Penumbra/Core/Input.h"
 #include "Penumbra/Physics/PhysicsWorld.h"
@@ -549,6 +551,39 @@ namespace Penumbra {
 			requireStim().Deliver(target.Resolve(), name, intensity, source ? source->ID : UUID(UUID::Invalid));
 		});
 		stim.set_function("set_lights", [](const ScriptEntity& e, bool enabled) { StimSystem::SetLightsEnabled(e.Resolve(), enabled); });
+
+		// --- anim (skeletal animation) --------------------------------------------------------
+		auto requireAnimator = [](const ScriptEntity& e) -> std::pair<AnimatorComponent&, std::shared_ptr<const MeshData>> {
+			Entity entity = e.Resolve();
+			auto* animator = entity.TryGetComponent<AnimatorComponent>();
+			if (!animator)
+				throw std::runtime_error(std::format("'{}' has no Animator", entity.GetName()));
+			const MeshComponent* mesh = entity.TryGetComponent<MeshComponent>();
+			return { *animator, mesh ? AssetManager::GetMesh(mesh->Mesh) : nullptr };
+		};
+		sol::table anim = lua.create_named_table("anim");
+		anim.set_function("play", [requireAnimator](const ScriptEntity& e, const std::string& clip, sol::optional<float> fade, sol::optional<bool> loop) {
+			auto [animator, mesh] = requireAnimator(e);
+			std::string error;
+			const std::optional<bool> loopValue = loop ? std::optional<bool>(*loop) : std::nullopt;
+			if (!AnimationSystem::Play(animator, mesh.get(), clip, fade.value_or(-1.0f), loopValue, error))
+				throw std::runtime_error(error);
+		});
+		anim.set_function("set_speed", [requireAnimator](const ScriptEntity& e, float speed) { requireAnimator(e).first.Speed = speed; });
+		anim.set_function("is_playing", [requireAnimator](const ScriptEntity& e, sol::optional<std::string> clip) {
+			const AnimatorComponent& animator = requireAnimator(e).first;
+			return AnimationSystem::IsPlaying(animator, clip ? &*clip : nullptr);
+		});
+		anim.set_function("clips", [requireAnimator](const ScriptEntity& e, sol::this_state state) {
+			sol::state_view view(state);
+			sol::table result = view.create_table();
+			if (const std::shared_ptr<const MeshData> mesh = requireAnimator(e).second)
+			{
+				for (size_t i = 0; i < mesh->Animations.size(); i++)
+					result[i + 1] = mesh->Animations[i].Name;
+			}
+			return result;
+		});
 
 		// --- ui (HUD overlay) -------------------------------------------------------------
 		sol::table ui = lua.create_named_table("ui");

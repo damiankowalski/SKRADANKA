@@ -1,5 +1,6 @@
 #include "TestHelpers.h"
 
+#include "Penumbra/Asset/AssetManager.h"
 #include "Penumbra/Renderer/RenderDevice.h"
 #include "Penumbra/Renderer/SceneRenderer.h"
 #include "Penumbra/UI/Overlay.h"
@@ -173,6 +174,55 @@ TEST_SUITE("Renderer")
 			screenshot = std::filesystem::path(outputDirectory) / "RendererLitScene.png";
 		CHECK(fixture.Renderer->SaveScreenshot(screenshot));
 		CHECK(std::filesystem::file_size(screenshot) > 100);
+	}
+
+	TEST_CASE("Skinned meshes are posed on the GPU and parts can be hidden")
+	{
+		RendererFixture fixture;
+		Scene& scene = fixture.SceneInstance;
+		fixture.Project.WriteAsset("Models/Bar.gltf", Test::MakeSkinnedGltf());
+		AssetManager::Clear();
+
+		Entity bar = scene.CreateEntity("Bar");
+		bar.AddComponent<MeshComponent>().Mesh = "Models/Bar.gltf";
+		auto& material = bar.AddComponent<MaterialComponent>();
+		material.BaseColor = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+		material.EmissiveColor = glm::vec3(1.0f, 0.0f, 0.0f);
+		material.EmissiveIntensity = 2.0f;
+		auto& animator = bar.AddComponent<AnimatorComponent>();
+
+		const RenderCamera camera = fixture.Camera();
+		auto isRed = [&](const std::vector<uint8_t>& pixels, const glm::vec3& world) {
+			const glm::uvec2 pixel = RendererFixture::ToPixel(camera, world);
+			const glm::vec3 color = RendererFixture::Pixel(pixels, pixel.x, pixel.y);
+			return color.r > 0.3f && color.r > color.g * 2.0f;
+		};
+
+		// No clip: the bind pose, standing upright.
+		std::vector<uint8_t> pixels = fixture.RenderFrame(camera);
+		CHECK(isRed(pixels, { 0.0f, 1.75f, 0.0f }));
+		CHECK_FALSE(isRed(pixels, { -0.8f, 1.0f, 0.0f }));
+		const uint32_t drawsWithHat = fixture.Renderer->GetStatistics().DrawCalls;
+
+		// "Bend" at its end: the upper half lies along -x. The skinned vertex buffer feeds the
+		// prepass, forward and shadow passes alike.
+		animator.Clip = "Bend";
+		animator.RuntimeClip = "Bend";
+		animator.RuntimeTime = 1.0f;
+		pixels = fixture.RenderFrame(camera);
+		CHECK_FALSE(isRed(pixels, { 0.0f, 1.75f, 0.0f }));
+		CHECK(isRed(pixels, { -0.8f, 1.0f, 0.0f }));
+		CHECK(isRed(pixels, { 0.0f, 0.3f, 0.0f })); // the lower half stays put
+
+		// Hidden nodes are not drawn at all.
+		bar.GetComponent<MeshComponent>().HiddenNodes = { "Hat" };
+		fixture.RenderFrame(camera);
+		CHECK(fixture.Renderer->GetStatistics().DrawCalls < drawsWithHat);
+		CHECK(fixture.Device->GetErrorCount() == 0);
+
+		if (const char* outputDirectory = std::getenv("PENUMBRA_TEST_OUTPUT"))
+			CHECK(fixture.Renderer->SaveScreenshot(std::filesystem::path(outputDirectory) / "RendererSkinned.png"));
+		AssetManager::Clear();
 	}
 
 	TEST_CASE("Rendering without environment, lights or meshes is valid")

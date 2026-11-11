@@ -1,11 +1,11 @@
 #pragma once
 
-#include "CommandServer.h"
 #include "EditorCamera.h"
 #include "Panels/PropertiesPanel.h"
 
 #include "Penumbra/Automation/AutomationHost.h"
 #include "Penumbra/Automation/CommandProcessor.h"
+#include "Penumbra/Automation/CommandServer.h"
 #include "Penumbra/Core/Layer.h"
 #include "Penumbra/Renderer/SceneRenderer.h"
 #include "Penumbra/Scene/Scene.h"

@@ -47,9 +47,9 @@ function Player:on_create()
     self.crouched = false
     self.gem = LightGem.new()
     self.visual_height = self.stand_height
+    self.shoot_timer = 0
     for _, child in ipairs(self.entity:children()) do
-        if child:get_name() == "Body" then self.body = child end
-        if child:get_name() == "Head" then self.head = child end
+        if child:get_name() == "Model" then self.model = child end
     end
     self.pending_arrow = nil
     self.camera = scene.find("Camera")
@@ -57,7 +57,7 @@ function Player:on_create()
 end
 
 -- Crouching shrinks the physics capsule (the engine refuses to stand up under a low ceiling),
--- the visible body and the silhouette guards see. Everything follows the height the character
+-- switches to the crouch clips and lowers the silhouette guards see. Everything follows the height the character
 -- actually has, so a blocked stand-up keeps the thief crouched.
 function Player:update_stance(dt, want_crouch)
     -- Read the height physics settled on last step, then request the new one.
@@ -65,18 +65,10 @@ function Player:update_stance(dt, want_crouch)
     self.entity:set("CharacterController", { Height = want_crouch and self.crouch_height or self.stand_height })
     self.crouched = height < (self.stand_height + self.crouch_height) * 0.5
 
-    -- Smoothly animate the placeholder body towards the capsule height.
+    -- The camera and the silhouette ease towards the capsule height.
     local previous = self.visual_height
     self.visual_height = previous + (height - previous) * math.min(dt * 12, 1)
     local scale = self.visual_height / self.stand_height
-    if self.body then
-        self.body:set_local_position(vec3(0, 0.9 * scale, 0))
-        self.body:set_scale(vec3(0.6, 0.9 * scale, 0.6))
-    end
-    if self.head then
-        -- Crouching hunches the head forward a little.
-        self.head:set_local_position(vec3(0, 1.7 * scale, -0.05 - 0.15 * (1 - scale) / (1 - self.crouch_height / self.stand_height)))
-    end
     if math.abs(self.visual_height - previous) > 0.001 then
         -- Fewer, lower silhouette points: harder to spot against bright backgrounds.
         self.entity:set("PerceptionTarget", { SilhouettePoints = scaled_silhouette(scale) })
@@ -113,6 +105,8 @@ function Player:update_movement(dt)
         character.jump(self.entity, 4.5)
     end
 
+    self:update_animation(dt, running)
+
     -- Footsteps make noise guards can hear: running is loud, sneaking is nearly silent.
     if moving and character.is_grounded(self.entity) then
         self.step_timer = self.step_timer - dt
@@ -126,12 +120,33 @@ function Player:update_movement(dt)
     end
 end
 
+-- Picks the clip from stance and movement; the playback rate follows the ground speed (the
+-- clips' stride is short for the model's proportions, so it is clamped to keep motion natural).
+function Player:update_animation(dt, running)
+    if not self.model then return end
+    self.shoot_timer = math.max(self.shoot_timer - dt, 0)
+    if self.shoot_timer > 0 then return end -- let the shot play out
+    local velocity = character.get_velocity(self.entity)
+    local speed = vec3(velocity.x, 0, velocity.z):length()
+    local moving = speed > 0.2
+    local clip, reference = "Idle", nil
+    if not character.is_grounded(self.entity) then
+        clip = "Jump_Idle"
+    elseif self.crouched then
+        if moving then clip, reference = "Crouch_Walk", 0.8 else clip = "Crouch_Idle" end
+    elseif moving then
+        if running then clip, reference = "Running_A", 3.0 else clip, reference = "Walking_A", 1.6 end
+    end
+    anim.play(self.model, clip, 0.2, true)
+    anim.set_speed(self.model, reference and math.max(0.5, math.min(speed / reference, 2.0)) or 1.0)
+end
+
 function Player:update_camera()
     if not self.camera then return end
     local yaw, pitch = math.rad(self.yaw), math.rad(self.pitch)
     local look = vec3(-math.sin(yaw) * math.cos(pitch), math.sin(pitch), -math.cos(yaw) * math.cos(pitch))
     local right = vec3(math.cos(yaw), 0, -math.sin(yaw))
-    local pivot = self.entity:get_position() + vec3(0, self.visual_height - 0.2, 0) + right * 0.45
+    local pivot = self.entity:get_position() + vec3(0, self.visual_height + 0.15, 0) + right * 0.5
 
     -- Pull the camera in when a wall is behind the player.
     local distance = self.camera_distance
@@ -162,6 +177,11 @@ function Player:update_arrows(dt)
         arrow:look_at(origin + self.aim_direction)
         self.pending_arrow = { entity = arrow, velocity = self.aim_direction * self.arrow_speed }
         audio.play_at("Audio/Bow.wav", origin, 0.6)
+        if self.model then
+            anim.play(self.model, "1H_Ranged_Shoot", 0.05, false)
+            anim.set_speed(self.model, 1.5)
+            self.shoot_timer = 0.45
+        end
         ai.emit_noise(origin, 3.0, self.entity)
         self.cooldown = 0.6
     end

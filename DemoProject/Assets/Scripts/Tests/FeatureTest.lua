@@ -121,6 +121,30 @@ local function run(self)
     test.check(not character.is_grounded(player), "character.jump")
     H.wait(1.0)
 
+    -- ---------------------------------------------------------------- skeletal animation
+    local model = nil
+    for _, child in ipairs(player:children()) do
+        if child:get_name() == "Model" then model = child end
+    end
+    test.check(model ~= nil and model:has("Animator"), "player model is animated")
+    local names = {}
+    for _, name in ipairs(anim.clips(model)) do names[name] = true end
+    test.check(names["Idle"] and names["Crouch_Walk"] and names["Look_Around"], "anim.clips")
+    test.check(anim.is_playing(model, "Idle"), "anim.is_playing")
+    anim.play(model, "Crouch_Walk", 0.1)
+    test.check(anim.is_playing(model, "Crouch_Walk") and not anim.is_playing(model, "Idle"), "anim.play")
+    anim.set_speed(model, 2)
+    H.wait(0.3)
+    local animator = model:get("Animator")
+    test.equal(animator.CurrentClip, "Crouch_Walk", "animator switched clips")
+    test.check(animator.Speed == 2 and animator.Time > 0.3, "anim.set_speed")
+    anim.play(model, "1H_Ranged_Shoot", 0, false)
+    H.wait(3.0)
+    test.check(not anim.is_playing(model), "one-shot clips finish")
+    test.check(not pcall(anim.play, model, "NoSuchClip"), "unknown clips error")
+    anim.play(model, "Idle", 0.2, true)
+    anim.set_speed(model, 1)
+
     -- ---------------------------------------------------------------- audio
     local speaker = scene.find("Speaker")
     test.check(audio.play(speaker), "audio.play")

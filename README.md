@@ -6,6 +6,7 @@ shadow" flag.
 
 * C++20, CMake, Direct3D 12 through [NVRHI](https://github.com/NVIDIA-RTX/NVRHI), GLFW, glm
 * PBR renderer: glTF assets, image-based lighting from HDRIs, soft shadows, SSAO, HDR + tonemapping
+* Skeletal animation: glTF skins and clips (step/linear/cubic), crossfades, GPU (compute) skinning feeding every pass
 * [Jolt](https://github.com/jrouwe/JoltPhysics) physics, [miniaudio](https://github.com/mackron/miniaudio) audio
 * Lua 5.4 gameplay scripting (sol2), EnTT entity-component system, JSON scenes and prefabs
 * Silhouette-contrast NPC perception with eye adaptation, peripheral/motion sensitivity, smoke,

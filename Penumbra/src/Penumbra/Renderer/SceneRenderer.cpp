@@ -1,6 +1,7 @@
 #include "pnpch.h"
 #include "Penumbra/Renderer/SceneRenderer.h"
 
+#include "Penumbra/Animation/AnimationSystem.h"
 #include "Penumbra/Asset/AssetManager.h"
 #include "Penumbra/Asset/Importers.h"
 #include "Penumbra/Core/Timer.h"
@@ -85,6 +86,7 @@ namespace Penumbra {
 		struct DrawItem
 		{
 			const GpuMesh* Mesh = nullptr;
+			nvrhi::IBuffer* VertexBuffer = nullptr; // the mesh's, or the skinned copy of a skinned instance
 			uint32_t IndexOffset = 0;
 			uint32_t IndexCount = 0;
 			GPU::DrawConstants Constants{};
@@ -114,6 +116,27 @@ namespace Penumbra {
 			auto Key() const { return std::make_tuple(Texture, Mip, static_cast<int>(Dimension)); }
 		};
 
+		// GPU state of one skinned entity: its joint palette and the skinned vertices all passes draw.
+		struct SkinInstance
+		{
+			const MeshData* Source = nullptr;
+			nvrhi::BufferHandle Vertices;
+			nvrhi::BufferHandle JointMatrices;
+			nvrhi::BindingSetHandle BindingSet;
+			uint64_t LastUsedFrame = 0;
+		};
+
+		struct SkinJob
+		{
+			SkinInstance* Instance = nullptr;
+			std::vector<glm::mat4> JointMatrices;
+			uint32_t VertexCount = 0;
+		};
+
+		// Skinned instances not drawn for this many frames release their buffers (several scenes,
+		// such as the editor and play mode, can share one renderer).
+		constexpr uint64_t SkinInstanceLifetime = 120;
+
 	}
 
 	struct SceneRenderer::Impl
@@ -124,9 +147,9 @@ namespace Penumbra {
 
 		nvrhi::ShaderHandle MeshVS, PrepassPS, ForwardPS, ShadowVS, FullscreenVS, SkyVS, SkyPS, SSAOPS, SSAOBlurPS, BloomDownPS, BloomUpPS,
 			TonemapPS, BlitPS, SmokePS, Overlay2DVS, Overlay3DVS, OverlayPS, FlameVS, FlamePS;
-		nvrhi::ShaderHandle EquirectCS, DownsampleCS, IrradianceCS, PrefilterCS, BRDFCS;
+		nvrhi::ShaderHandle EquirectCS, DownsampleCS, IrradianceCS, PrefilterCS, BRDFCS, SkinningCS;
 
-		nvrhi::BindingLayoutHandle ViewLayout, MaterialLayout, ShadowLayout, PostLayout, IBLLayout;
+		nvrhi::BindingLayoutHandle ViewLayout, MaterialLayout, ShadowLayout, PostLayout, IBLLayout, SkinningLayout;
 		nvrhi::InputLayoutHandle MeshInput, ShadowInput, OverlayInput;
 		nvrhi::SamplerHandle LinearWrap, ShadowSampler, LinearClamp, PointClamp;
 
@@ -146,7 +169,7 @@ namespace Penumbra {
 		nvrhi::GraphicsPipelineHandle ShadowPipeline, PrepassPipeline, ForwardPipeline, TranslucentPipeline, SkyPipeline, SSAOPipeline,
 			SSAOBlurPipeline, BloomDownPipeline, BloomUpPipeline, TonemapPipeline, SmokePipeline, Overlay2DPipeline, Overlay3DPipeline, FlamePipeline;
 		std::map<nvrhi::Format, nvrhi::GraphicsPipelineHandle> BlitPipelines;
-		nvrhi::ComputePipelineHandle EquirectPipeline, DownsamplePipeline, IrradiancePipeline, PrefilterPipeline, BRDFPipeline;
+		nvrhi::ComputePipelineHandle EquirectPipeline, DownsamplePipeline, IrradiancePipeline, PrefilterPipeline, BRDFPipeline, SkinningPipeline;
 
 		nvrhi::TextureHandle BRDFLut, EnvironmentCube, IrradianceCube, PrefilteredCube, DummyUAVArray, DummyUAV2D;
 		std::string EnvironmentPath;
@@ -162,6 +185,9 @@ namespace Penumbra {
 		uint64_t AssetGeneration = 0;
 
 		std::vector<DrawItem> Draws;
+		std::map<std::pair<const Scene*, entt::entity>, SkinInstance> SkinInstances;
+		std::vector<SkinJob> SkinJobs;
+		uint64_t FrameIndex = 0;
 		std::vector<GPU::Light> Lights;
 		GPU::ViewConstants View{};
 		Timer Clock; // animates effects in the editor, where scene time stands still
@@ -179,6 +205,8 @@ namespace Penumbra {
 		void BuildIBL(const TextureData& equirect);
 
 		void CollectDraws(Scene& scene, const RenderCamera& camera, SceneRendererStatistics& statistics);
+		SkinInstance* GetSkinInstance(const Scene& scene, entt::entity entity, const std::shared_ptr<const MeshData>& mesh, const GpuMesh& gpuMesh);
+		void RunSkinning();
 		void CollectLights(Scene& scene, const RenderCamera& camera, const SceneRendererSettings& settings, std::vector<ShadowView>& shadowViews);
 		void ComputeCascades(const RenderCamera& camera, const glm::vec3& lightDirection, const SceneRendererSettings& settings);
 
@@ -217,6 +245,7 @@ namespace Penumbra {
 		IrradianceCS = LoadShader(Device, "IrradianceCS", ST::Compute);
 		PrefilterCS = LoadShader(Device, "PrefilterCS", ST::Compute);
 		BRDFCS = LoadShader(Device, "BRDFLutCS", ST::Compute);
+		SkinningCS = LoadShader(Device, "SkinningCS", ST::Compute);
 
 		{
 			nvrhi::BindingLayoutDesc desc;
@@ -260,6 +289,14 @@ namespace Penumbra {
 				nvrhi::BindingLayoutItem::Texture_SRV(1), nvrhi::BindingLayoutItem::Texture_SRV(2), nvrhi::BindingLayoutItem::Texture_UAV(0),
 				nvrhi::BindingLayoutItem::Texture_UAV(1), nvrhi::BindingLayoutItem::Sampler(0) };
 			IBLLayout = Device->createBindingLayout(desc);
+		}
+		{
+			nvrhi::BindingLayoutDesc desc;
+			desc.visibility = ST::Compute;
+			desc.bindings = { nvrhi::BindingLayoutItem::PushConstants(0, sizeof(GPU::SkinningConstants)),
+				nvrhi::BindingLayoutItem::StructuredBuffer_SRV(0), nvrhi::BindingLayoutItem::StructuredBuffer_SRV(1),
+				nvrhi::BindingLayoutItem::StructuredBuffer_SRV(2), nvrhi::BindingLayoutItem::StructuredBuffer_UAV(0) };
+			SkinningLayout = Device->createBindingLayout(desc);
 		}
 
 		const nvrhi::VertexAttributeDesc meshAttributes[] = {
@@ -364,6 +401,12 @@ namespace Penumbra {
 		IrradiancePipeline = compute(IrradianceCS);
 		PrefilterPipeline = compute(PrefilterCS);
 		BRDFPipeline = compute(BRDFCS);
+
+		nvrhi::ComputePipelineDesc skinning;
+		skinning.CS = SkinningCS;
+		skinning.bindingLayouts = { SkinningLayout };
+		SkinningPipeline = Device->createComputePipeline(skinning);
+		PN_CORE_VERIFY(SkinningPipeline, "Failed to create the skinning pipeline");
 	}
 
 	void SceneRenderer::Impl::CreateShadowMaps(const SceneRendererSettings& settings)
@@ -635,22 +678,47 @@ namespace Penumbra {
 
 			Entity entity(handle, &scene);
 			const glm::mat4 world = scene.GetWorldTransform(entity);
-			const bool visible = frustum.IntersectsBox(mesh->Bounds, world);
+
+			// Skinned meshes: pose the skeleton now; the bounds follow the pose.
+			BoundingBox bounds = mesh->Bounds;
+			std::vector<glm::mat4> jointMatrices;
+			const bool skinned = mesh->IsSkinned() && gpuMesh->SkinBuffer;
+			if (skinned)
+			{
+				AnimationSystem::EvaluateSkinMatrices(*mesh, entity.TryGetComponent<AnimatorComponent>(), jointMatrices);
+				bounds = Animation::ComputeSkinnedBounds(*mesh, jointMatrices);
+			}
+
+			const bool visible = frustum.IntersectsBox(bounds, world);
 			if (!visible && !meshComponent.CastShadows)
 			{
 				statistics.CulledObjects++;
 				continue;
 			}
 
+			nvrhi::IBuffer* vertexBuffer = gpuMesh->VertexBuffer;
+			if (skinned)
+			{
+				SkinInstance* instance = GetSkinInstance(scene, handle, mesh, *gpuMesh);
+				if (!instance)
+					continue;
+				vertexBuffer = instance->Vertices;
+				SkinJobs.push_back({ instance, std::move(jointMatrices), static_cast<uint32_t>(mesh->Vertices.size()) });
+			}
+
 			const MaterialComponent* overrideMaterial = entity.TryGetComponent<MaterialComponent>();
 			for (const Submesh& submesh : mesh->Submeshes)
 			{
+				const std::vector<std::string>& hidden = meshComponent.HiddenNodes;
+				if (!hidden.empty() && std::find(hidden.begin(), hidden.end(), submesh.Node) != hidden.end())
+					continue;
 				DrawItem draw;
 				draw.Mesh = gpuMesh;
+				draw.VertexBuffer = vertexBuffer;
 				draw.IndexOffset = submesh.IndexOffset;
 				draw.IndexCount = submesh.IndexCount;
 				draw.World = world;
-				draw.Bounds = mesh->Bounds;
+				draw.Bounds = bounds;
 				draw.CastShadows = meshComponent.CastShadows;
 				draw.CameraDistance = glm::distance(glm::vec3(world[3]), camera.Position);
 				GPU::PackWorldRows(world, draw.Constants.WorldRow0, draw.Constants.WorldRow1, draw.Constants.WorldRow2);
@@ -702,6 +770,67 @@ namespace Penumbra {
 				Draws.push_back(draw);
 			}
 		}
+	}
+
+	SkinInstance* SceneRenderer::Impl::GetSkinInstance(const Scene& scene, entt::entity entity, const std::shared_ptr<const MeshData>& mesh,
+		const GpuMesh& gpuMesh)
+	{
+		const std::pair<const Scene*, entt::entity> key{ &scene, entity };
+		SkinInstance& instance = SkinInstances[key];
+		instance.LastUsedFrame = FrameIndex;
+		if (instance.Source == mesh.get() && instance.BindingSet)
+			return &instance;
+
+		instance = SkinInstance{};
+		instance.LastUsedFrame = FrameIndex;
+		nvrhi::BufferDesc vertexDesc;
+		vertexDesc.byteSize = mesh->Vertices.size() * sizeof(Vertex);
+		vertexDesc.structStride = sizeof(Vertex);
+		vertexDesc.isVertexBuffer = true;
+		vertexDesc.canHaveUAVs = true;
+		vertexDesc.debugName = mesh->Name + ".SkinnedVertices";
+		vertexDesc.initialState = nvrhi::ResourceStates::VertexBuffer;
+		vertexDesc.keepInitialState = true;
+		instance.Vertices = Device->createBuffer(vertexDesc);
+
+		nvrhi::BufferDesc jointDesc;
+		jointDesc.byteSize = std::max<size_t>(mesh->Joints.size(), 1) * sizeof(glm::mat4);
+		jointDesc.structStride = sizeof(glm::mat4);
+		jointDesc.debugName = mesh->Name + ".JointMatrices";
+		jointDesc.initialState = nvrhi::ResourceStates::ShaderResource;
+		jointDesc.keepInitialState = true;
+		instance.JointMatrices = Device->createBuffer(jointDesc);
+		if (!instance.Vertices || !instance.JointMatrices)
+		{
+			SkinInstances.erase(key);
+			return nullptr;
+		}
+
+		nvrhi::BindingSetDesc desc;
+		desc.bindings = { nvrhi::BindingSetItem::PushConstants(0, sizeof(GPU::SkinningConstants)),
+			nvrhi::BindingSetItem::StructuredBuffer_SRV(0, gpuMesh.VertexBuffer), nvrhi::BindingSetItem::StructuredBuffer_SRV(1, gpuMesh.SkinBuffer),
+			nvrhi::BindingSetItem::StructuredBuffer_SRV(2, instance.JointMatrices), nvrhi::BindingSetItem::StructuredBuffer_UAV(0, instance.Vertices) };
+		instance.BindingSet = Device->createBindingSet(desc, SkinningLayout);
+		instance.Source = mesh.get();
+		return &instance;
+	}
+
+	void SceneRenderer::Impl::RunSkinning()
+	{
+		for (const SkinJob& job : SkinJobs)
+		{
+			if (job.JointMatrices.empty())
+				continue;
+			CommandList->writeBuffer(job.Instance->JointMatrices, job.JointMatrices.data(), job.JointMatrices.size() * sizeof(glm::mat4));
+			CommandList->setComputeState(nvrhi::ComputeState().setPipeline(SkinningPipeline).addBindingSet(job.Instance->BindingSet));
+			const GPU::SkinningConstants constants{ job.VertexCount, static_cast<uint32_t>(job.JointMatrices.size()), { 0, 0 } };
+			CommandList->setPushConstants(&constants, sizeof(constants));
+			CommandList->dispatch((job.VertexCount + 63) / 64, 1, 1);
+		}
+		SkinJobs.clear();
+
+		// Release instances of entities that are gone (or have not been rendered for a while).
+		std::erase_if(SkinInstances, [&](const auto& entry) { return FrameIndex - entry.second.LastUsedFrame > SkinInstanceLifetime; });
 	}
 
 	void SceneRenderer::Impl::ComputeCascades(const RenderCamera& camera, const glm::vec3& lightDirection, const SceneRendererSettings& settings)
@@ -945,6 +1074,7 @@ namespace Penumbra {
 			impl.AssetGeneration = AssetManager::GetGeneration();
 			impl.Device->waitForIdle();
 			impl.MaterialSets.clear();
+			impl.SkinInstances.clear();
 			impl.Cache->CollectGarbage();
 		}
 
@@ -955,7 +1085,9 @@ namespace Penumbra {
 		const EnvironmentComponent& environment = environmentEntity ? environmentEntity.GetComponent<EnvironmentComponent>() : defaults;
 		impl.UpdateEnvironment(environmentEntity ? &environment : nullptr);
 
+		impl.FrameIndex++;
 		impl.CollectDraws(scene, camera, m_Statistics);
+		impl.RunSkinning();
 		std::vector<ShadowView> shadowViews;
 		impl.CollectLights(scene, camera, m_Settings, shadowViews);
 		m_Statistics.Lights = static_cast<uint32_t>(impl.Lights.size());
@@ -1007,7 +1139,7 @@ namespace Penumbra {
 				state.framebuffer = shadow.Framebuffer;
 				state.viewport = FullViewport(shadow.Resolution, shadow.Resolution);
 				state.bindings = { impl.ShadowSet };
-				state.vertexBuffers = { nvrhi::VertexBufferBinding().setBuffer(draw.Mesh->VertexBuffer).setSlot(0).setOffset(0) };
+				state.vertexBuffers = { nvrhi::VertexBufferBinding().setBuffer(draw.VertexBuffer).setSlot(0).setOffset(0) };
 				state.indexBuffer = nvrhi::IndexBufferBinding().setBuffer(draw.Mesh->IndexBuffer).setFormat(nvrhi::Format::R32_UINT).setOffset(0);
 				commandList->setGraphicsState(state);
 				constants.WorldRow0 = draw.Constants.WorldRow0;
@@ -1043,7 +1175,7 @@ namespace Penumbra {
 				state.framebuffer = framebuffer;
 				state.viewport = FullViewport(m_Width, m_Height);
 				state.bindings = { viewSet, draw->MaterialSet };
-				state.vertexBuffers = { nvrhi::VertexBufferBinding().setBuffer(draw->Mesh->VertexBuffer).setSlot(0).setOffset(0) };
+				state.vertexBuffers = { nvrhi::VertexBufferBinding().setBuffer(draw->VertexBuffer).setSlot(0).setOffset(0) };
 				state.indexBuffer = nvrhi::IndexBufferBinding().setBuffer(draw->Mesh->IndexBuffer).setFormat(nvrhi::Format::R32_UINT).setOffset(0);
 				commandList->setGraphicsState(state);
 				commandList->setPushConstants(&draw->Constants, sizeof(draw->Constants));
