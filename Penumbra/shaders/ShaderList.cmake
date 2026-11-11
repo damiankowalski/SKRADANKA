@@ -15,6 +15,8 @@ set(PENUMBRA_SHADERS
     "TonemapPS|Post.hlsl|PSTonemap|ps_6_0"
     "BlitPS|Post.hlsl|PSBlit|ps_6_0"
     "SmokePS|Effects.hlsl|PSSmoke|ps_6_0"
+    "FlameVS|Effects.hlsl|VSFlame|vs_6_0"
+    "FlamePS|Effects.hlsl|PSFlame|ps_6_0"
     "Overlay2DVS|Effects.hlsl|VSOverlay2D|vs_6_0"
     "Overlay3DVS|Effects.hlsl|VSOverlay3D|vs_6_0"
     "OverlayPS|Effects.hlsl|PSOverlay|ps_6_0"

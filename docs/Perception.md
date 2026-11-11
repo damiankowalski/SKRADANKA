@@ -9,7 +9,11 @@ Code: `Penumbra/src/Penumbra/AI/` — `PerceptionModel` (pure formulas), `Lumina
 
 1. **Silhouette sampling** — each `PerceptionTarget` has 5–9 control points (default 7). For every point
    inside the view cone and distance: a physics ray from the eye checks occlusion (`f` = visible fraction).
-2. **Luminances** — `L_p`: light falling on the side of the target facing the guard × clothing reflectance.
+2. **Luminances** — `L_p`: the target is a rounded body, not a wall: every light contributes
+   `E·(1 + cos θ)/2`, where θ is between the light and the direction to the guard (a figure lit from the
+   side or behind is still partly visible), plus light bounced up from the floor it stands on
+   (`π·L_floor·½`), × clothing reflectance. The light on the target's points is gathered once and shared
+   by every guard, refreshed at 20 Hz.
    `L_b`: the sight line continues *through* the target to the first surface (or the sky); its albedo ×
    incoming light + emission. Both come from `AnalyticLuminanceProvider` (spec approach 1): all enabled
    lights with the renderer's falloff (`Scene/LightUtils.h` ≡ `shaders/Lighting.hlsli`) and physics shadow rays.
@@ -23,6 +27,22 @@ Code: `Penumbra/src/Penumbra/AI/` — `PerceptionModel` (pure formulas), `Lumina
    States: Unaware < 0.3 ≤ Suspicious < 0.7 ≤ Searching < 1.0 = Alarmed.
 7. **Hearing** — noise events (`ai.emit_noise`, footsteps, audio sources with `NoiseRadius`, explosions)
    add suspicion `HearingSuspicion·(1 − d/R)`; walls halve the radius.
+
+## Light gem (player HUD)
+
+`PerceptionTarget.LightLevel` is the luminance of the body from the light it stands in, averaged over
+all directions (independent of any guard); `LightGem` maps it to 0..1 on a log scale for the HUD. It tells
+the player how lit they are; whether the silhouette stands out against what is behind them is left to the
+player, as in the brief. `Exposure` (max stimulus B over guards) exists for debugging, not for the HUD.
+
+## Cost
+
+Guards evaluate vision at 10 Hz each, on staggered phases (no frame-time spikes). Benchmark
+(`PenumbraTests -tc="Perception benchmark*" --no-skip`, release, 8 guards, 12 shadowed torches) is part of
+the test sources; physics rays (Jolt) dominate.
+
+`Scenes/PerceptionLab.pscene` (one guard, a campfire, the player; F1 shows every factor live) is the
+place to tune these values by feel.
 
 ## Deliberate deviation: the contrast threshold
 

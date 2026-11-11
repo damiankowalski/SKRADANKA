@@ -18,6 +18,7 @@ Fields prefixed `Runtime` in C++ are read-only state, visible through `entity.ge
 | AudioSource, AudioListener | 3D sound; `NoiseRadius` makes it audible to NPCs. |
 | Perception | NPC eyes and ears (see `Perception.md`); runtime: suspicion, state, last stimulus. |
 | PerceptionTarget | Something NPCs can see (the player): silhouette points, reflectance; runtime: light level, exposure. |
+| Flame | Procedural animated fire (height, radius, colour, intensity, speed); doused/ignited together with lights. |
 | SmokeVolume | Sphere of smoke that hides silhouettes (and renders as smoke); optional lifetime. |
 | StimSource, StimResponse | Act/React: emit named stims (Fire, Water, ...) by contact / radius / continuously; react with rules (extinguish, ignite, explode, spawn, impulse, sound, noise, script event). |
 | Prefab | Records which prefab an entity tree came from. |

@@ -200,3 +200,33 @@ TEST_SUITE("Renderer")
 		CHECK_FALSE(frustum.IntersectsBox(box, glm::translate(glm::mat4(1.0f), glm::vec3(50.0f, 0.0f, -5.0f))));
 	}
 }
+
+TEST_SUITE("Renderer")
+{
+	TEST_CASE("Flames render as warm fire and disappear when disabled")
+	{
+		RendererFixture fixture;
+		Entity fire = fixture.SceneInstance.CreateEntity("Fire");
+		auto& flame = fire.AddComponent<FlameComponent>();
+		flame.Height = 2.0f;
+		flame.Radius = 0.6f;
+		const RenderCamera camera = RenderCamera::Perspective({ 0.0f, 1.0f, 3.0f }, glm::quat(1, 0, 0, 0), 60.0f,
+			static_cast<float>(RendererFixture::Width) / static_cast<float>(RendererFixture::Height), 0.1f, 50.0f);
+
+		auto brightestWarmth = [&]() {
+			const std::vector<uint8_t> pixels = fixture.RenderFrame(camera);
+			float best = 0.0f;
+			for (uint32_t y = 0; y < RendererFixture::Height; y += 2)
+				for (uint32_t x = 0; x < RendererFixture::Width; x += 2)
+				{
+					const glm::vec3 c = RendererFixture::Pixel(pixels, x, y);
+					best = std::max(best, c.r - c.b);
+				}
+			return best;
+		};
+		CHECK(brightestWarmth() > 0.3f); // orange/red fire on a black background
+		flame.Enabled = false;
+		CHECK(brightestWarmth() < 0.05f);
+		CHECK(fixture.Device->GetErrorCount() == 0);
+	}
+}

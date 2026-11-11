@@ -340,3 +340,108 @@ TEST_SUITE("Perception")
 		lab.SceneInstance.OnRuntimeStop();
 	}
 }
+
+TEST_SUITE("Perception")
+{
+	// Run explicitly: PenumbraTests.exe -tc="Perception benchmark*" -nrs (not part of CI; prints timings).
+	TEST_CASE("Perception benchmark: 8 guards, 12 torches" * doctest::skip())
+	{
+		StealthLab lab;
+		lab.Wall(-14.0f, 0.3f, 0.5f, 30.0f);
+		for (int i = 0; i < 12; i++)
+		{
+			Entity light = lab.PointLight({ -12.0f + 2.2f * static_cast<float>(i), 1.8f, -10.0f + static_cast<float>(i % 3) * 3.0f }, 12.0f, 9.0f);
+			light.GetComponent<PointLightComponent>().Flicker = 0.1f;
+		}
+		for (int i = 0; i < 7; i++)
+		{
+			Entity guard = lab.SceneInstance.CreateEntity("Guard" + std::to_string(i));
+			guard.Transform().Translation = { -9.0f + 3.0f * static_cast<float>(i), 0.0f, 2.0f };
+			guard.AddComponent<PerceptionComponent>();
+		}
+		lab.Start();
+		const float dt = 1.0f / 60.0f;
+		Test::Simulate(lab.SceneInstance, 0.5f, dt);
+
+		PerceptionSystem& perception = *lab.SceneInstance.GetPerceptionSystem();
+		constexpr int Frames = 600;
+		double total = 0.0, worst = 0.0;
+		for (int frame = 0; frame < Frames; frame++)
+		{
+			lab.Player.Transform().Translation = { std::sin(frame * 0.05f) * 6.0f, 0.0f, -7.0f };
+			const auto start = std::chrono::steady_clock::now();
+			perception.Update(Timestep(dt));
+			const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
+			total += ms;
+			worst = std::max(worst, ms);
+		}
+		MESSAGE("perception update: average " << total / Frames << " ms, worst frame " << worst << " ms");
+		lab.SceneInstance.OnRuntimeStop();
+	}
+}
+
+TEST_SUITE("Perception")
+{
+	TEST_CASE("Light gem maps body luminance to 0..1 on a log scale")
+	{
+		CHECK(PerceptionModel::LightGem(0.0f) == 0.0f);
+		CHECK(PerceptionModel::LightGem(0.002f) == doctest::Approx(0.0f).epsilon(0.01));
+		CHECK(PerceptionModel::LightGem(10.0f) == 1.0f);
+		CHECK(PerceptionModel::LightGem(0.01f) < PerceptionModel::LightGem(0.1f));
+		CHECK(PerceptionModel::LightGem(0.035f) == doctest::Approx(0.5f).epsilon(0.05));
+	}
+
+	TEST_CASE("A player in a pool of overhead light on a bright floor is seen against a dark background")
+	{
+		// Marble-like floor, lamp straight above the player, dark hall behind him.
+		auto run = [](bool lampOn) {
+			StealthLab lab(0.004f); // an unlit hall at night: practically no ambient light
+			lab.Wall(-12.0f, 0.03f);
+			Test::CreateBox(lab.SceneInstance, "Marble", { 0.0f, 0.01f, -8.0f }, { 2.0f, 0.01f, 2.0f }, glm::vec4(0.85f, 0.85f, 0.85f, 1.0f));
+			if (lampOn)
+				lab.PointLight({ 0.0f, 3.2f, -8.0f }, 25.0f, 6.0f);
+			lab.Start();
+			const float time = lab.TimeToSuspicion(0.3f, 6.0f);
+			const auto& target = lab.Player.GetComponent<PerceptionTargetComponent>();
+			const float gem = target.RuntimeLightGem;
+			lab.SceneInstance.OnRuntimeStop();
+			return std::make_pair(time, gem);
+		};
+		const auto [litTime, litGem] = run(true);
+		const auto [darkTime, darkGem] = run(false);
+		CHECK(litTime > 0.0f);
+		CHECK(litTime < 2.0f);
+		CHECK(darkTime < 0.0f);
+		CHECK(litGem > darkGem + 0.3f);
+	}
+
+	TEST_CASE("A rounded body lit from behind is still partly lit (rim light)")
+	{
+		PointLighting lighting;
+		lighting.Ambient = 0.0f;
+		lighting.Lights.push_back({ glm::vec3(0.0f, 0.0f, -1.0f), 10.0f });
+		const glm::vec3 towardsViewer(0.0f, 0.0f, 1.0f);
+		CHECK(lighting.Facing(towardsViewer) == 0.0f);              // flat wall facing away from the light: black
+		CHECK(lighting.Rounded(towardsViewer) == 0.0f);             // exactly back-lit: only the rim, ~0
+		CHECK(lighting.Rounded(glm::normalize(glm::vec3(1.0f, 0.0f, 1.0f))) > 1.0f); // side-ish view sees the lit half
+		CHECK(lighting.Rounded(-towardsViewer) == doctest::Approx(10.0f));
+		CHECK(lighting.Average() == doctest::Approx(5.0f));
+	}
+
+	TEST_CASE("Guards think on staggered frames and exposure does not flicker")
+	{
+		StealthLab lab;
+		lab.Wall(-9.0f, 0.3f, 2.0f);
+		Entity second = lab.SceneInstance.CreateEntity("Guard2");
+		second.Transform().Translation = { 1.0f, 0.0f, 0.0f };
+		second.AddComponent<PerceptionComponent>();
+		lab.Start();
+		Test::Simulate(lab.SceneInstance, 0.5f);
+		for (int frame = 0; frame < 30; frame++)
+		{
+			lab.SceneInstance.OnUpdateRuntime(Timestep(1.0f / 60.0f));
+			CHECK(lab.Player.GetComponent<PerceptionTargetComponent>().RuntimeExposure > 1.0f);
+		}
+		lab.SceneInstance.OnRuntimeStop();
+	}
+}

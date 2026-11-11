@@ -223,6 +223,7 @@ namespace Penumbra {
 			v("Reflectance", c.Reflectance);
 			v("Radius", c.Radius);
 			v("LightLevel", c.RuntimeLightLevel, FieldKind::Runtime);
+			v("LightGem", c.RuntimeLightGem, FieldKind::Runtime);
 			v("Exposure", c.RuntimeExposure, FieldKind::Runtime);
 		}
 
@@ -233,6 +234,17 @@ namespace Penumbra {
 			v("Density", c.Density);
 			v("Lifetime", c.Lifetime);
 			v("Age", c.RuntimeAge, FieldKind::Runtime);
+		}
+
+		template<typename V>
+		void VisitFields(FlameComponent& c, V&& v)
+		{
+			v("Height", c.Height);
+			v("Radius", c.Radius);
+			v("Intensity", c.Intensity);
+			v("Speed", c.Speed);
+			v("Color", c.Color);
+			v("Enabled", c.Enabled);
 		}
 
 		template<typename V>
@@ -395,6 +407,7 @@ namespace Penumbra {
 			registry.push_back(MakeInfo<PerceptionComponent>("Perception"));
 			registry.push_back(MakeInfo<PerceptionTargetComponent>("PerceptionTarget"));
 			registry.push_back(MakeInfo<SmokeVolumeComponent>("SmokeVolume"));
+			registry.push_back(MakeInfo<FlameComponent>("Flame"));
 			registry.push_back(MakeInfo<StimSourceComponent>("StimSource"));
 			registry.push_back(MakeInfo<StimResponseComponent>("StimResponse"));
 			registry.push_back(MakeInfo<PrefabComponent>("Prefab"));

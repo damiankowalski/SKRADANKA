@@ -74,6 +74,14 @@ namespace Penumbra::PerceptionModel {
 		return AwarenessState::Unaware;
 	}
 
+	float LightGem(float luminance)
+	{
+		constexpr float Dark = 0.002f;  // below: pitch black
+		constexpr float Bright = 0.6f;  // above: fully lit
+		const float value = std::log2(std::max(luminance, 1e-6f) / Dark) / std::log2(Bright / Dark);
+		return std::clamp(value, 0.0f, 1.0f);
+	}
+
 	float SurfaceLuminance(float albedo, float illuminance, float emissive)
 	{
 		return std::max(albedo, 0.0f) * std::max(illuminance, 0.0f) / glm::pi<float>() + std::max(emissive, 0.0f);

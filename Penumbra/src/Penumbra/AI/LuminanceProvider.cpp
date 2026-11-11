@@ -139,12 +139,34 @@ namespace Penumbra {
 		return physics->Raycast(start, direction, std::max(distance - ShadowBias * 2.0f, 0.0f), filter).has_value();
 	}
 
-	float AnalyticLuminanceProvider::Illuminance(const glm::vec3& point, const glm::vec3& normal, const std::vector<UUID>& ignore) const
+	float PointLighting::Facing(const glm::vec3& normal) const
 	{
-		const bool omnidirectional = glm::dot(normal, normal) < 1e-8f;
-		const glm::vec3 n = omnidirectional ? glm::vec3(0.0f) : glm::normalize(normal);
-		float total = m_Ambient;
+		float total = Ambient;
+		for (const IncomingLight& light : Lights)
+			total += light.Illuminance * std::max(glm::dot(normal, light.Direction), 0.0f);
+		return total;
+	}
 
+	float PointLighting::Rounded(const glm::vec3& viewDirection) const
+	{
+		float total = Ambient;
+		for (const IncomingLight& light : Lights)
+			total += light.Illuminance * (1.0f + glm::dot(viewDirection, light.Direction)) * 0.5f;
+		return total;
+	}
+
+	float PointLighting::Average() const
+	{
+		float total = Ambient;
+		for (const IncomingLight& light : Lights)
+			total += light.Illuminance * 0.5f;
+		return total;
+	}
+
+	PointLighting AnalyticLuminanceProvider::GatherLighting(const glm::vec3& point, const std::vector<UUID>& ignore) const
+	{
+		PointLighting lighting;
+		lighting.Ambient = m_Ambient;
 		for (const LightSample& light : m_Lights)
 		{
 			float contribution = 0.0f;
@@ -165,15 +187,24 @@ namespace Penumbra {
 				if (light.Type == LightSample::Kind::Spot)
 					contribution *= LightUtils::SpotAttenuation(-toLight, light.Direction, light.CosOuter, light.CosInner);
 			}
-
-			const float cosine = omnidirectional ? 1.0f : glm::dot(n, toLight);
-			if (cosine <= 0.0f || contribution <= 1e-6f)
+			if (contribution <= 1e-6f || IsOccluded(point, light, ignore))
 				continue;
-			if (IsOccluded(point, light, ignore))
-				continue;
-			total += contribution * cosine;
+			lighting.Lights.push_back({ toLight, contribution });
 		}
-		return total;
+		return lighting;
+	}
+
+	float AnalyticLuminanceProvider::Illuminance(const glm::vec3& point, const glm::vec3& normal, const std::vector<UUID>& ignore) const
+	{
+		const PointLighting lighting = GatherLighting(point, ignore);
+		if (glm::dot(normal, normal) < 1e-8f)
+		{
+			float total = lighting.Ambient;
+			for (const IncomingLight& light : lighting.Lights)
+				total += light.Illuminance;
+			return total;
+		}
+		return lighting.Facing(glm::normalize(normal));
 	}
 
 	SurfaceSample AnalyticLuminanceProvider::GetSurface(UUID entityID) const

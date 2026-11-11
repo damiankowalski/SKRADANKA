@@ -307,8 +307,21 @@ namespace Penumbra {
 		glm::vec3 RuntimeVelocity{ 0.0f };
 		glm::vec3 RuntimePreviousPosition{ 0.0f };
 		bool RuntimeHasPreviousPosition = false;
-		float RuntimeLightLevel = 0.0f;   // average luminance on the silhouette
-		float RuntimeExposure = 0.0f;     // max normalized stimulus over all observers (0..1+)
+		float RuntimeLightLevel = 0.0f;   // luminance of the body from the light it stands in (independent of observers)
+		float RuntimeLightGem = 0.0f;     // LightLevel mapped to 0..1 for the HUD "light gem"
+		float RuntimeExposure = 0.0f;     // max stimulus B over all observers (>= 1: being noticed)
+	};
+
+	// Procedural animated fire (torches, campfires) rendered as layered billboards in the HDR
+	// pass. Pair it with a flickering PointLight; extinguishing (DisableLights) turns both off.
+	struct FlameComponent
+	{
+		float Height = 0.5f;     // metres, from the entity origin upwards
+		float Radius = 0.15f;    // half width at the base, metres
+		float Intensity = 6.0f;  // HDR brightness of the core
+		float Speed = 1.0f;      // animation speed multiplier
+		glm::vec3 Color{ 1.0f, 0.45f, 0.12f }; // body colour; the core blends towards white-yellow
+		bool Enabled = true;
 	};
 
 	// Smoke / fog volume that flattens contrast along sight lines passing through it.
@@ -399,7 +412,7 @@ namespace Penumbra {
 	using AllComponents = ComponentGroup<TransformComponent, RelationshipComponent, CameraComponent, MeshComponent, MaterialComponent,
 		DirectionalLightComponent, PointLightComponent, SpotLightComponent, EnvironmentComponent, RigidBodyComponent, BoxColliderComponent,
 		SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent, CharacterControllerComponent, ScriptComponent,
-		AudioSourceComponent, AudioListenerComponent, PerceptionComponent, PerceptionTargetComponent, SmokeVolumeComponent,
+		AudioSourceComponent, AudioListenerComponent, PerceptionComponent, PerceptionTargetComponent, SmokeVolumeComponent, FlameComponent,
 		StimSourceComponent, StimResponseComponent, PrefabComponent>;
 
 }

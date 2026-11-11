@@ -638,8 +638,9 @@ namespace Penumbra {
 				if (!renderer || !device)
 					throw CommandError("rendering is not available on this machine");
 				Ref<Scene> scene = RequireScene(host);
-				const uint32_t width = std::clamp(Optional<uint32_t>(args, "width", 1280), 16u, 8192u);
-				const uint32_t height = std::clamp(Optional<uint32_t>(args, "height", 720), 16u, 8192u);
+				// Defaults to the scene's viewport so the HUD (laid out by scripts for that size) is framed correctly.
+				const uint32_t width = std::clamp(Optional<uint32_t>(args, "width", scene->GetViewportWidth()), 16u, 8192u);
+				const uint32_t height = std::clamp(Optional<uint32_t>(args, "height", scene->GetViewportHeight()), 16u, 8192u);
 				const uint32_t previousWidth = renderer->GetViewportWidth(), previousHeight = renderer->GetViewportHeight();
 				renderer->SetViewportSize(width, height);
 

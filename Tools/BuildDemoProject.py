@@ -80,10 +80,11 @@ def torch_prefab_entities(doc, position=(0, 0, 0), parent=None, shadows=False):
     doc.add("Pole", post, Transform=transform((0, 0.6, 0), scale=(0.08, 1.2, 0.08)),
             Mesh={"Mesh": "builtin:cylinder"}, Material=material((0.25, 0.16, 0.1)),
             BoxCollider={"HalfExtents": [0.5, 0.5, 0.5]})
-    doc.add("Flame", post, Transform=transform((0, 1.3, 0), scale=(0.16, 0.22, 0.16)),
-            Mesh={"Mesh": "builtin:sphere", "CastShadows": False},
-            Material=material((1.0, 0.6, 0.2), emissive=6.0, emissive_color=(1.0, 0.55, 0.2)),
-            PointLight={"Color": [1.0, 0.62, 0.32], "Intensity": 14.0, "Range": 9.0, "Flicker": 0.15, "CastShadows": shadows},
+    doc.add("Wrap", post, Transform=transform((0, 1.22, 0), scale=(0.13, 0.16, 0.13)),
+            Mesh={"Mesh": "builtin:cylinder", "CastShadows": False}, Material=material((0.08, 0.06, 0.04), roughness=1.0))
+    doc.add("Flame", post, Transform=transform((0, 1.28, 0)),
+            Flame={"Height": 0.5, "Radius": 0.11, "Intensity": 4.5},
+            PointLight={"Color": [1.0, 0.55, 0.25], "Intensity": 11.0, "Range": 10.0, "Flicker": 0.18, "CastShadows": shadows},
             StimSource={"Stim": "Fire", "Delivery": "Continuous", "Radius": 0.5, "Intensity": 1.0},
             # A generous sensor around the flame: arrows aimed at it register a hit (sensors never block sight).
             SphereCollider={"Radius": 1.2}, RigidBody={"Type": "Static", "IsTrigger": True})
@@ -167,13 +168,13 @@ def add_guard(doc, name, position, yaw, waypoints, lantern=False):
     return guard
 
 
-def add_environment(doc, ambient=0.015, map_intensity=0.25, fog=0.01):
+def add_environment(doc, ambient=0.006, map_intensity=0.12, fog=0.01, moon=0.08):
     doc.add("Environment", Transform=transform(),
             Environment={"EnvironmentMap": "Environment/NightSky_1k.hdr", "EnvironmentIntensity": map_intensity,
                          "SkyboxIntensity": 0.6, "AmbientColor": [ambient, ambient, ambient * 1.4], "Exposure": 1.4,
                          "FogDensity": fog, "FogColor": [0.02, 0.025, 0.035], "SSAOEnabled": True, "BloomIntensity": 0.05})
     doc.add("Moon", Transform=transform(rotation=(-35, 140, 0)),
-            DirectionalLight={"Color": [0.55, 0.65, 1.0], "Intensity": 0.18, "CastShadows": True, "ShadowSoftness": 1.5})
+            DirectionalLight={"Color": [0.55, 0.65, 1.0], "Intensity": moon, "CastShadows": True, "ShadowSoftness": 1.5})
 
 
 # --------------------------------------------------------------------------------------------
@@ -248,6 +249,64 @@ def build_stealth_level():
     doc.add("Ambience", Transform=transform((0, 3, 0)),
             AudioSource={"Clip": "Audio/Wind.wav", "Loop": True, "PlayOnStart": True, "Spatial": False, "Volume": 0.25})
     doc.save("Scenes/Stealth.pscene")
+
+
+def campfire(doc, position):
+    """Ring of stones, a few logs, a big flame and a strong flickering shadow-casting light."""
+    fire = doc.add("Campfire", Transform=transform(position),
+                   StimResponse={"Rules": [
+                       {"Stim": "Water", "Threshold": 0.3, "Once": False, "Actions": [
+                           {"Type": "DisableLights"}, {"Type": "PlaySound", "Asset": "Audio/Hiss.wav", "Value": 0.8},
+                           {"Type": "SpawnPrefab", "Asset": "Prefabs/Steam.pprefab"}]},
+                       {"Stim": "Fire", "Threshold": 0.3, "Once": False, "Actions": [{"Type": "EnableLights"}]}]})
+    for i in range(8):
+        angle = i / 8 * 6.283
+        doc.add(f"Stone{i}", fire, Transform=transform((0.55 * math.cos(angle), 0.08, 0.55 * math.sin(angle)), scale=(0.22, 0.16, 0.2)),
+                Mesh={"Mesh": "builtin:sphere"}, Material=material((0.25, 0.24, 0.23)))
+    for i, yaw in enumerate((0, 60, 120)):
+        doc.add(f"Log{i}", fire, Transform=transform((0, 0.12, 0), (0, yaw, 80), scale=(0.12, 0.8, 0.12)),
+                Mesh={"Mesh": "builtin:cylinder", "CastShadows": False}, Material=material((0.12, 0.07, 0.04), roughness=1.0))
+    doc.add("Flame", fire, Transform=transform((0, 0.15, 0)),
+            Flame={"Height": 1.1, "Radius": 0.32, "Intensity": 8.0, "Speed": 0.9},
+            PointLight={"Color": [1.0, 0.55, 0.25], "Intensity": 45.0, "Range": 14.0, "Flicker": 0.2, "CastShadows": True},
+            StimSource={"Stim": "Fire", "Delivery": "Continuous", "Radius": 0.8, "Intensity": 1.0},
+            SphereCollider={"Radius": 0.9}, RigidBody={"Type": "Static", "IsTrigger": True})
+    return fire
+
+
+def build_perception_lab():
+    """One guard, one campfire, one player: the place to tune and understand NPC vision.
+    A small walled yard so firelight falls on walls as well as the floor; a polished stone
+    patch near the fire, a dark corner, pillars for cover and a lit doorway behind the guard's
+    field of view for silhouette tests."""
+    doc = Document("PenumbraScene")
+    add_environment(doc, ambient=0.004, map_intensity=0.08, fog=0.0, moon=0.04)
+    doc.add("Camera", Transform=transform((0, 3, 8)), Camera={"VerticalFOV": 65.0})
+
+    stone = (0.3, 0.29, 0.28)
+    box(doc, "Ground", (0, -0.5, 0), (24, 1, 20), (0.2, 0.19, 0.18))
+    for name, position, size in (("WallNorth", (0, 2, -10), (24, 4, 0.6)), ("WallSouth", (0, 2, 10), (24, 4, 0.6)),
+                                 ("WallEast", (12, 2, 0), (0.6, 4, 20)), ("WallWest", (-12, 2, 0), (0.6, 4, 20))):
+        box(doc, name, position, size, stone)
+    # Polished stone (marble) floor patch around the fire: bright when lit.
+    box(doc, "Marble", (0, 0.01, 2), (5, 0.02, 4), (0.85, 0.83, 0.8), collider=False, roughness=0.25)
+    # Pillars for cover.
+    for i, (x, z) in enumerate(((-4, -2), (4, -2), (-6, 5), (6, 5))):
+        box(doc, f"Pillar{i}", (x, 1.5, z), (0.7, 3, 0.7), stone)
+    # A lit doorway in the west wall: a bright opening to silhouette the player against.
+    box(doc, "Doorway", (-11.6, 1.4, 6), (0.2, 2.8, 1.6), (0.9, 0.75, 0.5), emissive=2.5, emissive_color=(1.0, 0.75, 0.45), collider=False)
+
+    campfire(doc, (0, 0, 2))
+    torch_prefab_entities(doc, (-11.2, 0, -6))
+    torch_prefab_entities(doc, (11.2, 0, -6))
+
+    guard = doc.add("Guard", Transform=transform((0, 0.05, -8), (0, 180, 0)),  # facing the yard
+                    CharacterController={"Radius": 0.3, "Height": 1.8}, Perception={},
+                    Script={"Script": "Scripts/Sentry.lua"})
+    character_body(doc, guard, (0.45, 0.12, 0.1), (0.55, 0.45, 0.38))
+    add_player(doc, (-9, 0.05, 8), yaw=-135)
+    doc.add("Debug", Transform=transform(), Script={"Script": "Scripts/PerceptionDebug.lua"})
+    doc.save("Scenes/PerceptionLab.pscene")
 
 
 def build_feature_test():
@@ -336,5 +395,6 @@ if __name__ == "__main__":
     build_prefabs()
     build_stealth_level()
     build_feature_test()
+    build_perception_lab()
     build_audio()
     print(f"Demo project written to {ROOT}")

@@ -41,6 +41,9 @@ namespace Penumbra {
 	public:
 		// Vision is re-evaluated at this interval (spec suggests 5-10 Hz); suspicion integrates every frame.
 		static constexpr float VisionInterval = 0.1f;
+		// How long the light on a target stays valid. Shadow rays to every light are the expensive
+		// part; refreshing at 20 Hz is invisible (the HUD gem smooths it) and shared by all observers.
+		static constexpr float LightingRefresh = 0.05f;
 
 		explicit PerceptionSystem(Scene& scene);
 
@@ -56,6 +59,15 @@ namespace Penumbra {
 		float OpticalDepth(const glm::vec3& from, const glm::vec3& to);
 
 		void SetLuminanceProvider(Scope<LuminanceProvider> provider) { m_Provider = std::move(provider); }
+
+		// Light on the target's silhouette points this frame (shared by every observer).
+		struct TargetLighting
+		{
+			std::vector<PointLighting> Points; // one per silhouette point, same order
+			float Bounce = 0.0f;               // irradiance reflected up from the floor under the target
+			float Time = -1.0f; // perception time of the last refresh
+		};
+		const TargetLighting& GetTargetLighting(Entity target);
 		LuminanceProvider& GetLuminanceProvider() { return *m_Provider; }
 
 		const std::vector<NoiseEvent>& GetRecentNoises() const { return m_RecentNoises; }
@@ -73,7 +85,14 @@ namespace Penumbra {
 		Scope<LuminanceProvider> m_Provider;
 		std::vector<NoiseEvent> m_PendingNoises;
 		std::vector<NoiseEvent> m_RecentNoises;
-		float m_VisionTimer = 0.0f;
+		std::unordered_map<UUID, TargetLighting> m_TargetLighting;
+		std::unordered_map<UUID, float> m_VisionTimers; // per observer, staggered so guards do not all think on one frame
+		struct ObserverFocus
+		{
+			UUID Target = UUID::Invalid;
+			float Stimulus = 0.0f;
+		};
+		std::unordered_map<UUID, ObserverFocus> m_Focus; // last evaluation of each observer
 		float m_Time = 0.0f;
 	};
 
