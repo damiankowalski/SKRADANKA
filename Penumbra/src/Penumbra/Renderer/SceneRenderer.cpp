@@ -4,6 +4,7 @@
 #include "Penumbra/Animation/AnimationSystem.h"
 #include "Penumbra/Asset/AssetManager.h"
 #include "Penumbra/Asset/Importers.h"
+#include "Penumbra/Core/Timer.h"
 #include "Penumbra/Renderer/GpuResourceCache.h"
 #include "Penumbra/Renderer/RenderDevice.h"
 #include "Penumbra/Renderer/ShaderLibrary.h"
@@ -145,7 +146,7 @@ namespace Penumbra {
 		nvrhi::CommandListHandle CommandList;
 
 		nvrhi::ShaderHandle MeshVS, PrepassPS, ForwardPS, ShadowVS, FullscreenVS, SkyVS, SkyPS, SSAOPS, SSAOBlurPS, BloomDownPS, BloomUpPS,
-			TonemapPS, BlitPS, SmokePS, Overlay2DVS, Overlay3DVS, OverlayPS;
+			TonemapPS, BlitPS, SmokePS, Overlay2DVS, Overlay3DVS, OverlayPS, FlameVS, FlamePS;
 		nvrhi::ShaderHandle EquirectCS, DownsampleCS, IrradianceCS, PrefilterCS, BRDFCS, SkinningCS;
 
 		nvrhi::BindingLayoutHandle ViewLayout, MaterialLayout, ShadowLayout, PostLayout, IBLLayout, SkinningLayout;
@@ -166,7 +167,7 @@ namespace Penumbra {
 		std::vector<nvrhi::FramebufferHandle> BloomFramebuffers;
 
 		nvrhi::GraphicsPipelineHandle ShadowPipeline, PrepassPipeline, ForwardPipeline, TranslucentPipeline, SkyPipeline, SSAOPipeline,
-			SSAOBlurPipeline, BloomDownPipeline, BloomUpPipeline, TonemapPipeline, SmokePipeline, Overlay2DPipeline, Overlay3DPipeline;
+			SSAOBlurPipeline, BloomDownPipeline, BloomUpPipeline, TonemapPipeline, SmokePipeline, Overlay2DPipeline, Overlay3DPipeline, FlamePipeline;
 		std::map<nvrhi::Format, nvrhi::GraphicsPipelineHandle> BlitPipelines;
 		nvrhi::ComputePipelineHandle EquirectPipeline, DownsamplePipeline, IrradiancePipeline, PrefilterPipeline, BRDFPipeline, SkinningPipeline;
 
@@ -189,6 +190,7 @@ namespace Penumbra {
 		uint64_t FrameIndex = 0;
 		std::vector<GPU::Light> Lights;
 		GPU::ViewConstants View{};
+		Timer Clock; // animates effects in the editor, where scene time stands still
 
 		void CreateShadersAndLayouts();
 		void CreatePipelines();
@@ -233,6 +235,8 @@ namespace Penumbra {
 		TonemapPS = LoadShader(Device, "TonemapPS", ST::Pixel);
 		BlitPS = LoadShader(Device, "BlitPS", ST::Pixel);
 		SmokePS = LoadShader(Device, "SmokePS", ST::Pixel);
+		FlameVS = LoadShader(Device, "FlameVS", ST::Vertex);
+		FlamePS = LoadShader(Device, "FlamePS", ST::Pixel);
 		Overlay2DVS = LoadShader(Device, "Overlay2DVS", ST::Vertex);
 		Overlay3DVS = LoadShader(Device, "Overlay3DVS", ST::Vertex);
 		OverlayPS = LoadShader(Device, "OverlayPS", ST::Pixel);
@@ -378,6 +382,7 @@ namespace Penumbra {
 		BloomDownPipeline = graphics(FullscreenVS, BloomDownPS, nullptr, { PostLayout }, post, hdr);
 		BloomUpPipeline = graphics(FullscreenVS, BloomUpPS, nullptr, { PostLayout }, MakeRenderState(false, false, CF::Always, Cull::None, false, true), hdr);
 		TonemapPipeline = graphics(FullscreenVS, TonemapPS, nullptr, { PostLayout }, post, output);
+		FlamePipeline = graphics(FlameVS, FlamePS, nullptr, { PostLayout }, MakeRenderState(true, false, CF::LessOrEqual, Cull::None, false, true), hdrDepth);
 		SmokePipeline = graphics(FullscreenVS, SmokePS, nullptr, { PostLayout }, MakeRenderState(false, false, CF::Always, Cull::None, true), hdr);
 		Overlay2DPipeline = graphics(Overlay2DVS, OverlayPS, OverlayInput, { PostLayout }, MakeRenderState(false, false, CF::Always, Cull::None, true), output);
 		Overlay3DPipeline = graphics(Overlay3DVS, OverlayPS, OverlayInput, { PostLayout },
@@ -1210,6 +1215,33 @@ namespace Penumbra {
 		impl.DrawFullscreen(impl.SkyPipeline, impl.ForwardFramebuffer, impl.GetPostSet({ skyCube }), {}, m_Width, m_Height);
 
 		drawMeshes(translucent, impl.TranslucentPipeline, impl.ForwardFramebuffer);
+
+		// Fire: additive layered billboards, depth-tested against the opaque scene.
+		for (auto [handle, flame] : scene.GetRegistry().view<FlameComponent>().each())
+		{
+			if (!flame.Enabled || flame.Height <= 0.0f || flame.Intensity <= 0.0f)
+				continue;
+			Entity entity(handle, &scene);
+			const glm::vec3 base = scene.GetWorldPosition(entity);
+			const glm::vec3 scale(glm::length(glm::vec3(scene.GetWorldTransform(entity)[0])), glm::length(glm::vec3(scene.GetWorldTransform(entity)[1])), 1.0f);
+			if (!cameraFrustum.IntersectsSphere(base + glm::vec3(0.0f, flame.Height * 0.5f, 0.0f), flame.Height + flame.Radius))
+				continue;
+			// Each flame gets its own phase so neighbouring torches never burn in sync.
+			const float seed = static_cast<float>(static_cast<uint64_t>(entity.GetUUID()) % 997) * 0.731f;
+			GPU::PostConstants constants;
+			constants.Params0 = glm::vec4(base, flame.Height * scale.y);
+			constants.Params1 = glm::vec4(flame.Radius * scale.x, flame.Intensity, (scene.IsRunning() ? scene.GetTime() : impl.Clock.Elapsed()) * flame.Speed + seed, seed);
+			constants.Params2 = glm::vec4(flame.Color, 0.0f);
+			nvrhi::GraphicsState state;
+			state.pipeline = impl.FlamePipeline;
+			state.framebuffer = impl.ForwardFramebuffer;
+			state.viewport = FullViewport(m_Width, m_Height);
+			state.bindings = { impl.GetPostSet() };
+			commandList->setGraphicsState(state);
+			commandList->setPushConstants(&constants, sizeof(constants));
+			commandList->draw(nvrhi::DrawArguments().setVertexCount(6).setInstanceCount(3));
+			m_Statistics.DrawCalls++;
+		}
 
 		// Smoke volumes (same extinction model as the perception system).
 		for (auto [handle, smoke] : scene.GetRegistry().view<SmokeVolumeComponent>().each())

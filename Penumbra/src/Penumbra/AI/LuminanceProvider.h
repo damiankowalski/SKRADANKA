@@ -10,6 +10,29 @@ namespace Penumbra {
 
 	class Scene;
 
+	struct IncomingLight
+	{
+		glm::vec3 Direction{ 0.0f, 1.0f, 0.0f }; // towards the light
+		float Illuminance = 0.0f;                // on a surface facing the light, shadows applied
+	};
+
+	// Unshadowed light arriving at a point, independent of any surface orientation, so one
+	// gather can be evaluated for any normal or viewing direction.
+	struct PointLighting
+	{
+		float Ambient = 0.0f;
+		std::vector<IncomingLight> Lights;
+
+		// Flat surface with normal n (Lambert).
+		float Facing(const glm::vec3& normal) const;
+		// Rounded body (a person) seen from viewDirection (unit, from the body towards the viewer):
+		// the visible half of a sphere receives on average E * (1 + cos) / 2 from each light, so a
+		// side- or back-lit figure is still partly lit, as in reality.
+		float Rounded(const glm::vec3& viewDirection) const;
+		// Average over all viewing directions: how much light the body is standing in.
+		float Average() const;
+	};
+
 	struct SurfaceSample
 	{
 		float Albedo = 0.5f;   // luminance of the diffuse colour
@@ -28,6 +51,8 @@ namespace Penumbra {
 		// Illuminance arriving at a point. With a zero normal the point is treated as
 		// omnidirectional (used for "how bright is it where I stand").
 		virtual float Illuminance(const glm::vec3& point, const glm::vec3& normal, const std::vector<UUID>& ignore) const = 0;
+		// All unshadowed light reaching a point (ambient plus each light's direction and strength).
+		virtual PointLighting GatherLighting(const glm::vec3& point, const std::vector<UUID>& ignore) const = 0;
 		virtual SurfaceSample GetSurface(UUID entity) const = 0;
 		// Luminance of the sky seen when a sight line escapes the level.
 		virtual float SkyLuminance() const = 0;
@@ -41,6 +66,7 @@ namespace Penumbra {
 
 		void BeginFrame(float time) override;
 		float Illuminance(const glm::vec3& point, const glm::vec3& normal, const std::vector<UUID>& ignore) const override;
+		PointLighting GatherLighting(const glm::vec3& point, const std::vector<UUID>& ignore) const override;
 		SurfaceSample GetSurface(UUID entity) const override;
 		float SkyLuminance() const override { return m_SkyLuminance; }
 

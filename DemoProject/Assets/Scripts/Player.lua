@@ -3,6 +3,8 @@
 -- Controls: WASD move, Shift run, C crouch, Space jump, mouse look,
 --           1 = water arrow, 2 = fire arrow, left mouse = shoot, Esc = release the mouse.
 
+local LightGem = require("Scripts/LightGem")
+
 local Player = {
     Properties = {
         walk_speed = 2.4,
@@ -43,6 +45,7 @@ function Player:on_create()
     self.step_timer = 0
     self.cooldown = 0
     self.crouched = false
+    self.gem = LightGem.new()
     self.visual_height = self.stand_height
     self.shoot_timer = 0
     for _, child in ipairs(self.entity:children()) do
@@ -184,22 +187,14 @@ function Player:update_arrows(dt)
     end
 end
 
-function Player:draw_hud()
+function Player:draw_hud(dt)
     local target = self.entity:get("PerceptionTarget")
-    local exposure = math.min(target.Exposure or 0, 3.0) / 3.0
-    local light = math.min((target.LightLevel or 0) * 4.0, 1.0)
-
-    -- Visibility gem: how exposed the silhouette is to the most alert guard.
-    local h = ui.height()
-    ui.rect(20, h - 70, 204, 24, { 0, 0, 0, 0.6 })
-    ui.rect(22, h - 68, 200 * exposure, 20, { 0.3 + exposure * 0.7, 0.8 - exposure * 0.6, 0.2, 0.9 })
-    ui.text(26, h - 66, "SILHOUETTE", 2, { 1, 1, 1, 0.9 })
-    ui.rect(20, h - 40, 204, 10, { 0, 0, 0, 0.6 })
-    ui.rect(22, h - 38, 200 * light, 6, { 1.0, 0.9, 0.6, 0.9 })
+    local w, h = ui.width(), ui.height()
+    LightGem.draw(LightGem.update(self.gem, target.LightGem or 0, dt), w / 2, h - 50)
 
     local arrow = ARROWS[self.arrow]
-    ui.text(240, h - 66, arrow.name .. " arrow  [1/2]", 2, arrow.color)
-    if self.crouched then ui.text(240, h - 40, "crouching", 2, { 0.7, 0.7, 0.7, 1 }) end
+    ui.text(20, h - 40, arrow.name .. " arrow  [1/2]", 2, arrow.color)
+    if self.crouched then ui.text(w / 2 + 70, h - 58, "crouching", 2, { 0.7, 0.7, 0.7, 1 }) end
 end
 
 function Player:on_update(dt)
@@ -209,7 +204,7 @@ function Player:on_update(dt)
     self:update_movement(dt)
     self:update_camera()
     self:update_arrows(dt)
-    self:draw_hud()
+    self:draw_hud(dt)
 end
 
 return Player

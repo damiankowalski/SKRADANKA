@@ -4,6 +4,8 @@
 #include "Penumbra/AI/PerceptionModel.h"
 #include "Penumbra/Physics/PhysicsWorld.h"
 
+#include <glm/gtc/constants.hpp>
+
 namespace Penumbra {
 
 	namespace {
@@ -28,7 +30,7 @@ namespace Penumbra {
 	}
 
 	PerceptionSystem::PerceptionSystem(Scene& scene)
-		: m_Scene(scene), m_Provider(CreateScope<AnalyticLuminanceProvider>(scene)), m_VisionTimer(VisionInterval)
+		: m_Scene(scene), m_Provider(CreateScope<AnalyticLuminanceProvider>(scene))
 	{
 	}
 
@@ -104,6 +106,7 @@ namespace Penumbra {
 		const glm::mat4 targetFrame = Math::ComposeTransform(targetPosition, m_Scene.GetWorldRotation(target), glm::vec3(1.0f));
 
 		auto sightFilter = [&](UUID entity) { return IsSightBlocker(entity, bothIgnore); };
+		const TargetLighting& lighting = GetTargetLighting(target);
 
 		float contrastSum = 0.0f, targetLumSum = 0.0f, backgroundLumSum = 0.0f, angleSum = 0.0f, distanceSum = 0.0f, opticalSum = 0.0f;
 		result.TotalPoints = static_cast<uint32_t>(targetComponent.SilhouettePoints.size());
@@ -124,8 +127,10 @@ namespace Penumbra {
 			if (physics->Raycast(eye, toPoint, distance, sightFilter))
 				continue;
 
-			// 2. Target luminance: light falling on the side of the target facing the observer.
-			const float illuminance = m_Provider->Illuminance(point, -toPoint, targetIgnore);
+			// 2. Target luminance: the body is rounded, so it is lit by everything around it as seen
+			//    from this observer, plus light bounced up from the floor it stands on.
+			const size_t pointIndex = static_cast<size_t>(&localPoint - targetComponent.SilhouettePoints.data());
+			const float illuminance = lighting.Points[pointIndex].Rounded(-toPoint) + lighting.Bounce;
 			const float lp = PerceptionModel::SurfaceLuminance(targetComponent.Reflectance, illuminance, 0.0f);
 
 			// 3. Background luminance: continue the sight line through the target.
@@ -209,6 +214,41 @@ namespace Penumbra {
 		return 0.5f * (here + viewMean);
 	}
 
+	const PerceptionSystem::TargetLighting& PerceptionSystem::GetTargetLighting(Entity target)
+	{
+		TargetLighting& lighting = m_TargetLighting[target.GetUUID()];
+		const auto& component = target.GetComponent<PerceptionTargetComponent>();
+		// Refresh when stale, or when the silhouette changed shape (e.g. crouching) since the last gather.
+		if (lighting.Time >= 0.0f && m_Time - lighting.Time < LightingRefresh && lighting.Points.size() == component.SilhouettePoints.size())
+			return lighting;
+		lighting.Time = m_Time;
+		lighting.Points.clear();
+		lighting.Bounce = 0.0f;
+
+		std::vector<UUID> ignore;
+		CollectHierarchy(target, ignore);
+		const glm::vec3 position = m_Scene.GetWorldPosition(target);
+		const glm::mat4 frame = Math::ComposeTransform(position, m_Scene.GetWorldRotation(target), glm::vec3(1.0f));
+		lighting.Points.reserve(component.SilhouettePoints.size());
+		for (const glm::vec3& localPoint : component.SilhouettePoints)
+			lighting.Points.push_back(m_Provider->GatherLighting(glm::vec3(frame * glm::vec4(localPoint, 1.0f)), ignore));
+
+		// A brightly lit floor lights the figure standing on it from below (one bounce,
+		// half of the body's view is the floor).
+		if (const PhysicsWorld* physics = m_Scene.GetPhysicsWorld())
+		{
+			auto filter = [&](UUID entity) { return IsSightBlocker(entity, ignore); };
+			if (std::optional<RaycastHit> floor = physics->Raycast(position + glm::vec3(0.0f, 0.3f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), 1.5f, filter))
+			{
+				const SurfaceSample surface = m_Provider->GetSurface(floor->Entity);
+				const float floorIlluminance = m_Provider->Illuminance(floor->Point + floor->Normal * 0.02f, floor->Normal, { floor->Entity });
+				const float floorLuminance = PerceptionModel::SurfaceLuminance(surface.Albedo, floorIlluminance, surface.Emissive);
+				lighting.Bounce = glm::pi<float>() * floorLuminance * 0.5f;
+			}
+		}
+		return lighting;
+	}
+
 	void PerceptionSystem::UpdateTargets(float dt)
 	{
 		for (auto [handle, target] : m_Scene.GetRegistry().view<PerceptionTargetComponent>().each())
@@ -222,7 +262,26 @@ namespace Penumbra {
 			}
 			target.RuntimePreviousPosition = position;
 			target.RuntimeHasPreviousPosition = true;
-			target.RuntimeExposure = 0.0f;
+
+			// Light gem: how much light the body stands in, regardless of who is looking.
+			Entity entity(handle, &m_Scene);
+			const TargetLighting& lighting = GetTargetLighting(entity);
+			float average = 0.0f;
+			for (const PointLighting& point : lighting.Points)
+				average += point.Average();
+			if (!lighting.Points.empty())
+				average /= static_cast<float>(lighting.Points.size());
+			target.RuntimeLightLevel = PerceptionModel::SurfaceLuminance(target.Reflectance, average + lighting.Bounce, 0.0f);
+			target.RuntimeLightGem = PerceptionModel::LightGem(target.RuntimeLightLevel);
+
+			// Exposure: the strongest stimulus any observer currently registers for this target.
+			float exposure = 0.0f;
+			for (const auto& [observer, focus] : m_Focus)
+			{
+				if (focus.Target == entity.GetUUID() && m_Scene.TryGetEntityByUUID(observer))
+					exposure = std::max(exposure, focus.Stimulus);
+			}
+			target.RuntimeExposure = exposure;
 		}
 	}
 
@@ -283,9 +342,6 @@ namespace Penumbra {
 				if (target == observer)
 					continue;
 				const VisibilityResult visibility = ComputeVisibility(observer, target);
-				targetComponent.RuntimeExposure = std::max(targetComponent.RuntimeExposure, visibility.Stimulus);
-				if (visibility.VisiblePoints > 0)
-					targetComponent.RuntimeLightLevel = visibility.TargetLuminance;
 				if (!bestTarget || visibility.Stimulus > bestStimulus)
 				{
 					bestStimulus = visibility.Stimulus;
@@ -302,6 +358,7 @@ namespace Penumbra {
 				perception.AdaptBrightTime, perception.AdaptDarkTime);
 
 			perception.RuntimeStimulus = best.Stimulus;
+			m_Focus[observer.GetUUID()] = { bestTarget ? bestTarget.GetUUID() : UUID(UUID::Invalid), best.Stimulus };
 			perception.RuntimeVisibleFraction = best.VisibleFraction;
 			perception.RuntimeContrast = best.Contrast;
 			if (bestTarget && best.Stimulus >= 1.0f)
@@ -324,17 +381,32 @@ namespace Penumbra {
 	{
 		m_Time += ts;
 		m_Provider->BeginFrame(m_Time);
-		UpdateTargets(ts);
 		ProcessNoises();
 
-		m_VisionTimer += ts;
-		const float visionElapsed = m_VisionTimer;
-		const bool evaluateVision = m_VisionTimer >= VisionInterval;
-		if (evaluateVision)
-			m_VisionTimer = 0.0f;
-
 		for (entt::entity handle : m_Scene.GetRegistry().view<PerceptionComponent>())
-			UpdateObserver(Entity(handle, &m_Scene), ts, evaluateVision ? visionElapsed : 0.0f);
+		{
+			Entity observer(handle, &m_Scene);
+			// Each observer evaluates vision on its own phase of the interval (spread by id), so
+			// the cost is spread over frames instead of spiking every VisionInterval.
+			auto [timer, inserted] = m_VisionTimers.try_emplace(observer.GetUUID(), 0.0f);
+			if (inserted)
+				timer->second = VisionInterval * (1.0f - static_cast<float>(static_cast<uint64_t>(observer.GetUUID()) % 1000) / 1000.0f);
+			timer->second += ts;
+			float visionElapsed = 0.0f;
+			if (timer->second >= VisionInterval)
+			{
+				visionElapsed = timer->second;
+				timer->second = 0.0f;
+			}
+			UpdateObserver(observer, ts, visionElapsed);
+		}
+
+		// Targets last: velocity, light gem and the exposure from this frame's evaluations.
+		UpdateTargets(ts);
+		auto destroyed = [&](const auto& entry) { return !m_Scene.TryGetEntityByUUID(entry.first).has_value(); };
+		std::erase_if(m_Focus, destroyed);
+		std::erase_if(m_VisionTimers, destroyed);
+		std::erase_if(m_TargetLighting, destroyed);
 	}
 
 }

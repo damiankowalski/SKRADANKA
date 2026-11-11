@@ -52,6 +52,10 @@ namespace Penumbra::PerceptionModel {
 
 	AwarenessState StateFromSuspicion(float suspicion, float suspiciousThreshold, float searchingThreshold);
 
+	// Maps the luminance of the player's body to the 0..1 HUD light gem on a logarithmic scale
+	// (the eye's response): ~0.15 in near darkness, ~0.5 in dim torchlight, 1 in strong light.
+	float LightGem(float luminance);
+
 	// Diffuse reflected luminance of a surface (Lambert) plus its own emission.
 	float SurfaceLuminance(float albedo, float illuminance, float emissive);
 

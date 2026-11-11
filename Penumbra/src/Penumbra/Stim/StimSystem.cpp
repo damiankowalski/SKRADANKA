@@ -52,6 +52,8 @@ namespace Penumbra {
 			light->Enabled = enabled;
 		if (auto* material = entity.TryGetComponent<MaterialComponent>())
 			material->EmissiveEnabled = enabled;
+		if (auto* flame = entity.TryGetComponent<FlameComponent>())
+			flame->Enabled = enabled;
 		// A flame is also what ignites things: extinguishing it stops continuous stims.
 		if (auto* source = entity.TryGetComponent<StimSourceComponent>(); source && source->Delivery == StimDelivery::Continuous)
 			source->Enabled = enabled;
