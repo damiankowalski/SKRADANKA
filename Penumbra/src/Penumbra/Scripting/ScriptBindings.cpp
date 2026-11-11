@@ -519,6 +519,26 @@ namespace Penumbra {
 			requirePerceptionComponent(observer);
 			return requirePerception().Notify(observer.Resolve(), position, strength, StimulusKind::Reported, cause.value_or("Reported"));
 		});
+		ai.set_function("explain_away", [requirePerception, scene](float strength, const std::string& cause, sol::optional<sol::table> options,
+										   sol::this_state state) {
+			std::optional<glm::vec3> center;
+			float radius = 0.0f, spread = 0.0f;
+			if (options)
+			{
+				if (sol::optional<glm::vec3> c = (*options)["center"])
+					center = *c;
+				radius = (*options).get_or("radius", 0.0f);
+				spread = (*options).get_or("spread", 0.0f);
+				if (center && radius <= 0.0f)
+					throw std::runtime_error("ai.explain_away: 'center' needs a positive 'radius'");
+			}
+			sol::state_view view(state);
+			sol::table calmed = view.create_table();
+			int index = 1;
+			for (Entity entity : requirePerception().ExplainAway(strength, cause, center, radius, spread))
+				calmed[index++] = ScriptEntity{ entity.GetUUID(), scene };
+			return calmed;
+		});
 		ai.set_function("calm", [requirePerceptionComponent](const ScriptEntity& e) { PerceptionSystem::Calm(requirePerceptionComponent(e)); });
 		ai.set_function("alertness", [requirePerceptionComponent](const ScriptEntity& e) { return requirePerceptionComponent(e).RuntimeAlertness; });
 		ai.set_function("reaction", [requirePerceptionComponent](const ScriptEntity& e, sol::this_state state) {

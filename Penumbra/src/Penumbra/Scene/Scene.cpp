@@ -334,6 +334,7 @@ namespace Penumbra {
 		m_Time = 0.0f;
 		m_FrameCount = 0;
 		m_TestReport = {};
+		m_RandomState = m_RandomSeed;
 
 		m_PhysicsWorld = CreateScope<PhysicsWorld>(*this);
 		m_AudioScene = CreateScope<AudioScene>(*this, m_AudioDeviceEnabled);
@@ -417,6 +418,16 @@ namespace Penumbra {
 
 		m_Time += ts;
 		m_FrameCount++;
+	}
+
+	float Scene::NextRandom()
+	{
+		// splitmix64: every seed (including 0) gives a well mixed sequence.
+		uint64_t z = (m_RandomState += 0x9E3779B97F4A7C15ull);
+		z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ull;
+		z = (z ^ (z >> 27)) * 0x94D049BB133111EBull;
+		z ^= z >> 31;
+		return static_cast<float>(z >> 40) / static_cast<float>(1ull << 24);
 	}
 
 	void Scene::OnUpdateEditor(Timestep)

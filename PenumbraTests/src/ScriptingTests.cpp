@@ -256,4 +256,34 @@ TEST_SUITE("Scripting")
 		CHECK(fixture.Run("return scene.find('Ball'):script().stims[1]") == "\"Water\"");
 		fixture.SceneInstance.OnRuntimeStop();
 	}
+
+	TEST_CASE("math.random and engine rolls follow the scene's seed")
+	{
+		auto sequence = [](std::optional<uint64_t> seed) {
+			ScriptFixture fixture;
+			if (seed)
+				fixture.SceneInstance.SetRandomSeed(*seed);
+			fixture.SceneInstance.OnRuntimeStart();
+			std::string values = fixture.Run("return math.random(1000000) .. ',' .. math.random(1000000) .. ',' .. math.random()");
+			values += ";" + std::to_string(fixture.SceneInstance.NextRandom());
+			fixture.SceneInstance.OnRuntimeStop();
+			return values;
+		};
+		CHECK(sequence(std::nullopt) == sequence(std::nullopt)); // tests and headless runs are reproducible
+		CHECK(sequence(7) == sequence(7));
+		CHECK(sequence(7) != sequence(8));
+		CHECK(sequence(std::nullopt) == sequence(Scene::DefaultRandomSeed));
+
+		Scene scene;
+		scene.SetAudioDeviceEnabled(false);
+		scene.SetRandomSeed(3);
+		scene.OnRuntimeStart();
+		for (int i = 0; i < 1000; ++i)
+		{
+			const float value = scene.NextRandom();
+			REQUIRE(value >= 0.0f);
+			REQUIRE(value < 1.0f);
+		}
+		scene.OnRuntimeStop();
+	}
 }

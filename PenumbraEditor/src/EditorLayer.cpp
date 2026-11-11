@@ -18,6 +18,8 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+#include <chrono>
+
 #include <Windows.h>
 #include <shellapi.h>
 
@@ -136,6 +138,8 @@ namespace Penumbra {
 		CommitPendingChange();
 		m_PlayScene = Scene::Copy(m_EditScene);
 		m_PlayScene->OnViewportResize(static_cast<uint32_t>(m_ViewportSize.x), static_cast<uint32_t>(m_ViewportSize.y));
+		// Every play session plays out differently (events, search spots); headless automation keeps the fixed seed.
+		m_PlayScene->SetRandomSeed(static_cast<uint64_t>(std::chrono::steady_clock::now().time_since_epoch().count()));
 		m_PlayScene->OnRuntimeStart();
 		m_UseSceneCamera = static_cast<bool>(m_PlayScene->GetPrimaryCameraEntity());
 		PN_CORE_INFO("Play mode started");
@@ -420,6 +424,7 @@ namespace Penumbra {
 						m_PlayScene->OnRuntimeStop();
 						m_PlayScene = loaded;
 						m_PlayScene->OnViewportResize(static_cast<uint32_t>(m_ViewportSize.x), static_cast<uint32_t>(m_ViewportSize.y));
+						m_PlayScene->SetRandomSeed(static_cast<uint64_t>(std::chrono::steady_clock::now().time_since_epoch().count()));
 						m_PlayScene->OnRuntimeStart();
 					}
 					else

@@ -225,6 +225,7 @@ namespace Penumbra {
 			v("SearchLevel", c.SearchLevel);
 			v("AlarmLevel", c.AlarmLevel);
 			v("AlertMemoryTime", c.AlertMemoryTime);
+			v("Diligence", c.Diligence);
 			v("Adaptation", c.RuntimeAdaptation, FieldKind::Runtime);
 			v("Suspicion", c.RuntimeSuspicion, FieldKind::Runtime);
 			v("Stimulus", c.RuntimeStimulus, FieldKind::Runtime);

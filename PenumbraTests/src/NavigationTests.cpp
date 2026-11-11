@@ -6,6 +6,8 @@
 #include "Penumbra/Navigation/NavMesh.h"
 #include "Penumbra/Physics/PhysicsWorld.h"
 
+#include <sstream>
+
 using namespace Penumbra;
 
 namespace {
@@ -225,6 +227,36 @@ TEST_SUITE("Navigation")
 			CHECK(std::abs(vertex.x) <= 1.01f);
 		scene.OnRuntimeStop();
 	}
+
+	TEST_CASE("Offset and compound static colliders feed the navmesh too")
+	{
+		Test::TemporaryProject project;
+		Scene scene;
+		scene.SetAudioDeviceEnabled(false);
+		// A capsule standing on its feet (offset collider) and a box + sphere compound.
+		Entity capsule = scene.CreateEntity("Capsule");
+		capsule.Transform().Translation = { 5.0f, 0.0f, 0.0f };
+		auto& shape = capsule.AddComponent<CapsuleColliderComponent>();
+		shape.Offset = { 0.0f, 0.9f, 0.0f };
+		Entity compound = scene.CreateEntity("Compound");
+		compound.Transform().Translation = { -5.0f, 0.0f, 0.0f };
+		compound.AddComponent<BoxColliderComponent>().HalfExtents = glm::vec3(0.5f);
+		compound.AddComponent<SphereColliderComponent>().Offset = { 0.0f, 1.0f, 0.0f };
+		scene.OnRuntimeStart();
+
+		std::vector<glm::vec3> vertices;
+		std::vector<uint32_t> indices;
+		scene.GetPhysicsWorld()->CollectStaticTriangles(vertices, indices);
+		bool capsuleTop = false, sphereTop = false;
+		for (const glm::vec3& vertex : vertices)
+		{
+			capsuleTop |= vertex.x > 4.0f && vertex.y > 1.7f; // the offset lifts the capsule to 0..1.8 m
+			sphereTop |= vertex.x < -4.0f && vertex.y > 1.4f;
+		}
+		CHECK(capsuleTop);
+		CHECK(sphereTop);
+		scene.OnRuntimeStop();
+	}
 }
 
 #include "Penumbra/Project/Project.h"
@@ -301,6 +333,53 @@ TEST_SUITE("Navigation")
 										 << " s");
 			CHECK(longestStill < 8.0f);
 			CHECK(scene.GetScriptEngine()->GetErrors().empty()); // guard, player (footsteps, landing) and HUD scripts
+			scene.OnRuntimeStop();
+		}
+		Project::Unload();
+	}
+}
+
+TEST_SUITE("Navigation")
+{
+	// Level design check: a waypoint behind a blocked door leaves a guard stuck at the doorway.
+	TEST_CASE("Every patrol route in the demo levels is walkable end to end")
+	{
+		std::string error;
+		REQUIRE_MESSAGE(Project::Load(std::filesystem::path(PENUMBRA_DEMO_PROJECT_DIR) / "project.json", error), error);
+		for (const char* scenePath : { "Scenes/Stealth.pscene", "Scenes/AILab.pscene" })
+		{
+			CAPTURE(scenePath);
+			Scene scene;
+			scene.SetAudioDeviceEnabled(false);
+			REQUIRE_MESSAGE(SceneSerializer::Deserialize(scene, Project::GetAssetDirectory() / scenePath, error), error);
+			scene.OnRuntimeStart();
+			int routes = 0;
+			for (auto [handle, script] : scene.GetRegistry().view<ScriptComponent>().each())
+			{
+				const auto property = script.Properties.find("waypoints");
+				if (script.Script != "Scripts/Guard.lua" || property == script.Properties.end())
+					continue;
+				std::vector<glm::vec3> points;
+				std::stringstream names(std::get<std::string>(property->second));
+				for (std::string name; std::getline(names, name, ',');)
+				{
+					Entity waypoint = scene.FindEntityByName(name);
+					REQUIRE_MESSAGE(waypoint, name);
+					points.push_back(scene.GetWorldPosition(waypoint));
+				}
+				for (size_t i = 0; i < points.size(); ++i)
+				{
+					const glm::vec3& from = points[i];
+					const glm::vec3& to = points[(i + 1) % points.size()];
+					std::optional<NavPath> path = scene.GetNavigationSystem()->FindPath(from, to);
+					CAPTURE(i);
+					REQUIRE(path.has_value());
+					CHECK(path->Complete);
+					CHECK(glm::distance(glm::vec2(path->Points.back().x, path->Points.back().z), glm::vec2(to.x, to.z)) < 0.5f);
+				}
+				routes++;
+			}
+			CHECK(routes > 0);
 			scene.OnRuntimeStop();
 		}
 		Project::Unload();

@@ -37,6 +37,8 @@ Noises.footstep_clips = {
 -- Named one-off noises: Noises.emit("Bucket", position, source).
 Noises.sounds = {
     Crack = { loudness = 3, clip = "Audio/Footstep_Wood.wav", volume = 0.4 }, -- a twig, a creaking board
+    Knife = { loudness = 5, clip = "Audio/Knife.wav", volume = 0.8 },         -- a knife dropped on a stone floor
+    Pot = { loudness = 6, clip = "Audio/Clang.wav", volume = 0.7 },           -- a pot banged on the stove
     Bow = { loudness = 3, clip = "Audio/Bow.wav", volume = 0.6 },
     Shout = { loudness = 8 },
     Bucket = { loudness = 9, clip = "Audio/Clang.wav", volume = 1.0 },

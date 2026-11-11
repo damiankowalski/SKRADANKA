@@ -25,6 +25,8 @@ namespace {
 			"  --warp                   use the WARP software rasterizer\n"
 			"  --frames <n>             quit after n frames\n"
 			"  --fixed-timestep <s>     advance exactly s seconds per frame (deterministic)\n"
+			"  --seed <n>               random seed for scripts and AI (default: fixed when headless or\n"
+			"                           with --fixed-timestep, otherwise new for every scene load)\n"
 			"  --exit-on-test           exit with 0/1 when the scene's scripts call test.complete()\n"
 			"  --test-timeout <s>       fail the test run after s seconds of simulated time\n"
 			"  --screenshot <file.png>  save the last frame before exiting\n"
@@ -92,6 +94,9 @@ namespace {
 			options.ScreenshotPath = *screenshot;
 		options.Width = spec.Width;
 		options.Height = spec.Height;
+		if (const std::optional<int> seed = args.GetInt("seed"))
+			options.Seed = static_cast<uint64_t>(static_cast<uint32_t>(*seed));
+		options.RandomizeSeed = !spec.Headless && spec.FixedTimestep <= 0.0f;
 
 		int exitCode = 0;
 		{

@@ -102,6 +102,35 @@ namespace Penumbra {
 		return true;
 	}
 
+	std::vector<Entity> PerceptionSystem::ExplainAway(float strength, std::string_view cause, std::optional<glm::vec3> center, float radius,
+		float spread)
+	{
+		std::vector<Entity> calmed;
+		std::vector<Entity> observers;
+		for (entt::entity handle : m_Scene.GetRegistry().view<PerceptionComponent>())
+			observers.emplace_back(handle, &m_Scene);
+		// Stable order so the rolls go to the same NPCs every run.
+		std::sort(observers.begin(), observers.end(),
+			[](Entity a, Entity b) { return static_cast<uint64_t>(a.GetUUID()) < static_cast<uint64_t>(b.GetUUID()); });
+
+		for (Entity observer : observers)
+		{
+			auto& perception = observer.GetComponent<PerceptionComponent>();
+			if (perception.RuntimeReactionTime <= 0.0f || perception.RuntimeStimulusKind == StimulusKind::Seen)
+				continue;
+			if (center && glm::distance(m_Scene.GetWorldPosition(observer), *center) > radius)
+				continue;
+			const float roll = spread > 0.0f ? m_Scene.NextRandom() * 2.0f - 1.0f : 0.0f;
+			if (!PerceptionModel::DistractionWins(strength, perception.RuntimeReactionStrength, perception.Diligence, spread, roll))
+				continue;
+			PN_CORE_TRACE("'{}' puts it down to {} ({:.1f} vs {:.1f})", observer.GetName(), cause, strength,
+				perception.RuntimeReactionStrength + perception.Diligence);
+			Calm(perception);
+			calmed.push_back(observer);
+		}
+		return calmed;
+	}
+
 	void PerceptionSystem::Calm(PerceptionComponent& perception)
 	{
 		perception.RuntimeSuspicion = 0.0f;

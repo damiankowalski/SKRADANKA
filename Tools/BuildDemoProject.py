@@ -179,6 +179,9 @@ def build_prefabs():
 THIEF = ("Thief.glb", ["Knife", "Knife_Offhand", "2H_Crossbow", "Throwable"])
 WATCHMAN = ("Knight.glb", ["Knight_Cape", "1H_Sword_Offhand", "2H_Sword", "Badge_Shield", "Rectangle_Shield", "Spike_Shield"])
 KNIGHT = ("Knight.glb", ["1H_Sword_Offhand", "2H_Sword", "Round_Shield", "Rectangle_Shield", "Spike_Shield"])
+# The cook: the knight's body without armour, weapons or cape.
+COOK = ("Knight.glb", ["1H_Sword_Offhand", "1H_Sword", "2H_Sword", "Badge_Shield", "Round_Shield", "Rectangle_Shield", "Spike_Shield",
+                       "Knight_Helmet", "Knight_Cape"])
 
 
 def character_model(doc, parent, character):
@@ -212,6 +215,28 @@ def add_guard(doc, name, position, yaw, waypoints, lantern=False, character=WATC
                 SpotLight={"Color": [1.0, 0.85, 0.6], "Intensity": 30.0, "Range": 14.0, "InnerAngle": 18.0, "OuterAngle": 32.0,
                            "CastShadows": True})
     return guard
+
+
+def add_cook(doc, name, position, yaw, zone_center, radius=14.0):
+    """A cook busy at his station; the kitchen event zone around him makes the noises of his work
+    (Scripts/World/EventZone.lua, odds in Scripts/World/Events.lua)."""
+    cook = doc.add(name, Transform=transform(position, (0, yaw, 0)),
+                   CapsuleCollider={"Radius": 0.3, "HalfHeight": 0.6, "Offset": [0, 0.9, 0]})
+    character_model(doc, cook, COOK)
+    doc.add("KitchenZone", Transform=transform(zone_center),
+            Script={"Script": "Scripts/World/EventZone.lua", "Properties": {"set": "Kitchen", "radius": radius, "actor": name}})
+    return cook
+
+
+def add_world_events(doc, windows=(), dogs_position=(0, 1, 30)):
+    """Storm and dogs (Scripts/World/WorldEvents.lua): a directional light for the lightning flashes
+    (off between them) and the rain loop."""
+    doc.add("Lightning", Transform=transform(rotation=(-60, 30, 0)),
+            DirectionalLight={"Color": [0.75, 0.82, 1.0], "Intensity": 0.0, "CastShadows": True, "Enabled": False})
+    doc.add("Rain", Transform=transform(), AudioSource={"Clip": "Audio/Rain.wav", "Loop": True, "Spatial": False, "Volume": 0.35})
+    doc.add("World", Transform=transform(),
+            Script={"Script": "Scripts/World/WorldEvents.lua",
+                    "Properties": {"windows": ",".join(windows), "dogs_position": list(dogs_position)}})
 
 
 def add_environment(doc, ambient=0.006, map_intensity=0.12, fog=0.01, moon=0.08):
@@ -293,6 +318,10 @@ def build_stealth_level():
     floor_patch(doc, "Lawn", "Grass", (-12, 11), (6, 5))
     noisy_object(doc, "Bucket", (-8, 1.2, 4), (0.3, 0.4, 0.3), "Metal", 9.0, "Audio/Clang.wav", (0.45, 0.45, 0.48))
     doc.add("Navigation", Transform=transform(), NavMesh={})
+
+    # Life in the house: the cook at work in the hall, a storm now and then, dogs beyond the walls.
+    add_cook(doc, "Cook", (13, 0.05, -14.6), 180, (10, 0, -12))
+    add_world_events(doc, windows=("Window",), dogs_position=(0, 1, 28))
 
     # The exit gate (south-east corner) and the player start (dark north-west corner).
     doc.add("Gate", Transform=transform((17, 1.5, 18)), BoxCollider={"HalfExtents": [1.5, 1.5, 1.0]},
@@ -392,6 +421,13 @@ def build_ai_lab():
     floor_patch(doc, "Lawn", "Grass", (8, 6), (6, 6))
     floor_patch(doc, "Moss", "Moss", (0, 8), (3, 3))
 
+    # A window in the west room's back wall glows with every lightning flash.
+    box(doc, "Window", (-6, 2.2, -11.65), (1.6, 1.4, 0.1), (0.6, 0.65, 0.8), emissive=0.2, emissive_color=(0.7, 0.8, 1.0),
+        collider=False)
+    # The east room is a kitchen: the cook works at the table.
+    add_cook(doc, "Cook", (8.3, 0.05, -6), 90, (6, 0, -7))  # at the table, facing it
+    add_world_events(doc, windows=("Window",), dogs_position=(0, 1, 20))
+
     # A table in the east room with a metal bucket and a wooden box to knock off.
     box(doc, "Table", (6, 0.45, -6), (2.0, 0.9, 1.0), (0.3, 0.2, 0.12), surface="Wood")
     noisy_object(doc, "Bucket", (6.6, 1.12, -6), (0.3, 0.4, 0.3), "Metal", 9.0, "Audio/Clang.wav", (0.45, 0.45, 0.48))
@@ -400,7 +436,7 @@ def build_ai_lab():
         box(doc, f"Crate{i}", (x, 0.5, z), (1, 1, 1), (0.3, 0.2, 0.12), surface="Wood")
 
     # Light: torches by the doors and in the east room; the west room stays dark.
-    for x, z in ((-6, -1.3), (6, -1.3), (11.3, -9)):
+    for x, z in ((-4.4, -1.3), (4.4, -1.3), (11.3, -9)):  # beside the doors, not in them
         torch_prefab_entities(doc, (x, 0, z))
 
     for name, position in (("WP_1", (-10, 0, 8)), ("WP_2", (10, 0, 8)), ("WP_3", (6, 0, -4)), ("WP_4", (-6, 0, -9))):
@@ -498,6 +534,45 @@ def build_audio():
     n = noise(10)
     write_wav("Thud.wav", [(n() * 0.3 * math.exp(-i / (RATE * 0.02)) + 0.7 * math.sin(2 * math.pi * 95 * i / RATE)
                             * math.exp(-i / (RATE * 0.09))) for i in range(int(RATE * 0.35))])
+
+    # A knife on stone: bright, short partials.
+    n = noise(11)
+    write_wav("Knife.wav", [(0.3 * n() * math.exp(-i / (RATE * 0.004)) +
+                             sum(a * math.sin(2 * math.pi * f * i / RATE) for f, a in ((2310, 0.3), (3470, 0.2), (5120, 0.12)))
+                             * math.exp(-i / (RATE * 0.06))) for i in range(int(RATE * 0.4))])
+    # Thunder: a sharp crack, then a long low rumble that swells and fades.
+    n = noise(12)
+    value, samples = 0.0, []
+    length = int(RATE * 4.5)
+    for i in range(length):
+        value += (n() - value) * 0.015
+        t = i / RATE
+        rumble = value * 4.0 * min(t / 0.4, 1.0) * math.exp(-t / 1.6) * (0.7 + 0.3 * math.sin(2 * math.pi * 1.3 * t))
+        samples.append(rumble + n() * 0.6 * math.exp(-t / 0.05))
+    write_wav("Thunder.wav", samples)
+    # Rain: dense soft noise with sparse droplets; loops seamlessly.
+    n = noise(13)
+    drops = random.Random(14)
+    value, samples = 0.0, []
+    length = RATE * 4
+    for i in range(length):
+        value += (n() - value) * 0.25
+        drop = 0.4 * n() if drops.random() < 0.002 else 0.0
+        samples.append((value * 0.35 + drop) * min(1.0, i / 2000, (length - i) / 2000))
+    write_wav("Rain.wav", samples)
+    # A dog howling in the distance (synthetic: a gliding tone with vibrato; real recordings would be better).
+    length = int(RATE * 2.4)
+    phase, samples = 0.0, []
+    for i in range(length):
+        t = i / length
+        frequency = 420 + 260 * math.sin(math.pi * min(t * 1.4, 1.0)) + 12 * math.sin(2 * math.pi * 5.5 * i / RATE)
+        phase += 2 * math.pi * frequency / RATE
+        samples.append(0.35 * (math.sin(phase) + 0.3 * math.sin(2 * phase)) * math.sin(math.pi * t) ** 0.6)
+    write_wav("Howl.wav", samples)
+    # "Hmm, just the weather": a short low hum.
+    length = int(RATE * 0.6)
+    write_wav("Mumble.wav", [0.4 * (math.sin(2 * math.pi * 140 * i / RATE) + 0.4 * math.sin(2 * math.pi * 280 * i / RATE))
+                             * math.sin(math.pi * i / length) * (0.8 + 0.2 * math.sin(2 * math.pi * 6 * i / RATE)) for i in range(length)])
 
     # Wind: low-passed noise with a slow swell; loops seamlessly (starts and ends near zero).
     n = noise(5)

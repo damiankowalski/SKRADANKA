@@ -318,6 +318,9 @@ namespace Penumbra {
 		float AlarmLevel = 9.0f;
 		// After a search the NPC stays more alert (hears further, notices faster) for this long.
 		float AlertMemoryTime = 120.0f;
+		// Levels added to what he is reacting to when a distraction (thunder, dogs...) offers an
+		// innocent explanation: a diligent guard is harder to talk out of a search.
+		float Diligence = 0.0f;
 
 		// Runtime only
 		float RuntimeAdaptation = 0.05f; // L_a

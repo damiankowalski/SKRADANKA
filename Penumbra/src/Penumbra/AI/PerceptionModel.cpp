@@ -111,6 +111,13 @@ namespace Penumbra::PerceptionModel {
 		return AwarenessState::Suspicious;
 	}
 
+	bool DistractionWins(float distraction, float reaction, float diligence, float spread, float roll)
+	{
+		if (distraction <= 0.0f || reaction <= 0.0f)
+			return false;
+		return distraction + std::max(spread, 0.0f) * std::clamp(roll, -1.0f, 1.0f) > reaction + diligence;
+	}
+
 	float LightGem(float luminance)
 	{
 		constexpr float Dark = 0.002f;  // below: pitch black
