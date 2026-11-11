@@ -19,6 +19,10 @@ namespace Penumbra {
 		std::optional<std::filesystem::path> ScreenshotPath; // saved before exiting
 		uint32_t Width = 1280;
 		uint32_t Height = 720;
+		// Random seed for every scene played. Without one, headless or fixed-timestep runs use the
+		// scene's fixed default (reproducible) and interactive runs a new seed per scene load.
+		std::optional<uint64_t> Seed;
+		bool RandomizeSeed = false;
 	};
 
 	// Plays a project's scene: runtime simulation, rendering to the window (or offscreen when

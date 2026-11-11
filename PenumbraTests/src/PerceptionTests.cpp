@@ -410,6 +410,77 @@ TEST_SUITE("Perception")
 		lab.SceneInstance.OnRuntimeStop();
 	}
 
+	TEST_CASE("A distraction wins against a weaker reaction plus diligence, give or take luck")
+	{
+		using PerceptionModel::DistractionWins;
+		CHECK(DistractionWins(7.0f, 5.0f, 0.0f, 0.0f, 0.0f));
+		CHECK_FALSE(DistractionWins(7.0f, 8.0f, 0.0f, 0.0f, 0.0f));
+		CHECK_FALSE(DistractionWins(7.0f, 5.0f, 3.0f, 0.0f, 0.0f)); // a diligent guard keeps looking
+		CHECK(DistractionWins(7.0f, 8.0f, 0.0f, 2.0f, 1.0f));       // lucky roll
+		CHECK_FALSE(DistractionWins(7.0f, 5.0f, 0.0f, 3.0f, -1.0f)); // unlucky roll
+		CHECK_FALSE(DistractionWins(7.0f, 0.0f, 0.0f, 0.0f, 0.0f));  // nothing to explain
+		CHECK_FALSE(DistractionWins(0.0f, 2.0f, 0.0f, 0.0f, 0.0f));
+	}
+
+	TEST_CASE("Thunder explains away what guards heard, never what they saw")
+	{
+		StealthLab lab;
+		lab.Player.Transform().Translation = { 0.0f, 0.0f, 40.0f };
+		Entity second = lab.SceneInstance.CreateEntity("SecondGuard");
+		second.Transform().Translation = { 20.0f, 0.0f, 0.0f };
+		second.AddComponent<PerceptionComponent>();
+		lab.Start();
+		PerceptionSystem& perception = *lab.SceneInstance.GetPerceptionSystem();
+
+		// Heard something of strength 5: thunder of strength 7 wins, he goes back to his route.
+		perception.Notify(lab.Guard, { 0.0f, 0.0f, -3.0f }, 5.0f, StimulusKind::Heard, "Crack");
+		perception.Notify(second, { 20.0f, 0.0f, -3.0f }, 8.5f, StimulusKind::Heard, "Clang");
+		lab.Perception().RuntimeAlertness = 0.4f;
+		std::vector<Entity> calmed = perception.ExplainAway(7.0f, "Thunder");
+		REQUIRE(calmed.size() == 1); // the second one heard something too loud to dismiss
+		CHECK(calmed[0] == lab.Guard);
+		CHECK(lab.Perception().RuntimeState == AwarenessState::Unaware);
+		CHECK(lab.Perception().RuntimeAlertness == 0.4f); // he stays wary
+		CHECK(second.GetComponent<PerceptionComponent>().RuntimeState == AwarenessState::Searching);
+
+		// Only within the radius when a centre is given.
+		perception.Notify(lab.Guard, { 0.0f, 0.0f, -3.0f }, 5.0f, StimulusKind::Heard, "Crack");
+		CHECK(perception.ExplainAway(9.5f, "Dogs", glm::vec3(20.0f, 0.0f, 0.0f), 5.0f).size() == 1);
+		CHECK(lab.Perception().RuntimeState != AwarenessState::Unaware);
+
+		// A diligent guard is not talked out of it.
+		lab.Perception().Diligence = 3.0f;
+		CHECK(perception.ExplainAway(7.0f, "Thunder").empty());
+		lab.Perception().Diligence = 0.0f;
+
+		// What he saw stays seen.
+		PerceptionSystem::Calm(lab.Perception());
+		perception.Notify(lab.Guard, { 0.0f, 0.0f, -3.0f }, 4.0f, StimulusKind::Seen, "Seen");
+		CHECK(perception.ExplainAway(10.0f, "Thunder").empty());
+
+		// With a spread the outcome is a roll from the scene's seeded generator: same seed, same story.
+		auto rolls = [](uint64_t seed) {
+			StealthLab run;
+			run.Player.Transform().Translation = { 0.0f, 0.0f, 40.0f };
+			run.SceneInstance.SetRandomSeed(seed);
+			run.Start();
+			std::string outcome;
+			for (int i = 0; i < 16; ++i)
+			{
+				run.SceneInstance.GetPerceptionSystem()->Notify(run.Guard, { 0.0f, 0.0f, -3.0f }, 6.0f, StimulusKind::Heard, "Crack");
+				outcome += run.SceneInstance.GetPerceptionSystem()->ExplainAway(6.0f, "Thunder", std::nullopt, 0.0f, 3.0f).empty() ? '0' : '1';
+				PerceptionSystem::Calm(run.Perception());
+			}
+			run.SceneInstance.OnRuntimeStop();
+			return outcome;
+		};
+		const std::string first = rolls(11);
+		CHECK(first == rolls(11));
+		CHECK(first.find('0') != std::string::npos); // even odds: both outcomes happen
+		CHECK(first.find('1') != std::string::npos);
+		lab.SceneInstance.OnRuntimeStop();
+	}
+
 	TEST_CASE("Targets behind the guard or out of range are never seen")
 	{
 		StealthLab lab;

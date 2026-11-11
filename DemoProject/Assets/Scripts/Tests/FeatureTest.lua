@@ -191,6 +191,10 @@ local function run(self)
     test.equal(ai.state(guard), "Alarmed", "a strong report alarms")
     test.check(ai.alertness(guard) > 0.9, "ai.alertness after an alarm")
     ai.calm(guard)
+    ai.notify(guard, vec3(3, 0, 3), 5, "Creak")
+    local excused = ai.explain_away(7, "Thunder", { spread = 0 })
+    test.check(#excused == 1 and excused[1] == guard and ai.state(guard) == "Unaware", "ai.explain_away")
+    test.equal(#ai.explain_away(7, "Thunder", { center = vec3(0, 0, 0), radius = 5 }), 0, "nothing left to explain")
 
     -- ---------------------------------------------------------------- navigation
     test.check(nav.polygon_count() > 0, "nav.polygon_count (baked)")

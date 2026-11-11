@@ -3338,6 +3338,219 @@
       "ID": "1068",
       "Components": {
         "Tag": {
+          "Tag": "Cook"
+        },
+        "Transform": {
+          "Translation": [
+            13,
+            0.05,
+            -14.6
+          ],
+          "Rotation": [
+            0,
+            180,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "CapsuleCollider": {
+          "Radius": 0.3,
+          "HalfHeight": 0.6,
+          "Offset": [
+            0,
+            0.9,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1069",
+      "Components": {
+        "Tag": {
+          "Tag": "Model"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            0,
+            180,
+            0
+          ],
+          "Scale": [
+            0.8,
+            0.8,
+            0.8
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Characters/Knight.glb",
+          "HiddenNodes": [
+            "1H_Sword_Offhand",
+            "1H_Sword",
+            "2H_Sword",
+            "Badge_Shield",
+            "Round_Shield",
+            "Rectangle_Shield",
+            "Spike_Shield",
+            "Knight_Helmet",
+            "Knight_Cape"
+          ]
+        },
+        "Animator": {
+          "Clip": "Idle",
+          "BlendDuration": 0.2
+        }
+      },
+      "Parent": "1068"
+    },
+    {
+      "ID": "1070",
+      "Components": {
+        "Tag": {
+          "Tag": "KitchenZone"
+        },
+        "Transform": {
+          "Translation": [
+            10,
+            0,
+            -12
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Script": {
+          "Script": "Scripts/World/EventZone.lua",
+          "Properties": {
+            "set": "Kitchen",
+            "radius": 14.0,
+            "actor": "Cook"
+          }
+        }
+      }
+    },
+    {
+      "ID": "1071",
+      "Components": {
+        "Tag": {
+          "Tag": "Lightning"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            -60,
+            30,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "DirectionalLight": {
+          "Color": [
+            0.75,
+            0.82,
+            1.0
+          ],
+          "Intensity": 0.0,
+          "CastShadows": true,
+          "Enabled": false
+        }
+      }
+    },
+    {
+      "ID": "1072",
+      "Components": {
+        "Tag": {
+          "Tag": "Rain"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "AudioSource": {
+          "Clip": "Audio/Rain.wav",
+          "Loop": true,
+          "Spatial": false,
+          "Volume": 0.35
+        }
+      }
+    },
+    {
+      "ID": "1073",
+      "Components": {
+        "Tag": {
+          "Tag": "World"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Script": {
+          "Script": "Scripts/World/WorldEvents.lua",
+          "Properties": {
+            "windows": "Window",
+            "dogs_position": [
+              0,
+              1,
+              28
+            ]
+          }
+        }
+      }
+    },
+    {
+      "ID": "1074",
+      "Components": {
+        "Tag": {
           "Tag": "Gate"
         },
         "Transform": {
@@ -3374,7 +3587,7 @@
       }
     },
     {
-      "ID": "1069",
+      "ID": "1075",
       "Components": {
         "Tag": {
           "Tag": "GateArch"
@@ -3426,7 +3639,7 @@
       }
     },
     {
-      "ID": "1070",
+      "ID": "1076",
       "Components": {
         "Tag": {
           "Tag": "Player"
@@ -3462,7 +3675,7 @@
       }
     },
     {
-      "ID": "1071",
+      "ID": "1077",
       "Components": {
         "Tag": {
           "Tag": "Model"
@@ -3498,10 +3711,10 @@
           "BlendDuration": 0.2
         }
       },
-      "Parent": "1070"
+      "Parent": "1076"
     },
     {
-      "ID": "1072",
+      "ID": "1078",
       "Components": {
         "Tag": {
           "Tag": "Ambience"

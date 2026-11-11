@@ -51,6 +51,10 @@ namespace Penumbra {
 		lua["package"]["cpath"] = "";
 
 		m_Impl->BindAPI();
+
+		// Reproducible randomness: math.random starts from the scene's seed, not from the clock.
+		sol::protected_function randomSeed = lua["math"]["randomseed"];
+		randomSeed(static_cast<lua_Integer>(scene.GetRandomSeed() & 0x7FFFFFFFFFFFFFFFull));
 	}
 
 	ScriptEngine::~ScriptEngine()

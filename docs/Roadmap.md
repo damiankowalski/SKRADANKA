@@ -12,31 +12,13 @@ noisy physical objects, reactions that last in proportion to the stimulus, searc
 the `AILab` scene and the noise probe. Covers #3, #4, #5, #15, #16 and #18. The noisemaker arrow (#10) was
 left out on purpose.
 
+**Area and world events**: the scene's random seed (`--seed`), event zones (the cook in the kitchen
+drops a knife, bangs a pot), the storm (rain, lightning that lights the player and dazzles guards,
+thunder that masks footsteps), dogs, and the competition between a distraction and a guard's reaction
+(`ai.explain_away`, `Diligence`). Out of scope, decided together: rain visuals (needs a particle system,
+M-L), realistic voices and howls (need CC0 sound packs), NPC daily schedules (L).
+
 ## Next
-
-### Area events and world events (approved, ~3 sessions, after A)
-
-Things that happen without the player and compete with him for the guards' attention. They use the same
-pipeline as the player's noises (`ai.emit_noise`, `ai.notify`, `Environment.AmbientNoise`), so guards react
-to them exactly as they would to the player.
-
-* **Area events** (M, ~1): a zone of the map (a trigger volume) holds a list of events with weights, a
-  chance per minute and a cooldown, active while the player is near. Example: near the kitchen the cook
-  drops a knife (loudness 5) and a guard walks over to check. A cook that stands at his station and plays
-  an animation is about 0.5 session more. Randomness comes from a seeded generator so headless tests stay
-  deterministic.
-* **World events** (M, ~1.5): scene-wide events on a schedule or by chance; a storm is the placeholder.
-  * *Masking*: thunder raises `AmbientNoise` for a few seconds, so the player's footsteps disappear in it.
-  * *Lightning*: a flash of light through the windows briefly lights the player (the light gem jumps) and
-    dazzles guards through eye adaptation. The perception model already reads live lights, so this comes
-    almost for free.
-  * *Competition*: a world event has a strength. If it beats the evidence a guard is acting on (a noise
-    he heard), he gives up ("just the storm") and goes back to his route; if he saw the player, he keeps
-    searching. The comparison is deterministic, with an optional random spread.
-  * Dogs howling outside is a sound only (no dog NPCs).
-* **Out of scope for now**, decided together: rain needs a particle system (separate package, M-L);
-  realistic voices and dog howls need CC0 sound packs (downloads need approval) because procedural audio
-  sounds artificial; NPC daily schedules (a cook walking between stations) are a large system of their own (L).
 
 ### B. Thief's workshop (~5.5 sessions)
 

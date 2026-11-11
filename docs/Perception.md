@@ -83,6 +83,32 @@ and search the area, darkest spots first; Alarmed — chase while the player is 
 activity ends when the reaction does and the guard walks back to his route (`AILab` scene, end-to-end test
 "The AI lab guard patrols…").
 
+## Events and distractions
+
+Things happen without the player and compete with him for the guards' attention (`Scripts/World/`, odds
+and strengths in `Scripts/World/Events.lua`).
+
+* **Area events** (`EventZone.lua`): while the player is near a zone, its events fire by chance (per minute,
+  with cooldowns) from the zone's actor: in the kitchen the cook drops a knife (loudness 5), bangs a pot (6),
+  cracks something (3). They are ordinary noises, so a guard reacts exactly as he would to the player.
+* **World events** (`WorldEvents.lua`): a storm (the placeholder for any weather) rains
+  (`Environment.AmbientNoise` 2: the quietest steps vanish), and each strike flashes the `Lightning` light
+  and the windows — the player is lit up for a moment and the guards' eyes adapt upwards (dazzled) — then
+  thunders: `AmbientNoise` 7 for 3 s masks almost every sound. Dogs howl beyond the walls.
+* **Competition** — thunder and dogs also offer an innocent explanation: `ai.explain_away(strength, cause)`.
+  For every guard reacting to something *heard or reported* (never *seen*) the distraction wins when
+
+  ```
+  strength + spread · roll  >  remaining reaction strength + Diligence        (roll in [-1, 1])
+  ```
+
+  and he puts it down to the weather (`ai.calm`: back to his route, alert memory kept). Thunder is 6 ± 2: a
+  creak heard at 3.6 is always dismissed, a bucket heard at 8 never; in between it is luck. `Diligence` on a
+  guard makes him harder to talk out of a search.
+* **Randomness** comes from the scene's seed: Lua's `math.random` and engine rolls start from it when the
+  game starts. It is fixed by default (tests, headless runs, `--fixed-timestep`); the interactive runtime and
+  the editor's play mode use a new seed for every scene load; `PenumbraRuntime --seed N` replays one.
+
 ## Light gem (player HUD)
 
 `PerceptionTarget.LightLevel` is the luminance of the body from the light it stands in, averaged over
@@ -134,6 +160,7 @@ of what it looks at (view probes plus the visible target samples).
 | `ReactionDuration` | seconds a strength-10 stimulus lasts | 90 |
 | `InvestigateLevel` / `SearchLevel` / `AlarmLevel` | state thresholds (strength) | 4 / 7 / 9 |
 | `AlertMemoryTime` | seconds alert memory lasts once calm | 120 |
+| `Diligence` | levels added to his reaction against distractions | 0 |
 | `FieldOfView`, `PeripheralFactor`, `ViewDistance`, `EyeHeight` | cone | 120°, 0.2, 25 m, 1.65 m |
 
 ## Swapping the brightness source

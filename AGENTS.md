@@ -77,8 +77,9 @@ build\debug\bin\PenumbraTests.exe --trace -tc="*torch*"     :: one case with eng
 6. **Tests are mandatory.** Every behaviour change ships with a doctest test in `PenumbraTests` (unit
    test for pure logic, scene-level integration test for systems). Every new Lua API function is also
    called from `DemoProject/Assets/Scripts/Tests/FeatureTest.lua`.
-7. **Determinism for automation.** Headless runs use fixed timesteps (`--fixed-timestep`) so scripted
-   tests are reproducible.
+7. **Determinism for automation.** Headless runs use fixed timesteps (`--fixed-timestep`) and the scene's
+   fixed random seed (`Scene::SetRandomSeed`, `--seed`; Lua `math.random` follows it) so scripted tests are
+   reproducible. Engine-side rolls use `Scene::NextRandom`, never an unseeded generator.
 
 ## Workflow
 

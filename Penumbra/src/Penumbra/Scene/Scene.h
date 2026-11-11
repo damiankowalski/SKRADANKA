@@ -84,6 +84,15 @@ namespace Penumbra {
 		void Step(int frames = 1) { m_StepFrames = frames; }
 
 		float GetTime() const { return m_Time; }
+
+		// Randomness. Lua's math.random and engine-side rolls (NextRandom) start from this seed when
+		// the game starts. It is fixed by default so tests and headless runs are reproducible; the
+		// interactive runtime and the editor's play mode pick a new one each time (see --seed).
+		static constexpr uint64_t DefaultRandomSeed = 0x5EED;
+		void SetRandomSeed(uint64_t seed) { m_RandomSeed = seed; }
+		uint64_t GetRandomSeed() const { return m_RandomSeed; }
+		// Deterministic value in [0, 1) from the scene's generator.
+		float NextRandom();
 		uint64_t GetFrameCount() const { return m_FrameCount; }
 
 		void OnViewportResize(uint32_t width, uint32_t height);
@@ -151,6 +160,8 @@ namespace Penumbra {
 		int m_StepFrames = 0;
 		float m_Time = 0.0f;
 		uint64_t m_FrameCount = 0;
+		uint64_t m_RandomSeed = DefaultRandomSeed;
+		uint64_t m_RandomState = DefaultRandomSeed;
 		uint32_t m_ViewportWidth = 1280;
 		uint32_t m_ViewportHeight = 720;
 

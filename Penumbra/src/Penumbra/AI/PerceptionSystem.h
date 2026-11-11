@@ -64,6 +64,13 @@ namespace Penumbra {
 		// Ends any reaction and clears suspicion (alert memory is kept).
 		static void Calm(PerceptionComponent& perception);
 
+		// A distraction offers an innocent explanation ("just the storm") to every NPC reacting to
+		// something it heard or was told (never to what it saw), optionally only within radius of
+		// a centre. Those for whom it wins (PerceptionModel::DistractionWins, rolls from the scene's
+		// random generator) calm down. Returns them.
+		std::vector<Entity> ExplainAway(float strength, std::string_view cause, std::optional<glm::vec3> center = std::nullopt,
+			float radius = 0.0f, float spread = 0.0f);
+
 		// Full evaluation of what observer sees of target right now (does not modify state).
 		VisibilityResult ComputeVisibility(Entity observer, Entity target);
 		// Brightness at a point as perceived by NPC eyes (omnidirectional).

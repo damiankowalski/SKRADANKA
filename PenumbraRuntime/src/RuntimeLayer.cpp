@@ -6,6 +6,8 @@
 #include "Penumbra/Scene/SceneSerializer.h"
 #include "Penumbra/Scripting/ScriptEngine.h"
 
+#include <chrono>
+
 namespace Penumbra {
 
 	RuntimeLayer::RuntimeLayer(RuntimeOptions options)
@@ -63,8 +65,12 @@ namespace Penumbra {
 			m_Scene->OnViewportResize(m_Renderer->GetViewportWidth(), m_Renderer->GetViewportHeight());
 		else
 			m_Scene->OnViewportResize(m_Options.Width, m_Options.Height);
+		if (m_Options.Seed)
+			m_Scene->SetRandomSeed(*m_Options.Seed);
+		else if (m_Options.RandomizeSeed)
+			m_Scene->SetRandomSeed(static_cast<uint64_t>(std::chrono::steady_clock::now().time_since_epoch().count()));
 		m_Scene->OnRuntimeStart();
-		PN_CORE_INFO("Playing scene '{}'", path);
+		PN_CORE_INFO("Playing scene '{}' (seed {})", path, m_Scene->GetRandomSeed());
 		return true;
 	}
 

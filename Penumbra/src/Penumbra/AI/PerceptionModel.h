@@ -78,6 +78,11 @@ namespace Penumbra::PerceptionModel {
 	float ReactionStrength(float timeLeft, float fullDuration);
 	AwarenessState StateFromStrength(float strength, float investigateLevel, float searchLevel, float alarmLevel);
 
+	// A distraction of the given strength (thunder, dogs, a storm) offers an innocent explanation
+	// for what an NPC is reacting to. It wins when it is stronger than the remaining reaction plus
+	// the NPC's diligence; roll in [-1, 1] times spread adds luck either way.
+	bool DistractionWins(float distraction, float reaction, float diligence, float spread, float roll);
+
 	// Maps the luminance of the player's body to the 0..1 HUD light gem on a logarithmic scale
 	// (the eye's response): ~0.15 in near darkness, ~0.5 in dim torchlight, 1 in strong light.
 	float LightGem(float luminance);

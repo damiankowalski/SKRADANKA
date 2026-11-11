@@ -636,18 +636,25 @@ namespace Penumbra {
 			const JPH::Body& body = lock.GetBody();
 			if (!body.IsStatic() || body.IsSensor())
 				continue;
-			const JPH::TransformedShape shape = body.GetTransformedShape();
-			JPH::Shape::GetTrianglesContext context;
-			shape.GetTrianglesStart(context, JPH::AABox::sBiggest(), JPH::RVec3::sZero());
-			for (;;)
+			// Decorated (offset) and compound shapes cannot list triangles themselves: split the body
+			// into its leaf shapes (boxes, spheres, capsules, meshes) with their world transforms.
+			JPH::AllHitCollisionCollector<JPH::TransformedShapeCollector> leaves;
+			body.GetTransformedShape().CollectTransformedShapes(JPH::AABox::sBiggest(), leaves);
+			for (const JPH::TransformedShape& shape : leaves.mHits)
 			{
-				const int count = shape.GetTrianglesNext(context, BatchSize, batch.data());
-				if (count <= 0)
-					break;
-				for (int i = 0; i < count * 3; ++i)
+				JPH::Shape::GetTrianglesContext context;
+				shape.GetTrianglesStart(context, JPH::AABox::sBiggest(), JPH::RVec3::sZero());
+				for (;;)
 				{
-					indices.push_back(static_cast<uint32_t>(vertices.size()));
-					vertices.emplace_back(batch[static_cast<size_t>(i)].x, batch[static_cast<size_t>(i)].y, batch[static_cast<size_t>(i)].z);
+					const int count = shape.GetTrianglesNext(context, BatchSize, batch.data());
+					if (count <= 0)
+						break;
+					for (int i = 0; i < count * 3; ++i)
+					{
+						const JPH::Float3& vertex = batch[static_cast<size_t>(i)];
+						indices.push_back(static_cast<uint32_t>(vertices.size()));
+						vertices.emplace_back(vertex.x, vertex.y, vertex.z);
+					}
 				}
 			}
 		}
