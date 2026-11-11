@@ -60,7 +60,12 @@ namespace Penumbra {
 		std::vector<UUID> ignore;
 		CollectHierarchy(observer, ignore);
 		auto filter = [&](UUID entity) { return entity != source && IsSightBlocker(entity, ignore); };
-		if (!physics->Raycast(position, toEar / distance, distance, filter))
+		// Noises are often made on a surface (footsteps, impacts): start the occlusion test a
+		// little above it so the floor itself does not count as a wall.
+		const glm::vec3 origin = position + glm::vec3(0.0f, 0.15f, 0.0f);
+		const glm::vec3 toEarLifted = ear - origin;
+		const float liftedDistance = glm::length(toEarLifted);
+		if (liftedDistance <= Math::Epsilon || !physics->Raycast(origin, toEarLifted / liftedDistance, liftedDistance, filter))
 			return direct;
 
 		// Occluded: through the wall (heavily muffled) or around it along walkable space, which

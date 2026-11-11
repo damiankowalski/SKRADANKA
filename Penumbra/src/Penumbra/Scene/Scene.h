@@ -127,6 +127,8 @@ namespace Penumbra {
 		void DestroyEntityImmediate(Entity entity);
 		void FlushPendingDestroys();
 		void UpdateSmokeVolumes(Timestep ts);
+		// Dynamic objects with a Surface ImpactLoudness make a noise (and sound) when they hit something.
+		void EmitImpactNoise(UUID object, UUID other, const glm::vec3& point, float speed);
 		void RunRuntimeFrame(Timestep ts);
 
 	private:

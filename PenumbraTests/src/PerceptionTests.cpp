@@ -385,6 +385,31 @@ TEST_SUITE("Perception")
 		lab.SceneInstance.OnRuntimeStop();
 	}
 
+	TEST_CASE("Objects hitting the floor make noise by speed, weight class and surface")
+	{
+		CHECK(PerceptionModel::ImpactLoudness(9.0f, 0.5f, 0.0f) == 0.0f); // resting contact
+		CHECK(Test::Near(PerceptionModel::ImpactLoudness(9.0f, 4.0f, 0.0f), 9.0f));
+		CHECK(Test::Near(PerceptionModel::ImpactLoudness(9.0f, 2.0f, 0.0f), 7.0f));
+		CHECK(Test::Near(PerceptionModel::ImpactLoudness(9.0f, 4.0f, -3.0f), 6.0f)); // on carpet
+		CHECK(PerceptionModel::ImpactLoudness(9.0f, 64.0f, 2.0f) == 10.0f);
+
+		// A metal bucket dropped 1.2 m in front of the guard: he hears it and goes to look.
+		StealthLab lab;
+		lab.Player.Transform().Translation = { 0.0f, 0.0f, 40.0f };
+		Entity bucket = Test::CreateBox(lab.SceneInstance, "Bucket", { 0.0f, 1.2f, -3.0f }, { 0.15f, 0.2f, 0.15f });
+		bucket.AddComponent<RigidBodyComponent>().Type = RigidBodyType::Dynamic;
+		auto& surface = bucket.AddComponent<SurfaceComponent>();
+		surface.Material = "Metal";
+		surface.ImpactLoudness = 9.0f;
+		lab.Start();
+		Test::Simulate(lab.SceneInstance, 1.0f);
+		CHECK(lab.Perception().RuntimeStimulusCause == "Impact.Metal");
+		CHECK(lab.Perception().RuntimeStimulusKind == StimulusKind::Heard);
+		CHECK(static_cast<int>(lab.Perception().RuntimeState) >= static_cast<int>(AwarenessState::Investigating));
+		CHECK(Test::Near(lab.Perception().RuntimeLastStimulusPosition, { 0.0f, 0.0f, -3.0f }, 0.3f));
+		lab.SceneInstance.OnRuntimeStop();
+	}
+
 	TEST_CASE("Targets behind the guard or out of range are never seen")
 	{
 		StealthLab lab;

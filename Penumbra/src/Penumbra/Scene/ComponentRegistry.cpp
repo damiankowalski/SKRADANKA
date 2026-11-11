@@ -252,6 +252,15 @@ namespace Penumbra {
 		}
 
 		template<typename V>
+		void VisitFields(SurfaceComponent& c, V&& v)
+		{
+			v("Material", c.Material);
+			v("NoiseModifier", c.NoiseModifier);
+			v("ImpactLoudness", c.ImpactLoudness);
+			v("ImpactSound", c.ImpactSound);
+		}
+
+		template<typename V>
 		void VisitFields(NavMeshComponent& c, V&& v)
 		{
 			v("CellSize", c.CellSize);
@@ -461,6 +470,7 @@ namespace Penumbra {
 			registry.push_back(MakeInfo<FlameComponent>("Flame"));
 			registry.push_back(MakeInfo<StimSourceComponent>("StimSource"));
 			registry.push_back(MakeInfo<StimResponseComponent>("StimResponse"));
+			registry.push_back(MakeInfo<SurfaceComponent>("Surface"));
 			registry.push_back(MakeInfo<NavMeshComponent>("NavMesh"));
 			registry.push_back(MakeInfo<NavAgentComponent>("NavAgent"));
 			registry.push_back(MakeInfo<PrefabComponent>("Prefab"));

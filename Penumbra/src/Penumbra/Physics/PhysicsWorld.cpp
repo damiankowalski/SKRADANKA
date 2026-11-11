@@ -144,8 +144,11 @@ namespace Penumbra {
 				if (a == 0 || b == 0)
 					return;
 				const JPH::RVec3 point = manifold.GetWorldSpaceContactPointOn1(0);
+				// Called before the solver: the velocities are those of the moment of impact.
+				const JPH::Vec3 relative = body1.GetPointVelocity(point) - body2.GetPointVelocity(point);
+				const float speed = std::abs(relative.Dot(manifold.mWorldSpaceNormal));
 				std::scoped_lock lock(m_Mutex);
-				m_Events.push_back({ UUID(a), UUID(b), glm::vec3(point.GetX(), point.GetY(), point.GetZ()) });
+				m_Events.push_back({ UUID(a), UUID(b), glm::vec3(point.GetX(), point.GetY(), point.GetZ()), speed });
 			}
 
 			std::vector<ContactEvent> Consume()

@@ -77,6 +77,14 @@ namespace Penumbra::PerceptionModel {
 		return loudness - LevelsPerDoubling * std::log2(std::max(distance, NoiseReferenceDistance) / NoiseReferenceDistance);
 	}
 
+	float ImpactLoudness(float baseLoudness, float speed, float surfaceModifier)
+	{
+		if (baseLoudness <= 0.0f || speed < MinimumImpactSpeed)
+			return 0.0f;
+		const float loudness = baseLoudness + LevelsPerDoubling * std::log2(speed / ReferenceImpactSpeed) + surfaceModifier;
+		return std::clamp(loudness, 0.0f, 10.0f);
+	}
+
 	float ReactionDuration(float strength, float fullDuration)
 	{
 		const float s = std::clamp(strength, 0.0f, 10.0f) / 10.0f;

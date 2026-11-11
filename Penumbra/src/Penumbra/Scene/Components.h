@@ -336,6 +336,20 @@ namespace Penumbra {
 		UUID RuntimeLastTarget = UUID::Invalid;
 	};
 
+	// What a floor or an object is made of, for the noises made on it and with it. Footsteps
+	// (scripted, see Scripts/AI/Noises.lua) and impacts add NoiseModifier of the surface they
+	// land on; dynamic objects with an ImpactLoudness make noise when they hit something.
+	struct SurfaceComponent
+	{
+		std::string Material = "Stone"; // reported with the noise: "Footstep.Metal", "Impact.Wood"...
+		float NoiseModifier = 0.0f;     // loudness levels added on this surface (carpet -2, moss -3, metal grate +2.5)
+		float ImpactLoudness = 0.0f;    // loudness (0-10) of this object hitting a neutral floor at 4 m/s; 0 = silent
+		std::string ImpactSound;        // optional clip played on impacts
+
+		// Runtime only
+		float RuntimeLastImpactTime = -1.0f;
+	};
+
 	// Something NPCs can see: the player. Silhouette points are local offsets sampled
 	// as the "control points" of the silhouette (head, shoulders, sides, centre...).
 	struct PerceptionTargetComponent
@@ -508,6 +522,6 @@ namespace Penumbra {
 		DirectionalLightComponent, PointLightComponent, SpotLightComponent, EnvironmentComponent, RigidBodyComponent, BoxColliderComponent,
 		SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent, CharacterControllerComponent, ScriptComponent,
 		AudioSourceComponent, AudioListenerComponent, PerceptionComponent, PerceptionTargetComponent, SmokeVolumeComponent, FlameComponent,
-		StimSourceComponent, StimResponseComponent, NavMeshComponent, NavAgentComponent, PrefabComponent>;
+		StimSourceComponent, StimResponseComponent, NavMeshComponent, NavAgentComponent, SurfaceComponent, PrefabComponent>;
 
 }

@@ -62,6 +62,14 @@ namespace Penumbra::PerceptionModel {
 	// Loudness left after travelling the distance (<= 0: inaudible).
 	float HeardLevel(float loudness, float distance);
 
+	constexpr float ReferenceImpactSpeed = 4.0f; // m/s (a drop from about 0.8 m)
+	constexpr float MinimumImpactSpeed = 1.0f;   // slower contacts (resting, sliding) are silent
+
+	// Loudness of an object hitting something: its ImpactLoudness at the reference speed, two
+	// levels more per doubling of speed, plus the modifier of the surface it hits. 0 below the
+	// minimum speed.
+	float ImpactLoudness(float baseLoudness, float speed, float surfaceModifier);
+
 	// --- Reactions --------------------------------------------------------------------------
 
 	// Seconds a stimulus of strength s (0-10) keeps an NPC busy: fullDuration * (s/10)^2.
