@@ -226,3 +226,83 @@ TEST_SUITE("Navigation")
 		scene.OnRuntimeStop();
 	}
 }
+
+#include "Penumbra/Project/Project.h"
+#include "Penumbra/Scene/SceneSerializer.h"
+#include "Penumbra/Scripting/ScriptEngine.h"
+
+TEST_SUITE("Navigation")
+{
+	// End to end on the real demo content: Scripts/Guard.lua on the AILab level.
+	TEST_CASE("The AI lab guard patrols, checks a noise for as long as it was loud, then goes back to his route")
+	{
+		std::string error;
+		REQUIRE_MESSAGE(Project::Load(std::filesystem::path(PENUMBRA_DEMO_PROJECT_DIR) / "project.json", error), error);
+		{
+			Scene scene;
+			scene.SetAudioDeviceEnabled(false);
+			REQUIRE_MESSAGE(SceneSerializer::Deserialize(scene, Project::GetAssetDirectory() / "Scenes/AILab.pscene", error), error);
+			// Nobody to see: only what the guard hears matters here.
+			scene.FindEntityByName("Player").GetComponent<PerceptionTargetComponent>().SilhouettePoints.clear();
+			scene.OnRuntimeStart();
+
+			Entity guard = scene.FindEntityByName("Guard");
+			REQUIRE(guard);
+			const auto& perception = guard.GetComponent<PerceptionComponent>();
+			const float dt = 1.0f / 60.0f;
+			float still = 0.0f, longestStill = 0.0f;
+			glm::vec3 previous = scene.GetWorldPosition(guard);
+			auto step = [&](float seconds) {
+				for (float t = 0.0f; t < seconds; t += dt)
+				{
+					scene.OnUpdateRuntime(Timestep(dt));
+					const glm::vec3 position = scene.GetWorldPosition(guard);
+					still = glm::distance(position, previous) < 0.1f * dt ? still + dt : 0.0f;
+					longestStill = std::max(longestStill, still);
+					previous = position;
+				}
+			};
+
+			// Patrol: he walks the route.
+			const glm::vec3 start = scene.GetWorldPosition(guard);
+			step(12.0f);
+			CHECK(perception.RuntimeState == AwarenessState::Unaware);
+			CHECK(glm::distance(start, scene.GetWorldPosition(guard)) > 5.0f);
+
+			// A loud clang a few metres away: he goes to look.
+			const glm::vec3 guardPosition = scene.GetWorldPosition(guard);
+			const std::optional<glm::vec3> noise = scene.GetNavigationSystem()->RandomPoint(guardPosition, 6.0f);
+			REQUIRE(noise.has_value());
+			scene.GetPerceptionSystem()->EmitNoise(*noise + glm::vec3(0.0f, 0.1f, 0.0f), 7.0f, UUID::Invalid, "Clang");
+			step(0.1f);
+			const float strength = perception.RuntimeReactionStrength;
+			CHECK(strength > 3.0f);
+			CHECK(perception.RuntimeStimulusCause == "Clang");
+			float closest = glm::distance(scene.GetWorldPosition(guard), *noise);
+			float busy = 0.0f;
+			while (perception.RuntimeState != AwarenessState::Unaware && busy < 120.0f)
+			{
+				step(0.5f);
+				busy += 0.5f;
+				closest = std::min(closest, glm::distance(scene.GetWorldPosition(guard), *noise));
+			}
+			CHECK(closest < 1.5f); // he went there
+			// Busy for as long as the noise was strong: 90 s * (s/10)^2.
+			const float expected = 90.0f * (strength / 10.0f) * (strength / 10.0f);
+			CHECK(busy > expected - 1.0f);
+			CHECK(busy < expected + 1.0f);
+
+			// Then back to the route, never standing around for long at any point.
+			const glm::vec3 calm = scene.GetWorldPosition(guard);
+			step(10.0f);
+			CHECK(perception.RuntimeState == AwarenessState::Unaware);
+			CHECK(glm::distance(calm, scene.GetWorldPosition(guard)) > 3.0f);
+			MESSAGE("reaction strength " << strength << ", busy " << busy << " s (expected " << expected << "), longest still " << longestStill
+										 << " s");
+			CHECK(longestStill < 8.0f);
+			CHECK(scene.GetScriptEngine()->GetErrors().empty()); // guard, player (footsteps, landing) and HUD scripts
+			scene.OnRuntimeStop();
+		}
+		Project::Unload();
+	}
+}

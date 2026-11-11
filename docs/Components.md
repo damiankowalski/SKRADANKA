@@ -11,13 +11,16 @@ Fields prefixed `Runtime` in C++ are read-only state, visible through `entity.ge
 | Mesh, Material | `builtin:cube/sphere/plane/capsule/cylinder` or a glTF path; `HiddenNodes` lists source-file node names not to draw (unused weapons). Material overrides all mesh materials (PBR, emission, textures, translucency). |
 | Animator | Plays the skeletal clips of a skinned/animated glTF on the same entity: `Clip`, `Speed`, `Loop`, `Playing`, `BlendDuration` (crossfade seconds when `Clip` changes); runtime: `CurrentClip`, `Time`, `Blend`, `Finished`. Driven from Lua with `anim.*`. |
 | DirectionalLight, PointLight, SpotLight | Lights; `CastShadows`, `Flicker` (torches), `Enabled`. |
-| Environment | HDRI map, ambient, exposure, fog (also the perception atmosphere), SSAO, bloom. |
+| Environment | HDRI map, ambient, exposure, fog (also the perception atmosphere), SSAO, bloom, `AmbientNoise` (0-10 background noise that masks quiet sounds for NPCs). |
 | RigidBody | Static / Dynamic / Kinematic body, mass, friction, `IsTrigger`, `ContinuousCollision`, `TransparentToSight`. |
 | BoxCollider, SphereCollider, CapsuleCollider, MeshCollider | Collision shapes (an entity with colliders and no RigidBody is static). |
 | CharacterController | Walking character (player, guards); driven by `character.move/jump`. |
 | Script | Lua script path + per-entity property overrides. |
-| AudioSource, AudioListener | 3D sound; `NoiseRadius` makes it audible to NPCs. |
-| Perception | NPC eyes and ears (see `Perception.md`); runtime: suspicion, state, last stimulus. |
+| AudioSource, AudioListener | 3D sound; `NoiseLoudness` (0-10) makes it audible to NPCs. |
+| Surface | What a floor or object is made of: `Material` (reported as `Footstep.<Material>` / `Impact.<Material>`), `NoiseModifier` (levels added to footsteps and impacts on it), `ImpactLoudness` + `ImpactSound` for dynamic objects that clatter when they hit something. |
+| NavMesh | Navmesh bake settings (cell size, agent radius/height/climb/slope); baked from static colliders at start. Runtime: `Polygons`, `BuildMilliseconds`. |
+| NavAgent | Walks a CharacterController along the navmesh (`nav.move_to`): `Speed`, `TurnSpeed`, `StoppingDistance`, `FaceMovement`. Runtime: `Status`, `Destination`, `RemainingDistance`, `PartialPath`. |
+| Perception | NPC eyes and ears (see `Perception.md`): vision, hearing sensitivity, reaction duration and state levels; runtime: suspicion, state, reaction strength/time, stimulus kind/cause/position, alertness. |
 | PerceptionTarget | Something NPCs can see (the player): silhouette points, reflectance; runtime: light level, exposure. |
 | Flame | Procedural animated fire (height, radius, colour, intensity, speed); doused/ignited together with lights. |
 | SmokeVolume | Sphere of smoke that hides silhouettes (and renders as smoke); optional lifetime. |

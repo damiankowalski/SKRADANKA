@@ -23,22 +23,22 @@ the status column only records what the engine already has. Costs are to be esti
 |---|---|---|---|
 | 1 | **Light gem** | HUD gem showing how lit the player is; staying in shadow is the core skill | Yes: `LightGem` (PerceptionTarget), HUD in the demo |
 | 2 | **Light-based visibility** | Guards see you depending on the light on you | Yes, extended: silhouette contrast vs background, eye adaptation, periphery, motion |
-| 3 | **Sound propagation through rooms** | Sounds travel through doorways and corridors (room/portal graph), are muffled by closed doors, reach guards around corners | Partial: distance + "through a wall halves the radius"; no room/portal paths, no doors |
-| 4 | **Surface-dependent footsteps** | Metal and tile are loud, carpet/grass/moss silent; levels designed around it | Missing (footsteps depend only on walk/run/crouch) |
-| 5 | **Movement noise levels** | Creep / walk / run, plus landing from jumps, make different noise | Partial (walk/run/crouch); no landing noise |
+| 3 | **Sound propagation through rooms** | Sounds travel through doorways and corridors (room/portal graph), are muffled by closed doors, reach guards around corners | Yes: 0-10 loudness, walls -4 levels, sound travels around corners along the navmesh (stands in for rooms/portals); no doors yet |
+| 4 | **Surface-dependent footsteps** | Metal and tile are loud, carpet/grass/moss silent; levels designed around it | Yes: `Surface` component (`NoiseModifier`), clips per material, `Scripts/AI/Noises.lua` |
+| 5 | **Movement noise levels** | Creep / walk / run, plus landing from jumps, make different noise | Yes: crouch/walk/run plus landing by fall speed; physical objects clatter (`Surface.ImpactLoudness`) |
 | 6 | **Water arrows** | Douse torches and fires; clean blood | Yes (Act/React stims) |
 | 7 | **Fire arrows** | Ignite, explode, kill | Yes (ignite torches, detonate powder kegs) |
-| 8 | **Moss arrows** | Carpet a floor with moss to walk silently | Missing (needs #4) |
+| 8 | **Moss arrows** | Carpet a floor with moss to walk silently | Missing (#4 is in place: a moss patch is a floor with `NoiseModifier` -3) |
 | 9 | **Rope arrows** | Stick into wood, climb the rope | Missing (needs climbing + material tags) |
-| 10 | **Noisemaker arrows** | Lure guards away with a noise | Easy: `ai.emit_noise` exists, needs the arrow + "investigate" behaviour |
+| 10 | **Noisemaker arrows** | Lure guards away with a noise | Easy: investigate/search behaviour exists, only the arrow is missing (deliberately skipped for now) |
 | 11 | **Gas arrows / gas mines** | Knock out groups silently | Missing (stim exists, knockout state missing) |
 | 12 | **Broadhead arrows, flash bombs, mines** | Combat tools; flash blinds AI | Partial (stims); blindness would hook into eye adaptation |
 | 13 | **Blackjack knockouts** | Non-lethal takedown from behind | Missing (AI states: unconscious/dead) |
 | 14 | **Carrying and hiding bodies** | Bodies left in the light alert other guards | Missing (AI noticing bodies = a perception target "body") |
-| 15 | **Guard alert levels** | Graded suspicion ("must have been rats…"), search, alarm, calming down | Yes: suspicion meter with Unaware/Suspicious/Searching/Alarmed and decay |
-| 16 | **Search behaviour** | Guards investigate the last known position, search nearby hiding spots, give up | Partial: walk to last stimulus; no area search / spots |
+| 15 | **Guard alert levels** | Graded suspicion ("must have been rats…"), search, alarm, calming down | Yes: reactions last in proportion to the stimulus (90 s·(s/10)²) and step down Alarmed → Searching → Investigating → Suspicious; alert memory |
+| 16 | **Search behaviour** | Guards investigate the last known position, search nearby hiding spots, give up | Yes: navmesh pathfinding; investigate the spot, search spots around it (darkest first), give up, back to the route |
 | 17 | **AI barks and communication** | Spoken lines reveal AI state; guards alert each other, servants flee to raise the alarm | Missing (audio exists; no voice system or AI-to-AI messages) |
-| 18 | **Patrols and schedules** | Predictable routes the player learns | Yes (waypoints) |
+| 18 | **Patrols and schedules** | Predictable routes the player learns | Yes (waypoints, walked along the navmesh) |
 | 19 | **Lockpicking** | Timed picking of doors and chests | Missing (no doors yet) |
 | 20 | **Doors** | Open/closed doors block sight and sound, can be locked | Missing |
 | 21 | **Loot and objectives by difficulty** | Steal enough loot; harder difficulties add objectives and a no-kill rule | Missing (Lua can implement it; no objective/inventory system) |

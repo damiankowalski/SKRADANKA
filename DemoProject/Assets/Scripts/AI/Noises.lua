@@ -23,7 +23,7 @@ Noises.footsteps = {
 }
 
 -- Landing after a jump or a fall: loudness per m/s of falling speed (a 1.3 m drop is ~5 m/s).
-Noises.landing = { per_speed = 1.0, minimum_speed = 3.0, volume = 0.6 }
+Noises.fall = { per_speed = 1.0, minimum_speed = 3.0, volume = 0.6 }
 
 -- Footstep clips by floor material (anything else uses the stone step).
 Noises.footstep_clips = {
@@ -70,12 +70,12 @@ end
 
 -- Landing with the given downward speed (m/s); returns the loudness (0 for soft landings).
 function Noises.landing(entity, fall_speed)
-    if fall_speed < Noises.landing.minimum_speed then return 0 end
+    if fall_speed < Noises.fall.minimum_speed then return 0 end
     local material, modifier = Noises.surface_under(entity)
-    local loudness = clamp(fall_speed * Noises.landing.per_speed + modifier, 0, 10)
+    local loudness = clamp(fall_speed * Noises.fall.per_speed + modifier, 0, 10)
     local feet = entity:get_position()
     ai.emit_noise(feet, loudness, entity, "Landing." .. material)
-    audio.play_at(Noises.footstep_clips[material] or "Audio/Footstep.wav", feet, Noises.landing.volume)
+    audio.play_at(Noises.footstep_clips[material] or "Audio/Footstep.wav", feet, Noises.fall.volume)
     return loudness
 end
 

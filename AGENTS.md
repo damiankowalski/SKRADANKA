@@ -15,7 +15,8 @@ contract for every human or AI agent changing this repository. Read it fully bef
 | `Penumbra/src/Penumbra/Physics` | Jolt wrapper (`PhysicsWorld`): bodies, characters, raycasts, contacts |
 | `Penumbra/src/Penumbra/Audio` | miniaudio wrapper (`AudioScene`) |
 | `Penumbra/src/Penumbra/Scripting` | Lua 5.4 + sol2: `ScriptEngine`, the whole Lua API in `ScriptBindings.cpp` |
-| `Penumbra/src/Penumbra/AI` | Silhouette-contrast perception (`PerceptionModel`, `PerceptionSystem`) |
+| `Penumbra/src/Penumbra/AI` | Silhouette-contrast perception, hearing (0-10 loudness) and reactions (`PerceptionModel`, `PerceptionSystem`) |
+| `Penumbra/src/Penumbra/Navigation` | Recast/Detour navmesh (`NavMesh`) and agent steering (`NavigationSystem`) |
 | `Penumbra/src/Penumbra/Stim` | Act/React elemental interactions (`StimSystem`) |
 | `Penumbra/src/Penumbra/Automation` | JSON command API used by the editor, CLI and AI agents; TCP command server; MCP server |
 | `PenumbraEditor` | Editor executable (ImGui, gizmos, command server) |
@@ -67,8 +68,9 @@ build\debug\bin\PenumbraTests.exe --trace -tc="*torch*"     :: one case with eng
    the automation API. See `.claude/skills/penumbra-add-component`.
 3. **Runtime state is separate.** Fields prefixed `Runtime` are never written to scene files and are
    read-only through the generic APIs.
-4. **Simulation order** (per frame, `Scene::RunRuntimeFrame`): scripts → physics (fixed 60 Hz) →
-   contacts → stims → perception → smoke → audio → animation → deferred destruction. Do not destroy entities
+4. **Simulation order** (per frame, `Scene::RunRuntimeFrame`): scripts → navigation agents → physics
+   (fixed 60 Hz) → contacts (collisions, stims, impact noise) → stims → perception → smoke → audio →
+   animation → deferred destruction. Do not destroy entities
    immediately inside systems: `Scene::DestroyEntity` defers during updates.
 5. **Shared lighting math.** Light falloff lives in `Scene/LightUtils.h` and is mirrored in
    `shaders/Lighting.hlsli`. Change both or neither — perception must agree with what is rendered.
