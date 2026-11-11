@@ -321,6 +321,8 @@ namespace Penumbra {
 		// Levels added to what he is reacting to when a distraction (thunder, dogs...) offers an
 		// innocent explanation: a diligent guard is harder to talk out of a search.
 		float Diligence = 0.0f;
+		// Strength of the reaction to finding a body (unconscious or dead NPC) in plain sight.
+		float BodyAlarm = 8.0f;
 
 		// Runtime only
 		float RuntimeAdaptation = 0.05f; // L_a
@@ -353,10 +355,31 @@ namespace Penumbra {
 		float RuntimeLastImpactTime = -1.0f;
 	};
 
-	// Something NPCs can see: the player. Silhouette points are local offsets sampled
+	enum class TargetKind : uint8_t
+	{
+		Intruder = 0, // the player: raises suspicion
+		Body          // an unconscious or dead NPC: noticed once, then searched for whoever did it
+	};
+
+	// Whether a character is up. Unconscious or dead NPCs neither see nor hear, lie where they fell
+	// and become bodies other NPCs can notice (ai.knock_out, the Knockout stim action).
+	enum class VitalState : uint8_t
+	{
+		Awake = 0,
+		Unconscious,
+		Dead
+	};
+
+	struct VitalityComponent
+	{
+		VitalState State = VitalState::Awake;
+	};
+
+	// Something NPCs can see: the player, or a body. Silhouette points are local offsets sampled
 	// as the "control points" of the silhouette (head, shoulders, sides, centre...).
 	struct PerceptionTargetComponent
 	{
+		TargetKind Kind = TargetKind::Intruder;
 		std::vector<glm::vec3> SilhouettePoints = {
 			{ 0.0f, 1.70f, 0.0f },  // head
 			{ -0.22f, 1.45f, 0.0f }, // left shoulder
@@ -433,7 +456,8 @@ namespace Penumbra {
 		RadialImpulse,     // Value = impulse strength, Radius = radius
 		PlaySound,         // Asset = clip path
 		EmitNoise,         // Value = loudness (0-10) heard by NPCs, Asset = optional cause name
-		ScriptEvent        // calls on_stim_event(self, Asset) on the entity's script
+		ScriptEvent,       // calls on_stim_event(self, Asset) on the entity's script
+		Knockout           // knocks the NPC out (Asset "Dead" kills it): see ai.knock_out
 	};
 
 	struct StimAction
@@ -524,7 +548,7 @@ namespace Penumbra {
 	using AllComponents = ComponentGroup<TransformComponent, RelationshipComponent, CameraComponent, MeshComponent, AnimatorComponent, MaterialComponent,
 		DirectionalLightComponent, PointLightComponent, SpotLightComponent, EnvironmentComponent, RigidBodyComponent, BoxColliderComponent,
 		SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent, CharacterControllerComponent, ScriptComponent,
-		AudioSourceComponent, AudioListenerComponent, PerceptionComponent, PerceptionTargetComponent, SmokeVolumeComponent, FlameComponent,
+		AudioSourceComponent, AudioListenerComponent, PerceptionComponent, PerceptionTargetComponent, VitalityComponent, SmokeVolumeComponent, FlameComponent,
 		StimSourceComponent, StimResponseComponent, NavMeshComponent, NavAgentComponent, SurfaceComponent, PrefabComponent>;
 
 }

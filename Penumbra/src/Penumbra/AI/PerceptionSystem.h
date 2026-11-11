@@ -6,6 +6,7 @@
 
 #include <glm/glm.hpp>
 
+#include <unordered_set>
 #include <vector>
 
 namespace Penumbra {
@@ -71,6 +72,17 @@ namespace Penumbra {
 		std::vector<Entity> ExplainAway(float strength, std::string_view cause, std::optional<glm::vec3> center = std::nullopt,
 			float radius = 0.0f, float spread = 0.0f);
 
+		// Knocks an NPC out (or kills it): it stops perceiving and walking, its reaction ends, its
+		// physics character is removed (the body lies where it fell) and it becomes a Body target
+		// other NPCs can notice. Returns false when it was already down.
+		bool KnockOut(Entity npc, VitalState state = VitalState::Unconscious);
+		static bool IsAwake(Entity entity);
+
+		// The speaker calls out what he is reacting to. Every other awake NPC who hears the shout
+		// (loudness 0-10, like any noise) gets a Reported stimulus at the speaker's stimulus
+		// position, one level weaker than the speaker's reaction. Returns those who took it.
+		std::vector<Entity> Shout(Entity speaker, float loudness = 8.0f);
+
 		// Full evaluation of what observer sees of target right now (does not modify state).
 		VisibilityResult ComputeVisibility(Entity observer, Entity target);
 		// Brightness at a point as perceived by NPC eyes (omnidirectional).
@@ -114,6 +126,7 @@ namespace Penumbra {
 		};
 		std::unordered_map<UUID, ObserverFocus> m_Focus; // last evaluation of each observer
 		std::unordered_map<UUID, UUID> m_Seeing;         // target each observer currently sees clearly (B >= 1)
+		std::unordered_map<UUID, std::unordered_set<UUID>> m_NoticedBodies; // bodies each observer has already found
 		float m_Time = 0.0f;
 	};
 

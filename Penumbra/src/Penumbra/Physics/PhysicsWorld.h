@@ -50,6 +50,10 @@ namespace Penumbra {
 		void Stop();
 		void Step(Timestep ts);
 		void OnEntityDestroyed(Entity entity);
+		// Removes the entity's physics character (it no longer collides or falls); the caller removes
+		// the CharacterController component so it is not created again on the next step.
+		void RemoveCharacter(Entity entity);
+		bool HasCharacter(UUID entity) const;
 
 		std::optional<RaycastHit> Raycast(const glm::vec3& origin, const glm::vec3& direction, float maxDistance,
 			const PhysicsEntityFilter& filter = {}) const;

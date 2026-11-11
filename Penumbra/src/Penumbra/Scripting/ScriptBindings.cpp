@@ -9,6 +9,7 @@
 #include "Penumbra/Core/Input.h"
 #include "Penumbra/Navigation/NavigationSystem.h"
 #include "Penumbra/Physics/PhysicsWorld.h"
+#include "Penumbra/Renderer/RenderCamera.h"
 #include "Penumbra/Scene/ComponentRegistry.h"
 #include "Penumbra/Scene/JsonSerialization.h"
 #include "Penumbra/Scene/SceneSerializer.h"
@@ -539,6 +540,23 @@ namespace Penumbra {
 				calmed[index++] = ScriptEntity{ entity.GetUUID(), scene };
 			return calmed;
 		});
+		ai.set_function("knock_out", [requirePerception](const ScriptEntity& e, sol::optional<bool> dead) {
+			return requirePerception().KnockOut(e.Resolve(), dead.value_or(false) ? VitalState::Dead : VitalState::Unconscious);
+		});
+		ai.set_function("vital_state", [](const ScriptEntity& e) {
+			const VitalityComponent* vitality = e.Resolve().TryGetComponent<VitalityComponent>();
+			return std::string(EnumToString(vitality ? vitality->State : VitalState::Awake));
+		});
+		ai.set_function("shout", [requirePerception, requirePerceptionComponent, scene](const ScriptEntity& speaker,
+									 sol::optional<float> loudness, sol::this_state state) {
+			requirePerceptionComponent(speaker);
+			sol::state_view view(state);
+			sol::table alerted = view.create_table();
+			int index = 1;
+			for (Entity entity : requirePerception().Shout(speaker.Resolve(), loudness.value_or(8.0f)))
+				alerted[index++] = ScriptEntity{ entity.GetUUID(), scene };
+			return alerted;
+		});
 		ai.set_function("calm", [requirePerceptionComponent](const ScriptEntity& e) { PerceptionSystem::Calm(requirePerceptionComponent(e)); });
 		ai.set_function("alertness", [requirePerceptionComponent](const ScriptEntity& e) { return requirePerceptionComponent(e).RuntimeAlertness; });
 		ai.set_function("reaction", [requirePerceptionComponent](const ScriptEntity& e, sol::this_state state) {
@@ -708,6 +726,23 @@ namespace Penumbra {
 		});
 		ui.set_function("rect", [scene](float x, float y, float w, float h, sol::optional<sol::table> color) {
 			scene->GetOverlay().AddRect({ { x, y }, { w, h }, ColorFrom(color) });
+		});
+		ui.set_function("world_to_screen", [scene](const glm::vec3& position, sol::this_state state) {
+			// Pixel position of a world point in the primary camera's view (nil when behind it).
+			const float width = static_cast<float>(std::max(scene->GetViewportWidth(), 1u));
+			const float height = static_cast<float>(std::max(scene->GetViewportHeight(), 1u));
+			const RenderCamera camera = RenderCamera::FromScene(*scene, width / height);
+			const glm::vec4 clip = camera.Projection * camera.View * glm::vec4(position, 1.0f);
+			sol::variadic_results results;
+			if (clip.w <= 1e-4f)
+			{
+				results.push_back(sol::make_object(state, sol::lua_nil));
+				return results;
+			}
+			const glm::vec2 ndc = glm::vec2(clip) / clip.w;
+			results.push_back(sol::make_object(state, (ndc.x * 0.5f + 0.5f) * width));
+			results.push_back(sol::make_object(state, (0.5f - ndc.y * 0.5f) * height));
+			return results;
 		});
 		ui.set_function("width", [scene]() { return static_cast<double>(scene->GetViewportWidth()); });
 		ui.set_function("height", [scene]() { return static_cast<double>(scene->GetViewportHeight()); });
