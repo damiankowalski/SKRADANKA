@@ -166,4 +166,36 @@ TEST_SUITE("World")
 		CHECK(lab.Vital("Servant") == "\"Unconscious\"");
 		CHECK(lab.SceneInstance.GetScriptEngine()->GetErrors().empty());
 	}
+
+	TEST_CASE("Arrows from the demo prefabs: a miss on the metal grate is heard, two fire arrows kill a guard")
+	{
+		// The guard waits at WP_1 (-10, 8); the metal grate is at (-8, 6).
+		Lab lab("WP_1", "WP_5", { 30.0f, 0.05f, 30.0f }, 0.0f);
+		lab.Run(1.0f);
+		lab.Lua("local a = scene.instantiate('Prefabs/WaterArrow.pprefab', vec3(-8, 3, 6)); a:look_at(vec3(-8, 0, 6))");
+		lab.Run(1.0f / 60.0f);
+		lab.Lua("for _, e in ipairs(scene.entities_with('StimSource')) do if e:get_name() == 'WaterArrow' then physics.set_velocity(e, vec3(0, -25, 0)) end end");
+		lab.Run(0.5f);
+		CHECK(lab.Perception("Guard").RuntimeStimulusCause == "Arrow.Metal");
+		CHECK(lab.Perception("Guard").RuntimeState != AwarenessState::Unaware);
+
+		// Two fire arrows straight at him from the east: hurt, then dead (a body).
+		for (int shot = 0; shot < 2; ++shot)
+		{
+			lab.Lua("local a = scene.instantiate('Prefabs/FireArrow.pprefab', vec3(-6, 1.2, 8)); a:look_at(vec3(-10, 1.2, 8))");
+			lab.Run(1.0f / 60.0f);
+			lab.Lua("for _, e in ipairs(scene.entities_with('StimSource')) do if e:get_name() == 'FireArrow' then physics.set_velocity(e, vec3(-30, 0, 0)) end end");
+			lab.Run(0.5f);
+			if (shot == 0)
+			{
+				CHECK(lab.Vital("Guard") == "\"Awake\"");
+				CHECK(lab.Perception("Guard").RuntimeStimulusCause == "Hit");
+				CHECK(lab.Perception("Guard").RuntimeLastStimulusPosition.x > -4.0f); // back along the flight, east of him
+			}
+		}
+		CHECK(lab.Vital("Guard") == "\"Dead\"");
+		CHECK(lab.Entity("Guard").GetComponent<PerceptionTargetComponent>().Kind == TargetKind::Body);
+		CHECK(lab.SceneInstance.GetScriptEngine()->GetErrors().empty());
+	}
 }
+

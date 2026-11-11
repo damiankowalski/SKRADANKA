@@ -116,6 +116,21 @@ namespace Penumbra {
 		return true;
 	}
 
+	float PerceptionSystem::Damage(Entity npc, float amount)
+	{
+		auto& vitality = npc.HasComponent<VitalityComponent>() ? npc.GetComponent<VitalityComponent>() : npc.AddComponent<VitalityComponent>();
+		if (vitality.State == VitalState::Dead || amount <= 0.0f)
+			return vitality.Health;
+		vitality.Health = std::max(vitality.Health - amount, 0.0f);
+		PN_CORE_TRACE("'{}' takes {:.0f} damage ({:.0f} left)", npc.GetName(), amount, vitality.Health);
+		if (vitality.Health <= 0.0f)
+		{
+			if (!KnockOut(npc, VitalState::Dead))
+				vitality.State = VitalState::Dead; // already down: an unconscious body is finished off
+		}
+		return vitality.Health;
+	}
+
 	std::vector<Entity> PerceptionSystem::Shout(Entity speaker, float loudness)
 	{
 		std::vector<Entity> alerted;
@@ -301,7 +316,7 @@ namespace Penumbra {
 			//    from this observer, plus light bounced up from the floor it stands on.
 			const size_t pointIndex = static_cast<size_t>(&localPoint - targetComponent.SilhouettePoints.data());
 			const float illuminance = lighting.Points[pointIndex].Rounded(-toPoint) + lighting.Bounce;
-			const float lp = PerceptionModel::SurfaceLuminance(targetComponent.Reflectance, illuminance, 0.0f);
+			const float lp = PerceptionModel::SurfaceLuminance(targetComponent.Reflectance, illuminance, targetComponent.Emissive);
 
 			// 3. Background luminance: continue the sight line through the target.
 			float lb = m_Provider->SkyLuminance();
@@ -430,6 +445,8 @@ namespace Penumbra {
 				// Light smoothing avoids single-frame spikes from physics corrections.
 				target.RuntimeVelocity = glm::mix(target.RuntimeVelocity, velocity, 0.5f);
 			}
+			if (!target.RuntimeHasPreviousPosition)
+				target.RuntimeOrigin = position;
 			target.RuntimePreviousPosition = position;
 			target.RuntimeHasPreviousPosition = true;
 
@@ -505,6 +522,8 @@ namespace Penumbra {
 					bodies.push_back(target);
 					continue;
 				}
+				if (targetComponent.Kind == TargetKind::Projectile)
+					continue; // judged every frame below
 				const VisibilityResult visibility = ComputeVisibility(observer, target);
 				if (!bestTarget || visibility.Stimulus > bestStimulus)
 				{
@@ -527,7 +546,7 @@ namespace Penumbra {
 			perception.RuntimeContrast = best.Contrast;
 
 			// Bodies are judged by the same eyes (a body in the dark goes unnoticed) and found once.
-			std::unordered_set<UUID>& noticed = m_NoticedBodies[observer.GetUUID()];
+			std::unordered_set<UUID>& noticed = m_Noticed[observer.GetUUID()];
 			for (Entity body : bodies)
 			{
 				if (noticed.contains(body.GetUUID()) || ComputeVisibility(observer, body).Stimulus < 1.0f)
@@ -536,6 +555,20 @@ namespace Penumbra {
 				Notify(observer, m_Scene.GetWorldPosition(body), perception.BodyAlarm, StimulusKind::Seen, "Body");
 			}
 			m_Seeing[observer.GetUUID()] = bestTarget && best.Stimulus >= 1.0f ? bestTarget.GetUUID() : UUID(UUID::Invalid);
+		}
+
+		// Arrows cross a view cone between two vision updates: they are judged every frame. Seen
+		// once, an arrow sends the observer to where it came from.
+		for (auto [handle, targetComponent] : m_Scene.GetRegistry().view<PerceptionTargetComponent>().each())
+		{
+			if (targetComponent.Kind != TargetKind::Projectile || !targetComponent.RuntimeHasPreviousPosition)
+				continue;
+			Entity projectile(handle, &m_Scene);
+			std::unordered_set<UUID>& noticed = m_Noticed[observer.GetUUID()];
+			if (noticed.contains(projectile.GetUUID()) || ComputeVisibility(observer, projectile).Stimulus < 1.0f)
+				continue;
+			noticed.insert(projectile.GetUUID());
+			Notify(observer, targetComponent.RuntimeOrigin, perception.ProjectileAlarm, StimulusKind::Seen, "Arrow");
 		}
 
 		// Alert memory makes a guard notice faster.
@@ -613,7 +646,7 @@ namespace Penumbra {
 		std::erase_if(m_Focus, destroyed);
 		std::erase_if(m_VisionTimers, destroyed);
 		std::erase_if(m_Seeing, destroyed);
-		std::erase_if(m_NoticedBodies, destroyed);
+		std::erase_if(m_Noticed, destroyed);
 		std::erase_if(m_TargetLighting, destroyed);
 	}
 

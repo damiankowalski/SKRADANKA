@@ -76,6 +76,9 @@ namespace Penumbra {
 		// physics character is removed (the body lies where it fell) and it becomes a Body target
 		// other NPCs can notice. Returns false when it was already down.
 		bool KnockOut(Entity npc, VitalState state = VitalState::Unconscious);
+		// Takes health from an NPC (adding Vitality with full health when missing); at 0 it dies
+		// (KnockOut Dead). Returns the health left.
+		float Damage(Entity npc, float amount);
 		static bool IsAwake(Entity entity);
 
 		// The speaker calls out what he is reacting to. Every other awake NPC who hears the shout
@@ -126,7 +129,7 @@ namespace Penumbra {
 		};
 		std::unordered_map<UUID, ObserverFocus> m_Focus; // last evaluation of each observer
 		std::unordered_map<UUID, UUID> m_Seeing;         // target each observer currently sees clearly (B >= 1)
-		std::unordered_map<UUID, std::unordered_set<UUID>> m_NoticedBodies; // bodies each observer has already found
+		std::unordered_map<UUID, std::unordered_set<UUID>> m_Noticed; // bodies and arrows each observer has already noticed
 		float m_Time = 0.0f;
 	};
 

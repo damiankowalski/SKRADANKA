@@ -41,7 +41,9 @@ namespace Penumbra::PerceptionModel {
 	// at its edge. normalizedAngle = theta / halfFov in [0, 1].
 	float PeripheralFactor(float normalizedAngle, float edgeFactor);
 
-	// 4.5: motion factor M = 1 + m * speed * (1 + peripherality).
+	// 4.5: motion factor M = 1 + m * speed * (1 + peripherality), capped at MaxMotionFactor (a 30 m/s arrow
+	// is not 20 times as noticeable as a still figure).
+	constexpr float MaxMotionFactor = 4.0f;
 	float MotionFactor(float speed, float peripherality, float motionWeight);
 
 	// 4.6: combined stimulus B = (C_eff / C_t) * f * S * P * M.

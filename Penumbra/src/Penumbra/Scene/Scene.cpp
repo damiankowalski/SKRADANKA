@@ -403,7 +403,7 @@ namespace Penumbra {
 		for (const ContactEvent& contact : m_PhysicsWorld->ConsumeContactEvents())
 		{
 			m_ScriptEngine->OnCollision(contact.EntityA, contact.EntityB);
-			m_StimSystem->OnContact(contact.EntityA, contact.EntityB, contact.Point);
+			m_StimSystem->OnContact(contact.EntityA, contact.EntityB, contact.Point, contact.VelocityA, contact.VelocityB);
 			EmitImpactNoise(contact.EntityA, contact.EntityB, contact.Point, contact.Speed);
 			EmitImpactNoise(contact.EntityB, contact.EntityA, contact.Point, contact.Speed);
 		}

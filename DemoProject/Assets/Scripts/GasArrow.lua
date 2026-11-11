@@ -2,6 +2,8 @@
 -- The cloud is a continuous "Gas" stim; NPCs whose StimResponse has a Gas -> Knockout rule fall
 -- asleep in it (the demo's guards and servants do).
 
+local Noises = require("Scripts/AI/Noises")
+
 local GasArrow = {}
 
 function GasArrow:on_collision(other)
@@ -10,7 +12,7 @@ function GasArrow:on_collision(other)
     local position = self.entity:get_position()
     scene.instantiate("Prefabs/GasCloud.pprefab", position)
     audio.play_at("Audio/Hiss.wav", position, 0.8)
-    ai.emit_noise(position, 2, nil, "Hiss")
+    Noises.arrow_impact(position, require("Scripts/Arrow").struck_entity(self.entity, other), self.entity)
     self.entity:destroy()
 end
 

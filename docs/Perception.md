@@ -102,6 +102,24 @@ activity ends when the reaction does and the guard walks back to his route (`AIL
   rats."), shown above their heads with `ui.world_to_screen` (`Scripts/AI/Actor.lua`). Voices are a
   placeholder sound.
 
+## Arrows
+
+* **Harm** — `Vitality.Health` (100). The `Damage` stim action (and `ai.damage`) takes health; at 0 the NPC is
+  Dead (a body). The demo's NPCs take 75 from fire (two fire arrows kill; a powder keg's blast hurts too).
+* **Being hit** — the `Alarm` stim action gives a Seen stimulus (default strength 9.5, cause "Hit") at
+  *where the stim came from*: 8 m back along a projectile's flight (`StimSystem::ProjectileBacktrack`), or
+  the centre of a blast. A hit guard runs to search where the shot came from, not where it struck. Water
+  arrows do no harm but raise the alarm the same way.
+* **Impact noise** — an arrow striking something makes a noise of 3.5 plus the struck surface's
+  `NoiseModifier` (metal 6, carpet 1.5: `Scripts/Arrow.lua`), so a near miss can give the archer away.
+* **Seen in flight** — arrows carry a `PerceptionTarget` of kind Projectile: a thin shaft judged by the same
+  contrast model as the player, *every frame* (they cross a view cone between two 10 Hz vision updates).
+  Against a bright wall or sky a dark arrow is noticed; against darkness it is not; a burning arrow
+  (`Emissive`) glows and is seen in the dark. The motion factor is capped (`MaxMotionFactor` 4) so speed
+  does not make tiny arrows obvious, and the size factor keeps distant ones unseen. Seen once, an arrow
+  is a Seen stimulus of strength `ProjectileAlarm` (8: a search) at where it was shot from
+  (`PerceptionTarget.RuntimeOrigin`).
+
 ## Events and distractions
 
 Things happen without the player and compete with him for the guards' attention (`Scripts/World/`, odds
@@ -181,6 +199,7 @@ of what it looks at (view probes plus the visible target samples).
 | `AlertMemoryTime` | seconds alert memory lasts once calm | 120 |
 | `Diligence` | levels added to his reaction against distractions | 0 |
 | `BodyAlarm` | strength of the reaction to finding a body | 8 |
+| `ProjectileAlarm` | strength of the reaction to an arrow seen flying by | 8 |
 | `FieldOfView`, `PeripheralFactor`, `ViewDistance`, `EyeHeight` | cone | 120°, 0.2, 25 m, 1.65 m |
 
 ## Swapping the brightness source

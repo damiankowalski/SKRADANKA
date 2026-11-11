@@ -32,6 +32,7 @@ local ARROWS = {
 
 local REACH = 2.2          -- metres: how far E and F reach
 local CARRY_SLOWDOWN = 0.6 -- speed multiplier with a body on the shoulders
+local CARRY_CENTER = 0.8   -- metres from a fallen body's feet to its middle
 
 local STANDING = {
     vec3(0, 1.70, 0), vec3(-0.22, 1.45, 0), vec3(0.22, 1.45, 0), vec3(0, 1.15, 0),
@@ -337,8 +338,10 @@ function Player:pick_up(body)
     self.carrying = { entity = body, target = body:get("PerceptionTarget") }
     if self.carrying.target then body:remove("PerceptionTarget") end
     body:set_parent(self.entity)
-    body:set_local_position(vec3(0, 1.05, 0.05))
+    -- The body lies along its own +Z (it fell backwards): turned across the player and shifted so
+    -- its middle rests on his shoulders.
     body:set_rotation(vec3(0, 90, 0))
+    body:set_local_position(vec3(-CARRY_CENTER, 1.25, 0.05))
     Noises.emit("Rustle", self.entity:get_position(), self.entity)
     return "carry"
 end

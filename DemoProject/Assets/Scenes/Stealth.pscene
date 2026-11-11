@@ -2925,6 +2925,30 @@
                   "Type": "Knockout"
                 }
               ]
+            },
+            {
+              "Stim": "Fire",
+              "Threshold": 0.5,
+              "Once": false,
+              "Actions": [
+                {
+                  "Type": "Damage",
+                  "Value": 75.0
+                },
+                {
+                  "Type": "Alarm"
+                }
+              ]
+            },
+            {
+              "Stim": "Water",
+              "Threshold": 0.5,
+              "Once": false,
+              "Actions": [
+                {
+                  "Type": "Alarm"
+                }
+              ]
             }
           ]
         },
@@ -3014,6 +3038,30 @@
               "Actions": [
                 {
                   "Type": "Knockout"
+                }
+              ]
+            },
+            {
+              "Stim": "Fire",
+              "Threshold": 0.5,
+              "Once": false,
+              "Actions": [
+                {
+                  "Type": "Damage",
+                  "Value": 75.0
+                },
+                {
+                  "Type": "Alarm"
+                }
+              ]
+            },
+            {
+              "Stim": "Water",
+              "Threshold": 0.5,
+              "Once": false,
+              "Actions": [
+                {
+                  "Type": "Alarm"
                 }
               ]
             }
@@ -3587,6 +3635,30 @@
               "Actions": [
                 {
                   "Type": "Knockout"
+                }
+              ]
+            },
+            {
+              "Stim": "Fire",
+              "Threshold": 0.5,
+              "Once": false,
+              "Actions": [
+                {
+                  "Type": "Damage",
+                  "Value": 75.0
+                },
+                {
+                  "Type": "Alarm"
+                }
+              ]
+            },
+            {
+              "Stim": "Water",
+              "Threshold": 0.5,
+              "Once": false,
+              "Actions": [
+                {
+                  "Type": "Alarm"
                 }
               ]
             }

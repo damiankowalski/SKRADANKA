@@ -85,6 +85,27 @@ function Noises.landing(entity, fall_speed)
     return loudness
 end
 
+-- An arrow striking something: base loudness plus the struck surface's modifier (the surface of
+-- the object hit, or of its parent). Returns the loudness.
+Noises.arrow = { loudness = 3.5, clip = "Audio/Footstep_Wood.wav", volume = 0.6 }
+
+function Noises.arrow_impact(position, struck, source)
+    local material, modifier = "Stone", 0
+    local entity = struck
+    while entity do
+        if entity:has("Surface") then
+            local surface = entity:get("Surface")
+            material, modifier = surface.Material, surface.NoiseModifier
+            break
+        end
+        entity = entity:parent()
+    end
+    local loudness = clamp(Noises.arrow.loudness + modifier, 0, 10)
+    if loudness > 0 then ai.emit_noise(position, loudness, source, "Arrow." .. material) end
+    audio.play_at(Noises.footstep_clips[material] or Noises.arrow.clip, position, Noises.arrow.volume)
+    return loudness
+end
+
 -- A named noise from Noises.sounds; returns its loudness (errors on unknown names).
 function Noises.emit(name, position, source)
     local sound = Noises.sounds[name]

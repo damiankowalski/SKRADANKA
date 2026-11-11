@@ -26,8 +26,8 @@ the status column only records what the engine already has. Costs are to be esti
 | 3 | **Sound propagation through rooms** | Sounds travel through doorways and corridors (room/portal graph), are muffled by closed doors, reach guards around corners | Yes: 0-10 loudness, walls -4 levels, sound travels around corners along the navmesh (stands in for rooms/portals); no doors yet |
 | 4 | **Surface-dependent footsteps** | Metal and tile are loud, carpet/grass/moss silent; levels designed around it | Yes: `Surface` component (`NoiseModifier`), clips per material, `Scripts/AI/Noises.lua` |
 | 5 | **Movement noise levels** | Creep / walk / run, plus landing from jumps, make different noise | Yes: crouch/walk/run plus landing by fall speed; physical objects clatter (`Surface.ImpactLoudness`) |
-| 6 | **Water arrows** | Douse torches and fires; clean blood | Yes (Act/React stims) |
-| 7 | **Fire arrows** | Ignite, explode, kill | Yes (ignite torches, detonate powder kegs) |
+| 6 | **Water arrows** | Douse torches and fires; clean blood | Yes (Act/React stims); a guard hit by one knows he was shot at |
+| 7 | **Fire arrows** | Ignite, explode, kill | Yes: ignite torches, detonate powder kegs, hurt and kill (two hits); explosions hurt too |
 | 8 | **Moss arrows** | Carpet a floor with moss to walk silently | Missing (#4 is in place: a moss patch is a floor with `NoiseModifier` -3) |
 | 9 | **Rope arrows** | Stick into wood, climb the rope | Missing (needs climbing + material tags) |
 | 10 | **Noisemaker arrows** | Lure guards away with a noise | Easy: investigate/search behaviour exists, only the arrow is missing (deliberately skipped for now) |
