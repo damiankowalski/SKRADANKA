@@ -28,6 +28,11 @@ guard hit by any arrow searches where it came from), arrow impact noise by surfa
 through the contrast model (a dark arrow against a bright background, a burning one in the dark), a
 capped motion factor, and carried bodies resting across the shoulders.
 
+**Touch beats shadow** (S, after playtesting arrows: a guard following an arrow's flight walked into the
+player in the dark and did not notice): contact between a guard and the player alarms the guard whatever
+the light, both when he bumps into the player and when the player bumps into him; a figure right in front
+of a guard is made out in the dark, slowly enough to back off.
+
 ## Next
 
 ### C2. Mission loop (~2 sessions, next)

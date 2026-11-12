@@ -228,6 +228,10 @@ namespace Penumbra {
 			v("Diligence", c.Diligence);
 			v("BodyAlarm", c.BodyAlarm);
 			v("ProjectileAlarm", c.ProjectileAlarm);
+			v("TouchRange", c.TouchRange);
+			v("TouchAlarm", c.TouchAlarm);
+			v("CloseRange", c.CloseRange);
+			v("CloseRangeStimulus", c.CloseRangeStimulus);
 			v("Adaptation", c.RuntimeAdaptation, FieldKind::Runtime);
 			v("Suspicion", c.RuntimeSuspicion, FieldKind::Runtime);
 			v("Stimulus", c.RuntimeStimulus, FieldKind::Runtime);

@@ -325,6 +325,15 @@ namespace Penumbra {
 		float BodyAlarm = 8.0f;
 		// Strength of the reaction to an arrow seen flying by (searched for where it came from).
 		float ProjectileAlarm = 8.0f;
+		// Touch beats shadow. An intruder within TouchRange of his capsule (bumping into him or
+		// bumped into) is a stimulus of strength TouchAlarm whatever the light. One closer than
+		// CloseRange in his view is made out even in the dark, though not at once: the sight is
+		// at least CloseRangeStimulus (scaled by how much of the figure is in view, and how far
+		// to the side).
+		float TouchRange = 0.15f;
+		float TouchAlarm = 10.0f;
+		float CloseRange = 1.2f;
+		float CloseRangeStimulus = 2.0f;
 
 		// Runtime only
 		float RuntimeAdaptation = 0.05f; // L_a

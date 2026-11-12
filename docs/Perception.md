@@ -83,6 +83,22 @@ and search the area, darkest spots first; Alarmed — chase while the player is 
 activity ends when the reaction does and the guard walks back to his route (`AILab` scene, end-to-end test
 "The AI lab guard patrols…").
 
+## Touch and close range
+
+Shadow hides the player from eyes, not from hands.
+
+* **Touch** — an intruder whose capsule is within `TouchRange` (0.15 m) of the NPC's (the character
+  controllers, or the target's `Radius`; their heights must overlap) is a Seen stimulus of strength
+  `TouchAlarm` (10: alarmed) at the intruder, every frame they touch, whatever the light. It works both
+  ways: a guard walking into the player and the player bumping into a guard's back. Suspicion jumps to 1.
+  Characters collide, so a guard never walks into or through the player. Bodies, arrows and the
+  unconscious feel nothing. `PerceptionSystem::IsTouching` tells whether two are in contact.
+* **Close range** — an intruder closer than `CloseRange` (1.2 m, horizontally) and in view is made out
+  even in pitch darkness: the sight is at least `CloseRangeStimulus` (2) × visible fraction × peripheral
+  factor. That is slow on purpose — suspicion rises 0.6/s, so a guard face to face with the player in
+  the dark mutters after about half a second and raises the alarm after about two, time enough to back
+  off. Behind his back (outside the cone) close range does nothing; touch still does.
+
 ## Takedowns, bodies and shouts
 
 * **Vitality** — `ai.knock_out(e, dead?)` (the player's blackjack, the `Knockout` stim action of sleeping gas)
@@ -200,6 +216,8 @@ of what it looks at (view probes plus the visible target samples).
 | `Diligence` | levels added to his reaction against distractions | 0 |
 | `BodyAlarm` | strength of the reaction to finding a body | 8 |
 | `ProjectileAlarm` | strength of the reaction to an arrow seen flying by | 8 |
+| `TouchRange` / `TouchAlarm` | gap between capsules that counts as contact (m), strength of the reaction | 0.15 / 10 |
+| `CloseRange` / `CloseRangeStimulus` | distance (m) within which a figure in view is made out in the dark, minimum sight | 1.2 / 2 |
 | `FieldOfView`, `PeripheralFactor`, `ViewDistance`, `EyeHeight` | cone | 120°, 0.2, 25 m, 1.65 m |
 
 ## Swapping the brightness source

@@ -88,6 +88,9 @@ namespace Penumbra {
 
 		// Full evaluation of what observer sees of target right now (does not modify state).
 		VisibilityResult ComputeVisibility(Entity observer, Entity target);
+		// Whether the observer's body and the target's are in contact: their capsules (the
+		// character controllers, or the target's Radius) closer than the observer's TouchRange.
+		bool IsTouching(Entity observer, Entity target);
 		// Brightness at a point as perceived by NPC eyes (omnidirectional).
 		float SampleLuminance(const glm::vec3& point);
 		// Integrated extinction (fog + smoke) along a segment.
@@ -114,6 +117,7 @@ namespace Penumbra {
 		void UpdateObserver(Entity observer, float dt, float visionElapsed);
 		float EnvironmentLuminanceFor(Entity observer, float extraLuminanceSum, uint32_t extraSamples);
 		bool IsSightBlocker(UUID entity, const std::vector<UUID>& ignore);
+		float HorizontalDistance(Entity a, Entity b);
 
 	private:
 		Scene& m_Scene;
