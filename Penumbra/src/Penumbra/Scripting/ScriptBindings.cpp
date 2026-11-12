@@ -543,6 +543,9 @@ namespace Penumbra {
 		ai.set_function("knock_out", [requirePerception](const ScriptEntity& e, sol::optional<bool> dead) {
 			return requirePerception().KnockOut(e.Resolve(), dead.value_or(false) ? VitalState::Dead : VitalState::Unconscious);
 		});
+		ai.set_function("damage", [requirePerception](const ScriptEntity& e, float amount) {
+			return requirePerception().Damage(e.Resolve(), amount);
+		});
 		ai.set_function("vital_state", [](const ScriptEntity& e) {
 			const VitalityComponent* vitality = e.Resolve().TryGetComponent<VitalityComponent>();
 			return std::string(EnumToString(vitality ? vitality->State : VitalState::Awake));

@@ -26,6 +26,8 @@ namespace Penumbra {
 		UUID EntityB = UUID::Invalid;
 		glm::vec3 Point{ 0.0f };
 		float Speed = 0.0f; // closing speed along the contact normal when the contact began, m/s
+		glm::vec3 VelocityA{ 0.0f }; // velocities of the two bodies at the contact point, before the impact
+		glm::vec3 VelocityB{ 0.0f };
 	};
 
 	// Returns true when the body owned by the entity should be considered by the query.

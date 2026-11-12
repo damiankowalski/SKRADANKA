@@ -48,7 +48,8 @@ namespace Penumbra {
 			{ StimActionType::Destroy, "Destroy" }, { StimActionType::SpawnPrefab, "SpawnPrefab" },
 			{ StimActionType::EmitStim, "EmitStim" }, { StimActionType::RadialImpulse, "RadialImpulse" },
 			{ StimActionType::PlaySound, "PlaySound" }, { StimActionType::EmitNoise, "EmitNoise" },
-			{ StimActionType::ScriptEvent, "ScriptEvent" }, { StimActionType::Knockout, "Knockout" }
+			{ StimActionType::ScriptEvent, "ScriptEvent" }, { StimActionType::Knockout, "Knockout" },
+			{ StimActionType::Damage, "Damage" }, { StimActionType::Alarm, "Alarm" }
 		};
 	};
 
@@ -65,7 +66,8 @@ namespace Penumbra {
 	template<>
 	struct EnumNames<TargetKind>
 	{
-		static constexpr std::pair<TargetKind, std::string_view> Values[] = { { TargetKind::Intruder, "Intruder" }, { TargetKind::Body, "Body" } };
+		static constexpr std::pair<TargetKind, std::string_view> Values[] = { { TargetKind::Intruder, "Intruder" }, { TargetKind::Body, "Body" },
+			{ TargetKind::Projectile, "Projectile" } };
 	};
 
 	template<>

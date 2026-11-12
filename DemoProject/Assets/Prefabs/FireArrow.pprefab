@@ -41,6 +41,32 @@
           "Intensity": 1.0,
           "Radius": 1.0,
           "DestroyOnContact": true
+        },
+        "PerceptionTarget": {
+          "Kind": "Projectile",
+          "SilhouettePoints": [
+            [
+              0,
+              0,
+              -0.3
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0.3
+            ]
+          ],
+          "Radius": 0.04,
+          "Reflectance": 0.25,
+          "Emissive": 1.5
+        },
+        "Script": {
+          "Script": "Scripts/Arrow.lua"
         }
       }
     },

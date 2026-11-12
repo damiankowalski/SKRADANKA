@@ -23,23 +23,14 @@ bodies found by other guards and carried away (#14), shouts that spread the news
 and a servant who runs to the alarm bell (#17). Out of scope: real voices (need recordings), ragdolls (a
 body is a death animation, carried rigidly on the shoulders; ragdolls would be a package of their own, L).
 
+**Arrows that matter**: health and the `Damage` / `Alarm` stim actions (fire arrows hurt and kill; a
+guard hit by any arrow searches where it came from), arrow impact noise by surface, arrows seen in flight
+through the contrast model (a dark arrow against a bright background, a burning one in the dark), a
+capped motion factor, and carried bodies resting across the shoulders.
+
 ## Next
 
-### Arrows that matter (~2.5 sessions, next)
-
-Arrows are too safe today: they only affect objects with response rules.
-
-* **Harm** (~1): health on `Vitality` and a `Damage` stim action; fire arrows hurt and kill (a dead NPC is a
-  body like a knocked-out one). A guard hit by any arrow raises the alarm and searches towards where it came
-  from, not where it hit. Arrows make an impact noise by surface (about 3-4), so a near miss is heard.
-* **Arrows seen in flight** (~1.5): a flying arrow is a short-lived perception target judged by the same
-  contrast model: a dark arrow against a bright wall or sky is noticed, against darkness it is not, and a
-  burning arrow in the dark stands out. It is tiny (the size factor keeps distant ones unseen) but fast
-  (the motion factor needs a cap), and it crosses a view cone between two 10 Hz vision updates, so the
-  whole flight segment since the last update is tested. A guard who sees one checks where it came from.
-* Small: carried bodies sit on the shoulder instead of hanging beside the player.
-
-### C2. Mission loop (~2 sessions)
+### C2. Mission loop (~2 sessions, next)
 
 Loot, objectives and difficulty (#21) with an end-of-mission summary; pickpocketing (#23) on the use key.
 

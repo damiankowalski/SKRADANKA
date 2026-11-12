@@ -44,7 +44,7 @@ namespace Penumbra::PerceptionModel {
 
 	float MotionFactor(float speed, float peripherality, float motionWeight)
 	{
-		return 1.0f + motionWeight * std::max(speed, 0.0f) * (1.0f + std::clamp(peripherality, 0.0f, 1.0f));
+		return std::min(1.0f + motionWeight * std::max(speed, 0.0f) * (1.0f + std::clamp(peripherality, 0.0f, 1.0f)), MaxMotionFactor);
 	}
 
 	float Stimulus(float effectiveContrast, float contrastThreshold, float visibleFraction, float sizeFactor, float peripheral, float motion)

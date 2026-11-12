@@ -227,6 +227,7 @@ namespace Penumbra {
 			v("AlertMemoryTime", c.AlertMemoryTime);
 			v("Diligence", c.Diligence);
 			v("BodyAlarm", c.BodyAlarm);
+			v("ProjectileAlarm", c.ProjectileAlarm);
 			v("Adaptation", c.RuntimeAdaptation, FieldKind::Runtime);
 			v("Suspicion", c.RuntimeSuspicion, FieldKind::Runtime);
 			v("Stimulus", c.RuntimeStimulus, FieldKind::Runtime);
@@ -249,6 +250,7 @@ namespace Penumbra {
 			v("SilhouettePoints", c.SilhouettePoints);
 			v("Reflectance", c.Reflectance);
 			v("Radius", c.Radius);
+			v("Emissive", c.Emissive);
 			v("LightLevel", c.RuntimeLightLevel, FieldKind::Runtime);
 			v("LightGem", c.RuntimeLightGem, FieldKind::Runtime);
 			v("Exposure", c.RuntimeExposure, FieldKind::Runtime);
@@ -289,7 +291,12 @@ namespace Penumbra {
 			v("PartialPath", c.RuntimePartialPath, FieldKind::Runtime);
 		}
 
-		template<typename V> void VisitFields(VitalityComponent& c, V&& v) { v("State", c.State); }
+		template<typename V>
+		void VisitFields(VitalityComponent& c, V&& v)
+		{
+			v("State", c.State);
+			v("Health", c.Health);
+		}
 
 		template<typename V>
 		void VisitFields(SmokeVolumeComponent& c, V&& v)

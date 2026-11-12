@@ -323,6 +323,8 @@ namespace Penumbra {
 		float Diligence = 0.0f;
 		// Strength of the reaction to finding a body (unconscious or dead NPC) in plain sight.
 		float BodyAlarm = 8.0f;
+		// Strength of the reaction to an arrow seen flying by (searched for where it came from).
+		float ProjectileAlarm = 8.0f;
 
 		// Runtime only
 		float RuntimeAdaptation = 0.05f; // L_a
@@ -358,7 +360,8 @@ namespace Penumbra {
 	enum class TargetKind : uint8_t
 	{
 		Intruder = 0, // the player: raises suspicion
-		Body          // an unconscious or dead NPC: noticed once, then searched for whoever did it
+		Body,         // an unconscious or dead NPC: noticed once, then searched for whoever did it
+		Projectile    // an arrow in flight: judged every frame, noticed once, then traced back to where it came from
 	};
 
 	// Whether a character is up. Unconscious or dead NPCs neither see nor hear, lie where they fell
@@ -373,6 +376,7 @@ namespace Penumbra {
 	struct VitalityComponent
 	{
 		VitalState State = VitalState::Awake;
+		float Health = 100.0f; // the Damage stim action and ai.damage take it away; at 0 the NPC is Dead
 	};
 
 	// Something NPCs can see: the player, or a body. Silhouette points are local offsets sampled
@@ -391,6 +395,7 @@ namespace Penumbra {
 		};
 		float Reflectance = 0.35f; // diffuse albedo of clothing
 		float Radius = 0.3f;       // used for angular size
+		float Emissive = 0.0f;     // own luminance (a burning arrow glows in the dark)
 
 		// Runtime only
 		glm::vec3 RuntimeVelocity{ 0.0f };
@@ -399,6 +404,7 @@ namespace Penumbra {
 		float RuntimeLightLevel = 0.0f;   // luminance of the body from the light it stands in (independent of observers)
 		float RuntimeLightGem = 0.0f;     // LightLevel mapped to 0..1 for the HUD "light gem"
 		float RuntimeExposure = 0.0f;     // max stimulus B over all observers (>= 1: being noticed)
+		glm::vec3 RuntimeOrigin{ 0.0f };  // where it was first seen by the engine (an arrow: where it was shot from)
 	};
 
 	// Procedural animated fire (torches, campfires) rendered as layered billboards in the HDR
@@ -457,7 +463,9 @@ namespace Penumbra {
 		PlaySound,         // Asset = clip path
 		EmitNoise,         // Value = loudness (0-10) heard by NPCs, Asset = optional cause name
 		ScriptEvent,       // calls on_stim_event(self, Asset) on the entity's script
-		Knockout           // knocks the NPC out (Asset "Dead" kills it): see ai.knock_out
+		Knockout,          // knocks the NPC out (Asset "Dead" kills it): see ai.knock_out
+		Damage,            // Value = health taken from the NPC (at 0 it dies)
+		Alarm              // the NPC was hit: a stimulus of strength Value (default 9.5) where the stim came from, Asset = cause
 	};
 
 	struct StimAction

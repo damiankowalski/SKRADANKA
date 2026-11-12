@@ -61,7 +61,7 @@ namespace Penumbra {
 			SetLightsEnabled(child, enabled);
 	}
 
-	void StimSystem::Deliver(Entity receiver, const std::string& stim, float intensity, UUID source)
+	void StimSystem::Deliver(Entity receiver, const std::string& stim, float intensity, UUID source, std::optional<glm::vec3> origin)
 	{
 		if (!receiver.IsValid() || m_Scene.IsEntityPendingDestroy(receiver) || intensity <= 0.0f)
 			return;
@@ -82,7 +82,7 @@ namespace Penumbra {
 				continue;
 			rule.RuntimeFired = true;
 			for (const StimAction& action : rule.Actions)
-				m_PendingActions.push_back({ receiver.GetUUID(), action, position });
+				m_PendingActions.push_back({ receiver.GetUUID(), action, position, origin.value_or(position) });
 		}
 	}
 
@@ -125,11 +125,11 @@ namespace Penumbra {
 					continue;
 			}
 			const float falloff = 1.0f - (1.0f - EdgeFalloff) * (distance / radius);
-			Deliver(receiver, stim, intensity * falloff, source);
+			Deliver(receiver, stim, intensity * falloff, source, position);
 		}
 	}
 
-	void StimSystem::HandleContactSource(Entity source, Entity other, const glm::vec3& point)
+	void StimSystem::HandleContactSource(Entity source, Entity other, const glm::vec3& point, const glm::vec3& sourceVelocity)
 	{
 		auto* stim = source.TryGetComponent<StimSourceComponent>();
 		if (!stim || !stim->Enabled || stim->Delivery != StimDelivery::Contact)
@@ -137,8 +137,11 @@ namespace Penumbra {
 		// Colliders are often children of the object that owns the reactions (a torch's pole):
 		// the hit is delivered to the nearest self-or-ancestor that can react.
 		Entity receiver = ResolveReceiver(other);
-		// Direct hit at full intensity, then a splash to everything else nearby.
-		Deliver(receiver, stim->Stim, stim->Intensity, source.GetUUID());
+		// Direct hit at full intensity, then a splash to everything else nearby. A fast projectile
+		// came from back along its flight; anything else from where it touched.
+		const float speed = glm::length(sourceVelocity);
+		const glm::vec3 origin = speed > 1.0f ? point - sourceVelocity / speed * ProjectileBacktrack : point;
+		Deliver(receiver, stim->Stim, stim->Intensity, source.GetUUID(), origin);
 		if (stim->Radius > 0.0f)
 			Emit(stim->Stim, point, stim->Radius, stim->Intensity, source.GetUUID(), stim->RequireLineOfSight, receiver.GetUUID());
 		if (stim->DestroyOnContact)
@@ -148,15 +151,15 @@ namespace Penumbra {
 		}
 	}
 
-	void StimSystem::OnContact(UUID a, UUID b, const glm::vec3& point)
+	void StimSystem::OnContact(UUID a, UUID b, const glm::vec3& point, const glm::vec3& velocityA, const glm::vec3& velocityB)
 	{
 		std::optional<Entity> entityA = m_Scene.TryGetEntityByUUID(a);
 		std::optional<Entity> entityB = m_Scene.TryGetEntityByUUID(b);
 		if (!entityA || !entityB)
 			return;
-		HandleContactSource(*entityA, *entityB, point);
+		HandleContactSource(*entityA, *entityB, point, velocityA - velocityB);
 		if (entityA->IsValid() && entityB->IsValid())
-			HandleContactSource(*entityB, *entityA, point);
+			HandleContactSource(*entityB, *entityA, point, velocityB - velocityA);
 	}
 
 	void StimSystem::Execute(const PendingAction& pending)
@@ -197,6 +200,21 @@ namespace Penumbra {
 			case StimActionType::EmitNoise:
 				if (PerceptionSystem* perception = m_Scene.GetPerceptionSystem())
 					perception->EmitNoise(position, action.Value, pending.Target, action.Asset.empty() ? "Stim" : action.Asset);
+				break;
+			case StimActionType::Damage:
+				if (target)
+				{
+					if (PerceptionSystem* perception = m_Scene.GetPerceptionSystem())
+						perception->Damage(*target, action.Value);
+				}
+				break;
+			case StimActionType::Alarm:
+				if (target && target->HasComponent<PerceptionComponent>())
+				{
+					if (PerceptionSystem* perception = m_Scene.GetPerceptionSystem())
+						perception->Notify(*target, pending.Origin, action.Value > 0.0f ? action.Value : 9.5f, StimulusKind::Seen,
+							action.Asset.empty() ? std::string_view("Hit") : std::string_view(action.Asset));
+				}
 				break;
 			case StimActionType::Knockout:
 				if (target)

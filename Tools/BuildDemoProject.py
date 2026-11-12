@@ -129,6 +129,13 @@ def torch_prefab_entities(doc, position=(0, 0, 0), parent=None, shadows=False):
     return post
 
 
+def arrow_target(emissive=0.0):
+    """Guards can see an arrow in flight: a thin shaft judged by the same contrast model as the player
+    (a burning one glows). Seen, it sends them to where it was shot from."""
+    return {"Kind": "Projectile", "SilhouettePoints": [[0, 0, -0.3], [0, 0, 0], [0, 0, 0.3]], "Radius": 0.04,
+            "Reflectance": 0.25, "Emissive": emissive}
+
+
 def build_prefabs():
     doc = Document("PenumbraPrefab")
     torch_prefab_entities(doc)
@@ -142,7 +149,9 @@ def build_prefabs():
                         SphereCollider={"Radius": 0.06},
                         RigidBody={"Type": "Dynamic", "Mass": 0.1, "GravityFactor": 0.3, "ContinuousCollision": True,
                                    "TransparentToSight": True},
-                        StimSource={"Stim": stim, "Delivery": "Contact", "Intensity": 1.0, "Radius": 1.0, "DestroyOnContact": True})
+                        StimSource={"Stim": stim, "Delivery": "Contact", "Intensity": 1.0, "Radius": 1.0, "DestroyOnContact": True},
+                        PerceptionTarget=arrow_target(emissive=1.5 if light else 0.0),
+                        Script={"Script": "Scripts/Arrow.lua"})
         components = {"Transform": transform(scale=(0.05, 0.05, 0.6)), "Mesh": {"Mesh": "builtin:cube", "CastShadows": False},
                       "Material": material(color, emissive=4.0 if light else 0.5, emissive_color=color)}
         if light:
@@ -155,6 +164,7 @@ def build_prefabs():
     arrow = doc.add("GasArrow", Transform=transform(), SphereCollider={"Radius": 0.06},
                     RigidBody={"Type": "Dynamic", "Mass": 0.1, "GravityFactor": 0.3, "ContinuousCollision": True,
                                "TransparentToSight": True},
+                    PerceptionTarget=arrow_target(emissive=0.3),
                     Script={"Script": "Scripts/GasArrow.lua"})
     doc.add("Shaft", arrow, Transform=transform(scale=(0.05, 0.05, 0.6)), Mesh={"Mesh": "builtin:cube", "CastShadows": False},
             Material=material((0.4, 0.8, 0.3), emissive=1.5, emissive_color=(0.4, 0.9, 0.3)))
@@ -227,7 +237,7 @@ def add_guard(doc, name, position, yaw, waypoints, lantern=False, character=WATC
                     Transform=transform(position, (0, yaw, 0)),
                     CharacterController={"Radius": 0.3, "Height": 1.8},
                     Perception={},
-                    StimResponse=SLEEPS_IN_GAS,
+                    StimResponse=NPC_RESPONSES,
                     Script={"Script": "Scripts/Guard.lua", "Properties": {"waypoints": ",".join(waypoints), **properties}})
     character_model(doc, guard, character)
     if lantern:
@@ -237,14 +247,19 @@ def add_guard(doc, name, position, yaw, waypoints, lantern=False, character=WATC
     return guard
 
 
-# NPCs breathe: sleeping gas knocks them out (see Prefabs/GasCloud.pprefab).
-SLEEPS_IN_GAS = {"Rules": [{"Stim": "Gas", "Threshold": 0.3, "Once": True, "Actions": [{"Type": "Knockout"}]}]}
+# How NPCs take arrows and gas: sleeping gas knocks them out (Prefabs/GasCloud.pprefab); fire hurts
+# (two fire arrows kill) and, like a water arrow, tells them they were shot at from where it came.
+NPC_RESPONSES = {"Rules": [
+    {"Stim": "Gas", "Threshold": 0.3, "Once": True, "Actions": [{"Type": "Knockout"}]},
+    {"Stim": "Fire", "Threshold": 0.5, "Once": False, "Actions": [{"Type": "Damage", "Value": 75.0}, {"Type": "Alarm"}]},
+    {"Stim": "Water", "Threshold": 0.5, "Once": False, "Actions": [{"Type": "Alarm"}]},
+]}
 
 
 def add_servant(doc, name, position, yaw, waypoints, bell="Bell"):
     """A servant doing chores between waypoints; alarmed, he runs to the bell (Scripts/Servant.lua)."""
     servant = doc.add(name, Transform=transform(position, (0, yaw, 0)), CharacterController={"Radius": 0.3, "Height": 1.8},
-                      Perception={"FieldOfView": 140.0}, StimResponse=SLEEPS_IN_GAS,
+                      Perception={"FieldOfView": 140.0}, StimResponse=NPC_RESPONSES,
                       Script={"Script": "Scripts/Servant.lua", "Properties": {"waypoints": ",".join(waypoints), "bell": bell}})
     character_model(doc, servant, COOK)
     return servant

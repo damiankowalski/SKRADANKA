@@ -20,10 +20,10 @@ Fields prefixed `Runtime` in C++ are read-only state, visible through `entity.ge
 | Surface | What a floor or object is made of: `Material` (reported as `Footstep.<Material>` / `Impact.<Material>`), `NoiseModifier` (levels added to footsteps and impacts on it), `ImpactLoudness` + `ImpactSound` for dynamic objects that clatter when they hit something. |
 | NavMesh | Navmesh bake settings (cell size, agent radius/height/climb/slope); baked from static colliders at start. Runtime: `Polygons`, `BuildMilliseconds`. |
 | NavAgent | Walks a CharacterController along the navmesh (`nav.move_to`): `Speed`, `TurnSpeed`, `StoppingDistance`, `FaceMovement`. Runtime: `Status`, `Destination`, `RemainingDistance`, `PartialPath`. |
-| Perception | NPC eyes and ears (see `Perception.md`): vision, hearing sensitivity, reaction duration and state levels, `Diligence` against distractions, `BodyAlarm`; runtime: suspicion, state, reaction strength/time, stimulus kind/cause/position, alertness. |
-| PerceptionTarget | Something NPCs can see: `Kind` Intruder (the player) or Body (a downed NPC, found once); silhouette points, reflectance; runtime: light level, exposure. |
-| Vitality | `State` Awake / Unconscious / Dead (`ai.knock_out`, the `Knockout` stim action). Downed NPCs perceive nothing and lie where they fell. |
+| Perception | NPC eyes and ears (see `Perception.md`): vision, hearing sensitivity, reaction duration and state levels, `Diligence` against distractions, `BodyAlarm`, `ProjectileAlarm`; runtime: suspicion, state, reaction strength/time, stimulus kind/cause/position, alertness. |
+| PerceptionTarget | Something NPCs can see: `Kind` Intruder (the player), Body (a downed NPC, found once) or Projectile (an arrow in flight, judged every frame); `Emissive` for things that glow; silhouette points, reflectance; runtime: light level, exposure. |
+| Vitality | `State` Awake / Unconscious / Dead (`ai.knock_out`, the `Knockout` stim action) and `Health` (the `Damage` stim action, `ai.damage`; 0 = Dead). Downed NPCs perceive nothing and lie where they fell. |
 | Flame | Procedural animated fire (height, radius, colour, intensity, speed); doused/ignited together with lights. |
 | SmokeVolume | Sphere of smoke that hides silhouettes (and renders as smoke); optional lifetime. |
-| StimSource, StimResponse | Act/React: emit named stims (Fire, Water, ...) by contact / radius / continuously; react with rules (extinguish, ignite, explode, spawn, impulse, sound, noise, script event, knockout). |
+| StimSource, StimResponse | Act/React: emit named stims (Fire, Water, ...) by contact / radius / continuously; react with rules (extinguish, ignite, explode, spawn, impulse, sound, noise, script event, knockout, damage, alarm: an NPC hit searches where the stim came from). |
 | Prefab | Records which prefab an entity tree came from. |
