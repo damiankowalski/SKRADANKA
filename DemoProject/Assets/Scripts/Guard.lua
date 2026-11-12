@@ -9,6 +9,8 @@
 --   Searching     hurry there, then search the area, darkest spots first
 --   Alarmed       run at the intruder; catching him restarts the level. Lost him: search.
 --
+-- Bumping into the player (or being bumped into) alarms him whatever the light (cause "Touch").
+--
 -- He talks: a line for every change of mind (subtitles above his head), and when he starts a
 -- search or raises the alarm he shouts, which sends guards within earshot to the same place
 -- (ai.shout). Knocked out (blackjack, gas) he falls and stays down: a body others may find.
@@ -43,6 +45,7 @@ local LINES = {
     Calm = { "Must have been rats.", "Nothing there.", "Hm. Imagining things." },
     Body = { "A body! Sound the alarm!", "Someone's been attacked!" },
     Shout = { "What's going on?", "Coming!", "On my way!" },
+    Touch = { "Who's that?!", "Got you!", "What the-" },
 }
 
 local function parse_waypoints(list)
@@ -155,6 +158,8 @@ function Guard:on_state_change(previous, state, reaction)
             Actor.bark(self, LINES.Body, "Audio/Alert.wav")
         elseif reaction.cause == "Shout" or reaction.cause == "Bell" then
             Actor.bark(self, LINES.Shout, "Audio/Alert.wav")
+        elseif reaction.cause == "Touch" then
+            Actor.bark(self, LINES.Touch, "Audio/Alert.wav")
         else
             Actor.bark(self, LINES[state], RANK[state] >= 3 and "Audio/Alert.wav" or "Audio/Mumble.wav")
         end

@@ -28,9 +28,10 @@ namespace {
 			REQUIRE_MESSAGE(SceneSerializer::Deserialize(SceneInstance, Project::GetAssetDirectory() / "Scenes/AILab.pscene", error), error);
 			SceneInstance.SetRandomSeed(seed);
 
-			// The player waits unseen in the west room, within reach of the kitchen zone.
+			// The player waits unseen in the west room, within reach of the kitchen zone and off the
+			// servant's and the guard's routes (bumping into him would give him away).
 			Entity player = SceneInstance.FindEntityByName("Player");
-			player.Transform().Translation = { -6.0f, 0.05f, -7.0f };
+			player.Transform().Translation = { -4.5f, 0.05f, -10.8f };
 			player.GetComponent<PerceptionTargetComponent>().SilhouettePoints.clear();
 
 			World = SceneInstance.FindEntityByName("World");

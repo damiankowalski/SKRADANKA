@@ -261,6 +261,36 @@ namespace Penumbra {
 		return depth;
 	}
 
+	float PerceptionSystem::HorizontalDistance(Entity a, Entity b)
+	{
+		const glm::vec3 delta = m_Scene.GetWorldPosition(b) - m_Scene.GetWorldPosition(a);
+		return glm::length(glm::vec2(delta.x, delta.z));
+	}
+
+	bool PerceptionSystem::IsTouching(Entity observer, Entity target)
+	{
+		const PerceptionComponent* perception = observer.TryGetComponent<PerceptionComponent>();
+		if (!perception || observer == target)
+			return false;
+		// Characters stand on their origin; anything else is taken as a person-sized upright capsule.
+		constexpr float DefaultHeight = 1.8f;
+		auto capsule = [](Entity entity, float radius)
+		{
+			if (const auto* controller = entity.TryGetComponent<CharacterControllerComponent>())
+				return glm::vec2(controller->Radius, controller->Height);
+			return glm::vec2(radius, DefaultHeight);
+		};
+		const PerceptionTargetComponent* targetComponent = target.TryGetComponent<PerceptionTargetComponent>();
+		const glm::vec2 observerCapsule = capsule(observer, 0.3f);
+		const glm::vec2 targetCapsule = capsule(target, targetComponent ? targetComponent->Radius : 0.3f);
+
+		const float observerBase = m_Scene.GetWorldPosition(observer).y;
+		const float targetBase = m_Scene.GetWorldPosition(target).y;
+		if (targetBase > observerBase + observerCapsule.y || observerBase > targetBase + targetCapsule.y)
+			return false;
+		return HorizontalDistance(observer, target) <= observerCapsule.x + targetCapsule.x + std::max(perception->TouchRange, 0.0f);
+	}
+
 	float PerceptionSystem::SampleLuminance(const glm::vec3& point)
 	{
 		return PerceptionModel::SurfaceLuminance(NeutralAlbedo, m_Provider->Illuminance(point, glm::vec3(0.0f), {}), 0.0f);
@@ -361,6 +391,10 @@ namespace Penumbra {
 		result.Motion = PerceptionModel::MotionFactor(glm::length(targetComponent.RuntimeVelocity), peripherality, perception.MotionFactor);
 		result.Stimulus = PerceptionModel::Stimulus(result.Contrast, result.ContrastThreshold, result.VisibleFraction, result.SizeFactor,
 			result.Peripheral, result.Motion);
+
+		// Right in front of him a figure is made out even in the dark (slowly: suspicion still has to rise).
+		if (targetComponent.Kind == TargetKind::Intruder && HorizontalDistance(observer, target) <= perception.CloseRange)
+			result.Stimulus = std::max(result.Stimulus, perception.CloseRangeStimulus * result.VisibleFraction * result.Peripheral);
 		return result;
 	}
 
@@ -569,6 +603,20 @@ namespace Penumbra {
 				continue;
 			noticed.insert(projectile.GetUUID());
 			Notify(observer, targetComponent.RuntimeOrigin, perception.ProjectileAlarm, StimulusKind::Seen, "Arrow");
+		}
+
+		// Touch beats shadow: an intruder he bumps into, or who bumps into him, is noticed at once
+		// whatever the light, and he knows exactly where.
+		for (auto [handle, targetComponent] : m_Scene.GetRegistry().view<PerceptionTargetComponent>().each())
+		{
+			Entity target(handle, &m_Scene);
+			if (targetComponent.Kind != TargetKind::Intruder || !IsTouching(observer, target))
+				continue;
+			if (Notify(observer, m_Scene.GetWorldPosition(target), perception.TouchAlarm, StimulusKind::Seen, "Touch"))
+			{
+				perception.RuntimeSuspicion = 1.0f;
+				perception.RuntimeLastTarget = target.GetUUID();
+			}
 		}
 
 		// Alert memory makes a guard notice faster.
