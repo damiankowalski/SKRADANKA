@@ -57,7 +57,14 @@ namespace Penumbra {
 			return false;
 		}
 		if (m_Scene)
+		{
 			m_Scene->OnRuntimeStop();
+			scene->SetGameState(m_Scene->GetGameStateRef()); // the game goes on in the next scene
+		}
+		else
+		{
+			scene->GetGameState() = m_Options.GameValues;
+		}
 		m_Scene = scene;
 		const bool headless = Application::Get().GetWindow() == nullptr;
 		m_Scene->SetAudioDeviceEnabled(!headless);

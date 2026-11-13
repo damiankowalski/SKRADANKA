@@ -78,6 +78,18 @@ local function run(self)
     test.check(not e:valid() and scene.count() == count - 2, "destroy")
     test.check(not pcall(function() return e:get_position() end), "destroyed handle errors")
 
+    -- Game values kept across scene loads.
+    test.equal(game.get("difficulty", "Normal"), "Normal", "game.get default")
+    game.set("difficulty", "Hard")
+    game.set("score", 120)
+    test.equal(game.get("difficulty"), "Hard", "game.set / game.get")
+    test.near(game.get("score"), 120, 1e-9, "game numbers")
+    game.set("score", nil)
+    test.check(game.get("score") == nil, "game.set nil erases")
+    test.check(not pcall(function() game.set("bad", {}) end), "game.set refuses tables")
+    game.clear()
+    test.check(game.get("difficulty") == nil, "game.clear")
+
     -- Cross-script access.
     test.equal(scene.find("Runner"):script().label, "feature-test", "Entity:script")
 

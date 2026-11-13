@@ -348,6 +348,35 @@ namespace Penumbra {
 		time.set_function("elapsed", [scene]() { return scene->GetTime(); });
 		time.set_function("frame", [scene]() { return static_cast<double>(scene->GetFrameCount()); });
 
+		// --- game: values kept across scene loads (GameState.h) ---------------------------
+		sol::table game = lua.create_named_table("game");
+		game.set_function("get", [scene](const std::string& key, sol::object fallback, sol::this_state state) -> sol::object {
+			const GameState& values = scene->GetGameState();
+			const auto it = values.find(key);
+			if (it == values.end())
+				return fallback;
+			return std::visit([&](const auto& v) { return sol::make_object(state, v); }, it->second);
+		});
+		game.set_function("set", [scene](const std::string& key, sol::object value) {
+			GameState& values = scene->GetGameState();
+			switch (value.get_type())
+			{
+				case sol::type::lua_nil:
+				case sol::type::none: values.erase(key); return;
+				case sol::type::boolean: values[key] = value.as<bool>(); return;
+				case sol::type::number: values[key] = value.as<double>(); return;
+				case sol::type::string: values[key] = value.as<std::string>(); return;
+				default:
+					if (value.is<glm::vec3>())
+					{
+						values[key] = value.as<glm::vec3>();
+						return;
+					}
+					throw std::runtime_error("game.set('" + key + "'): only booleans, numbers, strings, vec3 and nil can be kept");
+			}
+		});
+		game.set_function("clear", [scene]() { scene->GetGameState().clear(); });
+
 		// --- scene ------------------------------------------------------------------------
 		sol::table sceneTable = lua.create_named_table("scene");
 		sceneTable.set_function("create", [scene](sol::optional<std::string> name) {

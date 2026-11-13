@@ -2,12 +2,14 @@
 --
 -- Controls: WASD move, Shift run, C crouch, Space jump, mouse look,
 --           1 = water arrow, 2 = fire arrow, 3 = gas arrow, left mouse = shoot,
---           E = use (pick up / drop a body, or whatever the object offers: on_use / use_prompt),
+--           E = use (take loot, pick a pocket from behind, pick up / drop a body, or whatever the
+--               object offers: on_use / use_prompt), Tab = objectives,
 --           F = blackjack (knocks out an NPC from behind who is not on alert), Esc = release the mouse.
 -- Noise probe (when the noise_probe property is on): - / = pick a loudness, G makes that noise
 -- where you aim. The HUD shows the floor under you and how loud your last step was.
 
 local LightGem = require("Scripts/LightGem")
+local Mission = require("Scripts/Mission/Mission")
 local Noises = require("Scripts/AI/Noises")
 
 local Player = {
@@ -252,6 +254,10 @@ function Player:draw_hud(dt)
 end
 
 function Player:on_update(dt)
+    if Mission.over() then -- escaped or failed: the summary is up
+        character.move(self.entity, vec3(0, 0, 0))
+        return
+    end
     if input.key_pressed("Escape") then input.set_cursor_locked(false) end
     if input.mouse_pressed("Left") then input.set_cursor_locked(true) end
     self:update_look()
@@ -310,8 +316,36 @@ local function from_behind(attacker, npc)
     return flat(npc:forward()):normalized():dot(to_attacker) < -0.2
 end
 
+-- Loot on the belt of an NPC in front (a purse, a key): { npc, loot } or nil. Only from behind
+-- while he is up; anyone lying down can be searched.
+function Player:pocket_in_reach()
+    local npc = self:npc_in_front(function(npc)
+        return ai.vital_state(npc) ~= "Awake" or from_behind(self.entity, npc)
+    end)
+    if not npc then return nil end
+    for _, child in ipairs(npc:children()) do
+        local instance = child:has("Script") and child:script() or nil
+        if instance and instance.pickpocket and not instance.taken then return { npc = npc, loot = instance } end
+    end
+    return nil
+end
+
+-- Lifting it unnoticed works while he is calm (Unaware or merely Suspicious) or down; a guard
+-- who is looking for someone feels the hand and turns on the thief.
+function Player:pick_pocket(pocket)
+    local state = ai.state(pocket.npc)
+    if ai.vital_state(pocket.npc) == "Awake" and state ~= "Unaware" and state ~= "Suspicious" then
+        ai.notify(pocket.npc, self.entity:get_position(), 9.5, "Theft")
+        return "noticed"
+    end
+    pocket.loot:take()
+    return "pickpocket"
+end
+
 function Player:interaction_prompt()
     if self.carrying then return "[E] put the body down" end
+    local pocket = self:pocket_in_reach()
+    if pocket then return "[E] " .. pocket.loot.use_prompt end
     if self:body_in_reach() then return "[E] pick up the body" end
     local _, usable = self:usable_in_reach()
     if usable then return "[E] " .. (usable.use_prompt or "use") end
@@ -323,6 +357,8 @@ end
 -- E: drop the body, pick one up, or use what is in front. Returns what happened (for tests).
 function Player:use()
     if self.carrying then return self:drop_body() end
+    local pocket = self:pocket_in_reach()
+    if pocket then return self:pick_pocket(pocket) end
     local body = self:body_in_reach()
     if body then return self:pick_up(body) end
     local entity, usable = self:usable_in_reach()

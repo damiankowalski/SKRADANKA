@@ -4145,6 +4145,751 @@
           "Volume": 0.25
         }
       }
+    },
+    {
+      "ID": "1087",
+      "Components": {
+        "Tag": {
+          "Tag": "Mission"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Script": {
+          "Script": "Scripts/MissionControl.lua",
+          "Properties": {
+            "mission": "Scripts/Missions/Manor"
+          }
+        }
+      }
+    },
+    {
+      "ID": "1088",
+      "Components": {
+        "Tag": {
+          "Tag": "HallTable"
+        },
+        "Transform": {
+          "Translation": [
+            10,
+            0.45,
+            -13
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            3,
+            0.9,
+            1.2
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.3,
+            0.2,
+            0.12,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1089",
+      "Components": {
+        "Tag": {
+          "Tag": "GoldGoblet"
+        },
+        "Transform": {
+          "Translation": [
+            9.2,
+            1.02,
+            -13
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.12,
+            0.24,
+            0.12
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            1.0,
+            0.78,
+            0.32,
+            1.0
+          ],
+          "Roughness": 0.3,
+          "Metallic": 1.0,
+          "EmissiveIntensity": 0.25,
+          "EmissiveColor": [
+            1.0,
+            0.78,
+            0.32
+          ],
+          "Translucent": false
+        },
+        "Script": {
+          "Script": "Scripts/Loot.lua",
+          "Properties": {
+            "label": "gold goblet",
+            "value": 150.0,
+            "item": "",
+            "pickpocket": false
+          }
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1090",
+      "Components": {
+        "Tag": {
+          "Tag": "SilverPlate"
+        },
+        "Transform": {
+          "Translation": [
+            10.2,
+            0.915,
+            -13.1
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.4,
+            0.03,
+            0.4
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.8,
+            0.82,
+            0.85,
+            1.0
+          ],
+          "Roughness": 0.3,
+          "Metallic": 1.0,
+          "EmissiveIntensity": 0.25,
+          "EmissiveColor": [
+            0.8,
+            0.82,
+            0.85
+          ],
+          "Translucent": false
+        },
+        "Script": {
+          "Script": "Scripts/Loot.lua",
+          "Properties": {
+            "label": "silver plate",
+            "value": 75.0,
+            "item": "",
+            "pickpocket": false
+          }
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1091",
+      "Components": {
+        "Tag": {
+          "Tag": "Candlestick"
+        },
+        "Transform": {
+          "Translation": [
+            11.0,
+            1.1,
+            -12.8
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.08,
+            0.4,
+            0.08
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.8,
+            0.82,
+            0.85,
+            1.0
+          ],
+          "Roughness": 0.3,
+          "Metallic": 1.0,
+          "EmissiveIntensity": 0.25,
+          "EmissiveColor": [
+            0.8,
+            0.82,
+            0.85
+          ],
+          "Translucent": false
+        },
+        "Script": {
+          "Script": "Scripts/Loot.lua",
+          "Properties": {
+            "label": "candlestick",
+            "value": 100.0,
+            "item": "",
+            "pickpocket": false
+          }
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1092",
+      "Components": {
+        "Tag": {
+          "Tag": "Chest"
+        },
+        "Transform": {
+          "Translation": [
+            7,
+            0.35,
+            -15.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1.0,
+            0.7,
+            0.6
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.3,
+            0.2,
+            0.12,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1093",
+      "Components": {
+        "Tag": {
+          "Tag": "JewelBox"
+        },
+        "Transform": {
+          "Translation": [
+            7,
+            0.8,
+            -15.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.4,
+            0.2,
+            0.3
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            1.0,
+            0.78,
+            0.32,
+            1.0
+          ],
+          "Roughness": 0.3,
+          "Metallic": 1.0,
+          "EmissiveIntensity": 0.25,
+          "EmissiveColor": [
+            1.0,
+            0.78,
+            0.32
+          ],
+          "Translucent": false
+        },
+        "Script": {
+          "Script": "Scripts/Loot.lua",
+          "Properties": {
+            "label": "jewel box",
+            "value": 200.0,
+            "item": "",
+            "pickpocket": false
+          }
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1094",
+      "Components": {
+        "Tag": {
+          "Tag": "Coins"
+        },
+        "Transform": {
+          "Translation": [
+            -12,
+            1.04,
+            -10
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.2,
+            0.08,
+            0.2
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            1.0,
+            0.78,
+            0.32,
+            1.0
+          ],
+          "Roughness": 0.3,
+          "Metallic": 1.0,
+          "EmissiveIntensity": 0.25,
+          "EmissiveColor": [
+            1.0,
+            0.78,
+            0.32
+          ],
+          "Translucent": false
+        },
+        "Script": {
+          "Script": "Scripts/Loot.lua",
+          "Properties": {
+            "label": "stack of coins",
+            "value": 50.0,
+            "item": "",
+            "pickpocket": false
+          }
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1095",
+      "Components": {
+        "Tag": {
+          "Tag": "SilverRing"
+        },
+        "Transform": {
+          "Translation": [
+            -2,
+            1.22,
+            -6
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.08,
+            0.03,
+            0.08
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.8,
+            0.82,
+            0.85,
+            1.0
+          ],
+          "Roughness": 0.3,
+          "Metallic": 1.0,
+          "EmissiveIntensity": 0.25,
+          "EmissiveColor": [
+            0.8,
+            0.82,
+            0.85
+          ],
+          "Translucent": false
+        },
+        "Script": {
+          "Script": "Scripts/Loot.lua",
+          "Properties": {
+            "label": "silver ring",
+            "value": 50.0,
+            "item": "",
+            "pickpocket": false
+          }
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1096",
+      "Components": {
+        "Tag": {
+          "Tag": "Emerald"
+        },
+        "Transform": {
+          "Translation": [
+            12,
+            1.06,
+            6
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.1,
+            0.12,
+            0.1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:sphere",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.2,
+            0.85,
+            0.45,
+            1.0
+          ],
+          "Roughness": 0.3,
+          "Metallic": 1.0,
+          "EmissiveIntensity": 0.25,
+          "EmissiveColor": [
+            0.2,
+            0.85,
+            0.45
+          ],
+          "Translucent": false
+        },
+        "Script": {
+          "Script": "Scripts/Loot.lua",
+          "Properties": {
+            "label": "emerald",
+            "value": 125.0,
+            "item": "",
+            "pickpocket": false
+          }
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1097",
+      "Components": {
+        "Tag": {
+          "Tag": "Purse"
+        },
+        "Transform": {
+          "Translation": [
+            0.22,
+            0.95,
+            0.12
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.14,
+            0.16,
+            0.12
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:sphere",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.33,
+            0.2,
+            0.1,
+            1.0
+          ],
+          "Roughness": 0.9,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            0.33,
+            0.2,
+            0.1
+          ],
+          "Translucent": false
+        },
+        "Script": {
+          "Script": "Scripts/Loot.lua",
+          "Properties": {
+            "label": "purse",
+            "value": 75.0,
+            "item": "",
+            "pickpocket": true
+          }
+        }
+      },
+      "Parent": "1058"
+    },
+    {
+      "ID": "1098",
+      "Components": {
+        "Tag": {
+          "Tag": "Purse"
+        },
+        "Transform": {
+          "Translation": [
+            0.22,
+            0.95,
+            0.12
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.14,
+            0.16,
+            0.12
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:sphere",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.33,
+            0.2,
+            0.1,
+            1.0
+          ],
+          "Roughness": 0.9,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            0.33,
+            0.2,
+            0.1
+          ],
+          "Translucent": false
+        },
+        "Script": {
+          "Script": "Scripts/Loot.lua",
+          "Properties": {
+            "label": "purse",
+            "value": 100.0,
+            "item": "",
+            "pickpocket": true
+          }
+        }
+      },
+      "Parent": "1060"
+    },
+    {
+      "ID": "1099",
+      "Components": {
+        "Tag": {
+          "Tag": "CellarKey"
+        },
+        "Transform": {
+          "Translation": [
+            -0.22,
+            0.95,
+            0.12
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.04,
+            0.14,
+            0.02
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.55,
+            0.5,
+            0.4,
+            1.0
+          ],
+          "Roughness": 0.3,
+          "Metallic": 1.0,
+          "EmissiveIntensity": 0.25,
+          "EmissiveColor": [
+            0.55,
+            0.5,
+            0.4
+          ],
+          "Translucent": false
+        },
+        "Script": {
+          "Script": "Scripts/Loot.lua",
+          "Properties": {
+            "label": "cellar key",
+            "value": 0.0,
+            "item": "CellarKey",
+            "pickpocket": true
+          }
+        }
+      },
+      "Parent": "1060"
     }
   ]
 }

@@ -256,6 +256,35 @@ NPC_RESPONSES = {"Rules": [
 ]}
 
 
+GOLD, SILVER = (1.0, 0.78, 0.32), (0.8, 0.82, 0.85)
+
+
+def add_loot(doc, name, position, size, label, value, color=GOLD, mesh="builtin:cylinder", parent=None, item="",
+             pickpocket=False):
+    """Something to steal (Scripts/Loot.lua). Precious metal catches a faint glint even in the dark.
+    Loot on a belt (pickpocket) has no collider: the thief's hands find it on the NPC (Player.lua)."""
+    components = {
+        "Transform": transform(position, scale=size),
+        "Mesh": {"Mesh": mesh, "CastShadows": False},
+        "Material": material(color, roughness=0.3 if color != LEATHER else 0.9, metallic=0.0 if color == LEATHER else 1.0,
+                             emissive=0.0 if color == LEATHER else 0.25, emissive_color=color),
+        "Script": {"Script": "Scripts/Loot.lua", "Properties": {"label": label, "value": float(value), "item": item,
+                                                                  "pickpocket": pickpocket}},
+    }
+    if not pickpocket:
+        components["BoxCollider"] = {"HalfExtents": [0.5, 0.5, 0.5]}
+    return doc.add(name, parent, **components)
+
+
+LEATHER = (0.33, 0.2, 0.1)
+
+
+def add_purse(doc, npc, value, side=1.0, name="Purse"):
+    """A purse on an NPC's belt, at the hip behind him."""
+    return add_loot(doc, name, (0.22 * side, 0.95, 0.12), (0.14, 0.16, 0.12), "purse", value, color=LEATHER,
+                    mesh="builtin:sphere", parent=npc, pickpocket=True)
+
+
 def add_servant(doc, name, position, yaw, waypoints, bell="Bell"):
     """A servant doing chores between waypoints; alarmed, he runs to the bell (Scripts/Servant.lua)."""
     servant = doc.add(name, Transform=transform(position, (0, yaw, 0)), CharacterController={"Radius": 0.3, "Height": 1.8},
@@ -367,8 +396,8 @@ def build_stealth_level():
     for name, position in (("WP_A1", (-10, 0, -4)), ("WP_A2", (8, 0, -5)), ("WP_A3", (8, 0, 4)), ("WP_A4", (-10, 0, 6)),
                            ("WP_B1", (14, 0, 12)), ("WP_B2", (14, 0, -4))):
         doc.add(name, Transform=transform(position))
-    add_guard(doc, "GuardA", (-10, 0.05, -4), 90, ["WP_A1", "WP_A2", "WP_A3", "WP_A4"])
-    add_guard(doc, "GuardB", (14, 0.05, 12), 180, ["WP_B1", "WP_B2"], lantern=True, character=KNIGHT)
+    guard_a = add_guard(doc, "GuardA", (-10, 0.05, -4), 90, ["WP_A1", "WP_A2", "WP_A3", "WP_A4"])
+    guard_b = add_guard(doc, "GuardB", (14, 0.05, 12), 180, ["WP_B1", "WP_B2"], lantern=True, character=KNIGHT)
 
     # Floors that change how loud footsteps are, and a bucket waiting to be knocked off a crate.
     floor_patch(doc, "HallCarpet", "Carpet", (10, -12), (10.6, 7.2))
@@ -392,7 +421,38 @@ def build_stealth_level():
     add_player(doc, (-17, 0.05, -17), yaw=-135)
     doc.add("Ambience", Transform=transform((0, 3, 0)),
             AudioSource={"Clip": "Audio/Wind.wav", "Loop": True, "PlayOnStart": True, "Spatial": False, "Volume": 0.25})
+
+    # The mission (Scripts/Missions/Manor.lua): silver in the hall, odds and ends in the courtyard,
+    # purses on the guards' belts and the cellar key on the captain's (GuardB).
+    doc.add("Mission", Transform=transform(), Script={"Script": "Scripts/MissionControl.lua",
+                                                      "Properties": {"mission": "Scripts/Missions/Manor"}})
+    box(doc, "HallTable", (10, 0.45, -13), (3, 0.9, 1.2), wood, surface="Wood")
+    add_loot(doc, "GoldGoblet", (9.2, 1.02, -13), (0.12, 0.24, 0.12), "gold goblet", 150)
+    add_loot(doc, "SilverPlate", (10.2, 0.915, -13.1), (0.4, 0.03, 0.4), "silver plate", 75, color=SILVER)
+    add_loot(doc, "Candlestick", (11.0, 1.1, -12.8), (0.08, 0.4, 0.08), "candlestick", 100, color=SILVER)
+    box(doc, "Chest", (7, 0.35, -15.2), (1.0, 0.7, 0.6), wood, surface="Wood")
+    add_loot(doc, "JewelBox", (7, 0.8, -15.2), (0.4, 0.2, 0.3), "jewel box", 200, mesh="builtin:cube")
+    add_loot(doc, "Coins", (-12, 1.04, -10), (0.2, 0.08, 0.2), "stack of coins", 50)
+    add_loot(doc, "SilverRing", (-2, 1.22, -6), (0.08, 0.03, 0.08), "silver ring", 50, color=SILVER)
+    add_loot(doc, "Emerald", (12, 1.06, 6), (0.1, 0.12, 0.1), "emerald", 125, color=(0.2, 0.85, 0.45), mesh="builtin:sphere")
+    add_purse(doc, guard_a, 75)
+    add_purse(doc, guard_b, 100)
+    add_loot(doc, "CellarKey", (-0.22, 0.95, 0.12), (0.04, 0.14, 0.02), "cellar key", 0, color=(0.55, 0.5, 0.4),
+             mesh="builtin:cube", parent=guard_b, item="CellarKey", pickpocket=True)
     doc.save("Scenes/Stealth.pscene")
+
+
+def build_menu():
+    """Title screen: the briefing and the choice of difficulty (Scripts/Menu.lua) over a dim wall
+    lit by a torch."""
+    doc = Document("PenumbraScene")
+    add_environment(doc, ambient=0.01, map_intensity=0.05, fog=0.0, moon=0.02)
+    doc.add("Camera", Transform=transform((0, 1.6, 4)), Camera={"VerticalFOV": 60.0})
+    box(doc, "Ground", (0, -0.5, 0), (20, 1, 20), (0.2, 0.19, 0.18))
+    box(doc, "Wall", (0, 3, -2), (20, 6, 0.6), (0.3, 0.29, 0.28))
+    torch_prefab_entities(doc, (2.5, 0, -1.5))
+    doc.add("Menu", Transform=transform(), Script={"Script": "Scripts/Menu.lua", "Properties": {"mission": "Scripts/Missions/Manor"}})
+    doc.save("Scenes/Menu.pscene")
 
 
 def campfire(doc, position):
@@ -650,6 +710,19 @@ def build_audio():
                 value += sum(a * math.sin(2 * math.pi * f * s) for f, a in ((440, 0.3), (1107, 0.2), (1870, 0.12), (2633, 0.08))) * math.exp(-s / 0.7)
         samples.append(value * 0.7)
     write_wav("Bell.wav", samples)
+    # Coins and silver: a few bright clinks.
+    n = noise(12)
+    length = int(RATE * 0.5)
+    samples = []
+    for i in range(length):
+        t = i / RATE
+        value = 0.0
+        for start, pitch in ((0.0, 1.0), (0.09, 1.19), (0.2, 0.94)):
+            if t >= start:
+                s = t - start
+                value += sum(a * math.sin(2 * math.pi * f * pitch * s) for f, a in ((2900, 0.25), (4700, 0.15), (6100, 0.08))) * math.exp(-s / 0.06)
+        samples.append(value * 0.8 + 0.05 * n() * math.exp(-t / 0.02))
+    write_wav("Coins.wav", samples)
     # "Hmm, just the weather": a short low hum.
     length = int(RATE * 0.6)
     write_wav("Mumble.wav", [0.4 * (math.sin(2 * math.pi * 140 * i / RATE) + 0.4 * math.sin(2 * math.pi * 280 * i / RATE))
@@ -666,7 +739,7 @@ def build_audio():
 
 
 def build_project_file():
-    project = {"Name": "Penumbra Demo", "StartScene": "Scenes/Stealth.pscene", "AssetDirectory": "Assets",
+    project = {"Name": "Penumbra Demo", "StartScene": "Scenes/Menu.pscene", "AssetDirectory": "Assets",
                "WindowWidth": 1600, "WindowHeight": 900}
     (ROOT / "project.json").write_text(json.dumps(project, indent=2) + "\n", encoding="utf-8")
 
@@ -675,6 +748,7 @@ if __name__ == "__main__":
     build_project_file()
     build_prefabs()
     build_stealth_level()
+    build_menu()
     build_feature_test()
     build_perception_lab()
     build_ai_lab()
