@@ -1031,7 +1031,7 @@ namespace Penumbra {
 	// ------------------------------------------------------------------------------------------
 
 	SceneRenderer::SceneRenderer(RenderDevice& device, const SceneRendererSettings& settings)
-		: m_Impl(CreateScope<Impl>()), m_Device(device), m_Settings(settings)
+		: m_Impl(CreateScope<Impl>()), m_Settings(settings)
 	{
 		Impl& impl = *m_Impl;
 		impl.Device = device.GetDevice();

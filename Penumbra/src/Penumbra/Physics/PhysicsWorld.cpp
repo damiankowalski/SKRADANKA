@@ -64,7 +64,6 @@ namespace Penumbra {
 		namespace Layers {
 			constexpr JPH::ObjectLayer NonMoving = 0;
 			constexpr JPH::ObjectLayer Moving = 1;
-			constexpr JPH::ObjectLayer Count = 2;
 		}
 
 		namespace BroadPhaseLayers {

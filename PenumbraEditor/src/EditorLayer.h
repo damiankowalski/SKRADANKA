@@ -103,7 +103,6 @@ namespace Penumbra {
 		bool m_ViewportFocused = false;
 		int m_GizmoOperation = 0; // ImGuizmo::OPERATION
 		bool m_GizmoLocal = false;
-		bool m_GizmoWasUsing = false;
 		bool m_ShowGrid = true;
 		bool m_ShowColliders = false;
 		bool m_ShowPerception = true;
