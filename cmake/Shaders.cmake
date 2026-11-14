@@ -1,11 +1,23 @@
-# Offline HLSL -> DXIL compilation. Every shader permutation is compiled with DXC
-# into a C header containing the bytecode, and all of them are registered in a
-# generated ShaderRegistry.cpp so the engine never loads shader files from disk.
+# Offline HLSL compilation. Every shader permutation is compiled with DXC into C headers holding
+# the bytecode - SPIR-V for Vulkan everywhere, DXIL for Direct3D 12 on Windows - and all of them are
+# registered in a generated ShaderRegistry.cpp so the engine never loads shader files from disk.
 #
 # penumbra_compile_shaders(
 #     TARGET <target>
 #     SOURCE_DIR <dir with .hlsl files>
 #     SHADERS "<Name>|<file.hlsl>|<entry>|<profile>[|DEFINE=1;DEFINE2=0]" ...)
+#
+# SPIR-V follows NVRHI's Vulkan conventions:
+#   * register spaces are descriptor sets, and t/s/b/u registers are shifted to the binding offsets of
+#     nvrhi::VulkanBindingOffsets (0 / 128 / 256 / 384);
+#   * entry points are renamed "main", which NVRHI asks for;
+#   * buffers keep the D3D memory layout (-fvk-use-dx-layout, needs the scalarBlockLayout feature), so the C++
+#     structs mirrored in RendererTypes.h match on both APIs;
+#   * clip space needs no flip: NVRHI sets Vulkan viewports upside down (negative height) as D3D expects.
+
+set(PENUMBRA_SPIRV_ARGS
+    -spirv -fspv-target-env=vulkan1.2 -fspv-entrypoint-name=main -fvk-use-dx-layout
+    -fvk-t-shift 0 all -fvk-s-shift 128 all -fvk-b-shift 256 all -fvk-u-shift 384 all)
 
 function(penumbra_compile_shaders)
     cmake_parse_arguments(ARG "" "TARGET;SOURCE_DIR" "SHADERS" ${ARGN})
@@ -33,23 +45,39 @@ function(penumbra_compile_shaders)
                 list(APPEND defineArgs "-D" "${def}")
             endforeach()
         endif()
+        set(commonArgs -nologo -T ${profile} -E ${entry} -HV 2021 -O3 -WX -I "${ARG_SOURCE_DIR}" ${defineArgs})
 
-        set(header "${outDir}/${name}.h")
+        set(spirvArgs ${PENUMBRA_SPIRV_ARGS})
+        set(spirvHeader "${outDir}/${name}.spirv.h")
         add_custom_command(
-            OUTPUT "${header}"
-            COMMAND "${PENUMBRA_DXC_EXECUTABLE}"
-                -nologo -T ${profile} -E ${entry} -HV 2021 -O3 -WX
-                -Qstrip_reflect
-                -I "${ARG_SOURCE_DIR}"
-                ${defineArgs}
-                -Fh "${header}" -Vn "g_Shader_${name}"
+            OUTPUT "${spirvHeader}"
+            COMMAND "${PENUMBRA_DXC_EXECUTABLE}" ${commonArgs} ${spirvArgs}
+                -Fh "${spirvHeader}" -Vn "g_Spirv_${name}"
                 "${ARG_SOURCE_DIR}/${file}"
             DEPENDS "${ARG_SOURCE_DIR}/${file}" ${includeDeps}
-            COMMENT "DXC ${name} (${file}:${entry} ${profile})"
+            COMMENT "DXC ${name} -> SPIR-V (${file}:${entry} ${profile})"
             VERBATIM)
-        list(APPEND headers "${header}")
-        string(APPEND registryIncludes "#include \"${name}.h\"\n")
-        string(APPEND registryEntries "\t\t{ \"${name}\", g_Shader_${name}, sizeof(g_Shader_${name}) },\n")
+        list(APPEND headers "${spirvHeader}")
+        string(APPEND registryIncludes "#include \"${name}.spirv.h\"\n")
+        set(spirvEntry "g_Spirv_${name}, sizeof(g_Spirv_${name})")
+
+        set(dxilEntry "nullptr, 0")
+        if(WIN32)
+            set(dxilHeader "${outDir}/${name}.dxil.h")
+            add_custom_command(
+                OUTPUT "${dxilHeader}"
+                COMMAND "${PENUMBRA_DXC_EXECUTABLE}" ${commonArgs} -Qstrip_reflect
+                    -Fh "${dxilHeader}" -Vn "g_Dxil_${name}"
+                    "${ARG_SOURCE_DIR}/${file}"
+                DEPENDS "${ARG_SOURCE_DIR}/${file}" ${includeDeps}
+                COMMENT "DXC ${name} -> DXIL (${file}:${entry} ${profile})"
+                VERBATIM)
+            list(APPEND headers "${dxilHeader}")
+            string(APPEND registryIncludes "#include \"${name}.dxil.h\"\n")
+            set(dxilEntry "g_Dxil_${name}, sizeof(g_Dxil_${name})")
+        endif()
+
+        string(APPEND registryEntries "\t\t{ \"${name}\", ${dxilEntry}, ${spirvEntry} },\n")
     endforeach()
 
     set(registryCpp "${outDir}/ShaderRegistry.cpp")
@@ -69,21 +97,23 @@ namespace Penumbra {
 		struct ShaderEntry
 		{
 			const char* Name;
-			const BYTE* Data;
-			size_t Size;
+			const BYTE* Dxil;
+			size_t DxilSize;
+			const BYTE* Spirv;
+			size_t SpirvSize;
 		};
 
 		const ShaderEntry s_Shaders[] = {
-@registryEntries@			{ nullptr, nullptr, 0 },
+@registryEntries@			{ nullptr, nullptr, 0, nullptr, 0 },
 		};
 	}
 
-	ShaderBytecode ShaderLibrary::Find(const char* name)
+	ShaderBytecode ShaderLibrary::Find(const char* name, ShaderFormat format)
 	{
 		for (const ShaderEntry& entry : s_Shaders)
 		{
 			if (entry.Name && std::strcmp(entry.Name, name) == 0)
-				return { entry.Data, entry.Size };
+				return format == ShaderFormat::Dxil ? ShaderBytecode{ entry.Dxil, entry.DxilSize } : ShaderBytecode{ entry.Spirv, entry.SpirvSize };
 		}
 		return {};
 	}

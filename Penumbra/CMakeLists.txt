@@ -18,19 +18,23 @@ target_link_libraries(Penumbra PUBLIC
     glm::glm
     EnTT::EnTT
     nvrhi
-    nvrhi_d3d12
+    nvrhi_vk
     Jolt
     pn_sol2
     pn_json
     pn_miniaudio
     pn_cgltf
     pn_stb
-    pn_recast
-    d3d12
-    dxgi
-    dxguid
-    dbghelp
-    ws2_32)
+    pn_recast)
+# The Vulkan device is created by RenderDevice (vulkan.hpp, loader opened at run time).
+target_link_libraries(Penumbra PRIVATE Vulkan::Headers ${CMAKE_DL_LIBS})
+target_compile_definitions(Penumbra PRIVATE VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1)
+if(WIN32)
+    target_link_libraries(Penumbra PUBLIC nvrhi_d3d12 d3d12 dxgi dxguid dbghelp ws2_32)
+elseif(APPLE)
+    # miniaudio's Core Audio backend.
+    target_link_libraries(Penumbra PUBLIC "-framework CoreFoundation" "-framework CoreAudio" "-framework AudioToolbox")
+endif()
 
 # Shader permutations: "<Name>|<file>|<entry>|<profile>[|DEFINE=1,DEFINE2=1]"
 include(${CMAKE_CURRENT_SOURCE_DIR}/shaders/ShaderList.cmake)

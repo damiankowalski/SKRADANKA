@@ -13,7 +13,7 @@ struct PostConstants
 };
 
 ConstantBuffer<ViewConstants> g_View : register(b0);
-ConstantBuffer<PostConstants> g_Post : register(b1);
+PN_PUSH_CONSTANT ConstantBuffer<PostConstants> g_Post : register(b1);
 SamplerState g_LinearClamp : register(s0);
 SamplerState g_PointClamp : register(s1);
 

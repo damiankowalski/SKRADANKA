@@ -2,6 +2,7 @@
 
 #include "Penumbra/Core/Base.h"
 #include "Penumbra/Core/UUID.h"
+#include "Penumbra/Renderer/RenderDevice.h"
 
 #include <filesystem>
 
@@ -55,6 +56,7 @@ namespace Penumbra {
 		// Headless hosts default to an audio engine without an output device and to WARP if no GPU exists.
 		void SetAudioDeviceEnabled(bool enabled) { m_AudioDeviceEnabled = enabled; }
 		void SetUseWarp(bool useWarp) { m_UseWarp = useWarp; }
+		void SetGraphicsApi(GraphicsApi api) { m_GraphicsApi = api; }
 		void SetRuntimeExecutable(const std::filesystem::path& path) { m_RuntimeExecutable = path; }
 
 	private:
@@ -64,6 +66,7 @@ namespace Penumbra {
 		Scope<SceneRenderer> m_Renderer;
 		bool m_AudioDeviceEnabled = false;
 		bool m_UseWarp = false;
+		std::optional<GraphicsApi> m_GraphicsApi;
 		bool m_RendererFailed = false;
 		std::filesystem::path m_RuntimeExecutable;
 	};

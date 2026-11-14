@@ -1,7 +1,8 @@
 #include "pnpch.h"
 #include "Penumbra/Scene/GameState.h"
 
-#include <charconv>
+#include <cctype>
+#include <cstdlib>
 
 namespace Penumbra {
 
@@ -22,10 +23,16 @@ namespace Penumbra {
 				return true;
 			if (text == "false")
 				return false;
-			double number = 0.0;
-			const auto [end, error] = std::from_chars(text.data(), text.data() + text.size(), number);
-			if (error == std::errc() && end == text.data() + text.size() && !text.empty())
-				return number;
+			// strtod rather than std::from_chars: Apple's libc++ lacks the floating-point overload. The
+			// first character must start a number, so strtod's own leniency (spaces, "inf") stays out.
+			const std::string copy(text);
+			if (!copy.empty() && (std::isdigit(static_cast<unsigned char>(copy[0])) || copy[0] == '-' || copy[0] == '+' || copy[0] == '.'))
+			{
+				char* end = nullptr;
+				const double number = std::strtod(copy.c_str(), &end);
+				if (end == copy.c_str() + copy.size())
+					return number;
+			}
 			return std::string(text);
 		}
 

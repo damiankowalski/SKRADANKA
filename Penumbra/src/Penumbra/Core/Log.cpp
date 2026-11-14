@@ -4,7 +4,12 @@
 #include <cstdio>
 #include <iostream>
 
-#include <Windows.h>
+#ifdef _WIN32
+	#include <Windows.h>
+#else
+	#include <unistd.h>
+#endif
+#include "Penumbra/Core/Platform.h"
 
 namespace Penumbra {
 
@@ -26,6 +31,7 @@ namespace Penumbra {
 			return s_State;
 		}
 
+#ifdef _WIN32
 		WORD ConsoleColorFor(LogLevel level)
 		{
 			switch (level)
@@ -38,6 +44,32 @@ namespace Penumbra {
 			}
 			return FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
 		}
+#else
+		// ANSI escape sequences for terminals.
+		const char* ConsoleColorFor(LogLevel level)
+		{
+			switch (level)
+			{
+				case LogLevel::Trace:    return "\x1b[90m";
+				case LogLevel::Info:     return "\x1b[92m";
+				case LogLevel::Warn:     return "\x1b[93m";
+				case LogLevel::Error:    return "\x1b[91m";
+				case LogLevel::Critical: return "\x1b[97;41m";
+			}
+			return "\x1b[0m";
+		}
+#endif
+
+		std::tm LocalTime(std::time_t time)
+		{
+			std::tm local{};
+#ifdef _WIN32
+			localtime_s(&local, &time);
+#else
+			localtime_r(&time, &local);
+#endif
+			return local;
+		}
 
 		std::string Timestamp()
 		{
@@ -45,8 +77,7 @@ namespace Penumbra {
 			const auto seconds = std::chrono::floor<std::chrono::seconds>(now);
 			const auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(now - seconds).count();
 			const std::time_t time = std::chrono::system_clock::to_time_t(now);
-			std::tm local{};
-			localtime_s(&local, &time);
+			const std::tm local = LocalTime(time);
 			return std::format("{:02}:{:02}:{:02}.{:03}", local.tm_hour, local.tm_min, local.tm_sec, millis);
 		}
 
@@ -122,6 +153,7 @@ namespace Penumbra {
 		std::scoped_lock lock(state.Mutex);
 		if (state.ConsoleEnabled)
 		{
+#ifdef _WIN32
 			HANDLE console = GetStdHandle(level >= LogLevel::Error ? STD_ERROR_HANDLE : STD_OUTPUT_HANDLE);
 			CONSOLE_SCREEN_BUFFER_INFO info{};
 			const bool isConsole = GetConsoleScreenBufferInfo(console, &info) != 0;
@@ -132,6 +164,16 @@ namespace Penumbra {
 			if (isConsole)
 				SetConsoleTextAttribute(console, info.wAttributes);
 			std::fputc('\n', stream);
+#else
+			std::FILE* stream = level >= LogLevel::Error ? stderr : stdout;
+			const bool isTerminal = isatty(fileno(stream)) != 0;
+			if (isTerminal)
+				std::fputs(ConsoleColorFor(level), stream);
+			std::fputs(line.c_str(), stream);
+			if (isTerminal)
+				std::fputs("\x1b[0m", stream);
+			std::fputc('\n', stream);
+#endif
 			std::fflush(stream);
 		}
 
@@ -154,8 +196,8 @@ namespace Penumbra {
 		void AssertionFailed(const char* expression, const char* message, const char* file, int line)
 		{
 			Log::Write(LogLevel::Critical, "Assert", std::string_view(std::format("{} ({}) at {}:{}", message, expression, file, line)));
-			if (IsDebuggerPresent())
-				__debugbreak();
+			if (Platform::IsDebuggerAttached())
+				Platform::DebugBreak();
 			std::abort();
 		}
 

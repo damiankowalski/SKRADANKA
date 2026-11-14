@@ -2,6 +2,7 @@
 #include "Penumbra/Automation/AutomationHost.h"
 
 #include "Penumbra/Core/FileSystem.h"
+#include "Penumbra/Core/Platform.h"
 #include "Penumbra/Renderer/RenderDevice.h"
 #include "Penumbra/Renderer/SceneRenderer.h"
 #include "Penumbra/Scene/Scene.h"
@@ -10,7 +11,7 @@ namespace Penumbra {
 
 	std::filesystem::path AutomationHost::GetRuntimeExecutable() const
 	{
-		return FileSystem::GetExecutableDirectory() / "PenumbraRuntime.exe";
+		return FileSystem::GetExecutableDirectory() / Platform::ExecutableName("PenumbraRuntime");
 	}
 
 	Ref<Scene> AutomationHost::GetActiveScene()
@@ -63,6 +64,8 @@ namespace Penumbra {
 		{
 			RenderDeviceSpecification spec;
 			spec.UseWarp = m_UseWarp;
+			if (m_GraphicsApi)
+				spec.Api = *m_GraphicsApi;
 			m_RenderDevice = RenderDevice::Create(spec);
 			m_RendererFailed = m_RenderDevice == nullptr;
 		}

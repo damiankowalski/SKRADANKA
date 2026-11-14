@@ -10,7 +10,7 @@ struct IBLConstants
 	uint SampleCount;
 };
 
-ConstantBuffer<IBLConstants> g_IBL : register(b0);
+PN_PUSH_CONSTANT ConstantBuffer<IBLConstants> g_IBL : register(b0);
 Texture2D<float4> g_Equirect : register(t0);
 TextureCube<float4> g_SourceCube : register(t1);
 Texture2DArray<float4> g_SourceMip : register(t2);

@@ -1,7 +1,7 @@
 #include "Lighting.hlsli"
 
 // Space 1: per-draw material data (SceneRenderer::m_MaterialLayout).
-ConstantBuffer<DrawConstants> g_Draw : register(b0, space1);
+PN_PUSH_CONSTANT ConstantBuffer<DrawConstants> g_Draw : register(b0, space1);
 Texture2D<float4> g_AlbedoTexture : register(t0, space1);
 Texture2D<float4> g_NormalTexture : register(t1, space1);
 Texture2D<float4> g_MetallicRoughnessTexture : register(t2, space1);

@@ -25,7 +25,13 @@ struct SkinningConstants
 	uint2 Padding;
 };
 
-ConstantBuffer<SkinningConstants> g_Skinning : register(b0);
+// Push constants: root constants on D3D12, a push-constant block on Vulkan (SPIR-V).
+#ifdef __spirv__
+	#define PN_PUSH_CONSTANT [[vk::push_constant]]
+#else
+	#define PN_PUSH_CONSTANT
+#endif
+PN_PUSH_CONSTANT ConstantBuffer<SkinningConstants> g_Skinning : register(b0);
 StructuredBuffer<VertexData> g_SourceVertices : register(t0);
 StructuredBuffer<SkinData> g_SkinVertices : register(t1);
 StructuredBuffer<float4x4> g_JointMatrices : register(t2); // column-major glm matrices: skin = global * inverse bind

@@ -18,12 +18,14 @@ namespace Penumbra {
 		s_Instance = this;
 
 		RenderDeviceSpecification deviceSpec;
+		deviceSpec.Api = RenderDevice::ChooseGraphicsApi(specification.Arguments);
 		deviceSpec.UseWarp = specification.UseWarp;
 		deviceSpec.EnableDebugLayer = specification.EnableGraphicsDebugLayer;
 		deviceSpec.VSync = specification.VSync;
 
 		if (!specification.Headless)
 		{
+			RenderDevice::PrepareWindowSystem(deviceSpec.Api);
 			WindowSpecification windowSpec;
 			windowSpec.Title = specification.Name;
 			windowSpec.Width = specification.Width;
@@ -32,7 +34,7 @@ namespace Penumbra {
 			m_Window = CreateScope<Window>(windowSpec);
 			m_Window->SetEventCallback([this](Event& event) { OnEvent(event); });
 
-			deviceSpec.WindowHandle = m_Window->GetHWND();
+			deviceSpec.Window = m_Window->GetNativeWindow();
 			deviceSpec.BackBufferWidth = m_Window->GetWidth();
 			deviceSpec.BackBufferHeight = m_Window->GetHeight();
 		}

@@ -8,7 +8,8 @@ description: Build a complete game (or level) in the Penumbra engine end to end 
 Read `docs/Automation.md` (commands) and `docs/ScriptingAPI.md` (Lua) first. Engine code is not
 changed for game work; if a feature is missing, add it to the engine first (with tests, see AGENTS.md).
 
-1. **Build the tools once**: `Tools\Build.bat debug`. Executables: `build\debug\bin\PenumbraEditor.exe`, `PenumbraRuntime.exe`.
+1. **Build the tools once**: `Tools\Build.bat debug` (macOS: `Tools/Build.sh debug`). Executables: `build\debug\bin\PenumbraEditor.exe`,
+   `PenumbraRuntime.exe` (no `.exe` on macOS).
 2. **Prefer the `penumbra` MCP tools** when they are available (`.mcp.json`; tools such as `entity_create`,
    `render_screenshot`): they are the same commands with typed arguments, run in the user's open editor when it is
    running (otherwise headless; `session_backend` tells which), and screenshots come back as images you can look at.

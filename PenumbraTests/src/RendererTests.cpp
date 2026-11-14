@@ -11,6 +11,7 @@ using namespace Penumbra;
 
 // GPU tests run on WARP (the D3D12 software rasterizer) so they are deterministic and run on
 // CI machines without a GPU. The NVRHI validation layer is enabled and must report no errors.
+// They use the default graphics API: Vulkan on macOS, and on Windows too with PENUMBRA_GRAPHICS_API=vulkan.
 
 namespace {
 
@@ -24,12 +25,16 @@ namespace {
 		static constexpr uint32_t Width = 320;
 		static constexpr uint32_t Height = 180;
 
-		RendererFixture()
+		// Without `required`, a missing device leaves Device empty instead of failing the test.
+		explicit RendererFixture(GraphicsApi api = GetDefaultGraphicsApi(), bool required = true)
 		{
 			RenderDeviceSpecification spec;
+			spec.Api = api;
 			spec.UseWarp = true;
 			spec.EnableDebugLayer = true;
 			Device = RenderDevice::Create(spec);
+			if (!required && !Device)
+				return;
 			REQUIRE(Device);
 
 			SceneRendererSettings settings;
@@ -253,6 +258,71 @@ TEST_SUITE("Renderer")
 
 TEST_SUITE("Renderer")
 {
+	TEST_CASE("Direct3D 12 and Vulkan render the same picture")
+	{
+		// Needs both APIs: Windows with a Vulkan driver. CI's GPU-less Windows has no Vulkan device, and
+		// macOS has no D3D12; there the other renderer tests cover the one API that exists.
+		if (!RenderDevice::IsGraphicsApiAvailable(GraphicsApi::D3D12))
+			return;
+		RendererFixture vulkan(GraphicsApi::Vulkan, false);
+		if (!vulkan.Device)
+		{
+			MESSAGE("No Vulkan device: D3D12/Vulkan comparison skipped");
+			return;
+		}
+		RendererFixture d3d12(GraphicsApi::D3D12);
+
+		auto build = [](RendererFixture& fixture) {
+			Scene& scene = fixture.SceneInstance;
+			WriteSkyHDR(fixture.Project.GetAssetDirectory() / "Environment" / "Sky.hdr");
+			Entity environment = scene.CreateEntity("Environment");
+			auto& env = environment.AddComponent<EnvironmentComponent>();
+			env.EnvironmentMap = "Environment/Sky.hdr";
+			env.EnvironmentIntensity = 0.3f;
+			Entity sun = scene.CreateEntity("Sun");
+			sun.Transform().Rotation = Math::LookRotation(glm::vec3(0.3f, -0.6f, 1.0f));
+			sun.AddComponent<DirectionalLightComponent>().Intensity = 2.0f;
+			Test::CreateBox(scene, "Ground", { 0.0f, -0.5f, 0.0f }, { 10.0f, 0.5f, 10.0f }, glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
+			Test::CreateBox(scene, "RedCube", { 0.0f, 0.75f, 0.0f }, { 0.75f, 0.75f, 0.75f }, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+			Entity spot = scene.CreateEntity("Spot");
+			spot.Transform().Translation = { 3.0f, 3.0f, 0.0f };
+			spot.Transform().Rotation = Math::LookRotation(glm::vec3(0.0f, -1.0f, 0.0f));
+			spot.AddComponent<SpotLightComponent>();
+			scene.GetOverlay().AddRect({ { 0.0f, 0.0f }, { 20.0f, 20.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } });
+			fixture.RenderFrame(fixture.Camera()); // builds the IBL maps
+			return fixture.RenderFrame(fixture.Camera());
+		};
+		const std::vector<uint8_t> a = build(d3d12);
+		const std::vector<uint8_t> b = build(vulkan);
+		REQUIRE(a.size() == b.size());
+
+		// Same orientation, colours and lighting: per-pixel differences stay small on average (WARP and a
+		// GPU round and filter shadows a little differently), and nearly no pixel is far off.
+		double total = 0.0;
+		size_t farOff = 0;
+		for (size_t i = 0; i < a.size(); i += 4)
+		{
+			int worst = 0;
+			for (size_t c = 0; c < 3; c++)
+			{
+				const int difference = std::abs(static_cast<int>(a[i + c]) - static_cast<int>(b[i + c]));
+				total += difference;
+				worst = std::max(worst, difference);
+			}
+			if (worst > 48)
+				farOff++;
+		}
+		const size_t pixelCount = a.size() / 4;
+		const double meanDifference = total / (pixelCount * 3.0) / 255.0;
+		CHECK(meanDifference < 0.02);
+		CHECK(farOff < pixelCount / 100);
+		CHECK(RendererFixture::Pixel(b, 5, 5).g > 0.95f); // the HUD in the top-left corner: not upside down
+		CHECK(vulkan.Device->GetErrorCount() == 0);
+		CHECK(d3d12.Device->GetErrorCount() == 0);
+		if (const char* outputDirectory = std::getenv("PENUMBRA_TEST_OUTPUT"))
+			CHECK(vulkan.Renderer->SaveScreenshot(std::filesystem::path(outputDirectory) / "RendererVulkan.png"));
+	}
+
 	TEST_CASE("Flames render as warm fire and disappear when disabled")
 	{
 		RendererFixture fixture;

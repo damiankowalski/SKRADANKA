@@ -1,6 +1,7 @@
 # AGENTS.md — working on Penumbra
 
-Penumbra is a C++20 / Direct3D 12 game engine for third-person stealth games. This file is the
+Penumbra is a C++20 game engine for third-person stealth games: Direct3D 12 on Windows (where the game
+ships) and Vulkan, which also runs it on macOS through MoltenVK (an equal development platform). This file is the
 contract for every human or AI agent changing this repository. Read it fully before editing.
 
 ## Repository map
@@ -11,7 +12,7 @@ contract for every human or AI agent changing this repository. Read it fully bef
 | `Penumbra/src/Penumbra/Scene` | ECS (EnTT): `Scene`, `Entity`, `Components.h`, JSON serialization, prefabs |
 | `Penumbra/src/Penumbra/Asset` | glTF / texture importers (meshes, skins, clips), built-in primitives, `AssetManager` cache |
 | `Penumbra/src/Penumbra/Animation` | Keyframe sampling, pose blending, skinning palettes, `AnimationSystem` (Animator component) |
-| `Penumbra/src/Penumbra/Renderer` | NVRHI D3D12 device, scene renderer, shaders in `Penumbra/shaders` |
+| `Penumbra/src/Penumbra/Renderer` | NVRHI device (D3D12 and Vulkan backends), scene renderer, shaders in `Penumbra/shaders` |
 | `Penumbra/src/Penumbra/Physics` | Jolt wrapper (`PhysicsWorld`): bodies, characters, raycasts, contacts |
 | `Penumbra/src/Penumbra/Audio` | miniaudio wrapper (`AudioScene`) |
 | `Penumbra/src/Penumbra/Scripting` | Lua 5.4 + sol2: `ScriptEngine`, the whole Lua API in `ScriptBindings.cpp` |
@@ -29,7 +30,7 @@ contract for every human or AI agent changing this repository. Read it fully bef
 
 ## Build and test
 
-All commands run from the repository root in a normal `cmd`/PowerShell (the scripts locate MSVC):
+All commands run from the repository root. Windows, in a normal `cmd`/PowerShell (the scripts locate MSVC):
 
 ```bat
 Tools\Build.bat debug        :: or release / dist
@@ -38,14 +39,23 @@ build\debug\bin\PenumbraTests.exe --test-suite=Perception   :: one suite
 build\debug\bin\PenumbraTests.exe --trace -tc="*torch*"     :: one case with engine trace logs
 ```
 
-* Requirements: Visual Studio 2022+ with the C++ workload (CMake + Ninja come with it), Windows SDK.
+macOS (setup in `docs/macOS.md`): `Tools/Build.sh debug`, `Tools/Test.sh debug`, `build/debug/bin/PenumbraTests`.
+
+* Requirements: Windows: Visual Studio 2022+ with the C++ workload (CMake + Ninja come with it), Windows SDK.
+  macOS: Xcode command line tools, CMake, Ninja and the LunarG Vulkan SDK (`docs/macOS.md`).
 * Dependencies are fetched by CMake (`cmake/Dependencies.cmake`), pinned to exact tags/commits.
-* `/W4 /WX` is on for engine code: a warning is a build break. Third-party headers are `SYSTEM`.
-* GPU tests use the WARP software rasterizer when no GPU exists (CI), so they run anywhere.
+* `/W4 /WX` (clang: `-Wall -Wextra -Werror`) is on for engine code: a warning is a build break. Third-party
+  headers are `SYSTEM`.
+* Platform code stays behind `#ifdef _WIN32` / `__APPLE__` in a few files (`Core/Platform`, `Core/FileSystem`,
+  `Core/CrashHandler`, `Automation/CommandServer`, the render backends). Everything else is portable C++20.
+* Rendering changes are checked on both backends: `PENUMBRA_GRAPHICS_API=vulkan` runs the tests on Vulkan on
+  Windows. Shaders carry `PN_PUSH_CONSTANT` on push-constant buffers and follow the SPIR-V binding rules in
+  `cmake/Shaders.cmake`.
+* GPU tests use the WARP software rasterizer when no GPU exists (Windows CI), so they run anywhere.
 * Demo content is generated: edit `Tools/BuildDemoProject.py`, run `python Tools/BuildDemoProject.py`,
   commit the generated files. Lua scripts and the HDRI are hand-made. Character models come from
   `Tools/ImportCharacters.py` (KayKit, CC0; see `DemoProject/Assets/Models/Characters/README.md`).
-* Crashes write a symbolized stack to the log and a minidump to `<exe dir>/CrashDumps`.
+* Crashes write a symbolized stack to the log and (Windows) a minidump to `<exe dir>/CrashDumps`.
 
 ## Code style (Hazel conventions)
 
@@ -84,7 +94,8 @@ build\debug\bin\PenumbraTests.exe --trace -tc="*torch*"     :: one case with eng
 ## Workflow
 
 1. Branch from `main` (`feature/<topic>`), keep commits focused.
-2. Build debug **and** release, run `Tools\Test.bat`.
+2. Build debug **and** release, run `Tools\Test.bat` (or `Tools/Build.sh` + `Tools/Test.sh` on a Mac; CI builds
+   both platforms).
 3. Review your own diff before committing: style, error handling, tests, docs. Fix findings first.
 4. Open a PR; CI (`.github/workflows/ci.yml`) must be green before merging (squash merge).
 

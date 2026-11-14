@@ -5,9 +5,24 @@
 #include "Penumbra/Core/FileSystem.h"
 #include "Penumbra/Core/UUID.h"
 
-#include <Windows.h>
 #include <fcntl.h>
-#include <io.h>
+#ifdef _WIN32
+	#include <Windows.h>
+	#include <io.h>
+	#define PN_DUP _dup
+	#define PN_DUP2 _dup2
+	#define PN_FILENO _fileno
+	#define PN_WRITE _write
+	#define PN_CLOSE _close
+#else
+	#include <csignal>
+	#include <unistd.h>
+	#define PN_DUP dup
+	#define PN_DUP2 dup2
+	#define PN_FILENO fileno
+	#define PN_WRITE write
+	#define PN_CLOSE close
+#endif
 
 #include <iostream>
 
@@ -488,12 +503,17 @@ namespace Penumbra {
 	int McpServer::ReserveStdout()
 	{
 		std::fflush(stdout);
-		const int protocol = _dup(_fileno(stdout));
+		const int protocol = PN_DUP(PN_FILENO(stdout));
 		if (protocol < 0)
 			return -1;
-		_dup2(_fileno(stderr), _fileno(stdout));
+		PN_DUP2(PN_FILENO(stderr), PN_FILENO(stdout));
+#ifdef _WIN32
 		SetStdHandle(STD_OUTPUT_HANDLE, GetStdHandle(STD_ERROR_HANDLE));
 		_setmode(protocol, _O_BINARY);
+#else
+		// A client that goes away must end the write with an error, not the process with SIGPIPE.
+		std::signal(SIGPIPE, SIG_IGN);
+#endif
 		return protocol;
 	}
 
@@ -504,7 +524,9 @@ namespace Penumbra {
 			PN_CORE_CRITICAL("MCP: stdout is not available for the protocol");
 			return 1;
 		}
+#ifdef _WIN32
 		_setmode(_fileno(stdin), _O_BINARY);
+#endif
 
 		PN_CORE_INFO("MCP server ready on stdio (backend {})", server.DescribeBackend());
 		bool connected = true;
@@ -516,7 +538,7 @@ namespace Penumbra {
 			size_t offset = 0;
 			while (offset < line.size())
 			{
-				const int written = _write(protocol, line.data() + offset, static_cast<unsigned>(std::min<size_t>(line.size() - offset, 1 << 20)));
+				const int written = static_cast<int>(PN_WRITE(protocol, line.data() + offset, static_cast<unsigned>(std::min<size_t>(line.size() - offset, 1 << 20))));
 				if (written <= 0)
 				{
 					connected = false; // client went away; keep draining stdin until it closes
@@ -525,7 +547,7 @@ namespace Penumbra {
 				offset += static_cast<size_t>(written);
 			}
 		});
-		_close(protocol);
+		PN_CLOSE(protocol);
 		PN_CORE_INFO("MCP server: stdin closed, exiting");
 		return 0;
 	}

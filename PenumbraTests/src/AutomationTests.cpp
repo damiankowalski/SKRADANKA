@@ -2,6 +2,7 @@
 
 #include "Penumbra/Automation/CommandProcessor.h"
 #include "Penumbra/Core/Input.h"
+#include "Penumbra/Core/Platform.h"
 #include "Penumbra/Project/ProjectExporter.h"
 
 using namespace Penumbra;
@@ -142,7 +143,7 @@ TEST_SUITE("Automation")
 		f.Host.SetRuntimeExecutable(fakeRuntime);
 
 		const json result = f.Ok({ { "cmd", "project.export" }, { "output", (f.Directory / "Out").string() } });
-		CHECK(std::filesystem::exists(f.Directory / "Out" / "Test Game.exe"));
+		CHECK(std::filesystem::exists(f.Directory / "Out" / Platform::ExecutableName("Test Game")));
 		CHECK(std::filesystem::exists(f.Directory / "Out" / "project.json"));
 		CHECK(std::filesystem::exists(f.Directory / "Out" / "Assets" / "Scenes" / "Main.pscene"));
 

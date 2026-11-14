@@ -8,7 +8,13 @@ struct ShadowConstants
 	float4 WorldRow2;
 };
 
-ConstantBuffer<ShadowConstants> g_Shadow : register(b0, space0);
+// Push constants: root constants on D3D12, a push-constant block on Vulkan (SPIR-V).
+#ifdef __spirv__
+	#define PN_PUSH_CONSTANT [[vk::push_constant]]
+#else
+	#define PN_PUSH_CONSTANT
+#endif
+PN_PUSH_CONSTANT ConstantBuffer<ShadowConstants> g_Shadow : register(b0, space0);
 
 float4 VSMain(float3 position : POSITION) : SV_Position
 {
