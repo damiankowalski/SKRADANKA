@@ -1,0 +1,66 @@
+{
+  "Format": "PenumbraPrefab",
+  "Version": 1,
+  "Entities": [
+    {
+      "ID": "1000",
+      "Components": {
+        "Tag": {
+          "Tag": "MossPatch"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.0,
+            0.02,
+            2.0
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.1,
+            0.17,
+            0.09,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        },
+        "RigidBody": {
+          "Type": "Kinematic",
+          "TransparentToSight": true
+        },
+        "Surface": {
+          "Material": "Moss",
+          "NoiseModifier": -3.0
+        }
+      }
+    }
+  ]
+}

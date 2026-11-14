@@ -1,0 +1,114 @@
+{
+  "Format": "PenumbraPrefab",
+  "Version": 1,
+  "Entities": [
+    {
+      "ID": "1000",
+      "Components": {
+        "Tag": {
+          "Tag": "MossArrow"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "SphereCollider": {
+          "Radius": 0.06
+        },
+        "RigidBody": {
+          "Type": "Dynamic",
+          "Mass": 0.1,
+          "GravityFactor": 0.3,
+          "ContinuousCollision": true,
+          "TransparentToSight": true
+        },
+        "PerceptionTarget": {
+          "Kind": "Projectile",
+          "SilhouettePoints": [
+            [
+              0,
+              0,
+              -0.3
+            ],
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0.3
+            ]
+          ],
+          "Radius": 0.04,
+          "Reflectance": 0.25,
+          "Emissive": 0.0
+        },
+        "Script": {
+          "Script": "Scripts/MossArrow.lua"
+        }
+      }
+    },
+    {
+      "ID": "1001",
+      "Components": {
+        "Tag": {
+          "Tag": "Shaft"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.05,
+            0.05,
+            0.6
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.25,
+            0.4,
+            0.15,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.3,
+          "EmissiveColor": [
+            0.3,
+            0.5,
+            0.2
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1000"
+    }
+  ]
+}

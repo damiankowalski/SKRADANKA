@@ -28,7 +28,7 @@ the status column only records what the engine already has. Costs are to be esti
 | 5 | **Movement noise levels** | Creep / walk / run, plus landing from jumps, make different noise | Yes: crouch/walk/run plus landing by fall speed; physical objects clatter (`Surface.ImpactLoudness`) |
 | 6 | **Water arrows** | Douse torches and fires; clean blood | Yes (Act/React stims); a guard hit by one knows he was shot at |
 | 7 | **Fire arrows** | Ignite, explode, kill | Yes: ignite torches, detonate powder kegs, hurt and kill (two hits); explosions hurt too |
-| 8 | **Moss arrows** | Carpet a floor with moss to walk silently | Missing (#4 is in place: a moss patch is a floor with `NoiseModifier` -3) |
+| 8 | **Moss arrows** | Carpet a floor with moss to walk silently | Yes: `Prefabs/MossArrow` leaves a moss patch (`NoiseModifier` -3) on floors, not on walls |
 | 9 | **Rope arrows** | Stick into wood, climb the rope | Missing (needs climbing + material tags) |
 | 10 | **Noisemaker arrows** | Lure guards away with a noise | Easy: investigate/search behaviour exists, only the arrow is missing (deliberately skipped for now) |
 | 11 | **Gas arrows / gas mines** | Knock out groups silently | Gas arrows: yes (`Prefabs/GasArrow`, a Gas cloud and the `Knockout` stim action); mines not yet |
@@ -44,7 +44,7 @@ the status column only records what the engine already has. Costs are to be esti
 | 21 | **Loot and objectives by difficulty** | Steal enough loot; harder difficulties add objectives and a no-kill rule | Yes: `Scripts/Missions/*.lua` (loot, item and no-kill objectives per difficulty), the menu and the end-of-mission summary |
 | 22 | **Frobbing (interaction)** | One "use" key for doors, items, switches, pickpocketing | Yes: E uses whatever offers `on_use` (and picks up bodies) |
 | 23 | **Pickpocketing** | Steal keys and purses from guards' belts | Yes: E from behind a calm guard (an alert one feels the hand) |
-| 24 | **Light switches and lamps** | Turn electric lights off (Thief 2) to create shadows | Easy (lights have `Enabled`; needs #22) |
+| 24 | **Light switches and lamps** | Turn electric lights off (Thief 2) to create shadows | Yes: `Scripts/World/LightSwitch.lua`; calm NPCs who see a dark lamp light it again (`Scripts/AI/Lamps.lua`) |
 | 25 | **Leaning / peeking** | Lean around corners with minimal exposure | Missing (camera/silhouette offset) |
 | 26 | **Climbing and mantling** | Mantle ledges, climb ropes and vines | Missing |
 | 27 | **Swimming** | Water volumes, breath | Missing |

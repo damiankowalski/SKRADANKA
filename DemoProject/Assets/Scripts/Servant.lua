@@ -2,8 +2,10 @@
 -- him beyond a glance (a noise worth checking, a glimpse of the intruder, a body) sends him
 -- running to the alarm bell, shouting. Ringing it tells every guard where the trouble is
 -- (a strong report, as if each of them had heard it). Knock him out before he gets there.
+-- Calm, he lights lamps the thief put out (Scripts/AI/Lamps.lua).
 
 local Actor = require("Scripts/AI/Actor")
+local Lamps = require("Scripts/AI/Lamps")
 local Noises = require("Scripts/AI/Noises")
 
 local Servant = {
@@ -74,6 +76,7 @@ function Servant:on_update(dt)
         ai.shout(self.entity, 7)
     end
 
+    if self.fleeing or reaction.state ~= "Unaware" then Lamps.release(self) end
     if self.fleeing then
         if Actor.go(self, self.bell_entity:get_position(), self.run_speed, "Running_A", 3.0) then
             self:ring()
@@ -85,7 +88,7 @@ function Servant:on_update(dt)
     elseif reaction.state == "Suspicious" and reaction.position then
         Actor.stand(self, "Look_Around")
         self.entity:look_at(reaction.position, true)
-    else
+    elseif reaction.state ~= "Unaware" or not Lamps.chore(self, dt, self.walk_speed) then
         self:chores(dt)
     end
     Actor.draw_bark(self, dt)

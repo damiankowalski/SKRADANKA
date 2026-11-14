@@ -169,6 +169,26 @@ def build_prefabs():
     doc.add("Shaft", arrow, Transform=transform(scale=(0.05, 0.05, 0.6)), Mesh={"Mesh": "builtin:cube", "CastShadows": False},
             Material=material((0.4, 0.8, 0.3), emissive=1.5, emissive_color=(0.4, 0.9, 0.3)))
     doc.save("Prefabs/GasArrow.pprefab")
+    # Moss arrow: a patch of moss where it lands on a floor (Scripts/MossArrow.lua).
+    doc = Document("PenumbraPrefab")
+    arrow = doc.add("MossArrow", Transform=transform(), SphereCollider={"Radius": 0.06},
+                    RigidBody={"Type": "Dynamic", "Mass": 0.1, "GravityFactor": 0.3, "ContinuousCollision": True,
+                               "TransparentToSight": True},
+                    PerceptionTarget=arrow_target(),
+                    Script={"Script": "Scripts/MossArrow.lua"})
+    doc.add("Shaft", arrow, Transform=transform(scale=(0.05, 0.05, 0.6)), Mesh={"Mesh": "builtin:cube", "CastShadows": False},
+            Material=material((0.25, 0.4, 0.15), emissive=0.3, emissive_color=(0.3, 0.5, 0.2)))
+    doc.save("Prefabs/MossArrow.pprefab")
+    # The patch: a 2 m disc of moss, 2 cm thick, footsteps on it near silent. Kinematic, so it does
+    # not trigger a navmesh rebuild; transparent to sight like any floor covering.
+    doc = Document("PenumbraPrefab")
+    doc.add("MossPatch", Transform=transform(scale=(2.0, 0.02, 2.0)),
+            Mesh={"Mesh": "builtin:cylinder"}, Material=material(SURFACE_COLORS["Moss"], roughness=1.0),
+            BoxCollider={"HalfExtents": [0.5, 0.5, 0.5]},
+            RigidBody={"Type": "Kinematic", "TransparentToSight": True},
+            Surface=SURFACES["Moss"])
+    doc.save("Prefabs/MossPatch.pprefab")
+
     # The cloud: a continuous Gas stim for a few seconds (NPCs with a Gas -> Knockout rule fall
     # asleep in it), a little smoke for the eyes and a faint green haze for the player.
     doc = Document("PenumbraPrefab")
@@ -304,6 +324,20 @@ def add_bell(doc, position, name="Bell"):
     return bell
 
 
+def add_light_switch(doc, name, position, yaw, lamps, label):
+    """A wall switch for some lamps; its forward (-Z) side faces the room it is used from."""
+    switch = doc.add(name, Transform=transform(position, rotation=(0, yaw, 0)),
+                     Script={"Script": "Scripts/World/LightSwitch.lua", "Properties": {"lamps": ",".join(lamps), "label": label}})
+    doc.add("Plate", switch, Transform=transform(scale=(0.14, 0.2, 0.03)), Mesh={"Mesh": "builtin:cube"},
+            Material=material((0.55, 0.45, 0.3), roughness=0.4, metallic=0.6), BoxCollider={"HalfExtents": [0.5, 0.5, 0.5]})
+    # The Lever pivots at the plate's centre (the script tips it about X); its shape is a child so
+    # rotating it does not skew the mesh.
+    lever = doc.add("Lever", switch, Transform=transform((0, 0, -0.02)))
+    doc.add("Handle", lever, Transform=transform((0, 0, -0.05), scale=(0.035, 0.035, 0.1)),
+            Mesh={"Mesh": "builtin:cube", "CastShadows": False}, Material=material((0.15, 0.12, 0.1)))
+    return switch
+
+
 def add_cook(doc, name, position, yaw, zone_center, radius=14.0):
     """A cook busy at his station; the kitchen event zone around him makes the noises of his work
     (Scripts/World/EventZone.lua, odds in Scripts/World/Events.lua)."""
@@ -362,8 +396,13 @@ def build_stealth_level():
     box(doc, "HallLintel", (10, 5, -8), (2.4, 2, 0.6), stone)
     box(doc, "HallRoof", (10, 6.2, -12), (12, 0.4, 8.6), dark_stone)
     for i, x in enumerate((7, 10, 13)):
-        doc.add(f"HallLight{i}", Transform=transform((x, 4.5, -12)),
-                PointLight={"Color": [1.0, 0.85, 0.65], "Intensity": 60.0, "Range": 12.0, "CastShadows": i == 1})
+        lamp = doc.add(f"HallLight{i}", Transform=transform((x, 4.5, -12)),
+                       PointLight={"Color": [1.0, 0.85, 0.65], "Intensity": 60.0, "Range": 12.0, "CastShadows": i == 1})
+        doc.add("Lantern", lamp, Transform=transform((0, 0.3, 0), scale=(0.3, 0.4, 0.3)),
+                Mesh={"Mesh": "builtin:cube", "CastShadows": False},
+                Material=material((1.0, 0.9, 0.7), emissive=6.0, emissive_color=(1.0, 0.85, 0.6)))
+    # The switch for the hall lamps, just inside the doorway (Scripts/World/LightSwitch.lua).
+    add_light_switch(doc, "HallSwitch", (8.3, 1.3, -8.33), 0, ["HallLight0", "HallLight1", "HallLight2"], "hall lamps")
     box(doc, "HallTapestry", (10, 3, -15.6), (6, 3.5, 0.1), (0.7, 0.55, 0.35), collider=False)
 
     # A lit window on the west wall: a second silhouette trap.
@@ -737,6 +776,9 @@ def build_audio():
         samples.append(value * 1.5 * (0.6 + 0.4 * math.sin(2 * math.pi * i / length)) * math.sin(math.pi * i / length) ** 0.1)
     write_wav("Wind.wav", samples)
 
+    n = noise(21)  # a light switch
+    write_wav("Click.wav", [(0.6 * n() * math.exp(-i / (RATE * 0.002)) + 0.3 * math.sin(2 * math.pi * 2400 * i / RATE)
+                            * math.exp(-i / (RATE * 0.004))) for i in range(int(RATE * 0.05))])
 
 def build_project_file():
     project = {"Name": "Penumbra Demo", "StartScene": "Scenes/Menu.pscene", "AssetDirectory": "Assets",
