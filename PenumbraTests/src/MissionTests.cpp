@@ -121,7 +121,7 @@ TEST_SUITE("Mission")
 		demo.SceneInstance.OnRuntimeStart();
 		demo.Run(0.1f);
 		CHECK(demo.Holds("M.current.difficulty == 'Normal' and #M.current.objectives == 2"));
-		CHECK(demo.Holds("M.current.total_items == 9"));
+		CHECK(demo.Holds("M.current.total_items == 11"));
 
 		CHECK(demo.Lua("return scene.find('Gate'):script():reach()") == "false");
 		CHECK(demo.Holds("M.current.state == 'running'"));
@@ -137,7 +137,7 @@ TEST_SUITE("Mission")
 		CHECK(demo.Lua("return scene.find('Gate'):script():reach()") == "true");
 		CHECK(demo.Holds("M.current.state == 'complete' and M.over()"));
 		const std::string summary = demo.Lua("local M = require('Scripts/Mission/Mission'); return table.concat(M.summary(M.current), '|')");
-		CHECK(summary.find("Loot            350  (2 of 9 pieces)") != std::string::npos);
+		CHECK(summary.find("Loot            350  (2 of 11 pieces)") != std::string::npos);
 		CHECK(summary.find("The Ashcombe Manor  -  Normal") != std::string::npos);
 		CHECK(demo.Lua("return scene.find('Mission'):script():continue()") == "\"menu\"");
 		CHECK(demo.SceneInstance.GetRequestedScene().value_or("") == "Scenes/Menu.pscene");

@@ -33,6 +33,14 @@ F blackjack from behind):
 build\debug\bin\PenumbraRuntime.exe --project DemoProject
 ```
 
+Other scenes start with `--scene`: `Scenes/Cloister.pscene` (cross a garden ringed by corridors from the east
+wing to the west, past two guards and four pairs of doors), `Scenes/PhysicsLab.pscene` (push a table down a ramp
+or shoot the copper jug off it), `Scenes/AILab.pscene`, `Scenes/PerceptionLab.pscene`:
+
+```bat
+build\debug\bin\PenumbraRuntime.exe --project DemoProject --scene Scenes/Cloister.pscene
+```
+
 Open it in the editor (`F5` plays, gizmo W/E/R, right-drag + WASD flies):
 
 ```bat

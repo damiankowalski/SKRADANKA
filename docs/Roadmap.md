@@ -62,6 +62,12 @@ slips one pin back; the thief stands still while picking, E gives up. The Stealt
 has a locked door on GuardA's round. Out of scope: lockable chests (the lock works on any door-like
 script, chests need their own lid), guards noticing doors left open.
 
+**Test levels**: `Cloister` (a square garden ringed by covered corridors, a pair of doors into it from
+each side, east and west wings; two guards walk the ring opposite ways; from the east wing to the west
+as a mission) and `PhysicsLab` (a ramp up to a table with a copper jug: push the table down, or shoot
+the jug off and let the guard hear it). Doors now open only for NPCs heading at them, not for those
+walking past along a corridor.
+
 ## In progress
 
 Nothing: the next package is to be chosen from Later.

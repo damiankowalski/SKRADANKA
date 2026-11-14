@@ -5,8 +5,8 @@
 --   The thief: E opens or closes it. Locked: the right key (a Mission item, e.g. the cellar key
 --   picked from the captain's belt) unlocks it at once; without it, E starts picking the lock
 --   (Scripts/World/Lockpick.lua).
---   NPCs: walking up to a door they open it (guards and servants carry the keys) and close it
---   behind them once nobody is in the way; a locked door stays locked.
+--   NPCs: walking up to a door (towards it, not past it) they open it (guards and servants carry
+--   the keys) and close it behind them once nobody is in the way; a locked door stays locked.
 --
 -- The "Lock" child marks where the lock is: the lockpicking bar hangs there.
 
@@ -147,13 +147,20 @@ function Door:someone_near(radius)
     return nil
 end
 
--- An awake NPC walking up to it, or nil.
+-- An awake NPC walking up to it (towards the doorway, not just past it along a corridor), or nil.
 function Door:npc_coming()
     local center = self:center()
+    local facing, along = self:facing(), self:hinge_right()
     for _, npc in ipairs(scene.entities_with("Perception")) do
         if ai.vital_state(npc) == "Awake" and nav.status(npc) == "Moving" then
             local offset = npc:get_position() - center
-            if vec3(offset.x, 0, offset.z):length() < self.npc_reach then return npc end
+            offset = vec3(offset.x, 0, offset.z)
+            if offset:length() < self.npc_reach and math.abs(offset:dot(along)) < self.width * 0.5 + 0.5 then
+                local velocity = character.get_velocity(npc)
+                local across = vec3(velocity.x, 0, velocity.z):dot(facing)
+                -- Heading for the door plane from either side (side * velocity < 0), at a walk.
+                if offset:dot(facing) * across < 0 and math.abs(across) > 0.3 then return npc end
+            end
         end
     end
     return nil
