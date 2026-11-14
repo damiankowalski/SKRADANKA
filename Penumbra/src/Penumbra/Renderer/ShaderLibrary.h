@@ -13,11 +13,18 @@ namespace Penumbra {
 		explicit operator bool() const { return Data != nullptr && Size > 0; }
 	};
 
-	// DXIL bytecode compiled at build time (see cmake/Shaders.cmake) and linked into the engine.
+	enum class ShaderFormat
+	{
+		Dxil,  // Direct3D 12 (Windows builds only)
+		Spirv, // Vulkan
+	};
+
+	// Bytecode compiled at build time (see cmake/Shaders.cmake) and linked into the engine.
 	class ShaderLibrary
 	{
 	public:
-		static ShaderBytecode Find(const char* name);
+		// Empty when the shader does not exist or was not compiled for that format.
+		static ShaderBytecode Find(const char* name, ShaderFormat format);
 	};
 
 }

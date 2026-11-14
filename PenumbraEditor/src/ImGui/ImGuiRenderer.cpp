@@ -16,8 +16,9 @@ namespace Penumbra {
 	{
 		m_CommandList = m_Device->createCommandList();
 
-		const ShaderBytecode vs = ShaderLibrary::Find("ImGuiVS");
-		const ShaderBytecode ps = ShaderLibrary::Find("ImGuiPS");
+		const ShaderFormat format = m_Device->getGraphicsAPI() == nvrhi::GraphicsAPI::VULKAN ? ShaderFormat::Spirv : ShaderFormat::Dxil;
+		const ShaderBytecode vs = ShaderLibrary::Find("ImGuiVS", format);
+		const ShaderBytecode ps = ShaderLibrary::Find("ImGuiPS", format);
 		PN_CORE_VERIFY(vs && ps, "ImGui shaders missing from the shader library");
 		m_VertexShader = m_Device->createShader(nvrhi::ShaderDesc().setShaderType(nvrhi::ShaderType::Vertex).setDebugName("ImGuiVS"), vs.Data, vs.Size);
 		m_PixelShader = m_Device->createShader(nvrhi::ShaderDesc().setShaderType(nvrhi::ShaderType::Pixel).setDebugName("ImGuiPS"), ps.Data, ps.Size);
@@ -30,6 +31,7 @@ namespace Penumbra {
 		m_InputLayout = m_Device->createInputLayout(attributes, 3, m_VertexShader);
 
 		nvrhi::BindingLayoutDesc layout;
+		layout.registerSpaceIsDescriptorSet = true;
 		layout.visibility = nvrhi::ShaderType::All;
 		layout.bindings = { nvrhi::BindingLayoutItem::PushConstants(0, sizeof(glm::mat4)), nvrhi::BindingLayoutItem::Texture_SRV(0),
 			nvrhi::BindingLayoutItem::Sampler(0) };

@@ -51,7 +51,12 @@ namespace Penumbra {
 				return nullptr;
 			const std::filesystem::path path = Project::ResolveAssetPath(clip);
 			auto sound = std::make_unique<ma_sound>();
+#ifdef _WIN32
+			// Wide paths on Windows (non-ASCII user folders); POSIX paths are UTF-8 already.
 			const ma_result result = ma_sound_init_from_file_w(&Engine, path.wstring().c_str(), MA_SOUND_FLAG_DECODE, nullptr, nullptr, sound.get());
+#else
+			const ma_result result = ma_sound_init_from_file(&Engine, path.c_str(), MA_SOUND_FLAG_DECODE, nullptr, nullptr, sound.get());
+#endif
 			if (result != MA_SUCCESS)
 			{
 				PN_CORE_ERROR("Audio: cannot load '{}': {}", clip, ma_result_description(result));

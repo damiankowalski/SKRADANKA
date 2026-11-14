@@ -68,7 +68,6 @@ namespace Penumbra {
 		struct Impl;
 		Scope<Impl> m_Impl;
 
-		RenderDevice& m_Device;
 		SceneRendererSettings m_Settings;
 		SceneRendererStatistics m_Statistics;
 		DebugDraw m_DebugDraw;

@@ -7,7 +7,9 @@
 #include "Penumbra/Core/FileSystem.h"
 #include "Penumbra/Project/Project.h"
 
-#include <Windows.h>
+#ifdef _WIN32
+	#include <Windows.h>
+#endif
 
 using namespace Penumbra;
 
@@ -62,15 +64,17 @@ namespace {
 		}
 
 		Log::Init();
-	CrashHandler::Install(FileSystem::GetExecutableDirectory() / "CrashDumps", "PenumbraRuntime");
+		CrashHandler::Install(FileSystem::GetExecutableDirectory() / "CrashDumps", "PenumbraRuntime");
 		const std::filesystem::path projectDirectory =
 			args.GetValue("project") ? Project::Resolve(*args.GetValue("project")) : FileSystem::GetExecutableDirectory();
 		std::string error;
 		if (!Project::Load(projectDirectory, error))
 		{
 			PN_CORE_CRITICAL("{}", error);
+#ifdef _WIN32
 			if (!args.HasFlag("headless"))
 				MessageBoxA(nullptr, error.c_str(), "Penumbra", MB_ICONERROR | MB_OK);
+#endif
 			return 1;
 		}
 
@@ -132,8 +136,10 @@ int main(int argc, char** argv)
 	return Run(argc, argv);
 }
 
+#ifdef _WIN32
 // Shipping builds use the Windows subsystem (no console window).
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
 	return Run(__argc, __argv);
 }
+#endif

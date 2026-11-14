@@ -63,3 +63,60 @@ jobs:
       - name: Build
         shell: cmd
         run: Tools\Build.bat dist
+
+  macos:
+    name: macos-${{ matrix.preset }}
+    # Apple Silicon, the development Macs' architecture. Free for public repositories.
+    runs-on: macos-15
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [debug]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: brew install ninja
+
+      # The LunarG SDK brings dxc (HLSL to SPIR-V), the Vulkan loader and MoltenVK (docs/macOS.md).
+      - name: Install the Vulkan SDK
+        run: |
+          curl -sSL -o /tmp/vulkan-sdk.zip https://sdk.lunarg.com/sdk/download/latest/mac/vulkan-sdk.zip
+          unzip -q /tmp/vulkan-sdk.zip -d /tmp/vulkan-sdk
+          app=$(ls -d /tmp/vulkan-sdk/*.app | head -n 1)
+          "$app/Contents/MacOS/$(basename "$app" .app)" --root "$HOME/VulkanSDK" --accept-licenses --default-answer --confirm-command install
+          sdk="$HOME/VulkanSDK/macOS"
+          echo "VULKAN_SDK=$sdk" >> "$GITHUB_ENV"
+          echo "$sdk/bin" >> "$GITHUB_PATH"
+          # What the SDK's setup-env.sh does: without a system-wide install the loader finds MoltenVK and the
+          # validation layer only through these.
+          echo "VK_DRIVER_FILES=$sdk/share/vulkan/icd.d/MoltenVK_icd.json" >> "$GITHUB_ENV"
+          echo "VK_ADD_LAYER_PATH=$sdk/share/vulkan/explicit_layer.d" >> "$GITHUB_ENV"
+          ls "$sdk/share/vulkan/icd.d" "$sdk/share/vulkan/explicit_layer.d"
+          VK_DRIVER_FILES="$sdk/share/vulkan/icd.d/MoltenVK_icd.json" "$sdk/bin/vulkaninfo" --summary || true
+
+      - name: Cache third-party sources
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: deps-${{ runner.os }}-${{ hashFiles('cmake/Dependencies.cmake') }}
+
+      - name: Build
+        run: Tools/Build.sh ${{ matrix.preset }}
+
+      # Hosted Macs are virtual machines: whether MoltenVK finds a GPU there decides the GPU-labelled tests,
+      # so the log says which device (if any) the engine got.
+      - name: Test
+        run: Tools/Test.sh ${{ matrix.preset }}
+
+      - name: Upload test logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs-macos-${{ matrix.preset }}
+          path: |
+            build/${{ matrix.preset }}/Testing/Temporary/LastTest.log
+            build/${{ matrix.preset }}/**/*.log
+          if-no-files-found: ignore

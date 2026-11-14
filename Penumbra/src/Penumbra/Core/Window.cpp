@@ -4,9 +4,7 @@
 #include "Penumbra/Core/Input.h"
 
 #define GLFW_INCLUDE_NONE
-#define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3.h>
-#include <GLFW/glfw3native.h>
 
 namespace Penumbra {
 
@@ -34,6 +32,9 @@ namespace Penumbra {
 		glfwWindowHint(GLFW_RESIZABLE, specification.Resizable ? GLFW_TRUE : GLFW_FALSE);
 		glfwWindowHint(GLFW_MAXIMIZED, specification.Maximized ? GLFW_TRUE : GLFW_FALSE);
 		glfwWindowHint(GLFW_VISIBLE, specification.Visible ? GLFW_TRUE : GLFW_FALSE);
+		// One pixel per window unit on Retina displays too: input, ImGui and the renderer then agree on
+		// coordinates as they do on Windows (macOS scales the image up).
+		glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
 
 		m_Window = glfwCreateWindow(static_cast<int>(m_Width), static_cast<int>(m_Height), specification.Title.c_str(), nullptr, nullptr);
 		PN_CORE_VERIFY(m_Window != nullptr, "Failed to create window");
@@ -115,8 +116,6 @@ namespace Penumbra {
 		if (locked && glfwRawMouseMotionSupported())
 			glfwSetInputMode(m_Window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 	}
-
-	void* Window::GetHWND() const { return glfwGetWin32Window(m_Window); }
 
 	void Window::Dispatch(Event& event)
 	{

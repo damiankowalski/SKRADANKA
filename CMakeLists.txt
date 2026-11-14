@@ -5,8 +5,9 @@ project(Penumbra
     DESCRIPTION "Penumbra - a 3D stealth game engine"
     LANGUAGES C CXX)
 
-if(NOT WIN32)
-    message(FATAL_ERROR "Penumbra currently targets Windows (Direct3D 12) only.")
+# Windows (Direct3D 12 or Vulkan) ships the game; macOS (Vulkan through MoltenVK) is a development platform.
+if(NOT WIN32 AND NOT APPLE)
+    message(FATAL_ERROR "Penumbra builds on Windows and macOS.")
 endif()
 
 set(CMAKE_CXX_STANDARD 20)

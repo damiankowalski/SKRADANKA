@@ -48,9 +48,10 @@ are decimal strings. Asset paths are relative to the project's asset directory a
 `PenumbraEditor --mcp` speaks the [Model Context Protocol](https://modelcontextprotocol.io) (JSON-RPC 2.0 over
 stdin/stdout, protocol 2025-11-25, older versions negotiated). Implementation: `Penumbra/src/Penumbra/Automation/McpServer.cpp`.
 
-* **Claude Code**: the repository's `.mcp.json` registers it as `penumbra` (through `Tools\PenumbraMcp.bat`, which runs
-  `build\release` if built, else `build\debug`; `PENUMBRA_MCP_BUILD=debug` forces debug). Build once, start `claude` in the
-  repository root, approve the server, then `/mcp` shows its tools.
+* **Claude Code**: the repository's `.mcp.json` registers it as `penumbra`, running `build/release/bin/PenumbraEditor --mcp`
+  on Windows and macOS alike (build release once). Start `claude` in the repository root, approve the server, then `/mcp`
+  shows its tools. `Tools\PenumbraMcp.bat` / `Tools/PenumbraMcp.sh` start it from a debug build too (release if built,
+  else debug; `PENUMBRA_MCP_BUILD=debug` forces debug), for clients configured by hand.
 * **Claude Desktop**: add to `%APPDATA%\Claude\claude_desktop_config.json`:
   ```json
   { "mcpServers": { "penumbra": { "command": "C:\\path\\to\\Penumbra\\build\\release\\bin\\PenumbraEditor.exe", "args": ["--mcp"] } } }

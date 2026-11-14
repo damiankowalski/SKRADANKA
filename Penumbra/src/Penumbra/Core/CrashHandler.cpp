@@ -1,10 +1,18 @@
 #include "pnpch.h"
 #include "Penumbra/Core/CrashHandler.h"
 
-#include <Windows.h>
-#include <DbgHelp.h>
+#ifdef _WIN32
+	#include <Windows.h>
+	#include <DbgHelp.h>
+#else
+	#include <csignal>
+	#include <execinfo.h>
+	#include <unistd.h>
+#endif
 
 namespace Penumbra {
+
+#ifdef _WIN32
 
 	namespace {
 
@@ -89,5 +97,46 @@ namespace Penumbra {
 		s_ApplicationName = applicationName;
 		SetUnhandledExceptionFilter(UnhandledExceptionFilterFunction);
 	}
+
+#else
+
+	namespace {
+
+		std::string s_ApplicationName = "Penumbra";
+
+		// Async-signal-safe output: write(2) and backtrace_symbols_fd only.
+		void WriteRaw(const char* text)
+		{
+			const ssize_t ignored = write(STDERR_FILENO, text, std::strlen(text));
+			(void)ignored;
+		}
+
+		void SignalHandler(int signal)
+		{
+			WriteRaw("[crash] ");
+			WriteRaw(s_ApplicationName.c_str());
+			WriteRaw(": ");
+			WriteRaw(strsignal(signal));
+			WriteRaw("\n");
+			void* frames[64];
+			const int count = backtrace(frames, 64);
+			backtrace_symbols_fd(frames, count, STDERR_FILENO);
+			// Re-raise with the default action so the system crash reporter still sees the crash.
+			std::signal(signal, SIG_DFL);
+			std::raise(signal);
+		}
+
+	}
+
+	// No minidumps outside Windows: the stack goes to stderr, and macOS writes its own crash report
+	// (Console.app > Crash Reports).
+	void CrashHandler::Install(const std::filesystem::path&, const std::string& applicationName)
+	{
+		s_ApplicationName = applicationName;
+		for (int signal : { SIGSEGV, SIGBUS, SIGILL, SIGFPE, SIGABRT })
+			std::signal(signal, SignalHandler);
+	}
+
+#endif
 
 }

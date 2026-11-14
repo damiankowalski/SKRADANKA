@@ -43,7 +43,6 @@ namespace Penumbra {
 		bool IsCursorLocked() const { return m_CursorLocked; }
 
 		GLFWwindow* GetNativeWindow() const { return m_Window; }
-		void* GetHWND() const;
 
 	private:
 		void Dispatch(Event& event);

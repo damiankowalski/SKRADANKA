@@ -4,8 +4,10 @@
 #include "Penumbra/Core/Input.h"
 #include "Penumbra/Core/KeyCodes.h"
 #include "Penumbra/Core/Log.h"
+#include "Penumbra/Core/Platform.h"
 #include "Penumbra/Math/Math.h"
 #include "Penumbra/Project/Project.h"
+#include "Penumbra/Renderer/RenderDevice.h"
 
 #include <unordered_set>
 
@@ -152,5 +154,31 @@ TEST_SUITE("Core")
 		CHECK(error.find("no project found") != std::string::npos);
 		CHECK(error.find("Missing") != std::string::npos);
 		std::filesystem::remove_all(root);
+	}
+}
+
+TEST_SUITE("Core")
+{
+	TEST_CASE("Platform helpers: executable names, relative paths, graphics API names")
+	{
+#ifdef _WIN32
+		CHECK(Platform::ExecutableName("PenumbraRuntime") == "PenumbraRuntime.exe");
+#else
+		CHECK(Platform::ExecutableName("PenumbraRuntime") == "PenumbraRuntime");
+#endif
+		CHECK(std::filesystem::exists(FileSystem::GetExecutableDirectory()));
+
+		const std::filesystem::path base = std::filesystem::temp_directory_path() / "PenumbraTests" / "Base";
+		CHECK(FileSystem::MakeRelativeGeneric(base / "Scenes" / "A.pscene", base) == "Scenes/A.pscene");
+		const std::filesystem::path outside = std::filesystem::temp_directory_path() / "Elsewhere" / "B.pscene";
+		CHECK(FileSystem::MakeRelativeGeneric(outside, base) == outside.generic_string()); // never "../.."
+
+		CHECK(GraphicsApiFromString("Vulkan") == GraphicsApi::Vulkan);
+		CHECK(GraphicsApiFromString("d3d12") == GraphicsApi::D3D12);
+		CHECK_FALSE(GraphicsApiFromString("metal"));
+		CHECK(RenderDevice::IsGraphicsApiAvailable(GraphicsApi::Vulkan));
+		CHECK(RenderDevice::IsGraphicsApiAvailable(GetDefaultGraphicsApi()));
+		const char* argv[] = { "app", "--vulkan" };
+		CHECK(RenderDevice::ChooseGraphicsApi(CommandLine(2, const_cast<char**>(argv))) == GraphicsApi::Vulkan);
 	}
 }

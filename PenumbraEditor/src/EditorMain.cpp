@@ -6,6 +6,7 @@
 #include "Penumbra/Core/CrashHandler.h"
 #include "Penumbra/Core/FileSystem.h"
 #include "Penumbra/Project/Project.h"
+#include "Penumbra/Renderer/RenderDevice.h"
 
 #include <cstdio>
 
@@ -31,6 +32,7 @@ namespace {
 		}
 		HeadlessAutomationHost host;
 		host.SetUseWarp(args.HasFlag("warp"));
+		host.SetGraphicsApi(RenderDevice::ChooseGraphicsApi(args));
 		CommandProcessor processor(host);
 		if (const std::optional<std::string> project = args.GetValue("project"))
 		{
@@ -68,6 +70,7 @@ namespace {
 
 		HeadlessAutomationHost host;
 		host.SetUseWarp(args.HasFlag("warp"));
+		host.SetGraphicsApi(RenderDevice::ChooseGraphicsApi(args));
 		CommandProcessor processor(host);
 		if (const std::optional<std::string> project = args.GetValue("project"))
 		{

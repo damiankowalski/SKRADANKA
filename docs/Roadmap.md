@@ -41,9 +41,17 @@ done, and the end-of-mission summary (time, loot, pickpockets, knockouts, kills,
 Out of scope: a real UI toolkit (menus are text drawn by scripts), saving mid-mission, loot that moves
 with the hips (purses ride on the NPC's root, not on a bone).
 
+## In progress
+
+**macOS as a development platform** (L): the game ships on Windows (Direct3D 12); a Mac (Apple Silicon)
+is an equal place to develop it. A portable build (clang, POSIX ports of the few Windows-only pieces,
+cross-platform build/test scripts) and a Vulkan renderer through NVRHI that runs on macOS via MoltenVK
+(`--vulkan` selects it on Windows too, so both backends are tested on one machine). Shaders stay HLSL,
+compiled by DXC to DXIL and SPIR-V.
+
 ## Next
 
-### B. Thief's workshop (~5 sessions, next)
+### B. Thief's workshop (~5 sessions, after the macOS work)
 
 Moss arrows (#8, the floor side is done), light switches (#24), doors that block sight
 and sound and that guards open (#20, navmesh links), lockpicking (#19).

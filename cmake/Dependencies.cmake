@@ -29,10 +29,11 @@ FetchContent_Declare(glm
     GIT_SHALLOW TRUE
     SYSTEM)
 
-# NVRHI - rendering hardware interface (D3D12 backend only)
-set(NVRHI_WITH_VULKAN OFF CACHE BOOL "" FORCE)
+# NVRHI - rendering hardware interface: Direct3D 12 on Windows, Vulkan everywhere (MoltenVK on macOS).
+# NVRHI fetches its pinned Vulkan-Headers (NVRHI_VULKAN_HEADERS_GIT_TAG) for the Vulkan backend.
+set(NVRHI_WITH_VULKAN ON CACHE BOOL "" FORCE)
 set(NVRHI_WITH_DX11 OFF CACHE BOOL "" FORCE)
-set(NVRHI_WITH_DX12 ON CACHE BOOL "" FORCE)
+set(NVRHI_WITH_DX12 ${WIN32} CACHE BOOL "" FORCE)
 set(NVRHI_WITH_VALIDATION ON CACHE BOOL "" FORCE)
 set(NVRHI_INSTALL OFF CACHE BOOL "" FORCE)
 set(NVRHI_BUILD_SHARED OFF CACHE BOOL "" FORCE)
@@ -149,11 +150,22 @@ set_target_properties(pn_imgui PROPERTIES FOLDER ThirdParty)
 endif()
 
 # ---------------------------------------------------------------------------
-# DirectX Shader Compiler (prebuilt release, pinned) - used at build time only.
+# DirectX Shader Compiler - used at build time only. Windows: the pinned prebuilt release (DXIL and
+# SPIR-V). Elsewhere Microsoft ships no binaries: the dxc of the LunarG Vulkan SDK (docs/macOS.md).
 # ---------------------------------------------------------------------------
-FetchContent_Declare(dxc
-    URL https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.9.2609/dxc_2026_09_29.zip
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-    SOURCE_SUBDIR _penumbra_no_cmake)
-FetchContent_MakeAvailable(dxc)
-set(PENUMBRA_DXC_EXECUTABLE "${dxc_SOURCE_DIR}/bin/x64/dxc.exe" CACHE FILEPATH "DXC executable" FORCE)
+if(WIN32)
+    FetchContent_Declare(dxc
+        URL https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.9.2609/dxc_2026_09_29.zip
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+        SOURCE_SUBDIR _penumbra_no_cmake)
+    FetchContent_MakeAvailable(dxc)
+    set(PENUMBRA_DXC_EXECUTABLE "${dxc_SOURCE_DIR}/bin/x64/dxc.exe" CACHE FILEPATH "DXC executable" FORCE)
+else()
+    find_program(PENUMBRA_DXC_EXECUTABLE dxc
+        HINTS "$ENV{VULKAN_SDK}/bin" "$ENV{HOME}/VulkanSDK/macOS/bin" /usr/local/bin /opt/homebrew/bin
+        DOC "DXC executable (from the LunarG Vulkan SDK)")
+    if(NOT PENUMBRA_DXC_EXECUTABLE)
+        message(FATAL_ERROR "dxc not found. Install the LunarG Vulkan SDK (see docs/macOS.md) and set VULKAN_SDK, "
+            "or pass -DPENUMBRA_DXC_EXECUTABLE=/path/to/dxc.")
+    endif()
+endif()

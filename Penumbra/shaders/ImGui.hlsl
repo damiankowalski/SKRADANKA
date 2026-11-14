@@ -5,7 +5,13 @@ struct ImGuiConstants
 	float4x4 Projection;
 };
 
-ConstantBuffer<ImGuiConstants> g_ImGui : register(b0);
+// Push constants: root constants on D3D12, a push-constant block on Vulkan (SPIR-V).
+#ifdef __spirv__
+	#define PN_PUSH_CONSTANT [[vk::push_constant]]
+#else
+	#define PN_PUSH_CONSTANT
+#endif
+PN_PUSH_CONSTANT ConstantBuffer<ImGuiConstants> g_ImGui : register(b0);
 Texture2D<float4> g_Texture : register(t0);
 SamplerState g_Sampler : register(s0);
 

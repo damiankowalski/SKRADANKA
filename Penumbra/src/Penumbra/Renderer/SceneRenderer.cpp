@@ -51,7 +51,7 @@ namespace Penumbra {
 
 		nvrhi::ShaderHandle LoadShader(nvrhi::IDevice* device, const char* name, nvrhi::ShaderType type)
 		{
-			const ShaderBytecode bytecode = ShaderLibrary::Find(name);
+			const ShaderBytecode bytecode = ShaderLibrary::Find(name, device->getGraphicsAPI() == nvrhi::GraphicsAPI::VULKAN ? ShaderFormat::Spirv : ShaderFormat::Dxil);
 			PN_CORE_VERIFY(bytecode, "Shader missing from the shader library");
 			return device->createShader(nvrhi::ShaderDesc().setShaderType(type).setDebugName(name), bytecode.Data, bytecode.Size);
 		}
@@ -249,6 +249,7 @@ namespace Penumbra {
 
 		{
 			nvrhi::BindingLayoutDesc desc;
+			desc.registerSpaceIsDescriptorSet = true; // HLSL space N = Vulkan descriptor set N
 			desc.visibility = ST::All;
 			desc.registerSpace = 0;
 			desc.bindings = { nvrhi::BindingLayoutItem::VolatileConstantBuffer(0), nvrhi::BindingLayoutItem::StructuredBuffer_SRV(0),
@@ -260,6 +261,7 @@ namespace Penumbra {
 		}
 		{
 			nvrhi::BindingLayoutDesc desc;
+			desc.registerSpaceIsDescriptorSet = true; // HLSL space N = Vulkan descriptor set N
 			desc.visibility = ST::All;
 			desc.registerSpace = 1;
 			desc.bindings = { nvrhi::BindingLayoutItem::PushConstants(0, sizeof(GPU::DrawConstants)), nvrhi::BindingLayoutItem::Texture_SRV(0),
@@ -268,6 +270,7 @@ namespace Penumbra {
 		}
 		{
 			nvrhi::BindingLayoutDesc desc;
+			desc.registerSpaceIsDescriptorSet = true; // HLSL space N = Vulkan descriptor set N
 			desc.visibility = ST::Vertex;
 			desc.bindings = { nvrhi::BindingLayoutItem::PushConstants(0, sizeof(GPU::ShadowConstants)) };
 			ShadowLayout = Device->createBindingLayout(desc);
@@ -276,6 +279,7 @@ namespace Penumbra {
 		}
 		{
 			nvrhi::BindingLayoutDesc desc;
+			desc.registerSpaceIsDescriptorSet = true; // HLSL space N = Vulkan descriptor set N
 			desc.visibility = ST::All;
 			desc.bindings = { nvrhi::BindingLayoutItem::VolatileConstantBuffer(0), nvrhi::BindingLayoutItem::PushConstants(1, sizeof(GPU::PostConstants)),
 				nvrhi::BindingLayoutItem::Texture_SRV(0), nvrhi::BindingLayoutItem::Texture_SRV(1), nvrhi::BindingLayoutItem::Texture_SRV(2),
@@ -284,6 +288,7 @@ namespace Penumbra {
 		}
 		{
 			nvrhi::BindingLayoutDesc desc;
+			desc.registerSpaceIsDescriptorSet = true; // HLSL space N = Vulkan descriptor set N
 			desc.visibility = ST::Compute;
 			desc.bindings = { nvrhi::BindingLayoutItem::PushConstants(0, sizeof(GPU::IBLConstants)), nvrhi::BindingLayoutItem::Texture_SRV(0),
 				nvrhi::BindingLayoutItem::Texture_SRV(1), nvrhi::BindingLayoutItem::Texture_SRV(2), nvrhi::BindingLayoutItem::Texture_UAV(0),
@@ -292,6 +297,7 @@ namespace Penumbra {
 		}
 		{
 			nvrhi::BindingLayoutDesc desc;
+			desc.registerSpaceIsDescriptorSet = true; // HLSL space N = Vulkan descriptor set N
 			desc.visibility = ST::Compute;
 			desc.bindings = { nvrhi::BindingLayoutItem::PushConstants(0, sizeof(GPU::SkinningConstants)),
 				nvrhi::BindingLayoutItem::StructuredBuffer_SRV(0), nvrhi::BindingLayoutItem::StructuredBuffer_SRV(1),
@@ -1025,7 +1031,7 @@ namespace Penumbra {
 	// ------------------------------------------------------------------------------------------
 
 	SceneRenderer::SceneRenderer(RenderDevice& device, const SceneRendererSettings& settings)
-		: m_Impl(CreateScope<Impl>()), m_Device(device), m_Settings(settings)
+		: m_Impl(CreateScope<Impl>()), m_Settings(settings)
 	{
 		Impl& impl = *m_Impl;
 		impl.Device = device.GetDevice();

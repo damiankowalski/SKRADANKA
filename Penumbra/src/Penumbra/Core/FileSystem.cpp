@@ -1,7 +1,11 @@
 #include "pnpch.h"
 #include "Penumbra/Core/FileSystem.h"
 
-#include <Windows.h>
+#if defined(_WIN32)
+	#include <Windows.h>
+#elif defined(__APPLE__)
+	#include <mach-o/dyld.h>
+#endif
 
 namespace Penumbra {
 
@@ -64,6 +68,7 @@ namespace Penumbra {
 
 	std::filesystem::path FileSystem::GetExecutableDirectory()
 	{
+#if defined(_WIN32)
 		std::wstring buffer(MAX_PATH, L'\0');
 		for (;;)
 		{
@@ -78,13 +83,28 @@ namespace Penumbra {
 			buffer.resize(buffer.size() * 2);
 		}
 		return std::filesystem::path(buffer).parent_path();
+#elif defined(__APPLE__)
+		uint32_t size = 0;
+		_NSGetExecutablePath(nullptr, &size);
+		std::string buffer(size, '\0');
+		if (_NSGetExecutablePath(buffer.data(), &size) != 0)
+			return std::filesystem::current_path();
+		buffer.resize(std::strlen(buffer.c_str()));
+		std::error_code error;
+		const std::filesystem::path resolved = std::filesystem::canonical(buffer, error);
+		return (error ? std::filesystem::path(buffer) : resolved).parent_path();
+#else
+		std::error_code error;
+		const std::filesystem::path executable = std::filesystem::read_symlink("/proc/self/exe", error);
+		return error ? std::filesystem::current_path() : executable.parent_path();
+#endif
 	}
 
 	std::string FileSystem::MakeRelativeGeneric(const std::filesystem::path& path, const std::filesystem::path& base)
 	{
 		std::error_code error;
 		std::filesystem::path relative = std::filesystem::relative(path, base, error);
-		if (error || relative.empty() || relative.native().starts_with(L".."))
+		if (error || relative.empty() || *relative.begin() == "..")
 			return path.generic_string();
 		return relative.generic_string();
 	}

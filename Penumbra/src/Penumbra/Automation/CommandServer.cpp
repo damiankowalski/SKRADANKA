@@ -1,25 +1,84 @@
 #include "pnpch.h"
 #include "Penumbra/Automation/CommandServer.h"
 
-#include <WinSock2.h>
-#include <WS2tcpip.h>
+#ifdef _WIN32
+	#include <WinSock2.h>
+	#include <WS2tcpip.h>
+#else
+	#include <arpa/inet.h>
+	#include <cerrno>
+	#include <fcntl.h>
+	#include <netinet/in.h>
+	#include <netinet/tcp.h>
+	#include <sys/select.h>
+	#include <sys/socket.h>
+	#include <unistd.h>
+#endif
 
 namespace Penumbra {
 
 	namespace {
 		constexpr size_t MaxRequestBytes = 16 * 1024 * 1024;
 
+#ifdef _WIN32
+		bool NetworkStartup()
+		{
+			WSADATA data{};
+			return WSAStartup(MAKEWORD(2, 2), &data) == 0;
+		}
+		void NetworkCleanup() { WSACleanup(); }
+		void SetNonBlocking(SOCKET socket, bool enabled)
+		{
+			u_long value = enabled ? 1 : 0;
+			ioctlsocket(socket, FIONBIO, &value);
+		}
+		bool ConnectInProgress() { return WSAGetLastError() == WSAEWOULDBLOCK; }
+#else
+		using SOCKET = int;
+		constexpr SOCKET INVALID_SOCKET = -1;
+		constexpr int SOCKET_ERROR = -1;
+		constexpr int SD_BOTH = SHUT_RDWR;
+		int closesocket(SOCKET socket) { return close(socket); }
+		bool NetworkStartup() { return true; }
+		void NetworkCleanup() {}
+		void SetNonBlocking(SOCKET socket, bool enabled)
+		{
+			const int flags = fcntl(socket, F_GETFL, 0);
+			fcntl(socket, F_SETFL, enabled ? (flags | O_NONBLOCK) : (flags & ~O_NONBLOCK));
+		}
+		bool ConnectInProgress() { return errno == EINPROGRESS; }
+#endif
+
+		// A peer that disconnects must not kill the process with SIGPIPE.
+		void DisableSigPipe([[maybe_unused]] SOCKET socket)
+		{
+#ifdef SO_NOSIGPIPE
+			int enabled = 1;
+			setsockopt(socket, SOL_SOCKET, SO_NOSIGPIPE, &enabled, sizeof(enabled));
+#endif
+		}
+
 		bool SendAll(SOCKET socket, const std::string& data)
 		{
+#ifdef MSG_NOSIGNAL
+			constexpr int flags = MSG_NOSIGNAL;
+#else
+			constexpr int flags = 0;
+#endif
 			size_t sent = 0;
 			while (sent < data.size())
 			{
-				const int result = send(socket, data.data() + sent, static_cast<int>(std::min<size_t>(data.size() - sent, 1 << 20)), 0);
+				const auto result = send(socket, data.data() + sent, static_cast<int>(std::min<size_t>(data.size() - sent, 1 << 20)), flags);
 				if (result == SOCKET_ERROR)
 					return false;
 				sent += static_cast<size_t>(result);
 			}
 			return true;
+		}
+
+		int Receive(SOCKET socket, char* buffer, size_t size)
+		{
+			return static_cast<int>(recv(socket, buffer, static_cast<int>(size), 0));
 		}
 	}
 
@@ -27,30 +86,32 @@ namespace Penumbra {
 
 	bool CommandServer::Start(uint16_t port)
 	{
-		WSADATA data{};
-		if (WSAStartup(MAKEWORD(2, 2), &data) != 0)
+		if (!NetworkStartup())
 		{
-			PN_CORE_ERROR("Command server: WSAStartup failed");
+			PN_CORE_ERROR("Command server: cannot initialize networking");
 			return false;
 		}
 
 		SOCKET listener = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 		if (listener == INVALID_SOCKET)
 		{
-			WSACleanup();
+			NetworkCleanup();
 			return false;
 		}
 		sockaddr_in address{};
 		address.sin_family = AF_INET;
 		address.sin_port = htons(port);
 		inet_pton(AF_INET, "127.0.0.1", &address.sin_addr);
+#ifdef _WIN32
+		// Windows lets a second listener steal the port unless it is exclusive; POSIX refuses by default.
 		BOOL exclusive = TRUE;
 		setsockopt(listener, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, reinterpret_cast<const char*>(&exclusive), sizeof(exclusive));
+#endif
 		if (bind(listener, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == SOCKET_ERROR || listen(listener, 4) == SOCKET_ERROR)
 		{
 			PN_CORE_ERROR("Command server: cannot listen on 127.0.0.1:{} (port in use?)", port);
 			closesocket(listener);
-			WSACleanup();
+			NetworkCleanup();
 			return false;
 		}
 
@@ -66,7 +127,7 @@ namespace Penumbra {
 	{
 		if (!m_Running.exchange(false))
 			return;
-		closesocket(static_cast<SOCKET>(m_ListenSocket));
+		// The accept loop notices m_Running within its select() timeout; the listener is closed after it ends.
 		// Wake a client thread blocked in recv() on an idle connection.
 		if (const uintptr_t client = m_ClientSocket.exchange(~uintptr_t(0)); client != ~uintptr_t(0))
 			shutdown(static_cast<SOCKET>(client), SD_BOTH);
@@ -83,16 +144,28 @@ namespace Penumbra {
 		m_Completed.notify_all();
 		if (m_Thread.joinable())
 			m_Thread.join();
-		WSACleanup();
+		closesocket(static_cast<SOCKET>(m_ListenSocket));
+		m_ListenSocket = ~uintptr_t(0);
+		NetworkCleanup();
 	}
 
 	void CommandServer::AcceptLoop()
 	{
+		const SOCKET listener = static_cast<SOCKET>(m_ListenSocket);
 		while (m_Running)
 		{
-			const SOCKET client = accept(static_cast<SOCKET>(m_ListenSocket), nullptr, nullptr);
+			// Wait with a timeout instead of blocking in accept(): closing the listener from Stop() does
+			// not wake a blocked accept() on every platform.
+			fd_set readable;
+			FD_ZERO(&readable);
+			FD_SET(listener, &readable);
+			timeval wait{ 0, 100 * 1000 };
+			if (select(static_cast<int>(listener) + 1, &readable, nullptr, nullptr, &wait) <= 0)
+				continue;
+			const SOCKET client = accept(listener, nullptr, nullptr);
 			if (client == INVALID_SOCKET)
 				continue; // closed by Stop() or transient error
+			DisableSigPipe(client);
 			// One client at a time keeps command ordering obvious for agents.
 			m_ClientSocket = static_cast<uintptr_t>(client);
 			if (m_Running)
@@ -109,7 +182,7 @@ namespace Penumbra {
 		char chunk[8192];
 		while (m_Running)
 		{
-			const int received = recv(client, chunk, sizeof(chunk), 0);
+			const int received = Receive(client, chunk, sizeof(chunk));
 			if (received <= 0)
 				return;
 			buffer.append(chunk, static_cast<size_t>(received));
@@ -175,14 +248,13 @@ namespace Penumbra {
 	CommandClient::CommandClient(std::string host, uint16_t port)
 		: m_Host(std::move(host)), m_Port(port)
 	{
-		WSADATA data{};
-		m_WinsockReady = WSAStartup(MAKEWORD(2, 2), &data) == 0;
+		m_WinsockReady = NetworkStartup();
 	}
 
 	CommandClient::~CommandClient()
 	{
 		if (m_WinsockReady)
-			WSACleanup();
+			NetworkCleanup();
 	}
 
 	uintptr_t CommandClient::Connect(std::chrono::milliseconds timeout, std::string& error)
@@ -190,7 +262,7 @@ namespace Penumbra {
 		const uintptr_t invalid = ~uintptr_t(0);
 		if (!m_WinsockReady)
 		{
-			error = "WSAStartup failed";
+			error = "cannot initialize networking";
 			return invalid;
 		}
 		sockaddr_in address{};
@@ -210,10 +282,9 @@ namespace Penumbra {
 
 		// Non-blocking connect with a timeout: a refused loopback connection otherwise takes
 		// seconds on Windows because of SYN retransmissions.
-		u_long nonBlocking = 1;
-		ioctlsocket(socketHandle, FIONBIO, &nonBlocking);
+		SetNonBlocking(socketHandle, true);
 		bool connected = connect(socketHandle, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == 0;
-		if (!connected && WSAGetLastError() == WSAEWOULDBLOCK)
+		if (!connected && ConnectInProgress())
 		{
 			fd_set writable, failed;
 			FD_ZERO(&writable);
@@ -223,7 +294,14 @@ namespace Penumbra {
 			timeval wait{};
 			wait.tv_sec = static_cast<long>(timeout.count() / 1000);
 			wait.tv_usec = static_cast<long>((timeout.count() % 1000) * 1000);
-			connected = select(0, nullptr, &writable, &failed, &wait) > 0 && FD_ISSET(socketHandle, &writable);
+			connected = select(static_cast<int>(socketHandle) + 1, nullptr, &writable, &failed, &wait) > 0 && FD_ISSET(socketHandle, &writable);
+#ifndef _WIN32
+			// POSIX reports a refused connection as writable: the socket error tells which it was.
+			int socketError = 0;
+			socklen_t length = sizeof(socketError);
+			if (connected && (getsockopt(socketHandle, SOL_SOCKET, SO_ERROR, &socketError, &length) != 0 || socketError != 0))
+				connected = false;
+#endif
 		}
 		if (!connected)
 		{
@@ -231,9 +309,9 @@ namespace Penumbra {
 			error = std::format("no command server at {}:{} (is the editor running?)", m_Host, m_Port);
 			return invalid;
 		}
-		nonBlocking = 0;
-		ioctlsocket(socketHandle, FIONBIO, &nonBlocking);
-		BOOL noDelay = TRUE;
+		SetNonBlocking(socketHandle, false);
+		DisableSigPipe(socketHandle);
+		int noDelay = 1;
 		setsockopt(socketHandle, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<const char*>(&noDelay), sizeof(noDelay));
 		return static_cast<uintptr_t>(socketHandle);
 	}
@@ -267,7 +345,7 @@ namespace Penumbra {
 			size_t newline = std::string::npos;
 			while (newline == std::string::npos)
 			{
-				const int received = recv(socketHandle, chunk, sizeof(chunk), 0);
+				const int received = Receive(socketHandle, chunk, sizeof(chunk));
 				if (received <= 0)
 					break;
 				const size_t searchFrom = buffer.size();

@@ -5,6 +5,7 @@
 #include "Penumbra/Asset/AssetManager.h"
 #include "Penumbra/Core/Application.h"
 #include "Penumbra/Core/Input.h"
+#include "Penumbra/Core/Platform.h"
 #include "Penumbra/Navigation/NavigationSystem.h"
 #include "Penumbra/Project/Project.h"
 #include "Penumbra/Project/ProjectExporter.h"
@@ -20,8 +21,6 @@
 
 #include <chrono>
 
-#include <Windows.h>
-#include <shellapi.h>
 
 namespace Penumbra {
 
@@ -938,7 +937,7 @@ namespace Penumbra {
 					if (extension == ".pscene")
 						OpenScene(relative);
 					else
-						ShellExecuteW(nullptr, L"open", entry.path().wstring().c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+						Platform::OpenWithDefaultApplication(entry.path());
 				}
 			}
 		};

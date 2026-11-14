@@ -1,6 +1,13 @@
 #ifndef PENUMBRA_COMMON_HLSLI
 #define PENUMBRA_COMMON_HLSLI
 
+// Push constants: root constants on D3D12, a push-constant block on Vulkan (SPIR-V).
+#ifdef __spirv__
+	#define PN_PUSH_CONSTANT [[vk::push_constant]]
+#else
+	#define PN_PUSH_CONSTANT
+#endif
+
 // Must match Penumbra/src/Penumbra/Renderer/RendererTypes.h exactly.
 
 static const float PI = 3.14159265359;

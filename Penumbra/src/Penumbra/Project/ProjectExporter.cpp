@@ -2,6 +2,7 @@
 #include "Penumbra/Project/ProjectExporter.h"
 
 #include "Penumbra/Core/FileSystem.h"
+#include "Penumbra/Core/Platform.h"
 #include "Penumbra/Project/Project.h"
 
 #include <nlohmann/json.hpp>
@@ -91,7 +92,7 @@ namespace Penumbra {
 			return result;
 		}
 
-		result.Executable = outputDirectory / (SanitizeFileName(project.value("Name", std::string("Game"))) + ".exe");
+		result.Executable = outputDirectory / Platform::ExecutableName(SanitizeFileName(project.value("Name", std::string("Game"))));
 		std::filesystem::copy_file(runtimeExecutable, result.Executable, std::filesystem::copy_options::overwrite_existing, error);
 		if (error)
 		{
