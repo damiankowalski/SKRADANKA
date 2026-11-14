@@ -238,6 +238,7 @@ namespace Penumbra {
 	uint32_t RenderDevice::GetBackBufferHeight() const { return m_Impl->Height; }
 	void RenderDevice::SetVSync(bool enabled) { m_Impl->Specification.VSync = enabled; }
 	const std::string& RenderDevice::GetAdapterName() const { return m_Impl->Backend->AdapterName; }
+	const std::string& RenderDevice::GetDriverName() const { return m_Impl->Backend->DriverName; }
 	bool RenderDevice::IsWarp() const { return m_Impl->Backend->Warp; }
 	bool RenderDevice::IsDeviceLost() const { return m_Impl->DeviceLost; }
 	uint32_t RenderDevice::GetErrorCount() const { return m_Impl->Messages.ErrorCount; }

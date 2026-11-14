@@ -56,6 +56,20 @@ perception is computed on the CPU, so guards see exactly what they see on Window
 The window renders one pixel per point; on a Retina display macOS scales the picture up. Input, ImGui and
 the renderer then use the same coordinates as on Windows.
 
+## Two Vulkan drivers
+
+Newer LunarG SDKs install two Vulkan drivers for the same Apple GPU: MoltenVK and Mesa's KosmicKrisp, so
+`vulkaninfo --summary` lists the GPU twice. The engine always picks **MoltenVK** (the driver CI runs on),
+whatever order the loader reports them in, and logs its choice:
+
+```
+Vulkan driver: MoltenVK for Apple M1 Pro; also available: Apple M1 Pro (KosmicKrisp) (set PENUMBRA_VULKAN_DRIVER to choose)
+```
+
+`PENUMBRA_VULKAN_DRIVER` forces another one by (case-insensitive) part of its name, for example
+`PENUMBRA_VULKAN_DRIVER=kosmickrisp Tools/Test.sh debug`. A name no usable device matches logs a warning and
+falls back to the default. The variable works on Windows too (e.g. to choose between two GPU vendors).
+
 ## Both backends on one Windows machine
 
 `PenumbraRuntime --vulkan`, `PenumbraEditor --vulkan` or the environment variable

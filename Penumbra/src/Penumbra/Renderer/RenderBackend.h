@@ -53,6 +53,7 @@ namespace Penumbra::Detail {
 		virtual void Shutdown() = 0;
 
 		std::string AdapterName;
+		std::string DriverName; // Vulkan: the driver that runs the device (MoltenVK, KosmicKrisp...); empty on D3D12
 		bool Warp = false;
 	};
 

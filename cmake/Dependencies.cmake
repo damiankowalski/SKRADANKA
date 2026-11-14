@@ -84,6 +84,18 @@ macro(penumbra_fetch_sources name repo tag)
     FetchContent_MakeAvailable(${name})
 endmacro()
 
+# Third-party sources compiled by our own targets below: their warnings are not ours to fix, and a newer
+# compiler's new warning (recent clang's -Wnontrivial-memcall in DetourNavMesh.cpp) must not show up in every build.
+# -w and /W0 silence everything without naming a warning, so no compiler meets an option it does not know.
+function(penumbra_third_party_target target)
+    if(MSVC)
+        target_compile_options(${target} PRIVATE /W0)
+    else()
+        target_compile_options(${target} PRIVATE -w)
+    endif()
+    set_target_properties(${target} PROPERTIES FOLDER ThirdParty)
+endfunction()
+
 penumbra_fetch_sources(lua        https://github.com/lua/lua.git                   v5.4.7)
 penumbra_fetch_sources(sol2       https://github.com/ThePhD/sol2.git               v3.5.0)
 penumbra_fetch_sources(miniaudio  https://github.com/mackron/miniaudio.git         0.11.26)
@@ -101,7 +113,7 @@ list(FILTER PN_LUA_SOURCES EXCLUDE REGEX ".*/(lua|luac|onelua|ltests)\\.c$")
 add_library(pn_lua STATIC ${PN_LUA_SOURCES})
 target_include_directories(pn_lua SYSTEM PUBLIC "${lua_SOURCE_DIR}")
 target_compile_definitions(pn_lua PRIVATE _CRT_SECURE_NO_WARNINGS)
-set_target_properties(pn_lua PROPERTIES FOLDER ThirdParty)
+penumbra_third_party_target(pn_lua)
 
 # sol2 (Lua C++ binding)
 add_library(pn_sol2 INTERFACE)
@@ -129,7 +141,7 @@ add_library(pn_recast STATIC ${PN_RECAST_SOURCES})
 target_include_directories(pn_recast SYSTEM PUBLIC
     "${recastnavigation_SOURCE_DIR}/Recast/Include"
     "${recastnavigation_SOURCE_DIR}/Detour/Include")
-set_target_properties(pn_recast PROPERTIES FOLDER ThirdParty)
+penumbra_third_party_target(pn_recast)
 
 # Dear ImGui (docking branch) + ImGuizmo, used by the editor only
 if(PENUMBRA_BUILD_EDITOR)
@@ -146,7 +158,7 @@ target_include_directories(pn_imgui SYSTEM PUBLIC
     "${imgui_SOURCE_DIR}/backends"
     "${imguizmo_SOURCE_DIR}/src")
 target_link_libraries(pn_imgui PUBLIC glfw)
-set_target_properties(pn_imgui PROPERTIES FOLDER ThirdParty)
+penumbra_third_party_target(pn_imgui)
 endif()
 
 # ---------------------------------------------------------------------------

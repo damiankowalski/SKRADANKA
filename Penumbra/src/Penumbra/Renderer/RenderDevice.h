@@ -86,6 +86,8 @@ namespace Penumbra {
 		void WaitForIdle();
 
 		const std::string& GetAdapterName() const;
+		// The Vulkan driver chosen for the adapter (empty on D3D12). See VulkanDeviceSelection.h.
+		const std::string& GetDriverName() const;
 		bool IsWarp() const;
 		bool IsRayTracingSupported() const;
 		bool IsDeviceLost() const;
