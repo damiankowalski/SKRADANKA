@@ -23,6 +23,7 @@ namespace Penumbra {
 		// scene's fixed default (reproducible) and interactive runs a new seed per scene load.
 		std::optional<uint64_t> Seed;
 		bool RandomizeSeed = false;
+		GameState GameValues; // initial game.get values (--set)
 	};
 
 	// Plays a project's scene: runtime simulation, rendering to the window (or offscreen when

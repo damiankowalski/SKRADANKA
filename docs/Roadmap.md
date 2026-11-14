@@ -33,13 +33,17 @@ player in the dark and did not notice): contact between a guard and the player a
 the light, both when he bumps into the player and when the player bumps into him; a figure right in front
 of a guard is made out in the dark, slowly enough to back off.
 
+**C2. Mission loop**: game values kept across scene loads (`game.get/set`, `--set`), a title screen
+with the briefing and the choice of difficulty, missions described as data (`Scripts/Missions/*.lua`,
+docs/Missions.md) with loot, item and no-kill objectives per difficulty (#21), loot to take and purses
+and a key to pickpocket from behind a calm guard (#23), the gate that only opens once the objectives are
+done, and the end-of-mission summary (time, loot, pickpockets, knockouts, kills, alarms, bodies found).
+Out of scope: a real UI toolkit (menus are text drawn by scripts), saving mid-mission, loot that moves
+with the hips (purses ride on the NPC's root, not on a bone).
+
 ## Next
 
-### C2. Mission loop (~2 sessions, next)
-
-Loot, objectives and difficulty (#21) with an end-of-mission summary; pickpocketing (#23) on the use key.
-
-### B. Thief's workshop (~5 sessions)
+### B. Thief's workshop (~5 sessions, next)
 
 Moss arrows (#8, the floor side is done), light switches (#24), doors that block sight
 and sound and that guards open (#20, navmesh links), lockpicking (#19).

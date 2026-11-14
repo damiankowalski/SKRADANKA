@@ -4,6 +4,7 @@
 #include "Penumbra/Core/Timestep.h"
 #include "Penumbra/Core/UUID.h"
 #include "Penumbra/Scene/Components.h"
+#include "Penumbra/Scene/GameState.h"
 
 #include <entt/entt.hpp>
 
@@ -108,6 +109,15 @@ namespace Penumbra {
 		void RequestCursorLock(bool locked) { m_RequestedCursorLock = locked; }
 		std::optional<bool> ConsumeCursorLockRequest();
 
+		// Values kept across scene loads (GameState.h). The host passes them on to the next scene.
+		GameState& GetGameState() { return *m_GameState; }
+		const Ref<GameState>& GetGameStateRef() const { return m_GameState; }
+		void SetGameState(Ref<GameState> state)
+		{
+			if (state)
+				m_GameState = std::move(state);
+		}
+
 		TestReport& GetTestReport() { return m_TestReport; }
 
 		PhysicsWorld* GetPhysicsWorld() const { return m_PhysicsWorld.get(); }
@@ -168,6 +178,7 @@ namespace Penumbra {
 		std::optional<std::string> m_RequestedScene;
 		std::optional<int> m_RequestedQuit;
 		std::optional<bool> m_RequestedCursorLock;
+		Ref<GameState> m_GameState = CreateRef<GameState>();
 		TestReport m_TestReport;
 		std::filesystem::path m_FilePath;
 

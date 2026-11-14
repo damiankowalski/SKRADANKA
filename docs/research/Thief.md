@@ -41,9 +41,9 @@ the status column only records what the engine already has. Costs are to be esti
 | 18 | **Patrols and schedules** | Predictable routes the player learns | Yes (waypoints, walked along the navmesh) |
 | 19 | **Lockpicking** | Timed picking of doors and chests | Missing (no doors yet) |
 | 20 | **Doors** | Open/closed doors block sight and sound, can be locked | Missing |
-| 21 | **Loot and objectives by difficulty** | Steal enough loot; harder difficulties add objectives and a no-kill rule | Missing (Lua can implement it; no objective/inventory system) |
+| 21 | **Loot and objectives by difficulty** | Steal enough loot; harder difficulties add objectives and a no-kill rule | Yes: `Scripts/Missions/*.lua` (loot, item and no-kill objectives per difficulty), the menu and the end-of-mission summary |
 | 22 | **Frobbing (interaction)** | One "use" key for doors, items, switches, pickpocketing | Yes: E uses whatever offers `on_use` (and picks up bodies) |
-| 23 | **Pickpocketing** | Steal keys and purses from guards' belts | Missing (needs #22) |
+| 23 | **Pickpocketing** | Steal keys and purses from guards' belts | Yes: E from behind a calm guard (an alert one feels the hand) |
 | 24 | **Light switches and lamps** | Turn electric lights off (Thief 2) to create shadows | Easy (lights have `Enabled`; needs #22) |
 | 25 | **Leaning / peeking** | Lean around corners with minimal exposure | Missing (camera/silhouette offset) |
 | 26 | **Climbing and mantling** | Mantle ledges, climb ropes and vines | Missing |

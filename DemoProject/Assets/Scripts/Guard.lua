@@ -16,6 +16,7 @@
 -- (ai.shout). Knocked out (blackjack, gas) he falls and stays down: a body others may find.
 
 local Actor = require("Scripts/AI/Actor")
+local Mission = require("Scripts/Mission/Mission")
 
 local Guard = {
     Properties = {
@@ -217,7 +218,7 @@ function Guard:on_update(dt)
             self.player:get_position():distance(center) < 1.0
         if seeing then
             Actor.go(self, center, self.run_speed, "Running_B", 2.4)
-            if self.entity:get_position():distance(self.player:get_position()) < self.catch_distance then
+            if self.entity:get_position():distance(self.player:get_position()) < self.catch_distance and not Mission.over() then
                 self:catch()
             end
         else

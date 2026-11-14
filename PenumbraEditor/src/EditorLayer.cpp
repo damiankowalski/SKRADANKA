@@ -422,6 +422,7 @@ namespace Penumbra {
 					if (SceneSerializer::Deserialize(*loaded, Project::ResolveAssetPath(*next), error))
 					{
 						m_PlayScene->OnRuntimeStop();
+						loaded->SetGameState(m_PlayScene->GetGameStateRef());
 						m_PlayScene = loaded;
 						m_PlayScene->OnViewportResize(static_cast<uint32_t>(m_ViewportSize.x), static_cast<uint32_t>(m_ViewportSize.y));
 						m_PlayScene->SetRandomSeed(static_cast<uint64_t>(std::chrono::steady_clock::now().time_since_epoch().count()));

@@ -27,6 +27,7 @@ namespace {
 			"  --fixed-timestep <s>     advance exactly s seconds per frame (deterministic)\n"
 			"  --seed <n>               random seed for scripts and AI (default: fixed when headless or\n"
 			"                           with --fixed-timestep, otherwise new for every scene load)\n"
+			"  --set <k=v,k=v>          initial game values for scripts (game.get), e.g. difficulty=Hard\n"
 			"  --exit-on-test           exit with 0/1 when the scene's scripts call test.complete()\n"
 			"  --test-timeout <s>       fail the test run after s seconds of simulated time\n"
 			"  --screenshot <file.png>  save the last frame before exiting\n"
@@ -97,6 +98,15 @@ namespace {
 		if (const std::optional<int> seed = args.GetInt("seed"))
 			options.Seed = static_cast<uint64_t>(static_cast<uint32_t>(*seed));
 		options.RandomizeSeed = !spec.Headless && spec.FixedTimestep <= 0.0f;
+		if (const std::optional<std::string> values = args.GetValue("set"))
+		{
+			if (!ParseGameValues(*values, options.GameValues, error))
+			{
+				PN_CORE_CRITICAL("--set: {}", error);
+				Log::Shutdown();
+				return 1;
+			}
+		}
 
 		int exitCode = 0;
 		{

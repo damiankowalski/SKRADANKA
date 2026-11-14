@@ -45,6 +45,7 @@ return Door
 | `anim` | `play(e, clip, fade?, loop?)` (crossfades over `fade` s, default the Animator's `BlendDuration`; replaying the current clip only restarts a finished one-shot; unknown clips error), `set_speed(e, rate)`, `is_playing(e, clip?)`, `clips(e)` → names. `e` needs an Animator (on the entity with the Mesh). |
 | `ui` | `text(x, y, text, scale?, {r,g,b,a}?)`, `rect(x, y, w, h, color?)`, `width()`, `height()`, `world_to_screen(pos)` → x, y in pixels (nil behind the camera) |
 | `time` | `delta()`, `elapsed()`, `frame()` |
+| `game` | `get(key, default?)`, `set(key, value)` (boolean, number, string, vec3; `nil` erases), `clear()` — values kept across `scene.load` (the chosen difficulty, a score); a new play session starts empty, `PenumbraRuntime --set difficulty=Hard,score=0` seeds them |
 | `log` | `trace/info/warn/error(...)`, `print(...)` |
 | `test` | `check(cond, msg?)`, `equal(a, b, msg?)`, `near(a, b, eps?, msg?)`, `complete()`, `failures()` |
 
