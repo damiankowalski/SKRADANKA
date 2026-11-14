@@ -167,7 +167,7 @@ namespace Penumbra {
 		std::vector<nvrhi::FramebufferHandle> BloomFramebuffers;
 
 		nvrhi::GraphicsPipelineHandle ShadowPipeline, PrepassPipeline, ForwardPipeline, TranslucentPipeline, SkyPipeline, SSAOPipeline,
-			SSAOBlurPipeline, BloomDownPipeline, BloomUpPipeline, TonemapPipeline, SmokePipeline, Overlay2DPipeline, Overlay3DPipeline, FlamePipeline;
+			SSAOBlurPipeline, BloomDownPipeline, BloomUpPipeline, TonemapPipeline, SmokePipeline, Overlay2DPipeline, Overlay3DPipeline, OverlayWorldPipeline, FlamePipeline;
 		std::map<nvrhi::Format, nvrhi::GraphicsPipelineHandle> BlitPipelines;
 		nvrhi::ComputePipelineHandle EquirectPipeline, DownsamplePipeline, IrradiancePipeline, PrefilterPipeline, BRDFPipeline, SkinningPipeline;
 
@@ -393,6 +393,8 @@ namespace Penumbra {
 		Overlay2DPipeline = graphics(Overlay2DVS, OverlayPS, OverlayInput, { PostLayout }, MakeRenderState(false, false, CF::Always, Cull::None, true), output);
 		Overlay3DPipeline = graphics(Overlay3DVS, OverlayPS, OverlayInput, { PostLayout },
 			MakeRenderState(true, false, CF::LessOrEqual, Cull::None, true), outputDepth, nvrhi::PrimitiveType::LineList);
+		OverlayWorldPipeline = graphics(Overlay3DVS, OverlayPS, OverlayInput, { PostLayout },
+			MakeRenderState(true, false, CF::LessOrEqual, Cull::None, true), outputDepth);
 
 		auto compute = [&](nvrhi::IShader* cs) {
 			nvrhi::ComputePipelineDesc desc;
@@ -1290,10 +1292,23 @@ namespace Penumbra {
 		impl.DrawFullscreen(impl.TonemapPipeline, impl.OutputFramebuffer, impl.GetPostSet({ impl.HDR }, { impl.Bloom, 0 }), {}, m_Width, m_Height);
 
 		// --- Debug lines and HUD -------------------------------------------------------------------
-		std::vector<GPU::OverlayVertex> hud;
+		std::vector<GPU::OverlayVertex> hud, world;
 		if (m_Settings.DrawOverlay)
 		{
 			const OverlayList& overlay = scene.GetOverlay();
+			// World-space HUD: quads facing the camera (its right and up axes), in metres.
+			const glm::mat4 inverseView = glm::inverse(camera.View);
+			const glm::vec3 right = glm::normalize(glm::vec3(inverseView[0]));
+			const glm::vec3 up = glm::normalize(glm::vec3(inverseView[1]));
+			auto worldQuad = [&](const glm::vec3& center, const glm::vec2& min, const glm::vec2& max, const glm::vec4& color) {
+				// min/max in metres along right and down (text runs left to right, top to bottom).
+				const glm::vec3 a = center + right * min.x - up * min.y, b = center + right * max.x - up * min.y;
+				const glm::vec3 c = center + right * max.x - up * max.y, d = center + right * min.x - up * max.y;
+				for (const glm::vec3& p : { a, b, c, a, c, d })
+					world.push_back({ p, color });
+			};
+			for (const OverlayWorldRect& rect : overlay.GetWorldRects())
+				worldQuad(rect.Center, -rect.Size * 0.5f, rect.Size * 0.5f, rect.Color);
 			for (const OverlayRect& rect : overlay.GetRects())
 			{
 				const glm::vec3 a(rect.Position, 0.0f), b(rect.Position.x + rect.Size.x, rect.Position.y, 0.0f);
@@ -1302,6 +1317,21 @@ namespace Penumbra {
 					hud.push_back({ p, rect.Color });
 			}
 			std::vector<float> quads(4096 * 16);
+			for (const OverlayWorldText& text : overlay.GetWorldTexts())
+			{
+				// stb_easy_font letters are 7 units tall: scale them to the requested height, centred.
+				const float scale = text.Height / 7.0f;
+				const float halfWidth = static_cast<float>(stb_easy_font_width(const_cast<char*>(text.Text.c_str()))) * 0.5f;
+				const int count = stb_easy_font_print(0.0f, 0.0f, const_cast<char*>(text.Text.c_str()), nullptr, quads.data(),
+					static_cast<int>(quads.size() * sizeof(float)));
+				for (int q = 0; q < count; q++)
+				{
+					const float* first = &quads[static_cast<size_t>(q * 16)];
+					const float* third = &quads[static_cast<size_t>(q * 16 + 8)];
+					worldQuad(text.Center, glm::vec2(first[0] - halfWidth, first[1] - 3.5f) * scale,
+						glm::vec2(third[0] - halfWidth, third[1] - 3.5f) * scale, text.Color);
+				}
+			}
 			for (const OverlayText& text : overlay.GetTexts())
 			{
 				const int count = stb_easy_font_print(0.0f, 0.0f, const_cast<char*>(text.Text.c_str()), nullptr, quads.data(),
@@ -1320,7 +1350,7 @@ namespace Penumbra {
 			}
 		}
 		const std::vector<GPU::OverlayVertex>& lines = m_DebugDraw.GetVertices();
-		const size_t overlayCount = hud.size() + lines.size();
+		const size_t overlayCount = hud.size() + world.size() + lines.size();
 		if (overlayCount > 0)
 		{
 			if (overlayCount > impl.OverlayCapacity)
@@ -1335,8 +1365,11 @@ namespace Penumbra {
 			}
 			if (!lines.empty())
 				commandList->writeBuffer(impl.OverlayBuffer, lines.data(), lines.size() * sizeof(GPU::OverlayVertex), 0);
+			if (!world.empty())
+				commandList->writeBuffer(impl.OverlayBuffer, world.data(), world.size() * sizeof(GPU::OverlayVertex), lines.size() * sizeof(GPU::OverlayVertex));
 			if (!hud.empty())
-				commandList->writeBuffer(impl.OverlayBuffer, hud.data(), hud.size() * sizeof(GPU::OverlayVertex), lines.size() * sizeof(GPU::OverlayVertex));
+				commandList->writeBuffer(impl.OverlayBuffer, hud.data(), hud.size() * sizeof(GPU::OverlayVertex),
+					(lines.size() + world.size()) * sizeof(GPU::OverlayVertex));
 
 			auto drawOverlay = [&](nvrhi::IGraphicsPipeline* pipeline, nvrhi::IFramebuffer* framebuffer, size_t first, size_t count) {
 				nvrhi::GraphicsState state;
@@ -1352,8 +1385,10 @@ namespace Penumbra {
 			};
 			if (!lines.empty())
 				drawOverlay(impl.Overlay3DPipeline, impl.OutputDepthFramebuffer, 0, lines.size());
+			if (!world.empty())
+				drawOverlay(impl.OverlayWorldPipeline, impl.OutputDepthFramebuffer, lines.size(), world.size());
 			if (!hud.empty())
-				drawOverlay(impl.Overlay2DPipeline, impl.OutputFramebuffer, lines.size(), hud.size());
+				drawOverlay(impl.Overlay2DPipeline, impl.OutputFramebuffer, lines.size() + world.size(), hud.size());
 		}
 		m_DebugDraw.Clear();
 

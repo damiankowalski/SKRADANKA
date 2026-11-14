@@ -276,6 +276,9 @@ local function run(self)
 
     -- ---------------------------------------------------------------- ui
     ui.text(10, 10, "Feature test", 2, { 1, 1, 1, 1 })
+    -- World-space HUD (depth tested; covered by docs/ScriptingAPI.md): a bar and a label in the scene.
+    ui.world_rect(vec3(0, 2.5, 0), 0.5, 0.06, { 0.2, 0.9, 0.3, 0.9 })
+    ui.world_text(vec3(0, 2.4, 0), "WASD", 0.08, { 1, 1, 1, 1 })
     ui.rect(0, 0, 10, 10)
     test.check(ui.width() > 0 and ui.height() > 0, "ui size")
 
