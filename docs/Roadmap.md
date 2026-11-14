@@ -49,23 +49,22 @@ compiled by DXC to DXIL and SPIR-V. Polish after the first days on an M1 Pro: th
 deterministically (MoltenVK over KosmicKrisp, `PENUMBRA_VULKAN_DRIVER` to force another, the choice in the
 log) and third-party code compiles without warnings on every compiler.
 
+**B. Thief's workshop** (two PRs): light switches (#24): a wall switch puts its lamps out (lights,
+glowing lanterns and what guards perceive), and a calm guard or servant who sees a dark lamp walks
+over and lights it again. Moss arrows (#8, key 4): a patch of moss on a floor (footsteps -3), nothing
+on a wall. Doors (#20): hinged, kinematic doors that block sight and light while closed and muffle
+sound (`Surface.SoundLoss`, straight through and along the navmesh, which runs through doorways);
+NPCs open them and shut them behind them. Locks and keys (#19), as the owner designed it: the right
+key (a Mission item, the captain's cellar key) opens at once; otherwise a progress bar hangs at the
+lock in the world (world-space HUD, `ui.world_rect` / `ui.world_text`, hidden by whatever stands in
+front, the thief's own body included) over random W/A/S/D letters to press in order; a wrong key
+slips one pin back; the thief stands still while picking, E gives up. The Stealth level's new cellar
+has a locked door on GuardA's round. Out of scope: lockable chests (the lock works on any door-like
+script, chests need their own lid), guards noticing doors left open.
+
 ## In progress
 
-### B. Thief's workshop (~5 sessions, two PRs)
-
-**B1 (done): light switches and moss arrows.** A wall switch puts its lamps out (#24: lights,
-glowing lanterns and what guards perceive) with a quiet click; a calm guard or servant who sees a
-dark lamp says so, walks to the switch and lights it again (one per switch; anything more pressing
-comes first). The hall of the Stealth level has one by its doorway. Moss arrows (#8, key 4) leave
-a 2 m patch of moss on a floor (footsteps -3), nothing on a wall.
-
-**B2: doors and lockpicking.** Doors that block sight and sound and that guards open (#20, the
-navmesh marks closed doorways so sound pays a door's toll instead of a wall's and guards stop to
-open them). Lockpicking (#19), as the owner designed it: a progress bar attached to the lock in the
-world (not drawn on top: turn the camera and the thief's own body can hide it, so it needs
-watching), and under it random letters from W, A, S, D to press in order (to settle: whether a wrong
-key costs progress). Moving is suspended while picking, since W, A, S, D are the movement keys. Engine work: world-space UI that the scene occludes
-(today `ui.*` draws on top of everything), and a key that only opens its own lock.
+Nothing: the next package is to be chosen from Later.
 
 ## Next
 

@@ -759,6 +759,13 @@ namespace Penumbra {
 		ui.set_function("rect", [scene](float x, float y, float w, float h, sol::optional<sol::table> color) {
 			scene->GetOverlay().AddRect({ { x, y }, { w, h }, ColorFrom(color) });
 		});
+		// World-space HUD, depth tested (docs/ScriptingAPI.md): sizes in metres, facing the camera.
+		ui.set_function("world_rect", [scene](const glm::vec3& center, float width, float height, sol::optional<sol::table> color) {
+			scene->GetOverlay().AddWorldRect({ center, { width, height }, ColorFrom(color) });
+		});
+		ui.set_function("world_text", [scene](const glm::vec3& center, const std::string& text, sol::optional<float> height, sol::optional<sol::table> color) {
+			scene->GetOverlay().AddWorldText({ center, text, height.value_or(0.05f), ColorFrom(color) });
+		});
 		ui.set_function("world_to_screen", [scene](const glm::vec3& position, sol::this_state state) {
 			// Pixel position of a world point in the primary camera's view (nil when behind it).
 			const float width = static_cast<float>(std::max(scene->GetViewportWidth(), 1u));

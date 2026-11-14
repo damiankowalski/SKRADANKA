@@ -350,6 +350,46 @@ TEST_SUITE("Renderer")
 		CHECK(brightestWarmth() < 0.05f);
 		CHECK(fixture.Device->GetErrorCount() == 0);
 	}
+
+	TEST_CASE("World-space HUD faces the camera and is hidden by what stands in front of it")
+	{
+		RendererFixture fixture;
+		Test::CreateBox(fixture.SceneInstance, "Wall", { 0.0f, 1.0f, 0.0f }, { 2.0f, 1.0f, 0.1f }, glm::vec4(0.2f, 0.2f, 0.2f, 1.0f));
+		// Seen at an angle: the quads still face the camera.
+		const RenderCamera camera = RenderCamera::Perspective({ 1.5f, 1.2f, 4.0f }, Math::LookRotation(glm::vec3(-1.5f, -0.2f, -4.0f)), 60.0f,
+			static_cast<float>(RendererFixture::Width) / static_cast<float>(RendererFixture::Height), 0.1f, 50.0f);
+		const glm::vec3 inFront(-0.5f, 1.0f, 1.0f), behind(0.5f, 1.0f, -1.0f);
+		OverlayList& overlay = fixture.SceneInstance.GetOverlay();
+		auto draw = [&]() {
+			overlay.Clear();
+			overlay.AddWorldRect({ inFront, { 0.4f, 0.2f }, { 0.0f, 1.0f, 0.0f, 1.0f } });
+			overlay.AddWorldRect({ behind, { 0.4f, 0.2f }, { 0.0f, 1.0f, 0.0f, 1.0f } });
+			overlay.AddWorldText({ inFront + glm::vec3(0.0f, -0.3f, 0.0f), "WASD", 0.15f, { 1.0f, 0.0f, 1.0f, 1.0f } });
+			return fixture.RenderFrame(camera);
+		};
+		auto isGreen = [](const glm::vec3& c) { return c.g > 0.8f && c.r < 0.2f && c.b < 0.2f; };
+
+		const std::vector<uint8_t> pixels = draw();
+		const glm::uvec2 front = RendererFixture::ToPixel(camera, inFront);
+		const glm::uvec2 hidden = RendererFixture::ToPixel(camera, behind);
+		CHECK(isGreen(RendererFixture::Pixel(pixels, front.x, front.y)));
+		CHECK_FALSE(isGreen(RendererFixture::Pixel(pixels, hidden.x, hidden.y)));
+		// The letters are drawn too (magenta somewhere under the bar).
+		int magenta = 0;
+		for (uint32_t y = 0; y < RendererFixture::Height; y++)
+			for (uint32_t x = 0; x < RendererFixture::Width; x++)
+			{
+				const glm::vec3 c = RendererFixture::Pixel(pixels, x, y);
+				magenta += c.r > 0.8f && c.b > 0.8f && c.g < 0.2f ? 1 : 0;
+			}
+		CHECK(magenta > 10);
+
+		// Without the wall the far one shows as well.
+		fixture.SceneInstance.DestroyEntity(fixture.SceneInstance.FindEntityByName("Wall"));
+		const std::vector<uint8_t> open = draw();
+		CHECK(isGreen(RendererFixture::Pixel(open, hidden.x, hidden.y)));
+		CHECK(fixture.Device->GetErrorCount() == 0);
+	}
 }
 
 TEST_SUITE("Renderer")

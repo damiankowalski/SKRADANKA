@@ -361,6 +361,9 @@ namespace Penumbra {
 		float NoiseModifier = 0.0f;     // loudness levels added on this surface (carpet -2, moss -3, metal grate +2.5)
 		float ImpactLoudness = 0.0f;    // loudness (0-10) of this object hitting a neutral floor at 4 m/s; 0 = silent
 		std::string ImpactSound;        // optional clip played on impacts
+		// Levels a sound loses passing through this object: a door (2-3) muffles less than a wall.
+		// Negative: it blocks sound like any wall (PerceptionModel::WallLoss).
+		float SoundLoss = -1.0f;
 
 		// Runtime only
 		float RuntimeLastImpactTime = -1.0f;

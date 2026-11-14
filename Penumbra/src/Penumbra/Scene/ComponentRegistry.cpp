@@ -267,6 +267,7 @@ namespace Penumbra {
 			v("NoiseModifier", c.NoiseModifier);
 			v("ImpactLoudness", c.ImpactLoudness);
 			v("ImpactSound", c.ImpactSound);
+			v("SoundLoss", c.SoundLoss);
 		}
 
 		template<typename V>
