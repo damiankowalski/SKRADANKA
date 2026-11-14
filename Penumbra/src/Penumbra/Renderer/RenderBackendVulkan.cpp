@@ -247,6 +247,8 @@ namespace Penumbra::Detail {
 			if (result != VK_SUCCESS)
 			{
 				PN_CORE_CRITICAL("Cannot create a Vulkan instance ({})", ResultToString(result));
+				if (result == VK_ERROR_INCOMPATIBLE_DRIVER)
+					PN_CORE_ERROR("The Vulkan loader found no driver. On macOS install the LunarG SDK system-wide or source its setup-env.sh, which points the loader at MoltenVK (docs/macOS.md)");
 				return false;
 			}
 			api.init(vk::Instance(m_Instance));

@@ -18,7 +18,10 @@ perception is computed on the CPU, so guards see exactly what they see on Window
    ```bash
    echo 'source ~/VulkanSDK/<version>/setup-env.sh' >> ~/.zprofile
    ```
-   and open a new terminal (`echo $VULKAN_SDK` must print a path).
+   and open a new terminal (`echo $VULKAN_SDK` must print a path). `setup-env.sh` also points the Vulkan loader at
+   MoltenVK and the validation layer, which is what lets an SDK installed without the system-wide option work:
+   *Cannot create a Vulkan instance (VK_ERROR_INCOMPATIBLE_DRIVER)* means the loader found neither. Check with
+   `vulkaninfo --summary`, which must list an Apple GPU.
 4. **The repository**:
    ```bash
    gh auth login

@@ -87,8 +87,15 @@ jobs:
           unzip -q /tmp/vulkan-sdk.zip -d /tmp/vulkan-sdk
           app=$(ls -d /tmp/vulkan-sdk/*.app | head -n 1)
           "$app/Contents/MacOS/$(basename "$app" .app)" --root "$HOME/VulkanSDK" --accept-licenses --default-answer --confirm-command install
-          echo "VULKAN_SDK=$HOME/VulkanSDK/macOS" >> "$GITHUB_ENV"
-          echo "$HOME/VulkanSDK/macOS/bin" >> "$GITHUB_PATH"
+          sdk="$HOME/VulkanSDK/macOS"
+          echo "VULKAN_SDK=$sdk" >> "$GITHUB_ENV"
+          echo "$sdk/bin" >> "$GITHUB_PATH"
+          # What the SDK's setup-env.sh does: without a system-wide install the loader finds MoltenVK and the
+          # validation layer only through these.
+          echo "VK_DRIVER_FILES=$sdk/share/vulkan/icd.d/MoltenVK_icd.json" >> "$GITHUB_ENV"
+          echo "VK_ADD_LAYER_PATH=$sdk/share/vulkan/explicit_layer.d" >> "$GITHUB_ENV"
+          ls "$sdk/share/vulkan/icd.d" "$sdk/share/vulkan/explicit_layer.d"
+          VK_DRIVER_FILES="$sdk/share/vulkan/icd.d/MoltenVK_icd.json" "$sdk/bin/vulkaninfo" --summary || true
 
       - name: Cache third-party sources
         uses: actions/cache@v4
