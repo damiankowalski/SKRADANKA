@@ -51,4 +51,5 @@ objectives) and `pickpocket`:
 
 Scripts reach the mission through `require("Scripts/Mission/Mission")`: `Mission.current` (state,
 loot, items, stats, objectives), `Mission.take(value, item, how)`, `Mission.try_escape()`,
-`Mission.fail(reason)`, `Mission.over()`, `Mission.summary(mission)`.
+`Mission.fail(reason)`, `Mission.over()`, `Mission.summary(mission)`, `Mission.has(item)` (a key taken
+opens its own door: `Scripts/World/Door.lua`, property `key`).

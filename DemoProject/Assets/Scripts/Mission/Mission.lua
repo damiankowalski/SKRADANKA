@@ -93,6 +93,12 @@ function Mission.take(value, item, how)
     if how == "pickpocketed" then mission.stats.pickpocketed = mission.stats.pickpocketed + 1 end
 end
 
+-- True when the thief has taken the special item (a key opens its own door: Scripts/World/Door.lua).
+function Mission.has(item)
+    local mission = Mission.current
+    return mission ~= nil and mission.items[item] == true
+end
+
 -- Someone went down: "Unconscious" or "Dead". Killing a protected NPC fails the mission.
 function Mission.on_down(name, state)
     local mission = Mission.active()

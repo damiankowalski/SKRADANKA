@@ -46,6 +46,11 @@ Noises.sounds = {
     Bow = { loudness = 3, clip = "Audio/Bow.wav", volume = 0.6 },
     Switch = { loudness = 2, clip = "Audio/Click.wav", volume = 0.5 },        -- a light switch flipped
     Moss = { loudness = 1, clip = "Audio/Footstep_Soft.wav", volume = 0.4 },  -- a moss arrow bursting
+    DoorOpen = { loudness = 3, clip = "Audio/Door.wav", volume = 0.6 },       -- hinges creaking
+    DoorShut = { loudness = 4, clip = "Audio/Thud.wav", volume = 0.6 },       -- a door falling shut
+    Unlock = { loudness = 2, clip = "Audio/Click.wav", volume = 0.6 },        -- a key or a pick turning the lock
+    Pick = { loudness = 1, clip = "Audio/Click.wav", volume = 0.2 },          -- a pin set while picking
+    PickSlip = { loudness = 2, clip = "Audio/Click.wav", volume = 0.5 },      -- the pick slipping: a wrong key
     Shout = { loudness = 8 },
     Bucket = { loudness = 9, clip = "Audio/Clang.wav", volume = 1.0 },
     Explosion = { loudness = 10, clip = "Audio/Explosion.wav", volume = 1.0 },

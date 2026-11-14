@@ -3039,6 +3039,462 @@
       "ID": "1059",
       "Components": {
         "Tag": {
+          "Tag": "CellarWest"
+        },
+        "Transform": {
+          "Translation": [
+            -13,
+            1.5,
+            -16.75
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.4,
+            3,
+            5.5
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.32,
+            0.31,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1060",
+      "Components": {
+        "Tag": {
+          "Tag": "CellarEast"
+        },
+        "Transform": {
+          "Translation": [
+            -7.5,
+            1.5,
+            -16.75
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.4,
+            3,
+            5.5
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.32,
+            0.31,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1061",
+      "Components": {
+        "Tag": {
+          "Tag": "CellarFrontLeft"
+        },
+        "Transform": {
+          "Translation": [
+            -12.025,
+            1.5,
+            -14
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.35,
+            3,
+            0.4
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.32,
+            0.31,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1062",
+      "Components": {
+        "Tag": {
+          "Tag": "CellarFrontRight"
+        },
+        "Transform": {
+          "Translation": [
+            -8.475,
+            1.5,
+            -14
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.35,
+            3,
+            0.4
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.32,
+            0.31,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1063",
+      "Components": {
+        "Tag": {
+          "Tag": "CellarLintel"
+        },
+        "Transform": {
+          "Translation": [
+            -10.25,
+            2.6,
+            -14
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1.2,
+            0.8,
+            0.4
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.32,
+            0.31,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1064",
+      "Components": {
+        "Tag": {
+          "Tag": "CellarRoof"
+        },
+        "Transform": {
+          "Translation": [
+            -10.25,
+            3.1,
+            -16.75
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            6.1,
+            0.2,
+            5.9
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.19,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1065",
+      "Components": {
+        "Tag": {
+          "Tag": "CellarDoor"
+        },
+        "Transform": {
+          "Translation": [
+            -10.85,
+            0,
+            -14
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Script": {
+          "Script": "Scripts/World/Door.lua",
+          "Properties": {
+            "label": "cellar door",
+            "width": 1.2,
+            "locked": true,
+            "key": "CellarKey",
+            "key_label": "cellar key",
+            "pins": 6
+          }
+        }
+      }
+    },
+    {
+      "ID": "1066",
+      "Components": {
+        "Tag": {
+          "Tag": "Panel"
+        },
+        "Transform": {
+          "Translation": [
+            0.6,
+            1.1,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1.18,
+            2.2,
+            0.08
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.26,
+            0.17,
+            0.1,
+            1.0
+          ],
+          "Roughness": 0.9,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        },
+        "RigidBody": {
+          "Type": "Kinematic"
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5,
+          "SoundLoss": 2.5
+        }
+      },
+      "Parent": "1065"
+    },
+    {
+      "ID": "1067",
+      "Components": {
+        "Tag": {
+          "Tag": "Lock"
+        },
+        "Transform": {
+          "Translation": [
+            1.05,
+            1.0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.06,
+            0.1,
+            0.12
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.45,
+            0.4,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.4,
+          "Metallic": 0.8,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1065"
+    },
+    {
+      "ID": "1068",
+      "Components": {
+        "Tag": {
           "Tag": "WP_A1"
         },
         "Transform": {
@@ -3061,7 +3517,7 @@
       }
     },
     {
-      "ID": "1060",
+      "ID": "1069",
       "Components": {
         "Tag": {
           "Tag": "WP_A2"
@@ -3086,7 +3542,7 @@
       }
     },
     {
-      "ID": "1061",
+      "ID": "1070",
       "Components": {
         "Tag": {
           "Tag": "WP_A3"
@@ -3111,7 +3567,7 @@
       }
     },
     {
-      "ID": "1062",
+      "ID": "1071",
       "Components": {
         "Tag": {
           "Tag": "WP_A4"
@@ -3136,7 +3592,32 @@
       }
     },
     {
-      "ID": "1063",
+      "ID": "1072",
+      "Components": {
+        "Tag": {
+          "Tag": "WP_A5"
+        },
+        "Transform": {
+          "Translation": [
+            -10.25,
+            0,
+            -17.5
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1073",
       "Components": {
         "Tag": {
           "Tag": "WP_B1"
@@ -3161,7 +3642,7 @@
       }
     },
     {
-      "ID": "1064",
+      "ID": "1074",
       "Components": {
         "Tag": {
           "Tag": "WP_B2"
@@ -3186,7 +3667,7 @@
       }
     },
     {
-      "ID": "1065",
+      "ID": "1075",
       "Components": {
         "Tag": {
           "Tag": "GuardA"
@@ -3254,13 +3735,13 @@
         "Script": {
           "Script": "Scripts/Guard.lua",
           "Properties": {
-            "waypoints": "WP_A1,WP_A2,WP_A3,WP_A4"
+            "waypoints": "WP_A1,WP_A2,WP_A3,WP_A4,WP_A5"
           }
         }
       }
     },
     {
-      "ID": "1066",
+      "ID": "1076",
       "Components": {
         "Tag": {
           "Tag": "Model"
@@ -3298,10 +3779,10 @@
           "BlendDuration": 0.2
         }
       },
-      "Parent": "1065"
+      "Parent": "1075"
     },
     {
-      "ID": "1067",
+      "ID": "1077",
       "Components": {
         "Tag": {
           "Tag": "GuardB"
@@ -3375,7 +3856,7 @@
       }
     },
     {
-      "ID": "1068",
+      "ID": "1078",
       "Components": {
         "Tag": {
           "Tag": "Model"
@@ -3412,10 +3893,10 @@
           "BlendDuration": 0.2
         }
       },
-      "Parent": "1067"
+      "Parent": "1077"
     },
     {
-      "ID": "1069",
+      "ID": "1079",
       "Components": {
         "Tag": {
           "Tag": "Lantern"
@@ -3450,10 +3931,10 @@
           "CastShadows": true
         }
       },
-      "Parent": "1067"
+      "Parent": "1077"
     },
     {
-      "ID": "1070",
+      "ID": "1080",
       "Components": {
         "Tag": {
           "Tag": "HallCarpet"
@@ -3509,7 +3990,7 @@
       }
     },
     {
-      "ID": "1071",
+      "ID": "1081",
       "Components": {
         "Tag": {
           "Tag": "Grate"
@@ -3565,7 +4046,7 @@
       }
     },
     {
-      "ID": "1072",
+      "ID": "1082",
       "Components": {
         "Tag": {
           "Tag": "Lawn"
@@ -3621,7 +4102,7 @@
       }
     },
     {
-      "ID": "1073",
+      "ID": "1083",
       "Components": {
         "Tag": {
           "Tag": "Bucket"
@@ -3684,7 +4165,7 @@
       }
     },
     {
-      "ID": "1074",
+      "ID": "1084",
       "Components": {
         "Tag": {
           "Tag": "Navigation"
@@ -3710,7 +4191,7 @@
       }
     },
     {
-      "ID": "1075",
+      "ID": "1085",
       "Components": {
         "Tag": {
           "Tag": "Cook"
@@ -3744,7 +4225,7 @@
       }
     },
     {
-      "ID": "1076",
+      "ID": "1086",
       "Components": {
         "Tag": {
           "Tag": "Model"
@@ -3785,10 +4266,10 @@
           "BlendDuration": 0.2
         }
       },
-      "Parent": "1075"
+      "Parent": "1085"
     },
     {
-      "ID": "1077",
+      "ID": "1087",
       "Components": {
         "Tag": {
           "Tag": "KitchenZone"
@@ -3821,7 +4302,7 @@
       }
     },
     {
-      "ID": "1078",
+      "ID": "1088",
       "Components": {
         "Tag": {
           "Tag": "WP_S1"
@@ -3846,7 +4327,7 @@
       }
     },
     {
-      "ID": "1079",
+      "ID": "1089",
       "Components": {
         "Tag": {
           "Tag": "WP_S2"
@@ -3871,7 +4352,7 @@
       }
     },
     {
-      "ID": "1080",
+      "ID": "1090",
       "Components": {
         "Tag": {
           "Tag": "WP_S3"
@@ -3896,7 +4377,7 @@
       }
     },
     {
-      "ID": "1081",
+      "ID": "1091",
       "Components": {
         "Tag": {
           "Tag": "Servant"
@@ -3973,7 +4454,7 @@
       }
     },
     {
-      "ID": "1082",
+      "ID": "1092",
       "Components": {
         "Tag": {
           "Tag": "Model"
@@ -4014,10 +4495,10 @@
           "BlendDuration": 0.2
         }
       },
-      "Parent": "1081"
+      "Parent": "1091"
     },
     {
-      "ID": "1083",
+      "ID": "1093",
       "Components": {
         "Tag": {
           "Tag": "Bell"
@@ -4054,7 +4535,7 @@
       }
     },
     {
-      "ID": "1084",
+      "ID": "1094",
       "Components": {
         "Tag": {
           "Tag": "Post"
@@ -4097,10 +4578,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1083"
+      "Parent": "1093"
     },
     {
-      "ID": "1085",
+      "ID": "1095",
       "Components": {
         "Tag": {
           "Tag": "BellBody"
@@ -4143,10 +4624,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1083"
+      "Parent": "1093"
     },
     {
-      "ID": "1086",
+      "ID": "1096",
       "Components": {
         "Tag": {
           "Tag": "Lightning"
@@ -4181,7 +4662,7 @@
       }
     },
     {
-      "ID": "1087",
+      "ID": "1097",
       "Components": {
         "Tag": {
           "Tag": "Rain"
@@ -4212,7 +4693,7 @@
       }
     },
     {
-      "ID": "1088",
+      "ID": "1098",
       "Components": {
         "Tag": {
           "Tag": "World"
@@ -4248,7 +4729,7 @@
       }
     },
     {
-      "ID": "1089",
+      "ID": "1099",
       "Components": {
         "Tag": {
           "Tag": "Gate"
@@ -4287,7 +4768,7 @@
       }
     },
     {
-      "ID": "1090",
+      "ID": "1100",
       "Components": {
         "Tag": {
           "Tag": "GateArch"
@@ -4339,7 +4820,7 @@
       }
     },
     {
-      "ID": "1091",
+      "ID": "1101",
       "Components": {
         "Tag": {
           "Tag": "Player"
@@ -4375,7 +4856,7 @@
       }
     },
     {
-      "ID": "1092",
+      "ID": "1102",
       "Components": {
         "Tag": {
           "Tag": "Model"
@@ -4411,10 +4892,10 @@
           "BlendDuration": 0.2
         }
       },
-      "Parent": "1091"
+      "Parent": "1101"
     },
     {
-      "ID": "1093",
+      "ID": "1103",
       "Components": {
         "Tag": {
           "Tag": "Ambience"
@@ -4446,7 +4927,7 @@
       }
     },
     {
-      "ID": "1094",
+      "ID": "1104",
       "Components": {
         "Tag": {
           "Tag": "Mission"
@@ -4477,7 +4958,7 @@
       }
     },
     {
-      "ID": "1095",
+      "ID": "1105",
       "Components": {
         "Tag": {
           "Tag": "HallTable"
@@ -4533,7 +5014,7 @@
       }
     },
     {
-      "ID": "1096",
+      "ID": "1106",
       "Components": {
         "Tag": {
           "Tag": "GoldGoblet"
@@ -4595,7 +5076,7 @@
       }
     },
     {
-      "ID": "1097",
+      "ID": "1107",
       "Components": {
         "Tag": {
           "Tag": "SilverPlate"
@@ -4657,7 +5138,7 @@
       }
     },
     {
-      "ID": "1098",
+      "ID": "1108",
       "Components": {
         "Tag": {
           "Tag": "Candlestick"
@@ -4719,7 +5200,7 @@
       }
     },
     {
-      "ID": "1099",
+      "ID": "1109",
       "Components": {
         "Tag": {
           "Tag": "Chest"
@@ -4775,7 +5256,7 @@
       }
     },
     {
-      "ID": "1100",
+      "ID": "1110",
       "Components": {
         "Tag": {
           "Tag": "JewelBox"
@@ -4837,7 +5318,7 @@
       }
     },
     {
-      "ID": "1101",
+      "ID": "1111",
       "Components": {
         "Tag": {
           "Tag": "Coins"
@@ -4899,7 +5380,7 @@
       }
     },
     {
-      "ID": "1102",
+      "ID": "1112",
       "Components": {
         "Tag": {
           "Tag": "SilverRing"
@@ -4961,7 +5442,7 @@
       }
     },
     {
-      "ID": "1103",
+      "ID": "1113",
       "Components": {
         "Tag": {
           "Tag": "Emerald"
@@ -5023,7 +5504,187 @@
       }
     },
     {
-      "ID": "1104",
+      "ID": "1114",
+      "Components": {
+        "Tag": {
+          "Tag": "CellarShelf"
+        },
+        "Transform": {
+          "Translation": [
+            -12.3,
+            0.5,
+            -18.5
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1.0,
+            1.0,
+            1.4
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.3,
+            0.2,
+            0.12,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1115",
+      "Components": {
+        "Tag": {
+          "Tag": "Wine"
+        },
+        "Transform": {
+          "Translation": [
+            -12.3,
+            1.15,
+            -18.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.09,
+            0.3,
+            0.09
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.25,
+            0.05,
+            0.08,
+            1.0
+          ],
+          "Roughness": 0.3,
+          "Metallic": 1.0,
+          "EmissiveIntensity": 0.25,
+          "EmissiveColor": [
+            0.25,
+            0.05,
+            0.08
+          ],
+          "Translucent": false
+        },
+        "Script": {
+          "Script": "Scripts/Loot.lua",
+          "Properties": {
+            "label": "bottle of old wine",
+            "value": 75.0,
+            "item": "",
+            "pickpocket": false
+          }
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1116",
+      "Components": {
+        "Tag": {
+          "Tag": "Strongbox"
+        },
+        "Transform": {
+          "Translation": [
+            -8.4,
+            0.2,
+            -18.6
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.5,
+            0.4,
+            0.35
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.3,
+            0.3,
+            0.32,
+            1.0
+          ],
+          "Roughness": 0.3,
+          "Metallic": 1.0,
+          "EmissiveIntensity": 0.25,
+          "EmissiveColor": [
+            0.3,
+            0.3,
+            0.32
+          ],
+          "Translucent": false
+        },
+        "Script": {
+          "Script": "Scripts/Loot.lua",
+          "Properties": {
+            "label": "strongbox",
+            "value": 175.0,
+            "item": "",
+            "pickpocket": false
+          }
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1117",
       "Components": {
         "Tag": {
           "Tag": "Purse"
@@ -5076,10 +5737,10 @@
           }
         }
       },
-      "Parent": "1065"
+      "Parent": "1075"
     },
     {
-      "ID": "1105",
+      "ID": "1118",
       "Components": {
         "Tag": {
           "Tag": "Purse"
@@ -5132,10 +5793,10 @@
           }
         }
       },
-      "Parent": "1067"
+      "Parent": "1077"
     },
     {
-      "ID": "1106",
+      "ID": "1119",
       "Components": {
         "Tag": {
           "Tag": "CellarKey"
@@ -5188,7 +5849,7 @@
           }
         }
       },
-      "Parent": "1067"
+      "Parent": "1077"
     }
   ]
 }

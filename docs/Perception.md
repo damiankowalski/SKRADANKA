@@ -48,9 +48,14 @@ within 1.4 m). What reaches the guard:
 
 * **open line** — `HeardLevel(L, d)`;
 * **through a wall** — 4 levels less (`WallLoss`);
+* **through a closed door** — the door's `Surface.SoundLoss` less (2.5 for the demo's wooden doors; a
+  body without one, or with a negative one, is a wall). Several doors add up, never beyond a wall;
 * **around it** — when the navmesh connects the noise and the guard, the walking distance with 1 level of
   corner loss (`CornerLoss`). Sound goes through doorways and along corridors like Thief's room graph,
-  without authoring rooms. The louder of the two wins.
+  without authoring rooms. Doors are kinematic, so the navmesh runs through them: each closed door on the
+  way costs its `SoundLoss` too. The louder wins.
+
+Closed doors block sight and light like walls; open, they swing out of the way (`Scripts/World/Door.lua`).
 
 `HearingSensitivity` scales the distances; alert memory adds up to 50%. `Environment.AmbientNoise` (rain,
 machinery, a storm) is subtracted from everything heard: it masks quiet sounds.

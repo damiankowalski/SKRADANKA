@@ -39,8 +39,8 @@ the status column only records what the engine already has. Costs are to be esti
 | 16 | **Search behaviour** | Guards investigate the last known position, search nearby hiding spots, give up | Yes: navmesh pathfinding; investigate the spot, search spots around it (darkest first), give up, back to the route |
 | 17 | **AI barks and communication** | Spoken lines reveal AI state; guards alert each other, servants flee to raise the alarm | Yes: subtitled lines above heads (placeholder voices), `ai.shout` spreads the news to guards within earshot, servants run to the alarm bell |
 | 18 | **Patrols and schedules** | Predictable routes the player learns | Yes (waypoints, walked along the navmesh) |
-| 19 | **Lockpicking** | Timed picking of doors and chests | Missing (no doors yet) |
-| 20 | **Doors** | Open/closed doors block sight and sound, can be locked | Missing |
+| 19 | **Lockpicking** | Timed picking of doors and chests | Yes: E on a locked door without its key: a bar at the lock (hidden by what stands in front) and random W/A/S/D to press in order (`Scripts/World/Lockpick.lua`) |
+| 20 | **Doors** | Open/closed doors block sight and sound, can be locked | Yes: `Scripts/World/Door.lua`; closed doors block sight and light and muffle sound (`Surface.SoundLoss`); NPCs open them and close them behind them; keys are Mission items |
 | 21 | **Loot and objectives by difficulty** | Steal enough loot; harder difficulties add objectives and a no-kill rule | Yes: `Scripts/Missions/*.lua` (loot, item and no-kill objectives per difficulty), the menu and the end-of-mission summary |
 | 22 | **Frobbing (interaction)** | One "use" key for doors, items, switches, pickpocketing | Yes: E uses whatever offers `on_use` (and picks up bodies) |
 | 23 | **Pickpocketing** | Steal keys and purses from guards' belts | Yes: E from behind a calm guard (an alert one feels the hand) |

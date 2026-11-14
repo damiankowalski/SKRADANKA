@@ -106,10 +106,12 @@ function Player:update_movement(dt)
     local forward = vec3(-math.sin(yaw), 0, -math.cos(yaw))
     local right = vec3(math.cos(yaw), 0, -math.sin(yaw))
     local move = vec3(0, 0, 0)
-    if input.key("W") then move = move + forward end
-    if input.key("S") then move = move - forward end
-    if input.key("D") then move = move + right end
-    if input.key("A") then move = move - right end
+    if not self.busy then -- busy hands (picking a lock): W A S D mean something else
+        if input.key("W") then move = move + forward end
+        if input.key("S") then move = move - forward end
+        if input.key("D") then move = move + right end
+        if input.key("A") then move = move - right end
+    end
 
     self:update_stance(dt, input.key("C"))
     local running = input.key("LeftShift") and not self.crouched and not self.carrying
@@ -243,7 +245,7 @@ function Player:draw_hud(dt)
 
     local arrow = ARROWS[self.arrow]
     ui.text(20, h - 40, arrow.name .. " arrow  [1-4]", 2, arrow.color)
-    local prompt = self:interaction_prompt()
+    local prompt = not self.busy and self:interaction_prompt() or nil
     if prompt then ui.text(w / 2 - #prompt * 6, h / 2 + 40, prompt, 2, { 1, 1, 1, 0.85 }) end
     if self.crouched then ui.text(w / 2 + 70, h - 58, "crouching", 2, { 0.7, 0.7, 0.7, 1 }) end
     if self.noise_probe then
@@ -265,8 +267,13 @@ function Player:on_update(dt)
     self:update_look()
     self:update_movement(dt)
     self:update_camera()
-    self:update_arrows(dt)
-    self:update_hands(dt)
+    if self.busy then
+        -- Both hands on a task (a lock): no shooting or using until it is over.
+        if not self.busy:update(self, dt) then self.busy = nil end
+    else
+        self:update_arrows(dt)
+        self:update_hands(dt)
+    end
     self:update_noise_probe()
     self:draw_hud(dt)
 end
@@ -354,6 +361,12 @@ function Player:interaction_prompt()
     local npc = self:blackjack_target()
     if npc and from_behind(self.entity, npc) then return "[F] knock out" end
     return nil
+end
+
+-- A task that keeps both hands busy (Scripts/World/Lockpick.lua): an object whose update(player, dt)
+-- is called every frame and returns false once it is over. The thief stands still meanwhile.
+function Player:start_busy(task)
+    self.busy = task
 end
 
 -- E: drop the body, pick one up, or use what is in front. Returns what happened (for tests).

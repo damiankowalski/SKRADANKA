@@ -324,6 +324,22 @@ def add_bell(doc, position, name="Bell"):
     return bell
 
 
+def add_door(doc, name, hinge, yaw, width=1.2, height=2.2, label="door", locked=False, key="", key_label="key", pins=6):
+    """A hinged door (Scripts/World/Door.lua) standing at its hinge; the closed panel runs along the
+    entity's +X. The panel is kinematic (the navmesh runs through the doorway) and lets sound
+    through muffled (Surface.SoundLoss); the Lock child is where the lockpicking bar hangs."""
+    door = doc.add(name, Transform=transform(hinge, rotation=(0, yaw, 0)),
+                   Script={"Script": "Scripts/World/Door.lua", "Properties": {
+                       "label": label, "width": width, "locked": locked, "key": key, "key_label": key_label, "pins": pins}})
+    doc.add("Panel", door, Transform=transform((width / 2, height / 2, 0), scale=(width - 0.02, height, 0.08)),
+            Mesh={"Mesh": "builtin:cube"}, Material=material((0.26, 0.17, 0.1), roughness=0.9),
+            BoxCollider={"HalfExtents": [0.5, 0.5, 0.5]}, RigidBody={"Type": "Kinematic"},
+            Surface={"Material": "Wood", "NoiseModifier": 0.5, "SoundLoss": 2.5})
+    doc.add("Lock", door, Transform=transform((width - 0.15, 1.0, 0), scale=(0.06, 0.1, 0.12)),
+            Mesh={"Mesh": "builtin:cube", "CastShadows": False}, Material=material((0.45, 0.4, 0.3), roughness=0.4, metallic=0.8))
+    return door
+
+
 def add_light_switch(doc, name, position, yaw, lamps, label):
     """A wall switch for some lamps; its forward (-Z) side faces the room it is used from."""
     switch = doc.add(name, Transform=transform(position, rotation=(0, yaw, 0)),
@@ -431,11 +447,21 @@ def build_stealth_level():
                     {"Type": "SpawnPrefab", "Asset": "Prefabs/Smoke.pprefab"},
                     {"Type": "Destroy"}]}]})
 
+    # The cellar (north-west, against the outer wall): a dark storeroom behind a locked door. The
+    # captain's key opens it; without it the lock can be picked. GuardA looks in on his round.
+    box(doc, "CellarWest", (-13, 1.5, -16.75), (0.4, 3, 5.5), stone)
+    box(doc, "CellarEast", (-7.5, 1.5, -16.75), (0.4, 3, 5.5), stone)
+    box(doc, "CellarFrontLeft", (-12.025, 1.5, -14), (2.35, 3, 0.4), stone)
+    box(doc, "CellarFrontRight", (-8.475, 1.5, -14), (2.35, 3, 0.4), stone)
+    box(doc, "CellarLintel", (-10.25, 2.6, -14), (1.2, 0.8, 0.4), stone)
+    box(doc, "CellarRoof", (-10.25, 3.1, -16.75), (6.1, 0.2, 5.9), dark_stone)
+    add_door(doc, "CellarDoor", (-10.85, 0, -14), 0, label="cellar door", locked=True, key="CellarKey", key_label="cellar key")
+
     # Patrol waypoints and guards.
     for name, position in (("WP_A1", (-10, 0, -4)), ("WP_A2", (8, 0, -5)), ("WP_A3", (8, 0, 4)), ("WP_A4", (-10, 0, 6)),
-                           ("WP_B1", (14, 0, 12)), ("WP_B2", (14, 0, -4))):
+                           ("WP_A5", (-10.25, 0, -17.5)), ("WP_B1", (14, 0, 12)), ("WP_B2", (14, 0, -4))):
         doc.add(name, Transform=transform(position))
-    guard_a = add_guard(doc, "GuardA", (-10, 0.05, -4), 90, ["WP_A1", "WP_A2", "WP_A3", "WP_A4"])
+    guard_a = add_guard(doc, "GuardA", (-10, 0.05, -4), 90, ["WP_A1", "WP_A2", "WP_A3", "WP_A4", "WP_A5"])
     guard_b = add_guard(doc, "GuardB", (14, 0.05, 12), 180, ["WP_B1", "WP_B2"], lantern=True, character=KNIGHT)
 
     # Floors that change how loud footsteps are, and a bucket waiting to be knocked off a crate.
@@ -474,6 +500,10 @@ def build_stealth_level():
     add_loot(doc, "Coins", (-12, 1.04, -10), (0.2, 0.08, 0.2), "stack of coins", 50)
     add_loot(doc, "SilverRing", (-2, 1.22, -6), (0.08, 0.03, 0.08), "silver ring", 50, color=SILVER)
     add_loot(doc, "Emerald", (12, 1.06, 6), (0.1, 0.12, 0.1), "emerald", 125, color=(0.2, 0.85, 0.45), mesh="builtin:sphere")
+    # In the cellar: the lord's wine and a strongbox.
+    box(doc, "CellarShelf", (-12.3, 0.5, -18.5), (1.0, 1.0, 1.4), wood, surface="Wood")
+    add_loot(doc, "Wine", (-12.3, 1.15, -18.2), (0.09, 0.3, 0.09), "bottle of old wine", 75, color=(0.25, 0.05, 0.08))
+    add_loot(doc, "Strongbox", (-8.4, 0.2, -18.6), (0.5, 0.4, 0.35), "strongbox", 175, mesh="builtin:cube", color=(0.3, 0.3, 0.32))
     add_purse(doc, guard_a, 75)
     add_purse(doc, guard_b, 100)
     add_loot(doc, "CellarKey", (-0.22, 0.95, 0.12), (0.04, 0.14, 0.02), "cellar key", 0, color=(0.55, 0.5, 0.4),
@@ -776,6 +806,9 @@ def build_audio():
         samples.append(value * 1.5 * (0.6 + 0.4 * math.sin(2 * math.pi * i / length)) * math.sin(math.pi * i / length) ** 0.1)
     write_wav("Wind.wav", samples)
 
+    n = noise(22)  # a door: hinges creaking, a slow wavering squeal
+    write_wav("Door.wav", [(0.25 * math.sin(2 * math.pi * (300 + 120 * math.sin(i / RATE * 9)) * i / RATE) * (0.6 + 0.4 * n())
+                            * math.sin(math.pi * i / (RATE * 0.7))) for i in range(int(RATE * 0.7))])
     n = noise(21)  # a light switch
     write_wav("Click.wav", [(0.6 * n() * math.exp(-i / (RATE * 0.002)) + 0.3 * math.sin(2 * math.pi * 2400 * i / RATE)
                             * math.exp(-i / (RATE * 0.004))) for i in range(int(RATE * 0.05))])
