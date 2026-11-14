@@ -14,8 +14,11 @@
 -- He talks: a line for every change of mind (subtitles above his head), and when he starts a
 -- search or raises the alarm he shouts, which sends guards within earshot to the same place
 -- (ai.shout). Knocked out (blackjack, gas) he falls and stays down: a body others may find.
+--
+-- Calm, he notices lamps put out at a switch and goes to light them again (Scripts/AI/Lamps.lua).
 
 local Actor = require("Scripts/AI/Actor")
+local Lamps = require("Scripts/AI/Lamps")
 local Mission = require("Scripts/Mission/Mission")
 
 local Guard = {
@@ -188,6 +191,7 @@ function Guard:on_update(dt)
         self:on_state_change(self.state, state, reaction)
         -- A calmer state keeps the place being checked; a new or stronger one starts over.
         if RANK[state] > RANK[self.state] or state == "Unaware" then self:reset_activity() end
+        if state ~= "Unaware" then Lamps.release(self) end
         self.state = state
         self.glance = 0
     end
@@ -199,7 +203,7 @@ function Guard:on_update(dt)
 
     local center = reaction.position or self.entity:get_position()
     if state == "Unaware" then
-        self:patrol(dt)
+        if not Lamps.chore(self, dt, self.walk_speed) then self:patrol(dt) end
     elseif state == "Suspicious" then
         self.glance = self.glance + dt
         if self.glance < self.glance_patience or not reaction.position then

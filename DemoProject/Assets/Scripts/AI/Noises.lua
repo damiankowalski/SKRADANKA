@@ -44,6 +44,8 @@ Noises.sounds = {
     BodyDrop = { loudness = 2.5, clip = "Audio/Thud.wav", volume = 0.5 },     -- putting a body down
     Bell = { loudness = 10, clip = "Audio/Bell.wav", volume = 1.0 },          -- the alarm bell
     Bow = { loudness = 3, clip = "Audio/Bow.wav", volume = 0.6 },
+    Switch = { loudness = 2, clip = "Audio/Click.wav", volume = 0.5 },        -- a light switch flipped
+    Moss = { loudness = 1, clip = "Audio/Footstep_Soft.wav", volume = 0.4 },  -- a moss arrow bursting
     Shout = { loudness = 8 },
     Bucket = { loudness = 9, clip = "Audio/Clang.wav", volume = 1.0 },
     Explosion = { loudness = 10, clip = "Audio/Explosion.wav", volume = 1.0 },

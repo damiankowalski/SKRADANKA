@@ -26,7 +26,7 @@ Tools\Build.bat debug
 Tools\Test.bat debug
 ```
 
-Play the demo (WASD, mouse, Shift run, C crouch, 1/2/3 water/fire/gas arrow, left click shoot, E use / carry a body,
+Play the demo (WASD, mouse, Shift run, C crouch, 1-4 water/fire/gas/moss arrow, left click shoot, E use / carry a body,
 F blackjack from behind):
 
 ```bat

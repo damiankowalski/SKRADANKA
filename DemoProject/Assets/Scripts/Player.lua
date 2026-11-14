@@ -1,7 +1,7 @@
 -- Third-person thief: movement, over-the-shoulder camera, footstep noise, arrows and HUD.
 --
 -- Controls: WASD move, Shift run, C crouch, Space jump, mouse look,
---           1 = water arrow, 2 = fire arrow, 3 = gas arrow, left mouse = shoot,
+--           1 = water arrow, 2 = fire arrow, 3 = gas arrow, 4 = moss arrow, left mouse = shoot,
 --           E = use (take loot, pick a pocket from behind, pick up / drop a body, or whatever the
 --               object offers: on_use / use_prompt), Tab = objectives,
 --           F = blackjack (knocks out an NPC from behind who is not on alert), Esc = release the mouse.
@@ -30,6 +30,7 @@ local ARROWS = {
     { name = "Water", prefab = "Prefabs/WaterArrow.pprefab", color = { 0.4, 0.7, 1.0, 1.0 } },
     { name = "Fire", prefab = "Prefabs/FireArrow.pprefab", color = { 1.0, 0.55, 0.2, 1.0 } },
     { name = "Gas", prefab = "Prefabs/GasArrow.pprefab", color = { 0.55, 0.9, 0.4, 1.0 } },
+    { name = "Moss", prefab = "Prefabs/MossArrow.pprefab", color = { 0.45, 0.65, 0.3, 1.0 } },
 }
 
 local REACH = 2.2          -- metres: how far E and F reach
@@ -217,6 +218,7 @@ function Player:update_arrows(dt)
     if input.key_pressed("1") then self.arrow = 1 end
     if input.key_pressed("2") then self.arrow = 2 end
     if input.key_pressed("3") then self.arrow = 3 end
+    if input.key_pressed("4") then self.arrow = 4 end
     if self.carrying then return end -- hands full
     self.cooldown = math.max(self.cooldown - dt, 0)
     if input.mouse_pressed("Left") and self.cooldown <= 0 and self.aim_origin then
@@ -240,7 +242,7 @@ function Player:draw_hud(dt)
     LightGem.draw(LightGem.update(self.gem, target.LightGem or 0, dt), w / 2, h - 50)
 
     local arrow = ARROWS[self.arrow]
-    ui.text(20, h - 40, arrow.name .. " arrow  [1/2/3]", 2, arrow.color)
+    ui.text(20, h - 40, arrow.name .. " arrow  [1-4]", 2, arrow.color)
     local prompt = self:interaction_prompt()
     if prompt then ui.text(w / 2 - #prompt * 6, h / 2 + 40, prompt, 2, { 1, 1, 1, 0.85 }) end
     if self.crouched then ui.text(w / 2 + 70, h - 58, "crouching", 2, { 0.7, 0.7, 0.7, 1 }) end
