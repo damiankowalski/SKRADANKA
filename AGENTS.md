@@ -88,6 +88,28 @@ build\debug\bin\PenumbraTests.exe --trace -tc="*torch*"     :: one case with eng
 3. Review your own diff before committing: style, error handling, tests, docs. Fix findings first.
 4. Open a PR; CI (`.github/workflows/ci.yml`) must be green before merging (squash merge).
 
+## Working with the owner
+
+The owner (GitHub `damiankowalski`) plans in a claude.ai project synced with this repository and builds
+with Claude Code on Windows and macOS. The repository is the only memory those share: rules and project
+state live here (this section, `docs/Roadmap.md`), never only in an agent's local memory, which may hold
+machine-specific notes (paths, toolchain quirks) and nothing else.
+
+* Talk to the owner in **Polish**. Code, comments, commits, PRs and docs stay in English.
+* Always say where the work happens (branch, worktree, PR) and what is waiting on the owner.
+* One PR at a time. No parallel agent sessions unless the owner asks for them.
+* Ask before merging: the owner often plays the build first. Merge only with green CI, squash merge.
+* Before deleting a branch, check in the same command that its PR is `MERGED`
+  (`st=$(gh pr view N --json state --jq .state); [ "$st" = MERGED ] && git push origin --delete <branch>`):
+  deleting the head branch of an open PR closes it.
+* Never enable GitHub auto-merge unless `main` requires the CI checks. Don't poll CI in loops.
+* Gameplay ideas from the owner get an estimate (S/M/L, engine areas, dependencies, risks) and a clear
+  flag when they go beyond what the engine can do today. They enter `docs/Roadmap.md` only once approved.
+* Never use code from outside this repository as a reference (fetched dependencies are part of the build).
+  Never capture the owner's desktop: screenshots come from the engine (`--screenshot`, `render.screenshot`).
+* The project's state is `docs/Roadmap.md` (Done / In progress / Next): the PR that finishes a package
+  updates it.
+
 ## Driving the engine as an agent
 
 The editor and runtime are fully scriptable; see `docs/Automation.md`, `docs/ScriptingAPI.md`,
