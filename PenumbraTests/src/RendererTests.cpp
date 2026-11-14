@@ -3,6 +3,7 @@
 #include "Penumbra/Asset/AssetManager.h"
 #include "Penumbra/Renderer/RenderDevice.h"
 #include "Penumbra/Renderer/SceneRenderer.h"
+#include "Penumbra/Renderer/VulkanDeviceSelection.h"
 #include "Penumbra/UI/Overlay.h"
 
 #include <stb_image_write.h>
@@ -348,5 +349,91 @@ TEST_SUITE("Renderer")
 		flame.Enabled = false;
 		CHECK(brightestWarmth() < 0.05f);
 		CHECK(fixture.Device->GetErrorCount() == 0);
+	}
+}
+
+TEST_SUITE("Renderer")
+{
+	TEST_CASE("Vulkan device choice prefers MoltenVK, can be forced to another driver and is otherwise stable")
+	{
+		// What vulkaninfo shows on an M1 Pro with the LunarG SDK: the same GPU through two drivers,
+		// KosmicKrisp first.
+		const std::vector<VulkanDeviceCandidate> mac = {
+			{ "Apple M1 Pro", "KosmicKrisp", VulkanDeviceKind::Integrated, true },
+			{ "Apple M1 Pro", "MoltenVK", VulkanDeviceKind::Integrated, true },
+		};
+
+		SUBCASE("MoltenVK wins a tie whatever its position")
+		{
+			const VulkanDeviceChoice choice = ChooseVulkanDevice(mac, "");
+			REQUIRE(choice.Index);
+			CHECK(mac[*choice.Index].DriverName == "MoltenVK");
+			CHECK_FALSE(choice.Forced);
+			CHECK_FALSE(choice.RequestIgnored);
+
+			const std::vector<VulkanDeviceCandidate> reversed = { mac[1], mac[0] };
+			CHECK(reversed[*ChooseVulkanDevice(reversed, "").Index].DriverName == "MoltenVK");
+		}
+
+		SUBCASE("The environment variable forces another driver, case-insensitively and by part of its name")
+		{
+			const VulkanDeviceChoice choice = ChooseVulkanDevice(mac, "kosmic");
+			REQUIRE(choice.Index);
+			CHECK(mac[*choice.Index].DriverName == "KosmicKrisp");
+			CHECK(choice.Forced);
+			CHECK(ChooseVulkanDevice(mac, "MOLTENVK").Forced);
+		}
+
+		SUBCASE("An unknown or unsuitable requested driver falls back to the default choice")
+		{
+			VulkanDeviceChoice choice = ChooseVulkanDevice(mac, "radv");
+			REQUIRE(choice.Index);
+			CHECK(mac[*choice.Index].DriverName == "MoltenVK");
+			CHECK(choice.RequestIgnored);
+			CHECK_FALSE(choice.Forced);
+
+			std::vector<VulkanDeviceCandidate> broken = mac;
+			broken[0].Suitable = false;
+			choice = ChooseVulkanDevice(broken, "kosmickrisp");
+			REQUIRE(choice.Index);
+			CHECK(*choice.Index == 1);
+			CHECK(choice.RequestIgnored);
+		}
+
+		SUBCASE("A discrete GPU beats the preferred driver on an integrated one; other ties keep the first device")
+		{
+			const std::vector<VulkanDeviceCandidate> pc = {
+				{ "Intel UHD", "MoltenVK", VulkanDeviceKind::Integrated, true },
+				{ "GeForce", "NVIDIA", VulkanDeviceKind::Discrete, true },
+				{ "Radeon", "AMD proprietary driver", VulkanDeviceKind::Discrete, true },
+			};
+			CHECK(*ChooseVulkanDevice(pc, "").Index == 1);
+		}
+
+		SUBCASE("No suitable device, no choice")
+		{
+			std::vector<VulkanDeviceCandidate> none = mac;
+			for (VulkanDeviceCandidate& candidate : none)
+				candidate.Suitable = false;
+			CHECK_FALSE(ChooseVulkanDevice(none, "").Index);
+			CHECK_FALSE(ChooseVulkanDevice({}, "moltenvk").Index);
+		}
+	}
+
+	TEST_CASE("A Vulkan device reports the driver it runs on")
+	{
+		if (!RenderDevice::IsGraphicsApiAvailable(GraphicsApi::Vulkan))
+			return;
+		RenderDeviceSpecification spec;
+		spec.Api = GraphicsApi::Vulkan;
+		Scope<RenderDevice> device = RenderDevice::Create(spec);
+		if (!device)
+			return; // a Windows machine without a Vulkan driver (the D3D12 tests cover it)
+		CHECK_FALSE(device->GetDriverName().empty());
+#ifdef __APPLE__
+		// The driver CI runs on, unless a developer asked for another one.
+		if (!std::getenv(VulkanDriverEnvironmentVariable))
+			CHECK(device->GetDriverName() == "MoltenVK");
+#endif
 	}
 }

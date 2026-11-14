@@ -2,6 +2,7 @@
 #include "Penumbra/Renderer/RenderBackend.h"
 
 #include "Penumbra/Core/FileSystem.h"
+#include "Penumbra/Renderer/VulkanDeviceSelection.h"
 
 #include <nvrhi/vulkan.h>
 #include <vulkan/vulkan.hpp>
@@ -283,11 +284,33 @@ namespace Penumbra::Detail {
 			std::vector<VkPhysicalDevice> devices(count);
 			api.vkEnumeratePhysicalDevices(m_Instance, &count, devices.data());
 
-			int bestScore = -1;
+			struct Details
+			{
+				uint32_t QueueFamily = 0;
+				uint32_t ApiVersion = 0;
+			};
+			std::vector<VulkanDeviceCandidate> candidates;
+			std::vector<Details> details;
 			for (VkPhysicalDevice device : devices)
 			{
-				VkPhysicalDeviceProperties properties{};
+				VkPhysicalDeviceDriverProperties driver{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES };
+				VkPhysicalDeviceProperties2 properties2{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2 };
+				VkPhysicalDeviceProperties& properties = properties2.properties;
 				api.vkGetPhysicalDeviceProperties(device, &properties);
+				if (properties.apiVersion >= VK_API_VERSION_1_2) // driver properties are core in 1.2
+				{
+					properties2.pNext = &driver;
+					api.vkGetPhysicalDeviceProperties2(device, &properties2);
+				}
+
+				VulkanDeviceCandidate& candidate = candidates.emplace_back();
+				Details& detail = details.emplace_back();
+				candidate.DeviceName = properties.deviceName;
+				candidate.DriverName = driver.driverName[0] ? driver.driverName : "unknown driver";
+				candidate.Kind = properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU ? VulkanDeviceKind::Discrete
+					: properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU		   ? VulkanDeviceKind::Integrated
+																							   : VulkanDeviceKind::Other;
+				detail.ApiVersion = properties.apiVersion;
 				if (properties.apiVersion < VK_API_VERSION_1_2)
 					continue;
 
@@ -319,24 +342,37 @@ namespace Penumbra::Detail {
 				}
 				if (!family)
 					continue;
-
-				const int score = properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU ? 3
-					: properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU	   ? 2
-																						   : 1;
-				if (score > bestScore)
-				{
-					bestScore = score;
-					m_PhysicalDevice = device;
-					m_QueueFamily = *family;
-					m_DeviceApiVersion = properties.apiVersion;
-					AdapterName = properties.deviceName;
-				}
+				detail.QueueFamily = *family;
+				candidate.Suitable = true;
 			}
-			if (!m_PhysicalDevice)
+
+			for (const VulkanDeviceCandidate& candidate : candidates)
+				PN_CORE_TRACE("Vulkan device: {} ({}){}", candidate.DeviceName, candidate.DriverName, candidate.Suitable ? "" : ", unsuitable");
+
+			const char* requested = std::getenv(VulkanDriverEnvironmentVariable);
+			const VulkanDeviceChoice choice = ChooseVulkanDevice(candidates, requested ? requested : "");
+			if (choice.RequestIgnored)
+				PN_CORE_WARN("{}={}: no suitable Vulkan device uses that driver; choosing the default", VulkanDriverEnvironmentVariable, requested);
+			if (!choice.Index)
 			{
 				PN_CORE_CRITICAL("No Vulkan 1.2 GPU with dynamic rendering, synchronization2 and a graphics queue{}", m_Surface ? " that can present" : "");
 				return false;
 			}
+
+			const size_t index = *choice.Index;
+			m_PhysicalDevice = devices[index];
+			m_QueueFamily = details[index].QueueFamily;
+			m_DeviceApiVersion = details[index].ApiVersion;
+			AdapterName = candidates[index].DeviceName;
+			DriverName = candidates[index].DriverName;
+			std::string others;
+			for (size_t i = 0; i < candidates.size(); i++)
+			{
+				if (i != index && candidates[i].Suitable)
+					others += std::format("{}{} ({})", others.empty() ? "" : ", ", candidates[i].DeviceName, candidates[i].DriverName);
+			}
+			PN_CORE_INFO("Vulkan driver: {} for {}{}{}", DriverName, AdapterName, choice.Forced ? std::format(", forced by {}", VulkanDriverEnvironmentVariable) : std::string(),
+				others.empty() ? std::string() : std::format("; also available: {} (set {} to choose)", others, VulkanDriverEnvironmentVariable));
 			return true;
 		}
 
