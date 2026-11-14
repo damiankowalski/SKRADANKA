@@ -207,6 +207,48 @@ TEST_SUITE("Navigation")
 		lab.SceneInstance.OnRuntimeStop();
 	}
 
+	TEST_CASE("A closed door muffles sound less than a wall, on the straight line and on the way around; open, it lets it through")
+	{
+		NavLab lab;
+		// The west gap is walled up; the east gap (x = 8..10) has a door: kinematic, so the navmesh runs through it.
+		Test::CreateBox(lab.SceneInstance, "Plug", { -9.0f, 1.5f, 0.0f }, { 1.0f, 1.5f, 0.2f });
+		Entity door = Test::CreateBox(lab.SceneInstance, "Door", { 9.0f, 1.5f, 0.0f }, { 1.0f, 1.5f, 0.05f });
+		door.AddComponent<RigidBodyComponent>().Type = RigidBodyType::Kinematic;
+		auto& surface = door.AddComponent<SurfaceComponent>();
+		surface.Material = "Wood";
+		surface.SoundLoss = 2.5f;
+		Entity guard = lab.SceneInstance.CreateEntity("Guard");
+		guard.AddComponent<PerceptionComponent>();
+		lab.SceneInstance.OnRuntimeStart();
+		PerceptionSystem& perception = *lab.SceneInstance.GetPerceptionSystem();
+		const float ear = guard.GetComponent<PerceptionComponent>().EyeHeight;
+
+		// Straight through the closed door.
+		guard.Transform().Translation = { 9.0f, 0.0f, -2.0f };
+		const glm::vec3 atDoor(9.0f, 0.1f, 2.0f);
+		const float straight = PerceptionModel::HeardLevel(7.0f, glm::distance(atDoor, glm::vec3(9.0f, ear, -2.0f)));
+		CHECK(Test::Near(perception.HearingLevel(guard, atDoor, 7.0f), straight - 2.5f, 0.05f));
+
+		// Behind the wall: through it, or around through the door, which costs the door's loss on the way.
+		guard.Transform().Translation = { 5.0f, 0.0f, -2.0f };
+		const glm::vec3 behindWall(5.0f, 0.1f, 2.0f);
+		std::optional<NavPath> path = lab.Navigation().FindPath(behindWall, { 5.0f, 0.0f, -2.0f });
+		REQUIRE(path.has_value());
+		REQUIRE(path->Complete);
+		const float throughWall = PerceptionModel::HeardLevel(7.0f, glm::distance(behindWall, glm::vec3(5.0f, ear, -2.0f))) - PerceptionModel::WallLoss;
+		const float aroundThroughDoor = PerceptionModel::HeardLevel(7.0f, path->Length) - PerceptionModel::CornerLoss - 2.5f;
+		CHECK(Test::Near(perception.HearingLevel(guard, behindWall, 7.0f), std::max(throughWall, aroundThroughDoor), 0.05f));
+
+		// Opened (swung out of the doorway): nothing in the way.
+		door.Transform().Translation = { 9.0f, 1.5f, 3.0f };
+		Test::Simulate(lab.SceneInstance, 0.05f);
+		guard.Transform().Translation = { 9.0f, 0.0f, -2.0f };
+		CHECK(Test::Near(perception.HearingLevel(guard, atDoor, 7.0f), straight, 0.05f));
+		guard.Transform().Translation = { 5.0f, 0.0f, -2.0f };
+		CHECK(Test::Near(perception.HearingLevel(guard, behindWall, 7.0f), std::max(throughWall, aroundThroughDoor + 2.5f), 0.05f));
+		lab.SceneInstance.OnRuntimeStop();
+	}
+
 	TEST_CASE("Static triangles come from solid static bodies only")
 	{
 		Test::TemporaryProject project;

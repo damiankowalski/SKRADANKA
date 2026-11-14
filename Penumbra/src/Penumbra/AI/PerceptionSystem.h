@@ -6,6 +6,9 @@
 
 #include <glm/glm.hpp>
 
+#include <functional>
+#include <optional>
+
 #include <unordered_set>
 #include <vector>
 
@@ -117,6 +120,11 @@ namespace Penumbra {
 		void UpdateObserver(Entity observer, float dt, float visionElapsed);
 		float EnvironmentLuminanceFor(Entity observer, float extraLuminanceSum, uint32_t extraSamples);
 		bool IsSightBlocker(UUID entity, const std::vector<UUID>& ignore);
+		// Surface.SoundLoss of a body (negative: a wall).
+		float SoundLossOf(UUID entity);
+		// Levels lost by sound going straight from one point to another through doors (Surface.SoundLoss),
+		// or nullopt when a wall is in the way. doorsOnly ignores everything but doors.
+		std::optional<float> TransmissionLoss(const glm::vec3& from, const glm::vec3& to, const std::function<bool(UUID)>& blocker, bool doorsOnly);
 		float HorizontalDistance(Entity a, Entity b);
 
 	private:

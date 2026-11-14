@@ -64,19 +64,26 @@ namespace Penumbra {
 		// Noises are often made on a surface (footsteps, impacts): start the occlusion test a
 		// little above it so the floor itself does not count as a wall.
 		const glm::vec3 origin = position + glm::vec3(0.0f, 0.15f, 0.0f);
-		const glm::vec3 toEarLifted = ear - origin;
-		const float liftedDistance = glm::length(toEarLifted);
-		if (liftedDistance <= Math::Epsilon || !physics->Raycast(origin, toEarLifted / liftedDistance, liftedDistance, filter))
+		const std::optional<float> through = TransmissionLoss(origin, ear, filter, false);
+		if (through && *through <= 0.0f)
 			return direct;
 
-		// Occluded: through the wall (heavily muffled) or around it along walkable space, which
-		// stands in for the doorways and corridors sound travels through.
-		float level = direct - PerceptionModel::WallLoss;
+		// Occluded: through closed doors (muffled by each), through a wall (heavily muffled; never
+		// worse than that), or around along walkable space, which stands in for the doorways and
+		// corridors sound travels through. The navmesh runs through closed doors: they cost their
+		// SoundLoss on the way.
+		float level = direct - std::min(through.value_or(PerceptionModel::WallLoss), PerceptionModel::WallLoss);
 		const NavigationSystem* navigation = m_Scene.GetNavigationSystem();
 		if (const NavMesh* navMesh = navigation ? navigation->GetBakedNavMesh() : nullptr)
 		{
 			if (std::optional<NavPath> path = navMesh->FindPath(position, feet); path && path->Complete)
-				level = std::max(level, PerceptionModel::HeardLevel(loudness, path->Length / sensitivity) - PerceptionModel::CornerLoss);
+			{
+				float doors = 0.0f;
+				const glm::vec3 lift(0.0f, 1.0f, 0.0f);
+				for (size_t i = 1; i < path->Points.size(); i++)
+					doors += TransmissionLoss(path->Points[i - 1] + lift, path->Points[i] + lift, filter, true).value_or(0.0f);
+				level = std::max(level, PerceptionModel::HeardLevel(loudness, path->Length / sensitivity) - PerceptionModel::CornerLoss - doors);
+			}
 		}
 		return level;
 	}
@@ -223,6 +230,43 @@ namespace Penumbra {
 		perception.RuntimeHasStimulus = false;
 		perception.RuntimeStimulusKind = StimulusKind::None;
 		perception.RuntimeStimulusCause.clear();
+	}
+
+	float PerceptionSystem::SoundLossOf(UUID entityID)
+	{
+		std::optional<Entity> entity = m_Scene.TryGetEntityByUUID(entityID);
+		const SurfaceComponent* surface = entity ? entity->TryGetComponent<SurfaceComponent>() : nullptr;
+		return surface ? surface->SoundLoss : -1.0f;
+	}
+
+	std::optional<float> PerceptionSystem::TransmissionLoss(const glm::vec3& from, const glm::vec3& to, const std::function<bool(UUID)>& blocker, bool doorsOnly)
+	{
+		const PhysicsWorld* physics = m_Scene.GetPhysicsWorld();
+		const glm::vec3 offset = to - from;
+		const float distance = glm::length(offset);
+		if (!physics || distance <= Math::Epsilon)
+			return 0.0f;
+		const glm::vec3 direction = offset / distance;
+		std::vector<UUID> passed;
+		float loss = 0.0f;
+		auto filter = [&](UUID entity) {
+			if (Contains(passed, entity) || !blocker(entity))
+				return false;
+			return !doorsOnly || SoundLossOf(entity) >= 0.0f;
+		};
+		// A few doors at most between two points; more than that is a wall.
+		for (int door = 0; door < 4; door++)
+		{
+			const std::optional<RaycastHit> hit = physics->Raycast(from, direction, distance, filter);
+			if (!hit)
+				return loss;
+			const float doorLoss = SoundLossOf(hit->Entity);
+			if (doorLoss < 0.0f)
+				return std::nullopt;
+			loss += doorLoss;
+			passed.push_back(hit->Entity);
+		}
+		return doorsOnly ? std::optional<float>(loss) : std::nullopt;
 	}
 
 	bool PerceptionSystem::IsSightBlocker(UUID entityID, const std::vector<UUID>& ignore)
