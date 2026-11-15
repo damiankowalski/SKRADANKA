@@ -120,6 +120,16 @@ following a body the character collides with.
 
 ## Next
 
+**In-game inspector** (M, asked for after playing the fog of war): in the runtime's debug panel, click a guard,
+a lamp, a door or any object to select it (a whole character, not one of his parts; outlined in the world) and
+edit its components live, like the editor's Properties panel (which moves from the editor into the engine and
+serves both). Contextual: the sections that matter for the kind of thing come first (a guard's sight, hearing
+and AI state; a lamp's light; a door's lock), the rest folded. A right-click menu of actions on the selection
+(knock out, kill, move to the cursor, ignore the thief, show only his view cone). Risks: the panel's left click
+makes test noises today (selection needs its own button or mode); some fields are read only when a system
+starts (collider shapes, a nav agent's speed) and need the object rebuilt to take effect; edits are not saved
+to the scene (a "copy values" button carries them to the editor).
+
 **Later, discussed**: leaning on Q/E (S-M, after the fog of war; the use key moves off E first); a
 full-screen map on a key (S as a static picture, M drawn from the level).
 
