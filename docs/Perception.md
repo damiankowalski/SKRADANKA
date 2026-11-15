@@ -186,7 +186,9 @@ the test sources; physics rays (Jolt) dominate.
 `Scenes/PerceptionLab.pscene` (one guard, a campfire, the player; F1 shows every factor live) is the
 place to tune vision by feel; `Scenes/AILab.pscene` (a patrolling guard, two rooms, floors of every
 material, a bucket to knock off a table) is the place for hearing and behaviour. In both the player's
-noise probe makes a test noise of any loudness: `-` / `=` pick the loudness, `G` makes it where you aim.
+noise probe makes a test noise of any loudness: `-` / `=` pick the loudness, `G` makes it where you aim. In any
+level the runtime's debug panel (F4, [DebugTools.md](DebugTools.md)) draws every guard's view fan cut by walls and
+his label (state, suspicion, the thief's `B`), rings around noises, and makes test noises with a mouse click.
 
 ## Deliberate deviation: the contrast threshold
 

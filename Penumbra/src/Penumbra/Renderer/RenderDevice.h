@@ -46,6 +46,14 @@ namespace Penumbra {
 		class RenderBackend;
 	}
 
+	// Graphics memory as the driver reports it (the runtime's performance monitor).
+	struct VideoMemoryInfo
+	{
+		uint64_t UsedBytes = 0;   // used by this process; 0 when the driver does not say
+		uint64_t BudgetBytes = 0; // what the process may use before the driver starts paging (or the heap size)
+		bool HasUsage = false;
+	};
+
 	// Owns the graphics device (through NVRHI), the swap chain and frame pacing.
 	class RenderDevice
 	{
@@ -91,6 +99,7 @@ namespace Penumbra {
 		bool IsWarp() const;
 		bool IsRayTracingSupported() const;
 		bool IsDeviceLost() const;
+		bool QueryVideoMemory(VideoMemoryInfo& info) const;
 		// Number of errors reported by the graphics runtime / NVRHI validation since creation.
 		uint32_t GetErrorCount() const;
 

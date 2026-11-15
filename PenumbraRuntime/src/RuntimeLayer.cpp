@@ -1,5 +1,7 @@
 #include "RuntimeLayer.h"
 
+#include "RuntimeDebugPanel.h"
+
 #include "Penumbra/Core/Application.h"
 #include "Penumbra/Project/Project.h"
 #include "Penumbra/Renderer/RenderDevice.h"
@@ -15,6 +17,8 @@ namespace Penumbra {
 	{
 	}
 
+	RuntimeLayer::~RuntimeLayer() = default;
+
 	void RuntimeLayer::OnAttach()
 	{
 		Application& app = Application::Get();
@@ -25,7 +29,13 @@ namespace Penumbra {
 				m_Renderer->SetViewportSize(window->GetWidth(), window->GetHeight());
 			else
 				m_Renderer->SetViewportSize(m_Options.Width, m_Options.Height);
+			if (Window* window = app.GetWindow(); window && m_Options.DebugTools)
+			{
+				m_DebugPanel = CreateScope<RuntimeDebugPanel>(window->GetNativeWindow(), app.GetRenderDevice().GetDevice());
+				m_DebugPanel->Open(m_Options.DebugToolsOpen);
+			}
 		}
+		m_LastFrame = std::chrono::steady_clock::now();
 
 		const std::string scene = m_Options.ScenePath.empty() ? Project::GetConfig().StartScene : m_Options.ScenePath;
 		if (!LoadScene(scene))
@@ -44,6 +54,7 @@ namespace Penumbra {
 		if (m_Scene)
 			m_Scene->OnRuntimeStop();
 		m_Scene.reset();
+		m_DebugPanel.reset();
 		m_Renderer.reset();
 	}
 
@@ -77,6 +88,8 @@ namespace Penumbra {
 		else if (m_Options.RandomizeSeed)
 			m_Scene->SetRandomSeed(static_cast<uint64_t>(std::chrono::steady_clock::now().time_since_epoch().count()));
 		m_Scene->OnRuntimeStart();
+		if (m_DebugPanel)
+			m_DebugPanel->OnSceneLoaded(*m_Scene);
 		PN_CORE_INFO("Playing scene '{}' (seed {})", path, m_Scene->GetRandomSeed());
 		return true;
 	}
@@ -94,13 +107,18 @@ namespace Penumbra {
 		if (!m_Scene || m_Finished)
 			return;
 
-		m_Scene->OnUpdateRuntime(ts);
+		using Clock = std::chrono::steady_clock;
+		const Clock::time_point frameStart = Clock::now();
+		const float frameMs = std::chrono::duration<float, std::milli>(frameStart - m_LastFrame).count();
+		m_LastFrame = frameStart;
+
+		m_Scene->OnUpdateRuntime(m_DebugPanel ? m_DebugPanel->ScaleTimestep(ts) : ts);
 
 		if (std::optional<bool> locked = m_Scene->ConsumeCursorLockRequest())
-		{
-			if (Window* window = Application::Get().GetWindow())
-				window->SetCursorLocked(*locked);
-		}
+			m_GameCursorLocked = *locked;
+		ApplyCursorLock();
+		if (m_DebugPanel)
+			m_DebugPanel->AfterUpdate(*m_Scene, frameMs, std::chrono::duration<float, std::milli>(Clock::now() - frameStart).count());
 
 		const TestReport& report = m_Scene->GetTestReport();
 		if (m_Options.ExitOnTestComplete && report.Completed)
@@ -139,11 +157,32 @@ namespace Penumbra {
 		if (!m_Renderer || !m_Scene)
 			return;
 		const float aspect = static_cast<float>(m_Renderer->GetViewportWidth()) / static_cast<float>(m_Renderer->GetViewportHeight());
-		m_Renderer->Render(*m_Scene, RenderCamera::FromScene(*m_Scene, aspect));
-
 		RenderDevice& device = Application::Get().GetRenderDevice();
-		if (device.HasSwapChain())
-			m_Renderer->Present(device.GetBackBufferFramebuffer());
+		if (!m_DebugPanel || !device.HasSwapChain())
+		{
+			m_Renderer->Render(*m_Scene, RenderCamera::FromScene(*m_Scene, aspect));
+			if (device.HasSwapChain())
+				m_Renderer->Present(device.GetBackBufferFramebuffer());
+			return;
+		}
+
+		using Clock = std::chrono::steady_clock;
+		const Clock::time_point start = Clock::now();
+		const RenderCamera camera = m_DebugPanel->BeginFrame(*m_Scene, *m_Renderer, aspect);
+		m_Renderer->Render(*m_Scene, camera);
+		m_Renderer->Present(device.GetBackBufferFramebuffer());
+		const float renderMs = std::chrono::duration<float, std::milli>(Clock::now() - start).count();
+		m_DebugPanel->EndFrame(*m_Scene, *m_Renderer, device, camera, device.GetBackBufferFramebuffer(), renderMs);
+	}
+
+	void RuntimeLayer::ApplyCursorLock()
+	{
+		Window* window = Application::Get().GetWindow();
+		if (!window)
+			return;
+		const bool locked = m_DebugPanel ? m_DebugPanel->GetCursorOverride().value_or(m_GameCursorLocked) : m_GameCursorLocked;
+		if (window->IsCursorLocked() != locked)
+			window->SetCursorLocked(locked);
 	}
 
 	void RuntimeLayer::OnEvent(Event& event)
@@ -153,6 +192,11 @@ namespace Penumbra {
 			m_Renderer->SetViewportSize(event.Width, event.Height);
 			if (m_Scene)
 				m_Scene->OnViewportResize(event.Width, event.Height);
+		}
+		if (event.Type == EventType::KeyPressed && m_DebugPanel && m_DebugPanel->OnKeyPressed(event.Key, m_Scene.get()))
+		{
+			ApplyCursorLock();
+			return;
 		}
 		if (event.Type == EventType::KeyPressed && event.Key == Key::F12 && m_Renderer)
 		{

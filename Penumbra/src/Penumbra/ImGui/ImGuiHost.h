@@ -14,7 +14,8 @@ namespace Penumbra {
 	class ImGuiHost
 	{
 	public:
-		ImGuiHost(GLFWwindow* window, nvrhi::IDevice* device);
+		// iniFile keeps window layouts between runs (null: not saved). The string must outlive the host.
+		ImGuiHost(GLFWwindow* window, nvrhi::IDevice* device, const char* iniFile);
 		~ImGuiHost();
 
 		ImGuiHost(const ImGuiHost&) = delete;

@@ -566,6 +566,14 @@ namespace Penumbra {
 		m_PendingNoises.clear();
 		if (m_RecentNoises.empty())
 			return;
+		// Kept in m_RecentNoises (the debug panel draws them) but heard by nobody.
+		auto ignored = [this](const NoiseEvent& noise) {
+			if (!m_IgnoreIntruders)
+				return false;
+			std::optional<Entity> source = m_Scene.TryGetEntityByUUID(noise.Source);
+			const PerceptionTargetComponent* target = source ? source->TryGetComponent<PerceptionTargetComponent>() : nullptr;
+			return target && target->Kind == TargetKind::Intruder;
+		};
 
 		// Background noise (rain, machinery...) masks quieter sounds.
 		float masking = 0.0f;
@@ -581,7 +589,7 @@ namespace Penumbra {
 			CollectHierarchy(observer, ignore);
 			for (const NoiseEvent& noise : m_RecentNoises)
 			{
-				if (Contains(ignore, noise.Source))
+				if (Contains(ignore, noise.Source) || ignored(noise))
 					continue;
 				const float level = HearingLevel(observer, noise.Position, noise.Loudness, noise.Source) - masking;
 				if (level > 0.0f)
@@ -612,6 +620,8 @@ namespace Penumbra {
 				}
 				if (targetComponent.Kind == TargetKind::Projectile)
 					continue; // judged every frame below
+				if (targetComponent.Kind == TargetKind::Intruder && m_IgnoreIntruders)
+					continue;
 				const VisibilityResult visibility = ComputeVisibility(observer, target);
 				if (!bestTarget || visibility.Stimulus > bestStimulus)
 				{
@@ -664,7 +674,7 @@ namespace Penumbra {
 		for (auto [handle, targetComponent] : m_Scene.GetRegistry().view<PerceptionTargetComponent>().each())
 		{
 			Entity target(handle, &m_Scene);
-			if (targetComponent.Kind != TargetKind::Intruder || !IsTouching(observer, target))
+			if (targetComponent.Kind != TargetKind::Intruder || m_IgnoreIntruders || !IsTouching(observer, target))
 				continue;
 			if (Notify(observer, m_Scene.GetWorldPosition(target), perception.TouchAlarm, StimulusKind::Seen, "Touch"))
 			{

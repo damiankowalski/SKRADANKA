@@ -19,9 +19,11 @@ contract for every human or AI agent changing this repository. Read it fully bef
 | `Penumbra/src/Penumbra/AI` | Silhouette-contrast perception, hearing (0-10 loudness) and reactions (`PerceptionModel`, `PerceptionSystem`) |
 | `Penumbra/src/Penumbra/Navigation` | Recast/Detour navmesh (`NavMesh`) and agent steering (`NavigationSystem`) |
 | `Penumbra/src/Penumbra/Stim` | Act/React elemental interactions (`StimSystem`) |
+| `Penumbra/src/Penumbra/Debug` | Testing tools: performance monitor, freelook camera, debug overlays (view fans, noise rings), noise probe |
+| `Penumbra/src/Penumbra/ImGui` | Dear ImGui host and NVRHI renderer (editor UI, the runtime's debug panel) |
 | `Penumbra/src/Penumbra/Automation` | JSON command API used by the editor, CLI and AI agents; TCP command server; MCP server |
 | `PenumbraEditor` | Editor executable (ImGui, gizmos, command server) |
-| `PenumbraRuntime` | Shipping game executable (no editor code) |
+| `PenumbraRuntime` | Shipping game executable (no editor code); F3/F4/F5/F6 testing tools (`docs/DebugTools.md`) |
 | `PenumbraTests` | doctest unit + integration tests |
 | `DemoProject` | Demo stealth level and the `FeatureTest` scene covering every feature |
 | `docs/` | Design documents (`GAME ENGINE SKRADANKA.md` is the original brief), API references, examples |

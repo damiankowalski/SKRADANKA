@@ -35,7 +35,10 @@ namespace {
 			"  --screenshot <file.png>  save the last frame before exiting\n"
 			"  --width <px> --height <px>  resolution\n"
 			"  --no-vsync               present without waiting for vertical blank\n"
-			"  --debug-layer            enable the D3D12/NVRHI validation layers\n");
+			"  --debug-layer            enable the D3D12/NVRHI validation layers\n"
+			"  --dev                    testing tools in a shipping build (F3 performance, F4 debug panel,\n"
+			"                           F5 freelook, F6 pause); development builds always have them\n"
+			"  --debug-ui <list>        open testing tools at start: performance,panel,freelook\n");
 	}
 
 	float ParseFloat(const CommandLine& args, std::string_view name, float fallback)
@@ -102,6 +105,10 @@ namespace {
 		if (const std::optional<int> seed = args.GetInt("seed"))
 			options.Seed = static_cast<uint64_t>(static_cast<uint32_t>(*seed));
 		options.RandomizeSeed = !spec.Headless && spec.FixedTimestep <= 0.0f;
+#ifdef PN_DIST
+		options.DebugTools = args.HasFlag("dev");
+#endif
+		options.DebugToolsOpen = args.GetValue("debug-ui").value_or("");
 		if (const std::optional<std::string> values = args.GetValue("set"))
 		{
 			if (!ParseGameValues(*values, options.GameValues, error))

@@ -25,6 +25,28 @@ namespace Penumbra {
 	class NavigationSystem;
 	class OverlayList;
 
+	// Milliseconds each system took in the last runtime frame (Scene::RunRuntimeFrame), for the
+	// runtime's performance monitor. Contacts covers collision callbacks, contact stims and impact noise.
+	struct SceneFrameProfile
+	{
+		float Scripts = 0.0f;
+		float Navigation = 0.0f;
+		float Physics = 0.0f;
+		float Contacts = 0.0f;
+		float Stims = 0.0f;
+		float Perception = 0.0f;
+		float Smoke = 0.0f;
+		float Audio = 0.0f;
+		float Ragdolls = 0.0f;
+		float Animation = 0.0f;
+		float Destruction = 0.0f;
+
+		float Total() const
+		{
+			return Scripts + Navigation + Physics + Contacts + Stims + Perception + Smoke + Audio + Ragdolls + Animation + Destruction;
+		}
+	};
+
 	struct TestReport
 	{
 		bool Completed = false;
@@ -95,6 +117,7 @@ namespace Penumbra {
 		// Deterministic value in [0, 1) from the scene's generator.
 		float NextRandom();
 		uint64_t GetFrameCount() const { return m_FrameCount; }
+		const SceneFrameProfile& GetFrameProfile() const { return m_FrameProfile; }
 
 		void OnViewportResize(uint32_t width, uint32_t height);
 		uint32_t GetViewportWidth() const { return m_ViewportWidth; }
@@ -182,6 +205,7 @@ namespace Penumbra {
 		std::optional<bool> m_RequestedCursorLock;
 		Ref<GameState> m_GameState = CreateRef<GameState>();
 		TestReport m_TestReport;
+		SceneFrameProfile m_FrameProfile;
 		std::filesystem::path m_FilePath;
 
 		friend class Entity;

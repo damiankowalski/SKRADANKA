@@ -1,7 +1,9 @@
 add_executable(PenumbraRuntime
     src/RuntimeMain.cpp
     src/RuntimeLayer.cpp
-    src/RuntimeLayer.h)
+    src/RuntimeLayer.h
+    src/RuntimeDebugPanel.cpp
+    src/RuntimeDebugPanel.h)
 penumbra_configure_target(PenumbraRuntime)
 target_link_libraries(PenumbraRuntime PRIVATE Penumbra)
 

@@ -1,0 +1,535 @@
+#include "RuntimeDebugPanel.h"
+
+#include "Penumbra/AI/PerceptionSystem.h"
+#include "Penumbra/Core/Input.h"
+#include "Penumbra/Core/Log.h"
+#include "Penumbra/Core/Platform.h"
+#include "Penumbra/ImGui/ImGuiHost.h"
+#include "Penumbra/Physics/PhysicsWorld.h"
+#include "Penumbra/Renderer/SceneRenderer.h"
+#include "Penumbra/Scene/Entity.h"
+#include "Penumbra/Scene/JsonSerialization.h"
+#include "Penumbra/Scene/Scene.h"
+#include "Penumbra/UI/Overlay.h"
+
+#include <chrono>
+#include <format>
+
+namespace Penumbra {
+
+	namespace {
+		double WallSeconds()
+		{
+			return std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count();
+		}
+
+		std::string Megabytes(uint64_t bytes) { return std::format("{:.0f} MB", static_cast<double>(bytes) / (1024.0 * 1024.0)); }
+
+		ImVec4 ToImVec4(const glm::vec4& color) { return ImVec4(color.r, color.g, color.b, color.a); }
+
+		std::string_view StateName(AwarenessState state)
+		{
+			for (const auto& [value, name] : EnumNames<AwarenessState>::Values)
+			{
+				if (value == state)
+					return name;
+			}
+			return "?";
+		}
+
+		std::optional<Entity> FindThief(Scene& scene)
+		{
+			for (auto [handle, target] : scene.GetRegistry().view<PerceptionTargetComponent>().each())
+			{
+				if (target.Kind == TargetKind::Intruder)
+					return Entity(handle, &scene);
+			}
+			return std::nullopt;
+		}
+
+		// One "name  value" row of the performance table.
+		void Row(const char* name, const std::string& value)
+		{
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			ImGui::TextDisabled("%s", name);
+			ImGui::TableNextColumn();
+			ImGui::TextUnformatted(value.c_str());
+		}
+	}
+
+	RuntimeDebugPanel::RuntimeDebugPanel(GLFWwindow* window, nvrhi::IDevice* device)
+	{
+		m_ImGui = CreateScope<ImGuiHost>(window, device, nullptr);
+		// Arrow keys and Space belong to the game, not to ImGui's keyboard navigation.
+		ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
+		m_BaseStyle = ImGui::GetStyle();
+		m_PhysicalMemory = Platform::GetPhysicalMemoryBytes();
+	}
+
+	RuntimeDebugPanel::~RuntimeDebugPanel()
+	{
+		Input::SetGameInputBlocked(false);
+	}
+
+	void RuntimeDebugPanel::Open(std::string_view tools)
+	{
+		size_t start = 0;
+		while (start < tools.size())
+		{
+			const size_t end = std::min(tools.find(',', start), tools.size());
+			const std::string_view name = tools.substr(start, end - start);
+			if (name == "performance")
+				m_ShowPerformance = true;
+			else if (name == "panel")
+				m_PanelOpen = true;
+			else if (name == "freelook")
+				m_FreeLook = true;
+			else if (!name.empty())
+				PN_CORE_WARN("--debug-ui: unknown tool '{}' (performance, panel, freelook)", name);
+			start = end + 1;
+		}
+		Input::SetGameInputBlocked(BlocksGameInput());
+	}
+
+	bool RuntimeDebugPanel::OnKeyPressed(KeyCode key, Scene* scene)
+	{
+		switch (key)
+		{
+			case Key::F3:
+				m_ShowPerformance = !m_ShowPerformance;
+				return true;
+			case Key::F4:
+				m_PanelOpen = !m_PanelOpen;
+				break;
+			case Key::F5:
+				m_FreeLook = !m_FreeLook;
+				m_FreeLookStarted = false; // starts again from the game camera
+				break;
+			case Key::F6:
+				if (scene)
+					SetPaused(*scene, !scene->IsPaused());
+				return true;
+			default:
+				return false;
+		}
+		Input::SetGameInputBlocked(BlocksGameInput());
+		return true;
+	}
+
+	void RuntimeDebugPanel::OnSceneLoaded(Scene& scene)
+	{
+		if (PerceptionSystem* perception = scene.GetPerceptionSystem())
+			perception->SetIgnoreIntruders(m_IgnoreThief);
+		m_Noises.clear();
+		m_NoiseLog.clear();
+		m_LastHearing.clear();
+		m_LastNoisePosition.reset();
+		m_LastNoiseFrame = ~0ull;
+	}
+
+	std::optional<bool> RuntimeDebugPanel::GetCursorOverride() const
+	{
+		if (m_FreeLook && m_Looking)
+			return true;
+		if (m_PanelOpen || m_FreeLook)
+			return false;
+		return std::nullopt;
+	}
+
+	void RuntimeDebugPanel::SetPaused(Scene& scene, bool paused) { scene.SetPaused(paused); }
+
+	void RuntimeDebugPanel::AfterUpdate(Scene& scene, float frameMs, float updateMs)
+	{
+		m_PendingSample = {};
+		m_PendingSample.FrameMs = frameMs;
+		m_PendingSample.UpdateMs = updateMs;
+		m_PendingSample.Systems = scene.GetFrameProfile();
+
+		// Noises made this frame (once per simulated frame: a paused scene keeps its last ones).
+		if (scene.GetFrameCount() == m_LastNoiseFrame)
+			return;
+		m_LastNoiseFrame = scene.GetFrameCount();
+		if (PerceptionSystem* perception = scene.GetPerceptionSystem())
+		{
+			const float now = static_cast<float>(ImGui::GetTime());
+			for (const NoiseEvent& noise : perception->GetRecentNoises())
+			{
+				if (m_ShowAllNoises && noise.Cause != "Debug") // test noises got their ring when clicked
+					m_Noises.push_back({ noise.Position, noise.Loudness, now });
+				m_NoiseLog.push_front({ scene.GetTime(), noise.Loudness, noise.Cause.empty() ? "Noise" : noise.Cause });
+				if (m_NoiseLog.size() > 12)
+					m_NoiseLog.pop_back();
+			}
+			std::erase_if(m_Noises, [now](const DebugNoise& noise) { return now - noise.Time > NoiseLifetime; });
+		}
+	}
+
+	void RuntimeDebugPanel::UpdateStyle(float viewportHeight)
+	{
+		// The same rule as the game's HUD (1080 lines = 1), times the user's choice.
+		const float scale = OverlayScaleFor(static_cast<uint32_t>(viewportHeight)) * m_UserScale;
+		if (scale == m_AppliedScale)
+			return;
+		m_AppliedScale = scale;
+		ImGuiStyle& style = ImGui::GetStyle();
+		style = m_BaseStyle;
+		style.ScaleAllSizes(scale);
+		style.FontScaleMain = scale;
+	}
+
+	RenderCamera RuntimeDebugPanel::BeginFrame(Scene& scene, SceneRenderer& renderer, float aspect)
+	{
+		UpdateStyle(static_cast<float>(renderer.GetViewportHeight()));
+		m_ImGui->BeginFrame();
+		ImGuiIO& io = ImGui::GetIO();
+
+		m_LastSceneCamera = RenderCamera::FromScene(scene, aspect);
+		RenderCamera camera = m_LastSceneCamera;
+		if (!m_FreeLook || !ImGui::IsMouseDown(ImGuiMouseButton_Right))
+			m_Looking = false;
+		if (m_FreeLook)
+		{
+			if (!m_FreeLookStarted)
+			{
+				m_FreeCamera.StartFrom(m_LastSceneCamera);
+				m_FreeLookStarted = true;
+			}
+			FreeCameraInput input;
+			if (!io.WantCaptureKeyboard)
+			{
+				auto axis = [](ImGuiKey positive, ImGuiKey negative) {
+					return (ImGui::IsKeyDown(positive) ? 1.0f : 0.0f) - (ImGui::IsKeyDown(negative) ? 1.0f : 0.0f);
+				};
+				input.Move = glm::vec3(axis(ImGuiKey_D, ImGuiKey_A), axis(ImGuiKey_E, ImGuiKey_Q), axis(ImGuiKey_W, ImGuiKey_S));
+				input.Fast = io.KeyShift;
+			}
+			// Hold the right mouse button to look (pressed over the world, not over a panel).
+			if (ImGui::IsMouseClicked(ImGuiMouseButton_Right) && !io.WantCaptureMouse)
+				m_Looking = true;
+			if (m_Looking)
+				input.Look = glm::vec2(io.MouseDelta.x, io.MouseDelta.y);
+			if (!io.WantCaptureMouse)
+				input.SpeedSteps = io.MouseWheel;
+			m_FreeCamera.Update(input, io.DeltaTime);
+			camera = m_FreeCamera.GetRenderCamera(aspect);
+		}
+
+		DebugDraw& debug = renderer.GetDebugDraw();
+		if (m_PanelOpen || m_FreeLook)
+		{
+			if (m_ShowVision)
+			{
+				DebugOverlays::DrawVision(scene, debug);
+				DebugOverlays::DrawSmoke(scene, debug);
+			}
+			if (m_ShowNoises)
+				DebugOverlays::DrawNoises(debug, m_Noises, static_cast<float>(ImGui::GetTime()), NoiseLifetime);
+			if (m_ShowNavMesh)
+				DebugOverlays::DrawNavigation(scene, debug);
+			if (m_ShowColliders)
+				DebugOverlays::DrawColliders(scene, debug);
+		}
+		return camera;
+	}
+
+	void RuntimeDebugPanel::EndFrame(Scene& scene, SceneRenderer& renderer, RenderDevice& device, const RenderCamera& camera,
+		nvrhi::IFramebuffer* target, float renderMs)
+	{
+		m_PendingSample.RenderMs = renderMs;
+		m_PendingSample.GpuMs = renderer.GetGpuTimeMs();
+		m_Monitor.AddFrame(m_PendingSample, WallSeconds(), Platform::GetProcessUsage());
+
+		if (m_ShowPerformance)
+			DrawPerformance(scene, renderer, device);
+		if (m_PanelOpen || m_FreeLook)
+		{
+			if (m_ShowLabels)
+				DrawGuardLabels(scene, camera);
+			HandleWorldClick(scene, camera);
+		}
+		if (m_PanelOpen)
+			DrawPanel(scene);
+		else if (m_FreeLook)
+		{
+			ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, 10.0f * m_AppliedScale), ImGuiCond_Always, ImVec2(0.5f, 0.0f));
+			ImGui::SetNextWindowBgAlpha(0.6f);
+			ImGui::Begin("##freelook", nullptr,
+				ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings);
+			ImGui::Text("FREELOOK (F5)  RMB look, WASD move, Q/E down/up, Shift fast, wheel %.1f m/s   F4 panel", m_FreeCamera.GetSpeed());
+			ImGui::End();
+		}
+
+		m_ImGui->EndFrame(target);
+	}
+
+	void RuntimeDebugPanel::DrawPerformance(Scene& scene, SceneRenderer& renderer, RenderDevice& device)
+	{
+		const PerformanceMonitor::Summary& summary = m_Monitor.GetSummary();
+		// Video memory is a driver call: twice a second is plenty.
+		const double now = WallSeconds();
+		if (now - m_VideoMemoryTime > PerformanceMonitor::RefreshInterval)
+		{
+			m_VideoMemoryTime = now;
+			m_HasVideoMemory = device.QueryVideoMemory(m_VideoMemory);
+		}
+
+		const float margin = 10.0f * m_AppliedScale;
+		ImGui::SetNextWindowPos(ImVec2(margin, margin), ImGuiCond_Always);
+		ImGui::SetNextWindowBgAlpha(0.72f);
+		ImGui::Begin("##performance", nullptr,
+			ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings |
+				ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav);
+
+		const ImVec4 fpsColor = summary.Fps >= 55.0f ? ImVec4(0.45f, 0.95f, 0.5f, 1.0f)
+								: summary.Fps >= 30.0f ? ImVec4(1.0f, 0.85f, 0.3f, 1.0f)
+													   : ImVec4(1.0f, 0.35f, 0.3f, 1.0f);
+		ImGui::TextColored(fpsColor, "%.0f FPS", summary.Fps);
+		ImGui::SameLine();
+		ImGui::TextDisabled("frame %.2f ms (min %.2f, max %.2f)   F3", summary.FrameMsAverage, summary.FrameMsMin, summary.FrameMsMax);
+
+		// Frame times of the last few seconds; the line marks 60 FPS.
+		const auto& history = m_Monitor.GetFrameHistory();
+		const float graphMax = std::max(33.4f, summary.FrameMsMax * 1.2f);
+		const ImVec2 graphSize(300.0f * m_AppliedScale, 46.0f * m_AppliedScale);
+		ImGui::PlotLines("##frames", history.data(), static_cast<int>(history.size()), static_cast<int>(m_Monitor.GetHistoryOffset()), nullptr, 0.0f,
+			graphMax, graphSize);
+		const ImVec2 graphMin = ImGui::GetItemRectMin();
+		const float y60 = graphMin.y + graphSize.y * (1.0f - 16.667f / graphMax);
+		ImGui::GetWindowDrawList()->AddLine(ImVec2(graphMin.x, y60), ImVec2(graphMin.x + graphSize.x, y60), IM_COL32(120, 200, 255, 90));
+
+		if (ImGui::BeginTable("##perf", 2, ImGuiTableFlags_SizingFixedFit))
+		{
+			Row("CPU", std::format("{:.0f}% of a core ({:.1f}% of {} threads)", summary.CpuCorePercent, summary.CpuMachinePercent,
+						   Platform::GetLogicalCoreCount()));
+			Row("  update", std::format("{:.2f} ms", summary.UpdateMsAverage));
+			Row("  render", std::format("{:.2f} ms (CPU side)", summary.RenderMsAverage));
+			Row("GPU", summary.GpuMsAverage ? std::format("{:.2f} ms per frame", *summary.GpuMsAverage) : std::string("no timer"));
+			if (m_HasVideoMemory)
+				Row("  memory", m_VideoMemory.HasUsage ? std::format("{} of {}", Megabytes(m_VideoMemory.UsedBytes), Megabytes(m_VideoMemory.BudgetBytes))
+													   : std::format("? of {}", Megabytes(m_VideoMemory.BudgetBytes)));
+			Row("  adapter", device.GetAdapterName() + (device.GetDriverName().empty() ? "" : " (" + device.GetDriverName() + ")"));
+			Row("RAM", std::format("{} (peak {}){}", Megabytes(summary.ResidentBytes), Megabytes(summary.PeakResidentBytes),
+						   m_PhysicalMemory ? std::format(" of {:.0f} GB", static_cast<double>(m_PhysicalMemory) / (1024.0 * 1024.0 * 1024.0))
+											: std::string()));
+			const SceneRendererStatistics& stats = renderer.GetStatistics();
+			Row("draws", std::format("{} calls, {:.1f}k triangles, {} lights, {} shadow views, {} culled", stats.DrawCalls,
+							 static_cast<double>(stats.Triangles) / 1000.0, stats.Lights, stats.ShadowViews, stats.CulledObjects));
+			const PhysicsWorld* physics = scene.GetPhysicsWorld();
+			Row("scene", std::format("{} entities, {} physics bodies{}", scene.GetEntityCount(), physics ? physics->GetBodyCount() : 0,
+							 scene.IsPaused() ? ", PAUSED" : ""));
+			ImGui::EndTable();
+		}
+
+		// Where the simulation's time goes.
+		const SceneFrameProfile& systems = summary.Systems;
+		if (ImGui::BeginTable("##systems", 4, ImGuiTableFlags_SizingFixedFit))
+		{
+			const std::pair<const char*, float> entries[] = {
+				{ "scripts", systems.Scripts }, { "navigation", systems.Navigation }, { "physics", systems.Physics },
+				{ "contacts", systems.Contacts }, { "stims", systems.Stims }, { "perception", systems.Perception },
+				{ "smoke", systems.Smoke }, { "audio", systems.Audio }, { "ragdolls", systems.Ragdolls },
+				{ "animation", systems.Animation }, { "destroy", systems.Destruction }, { "total", systems.Total() },
+			};
+			for (size_t i = 0; i < std::size(entries); ++i)
+			{
+				if (i % 2 == 0)
+					ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+				ImGui::TextDisabled("%s", entries[i].first);
+				ImGui::TableNextColumn();
+				ImGui::Text("%.2f ms", entries[i].second);
+			}
+			ImGui::EndTable();
+		}
+		ImGui::End();
+	}
+
+	void RuntimeDebugPanel::DrawPanel(Scene& scene)
+	{
+		const ImGuiIO& io = ImGui::GetIO();
+		ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 10.0f * m_AppliedScale, 10.0f * m_AppliedScale), ImGuiCond_FirstUseEver, ImVec2(1.0f, 0.0f));
+		ImGui::SetNextWindowSize(ImVec2(430.0f * m_AppliedScale, 0.0f), ImGuiCond_FirstUseEver);
+		if (!ImGui::Begin("Debug (F4)", &m_PanelOpen, ImGuiWindowFlags_NoSavedSettings))
+		{
+			ImGui::End();
+			Input::SetGameInputBlocked(BlocksGameInput());
+			return;
+		}
+
+		ImGui::TextDisabled("F3 performance   F5 freelook   F6 pause");
+
+		if (ImGui::CollapsingHeader("Guards: sight and hearing", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::Checkbox("View cones (cut by walls)", &m_ShowVision);
+			ImGui::SameLine();
+			ImGui::Checkbox("Labels", &m_ShowLabels);
+			ImGui::Checkbox("Noise rings", &m_ShowNoises);
+			ImGui::SameLine();
+			ImGui::Checkbox("every noise", &m_ShowAllNoises);
+			ImGui::Checkbox("Navmesh and paths", &m_ShowNavMesh);
+			ImGui::SameLine();
+			ImGui::Checkbox("Colliders", &m_ShowColliders);
+			if (ImGui::Checkbox("Guards ignore the thief", &m_IgnoreThief))
+			{
+				if (PerceptionSystem* perception = scene.GetPerceptionSystem())
+					perception->SetIgnoreIntruders(m_IgnoreThief);
+			}
+			ImGui::SetItemTooltip("They neither see, touch nor hear him (his footsteps); bodies, arrows and thrown things still count.");
+			if (ImGui::TreeNode("Legend"))
+			{
+				ImGui::TextWrapped("Cone: the whole field of view, cut where a wall or a closed door stops the eye. Bright: the focus "
+								   "cone (full contrast); dim: the side bands, where the thief counts for half. Colour: green unaware, "
+								   "yellow suspicious, orange investigating or searching, red alarmed. The bar over the head is "
+								   "suspicion. Magenta lines: the thief's body points this guard has in view (light decides whether he "
+								   "makes them out: see the label's B, >= 1 is seen).");
+				ImGui::TextWrapped("Noise rings: blue, how far it carries at all; orange, where it still reaches 4 (a guard walks "
+								   "over). Walls cost 4, closed doors their SoundLoss; sound also goes round along the navmesh.");
+				ImGui::TreePop();
+			}
+		}
+
+		if (ImGui::CollapsingHeader("Test noise", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::Checkbox("Left click in the world makes the noise", &m_NoiseOnClick);
+			ImGui::SliderFloat("Loudness", &m_NoiseLoudness, 0.5f, 10.0f, "%.1f");
+			if (ImGui::BeginTable("##references", 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit))
+			{
+				for (const NoiseReference& reference : NoiseProbe::References())
+				{
+					ImGui::TableNextRow();
+					ImGui::TableNextColumn();
+					const std::string label = std::format("{:.1f}##{}", reference.Loudness, reference.Example);
+					if (ImGui::Selectable(label.c_str(), std::abs(m_NoiseLoudness - reference.Loudness) < 0.05f,
+							ImGuiSelectableFlags_SpanAllColumns))
+						m_NoiseLoudness = reference.Loudness;
+					ImGui::TableNextColumn();
+					ImGui::TextUnformatted(reference.Example);
+				}
+				ImGui::EndTable();
+			}
+			if (m_LastNoisePosition)
+			{
+				ImGui::Text("Last test noise %.1f at (%.1f, %.1f, %.1f):", m_LastNoiseLoudness, m_LastNoisePosition->x, m_LastNoisePosition->y,
+					m_LastNoisePosition->z);
+				if (m_LastHearing.empty())
+					ImGui::TextDisabled("  nobody heard it");
+				for (const NoiseHearing& hearing : m_LastHearing)
+				{
+					ImGui::TextColored(ToImVec4(DebugOverlays::StateColor(hearing.State)), "  %s hears %.1f -> %s", hearing.Name.c_str(),
+						hearing.Level, std::string(StateName(hearing.State)).c_str());
+				}
+			}
+			if (ImGui::TreeNode("Noises heard in the game"))
+			{
+				for (const LoggedNoise& noise : m_NoiseLog)
+					ImGui::Text("%7.1f s  %4.1f  %s", noise.Time, noise.Loudness, noise.Cause.c_str());
+				ImGui::TreePop();
+			}
+		}
+
+		if (ImGui::CollapsingHeader("Camera and time", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			if (ImGui::Checkbox("Freelook (F5)", &m_FreeLook))
+				m_FreeLookStarted = false;
+			if (m_FreeLook)
+			{
+				float speed = m_FreeCamera.GetSpeed();
+				ImGui::SameLine();
+				ImGui::SetNextItemWidth(140.0f * m_AppliedScale);
+				if (ImGui::SliderFloat("m/s", &speed, 0.5f, 40.0f, "%.1f", ImGuiSliderFlags_Logarithmic))
+					m_FreeCamera.SetSpeed(speed);
+				if (ImGui::Button("Back to the thief's camera"))
+					m_FreeLookStarted = false;
+			}
+			bool paused = scene.IsPaused();
+			if (ImGui::Checkbox("Paused (F6)", &paused))
+				SetPaused(scene, paused);
+			ImGui::SameLine();
+			ImGui::BeginDisabled(!paused);
+			if (ImGui::Button("Step"))
+				scene.Step(1);
+			ImGui::EndDisabled();
+			ImGui::SliderFloat("Time scale", &m_TimeScale, 0.1f, 4.0f, "%.2fx", ImGuiSliderFlags_Logarithmic);
+			ImGui::SameLine();
+			if (ImGui::SmallButton("1x"))
+				m_TimeScale = 1.0f;
+			ImGui::SliderFloat("UI size", &m_UserScale, 0.75f, 2.0f, "%.2fx");
+		}
+		ImGui::End();
+		Input::SetGameInputBlocked(BlocksGameInput()); // the window's close button
+	}
+
+	void RuntimeDebugPanel::DrawGuardLabels(Scene& scene, const RenderCamera& camera)
+	{
+		PerceptionSystem* perception = scene.GetPerceptionSystem();
+		if (!perception)
+			return;
+		const std::optional<Entity> thief = FindThief(scene);
+		const ImVec2 display = ImGui::GetIO().DisplaySize;
+		ImDrawList* draw = ImGui::GetBackgroundDrawList();
+		for (auto [handle, component] : scene.GetRegistry().view<PerceptionComponent>().each())
+		{
+			Entity npc(handle, &scene);
+			const glm::vec3 anchor = scene.GetWorldPosition(npc) + glm::vec3(0.0f, component.EyeHeight + 0.75f, 0.0f);
+			glm::vec2 pixel;
+			if (!WorldToScreen(camera, anchor, glm::vec2(display.x, display.y), pixel) || glm::distance(camera.Position, anchor) > 40.0f)
+				continue;
+
+			std::string text = npc.GetName();
+			if (!PerceptionSystem::IsAwake(npc))
+				text += "\n(down)";
+			else
+			{
+				text += std::format("\n{}", StateName(component.RuntimeState));
+				if (component.RuntimeReactionTime > 0.0f)
+					text += std::format(" {:.1f}, {:.0f} s ({})", component.RuntimeReactionStrength, component.RuntimeReactionTime,
+						component.RuntimeStimulusCause);
+				text += std::format("\nsuspicion {:.2f}", component.RuntimeSuspicion);
+				if (thief)
+				{
+					const VisibilityResult seen = perception->ComputeVisibility(npc, *thief);
+					if (seen.VisiblePoints > 0)
+						text += std::format("\nthief: B {:.2f}, {}/{} points, C {:.2f} vs {:.2f}", seen.Stimulus, seen.VisiblePoints, seen.TotalPoints,
+							seen.Contrast, seen.ContrastThreshold);
+					else
+						text += "\nthief: not in view";
+				}
+			}
+			const ImVec2 size = ImGui::CalcTextSize(text.c_str());
+			const ImVec2 topLeft(pixel.x - size.x * 0.5f, pixel.y - size.y);
+			const float pad = 4.0f * m_AppliedScale;
+			draw->AddRectFilled(ImVec2(topLeft.x - pad, topLeft.y - pad), ImVec2(topLeft.x + size.x + pad, topLeft.y + size.y + pad),
+				IM_COL32(0, 0, 0, 150), 3.0f * m_AppliedScale);
+			draw->AddText(topLeft, ImGui::ColorConvertFloat4ToU32(ToImVec4(DebugOverlays::StateColor(component.RuntimeState))), text.c_str());
+		}
+	}
+
+	void RuntimeDebugPanel::HandleWorldClick(Scene& scene, const RenderCamera& camera)
+	{
+		const ImGuiIO& io = ImGui::GetIO();
+		if (!m_PanelOpen || !m_NoiseOnClick || io.WantCaptureMouse || !ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+			return;
+		PhysicsWorld* physics = scene.GetPhysicsWorld();
+		if (!physics)
+			return;
+		const glm::vec3 direction = ScreenRayDirection(camera, glm::vec2(io.MousePos.x, io.MousePos.y), glm::vec2(io.DisplaySize.x, io.DisplaySize.y));
+		// Through characters and triggers, onto the floor or a wall.
+		auto filter = [&scene](UUID id) {
+			std::optional<Entity> entity = scene.TryGetEntityByUUID(id);
+			if (!entity || entity->HasComponent<CharacterControllerComponent>())
+				return false;
+			const RigidBodyComponent* body = entity->TryGetComponent<RigidBodyComponent>();
+			return !body || !body->IsTrigger;
+		};
+		const std::optional<RaycastHit> hit = physics->Raycast(camera.Position, direction, 200.0f, filter);
+		if (!hit)
+			return;
+		const glm::vec3 position = hit->Point + hit->Normal * 0.05f;
+		m_LastHearing = NoiseProbe::Emit(scene, position, m_NoiseLoudness);
+		m_LastNoisePosition = position;
+		m_LastNoiseLoudness = m_NoiseLoudness;
+		m_Noises.push_back({ position, m_NoiseLoudness, static_cast<float>(ImGui::GetTime()) });
+	}
+
+}

@@ -398,9 +398,22 @@ namespace Penumbra {
 		m_IsUpdating = true;
 		m_Overlay->Clear();
 
+		// Each system's share of the frame, for the performance monitor (a clock read per system).
+		using Clock = std::chrono::steady_clock;
+		Clock::time_point mark = Clock::now();
+		auto lap = [&mark](float& milliseconds) {
+			const Clock::time_point now = Clock::now();
+			milliseconds = std::chrono::duration<float, std::milli>(now - mark).count();
+			mark = now;
+		};
+		SceneFrameProfile& profile = m_FrameProfile;
+
 		m_ScriptEngine->Update(ts);
+		lap(profile.Scripts);
 		m_NavigationSystem->Update(ts);
+		lap(profile.Navigation);
 		m_PhysicsWorld->Step(ts);
+		lap(profile.Physics);
 		for (const ContactEvent& contact : m_PhysicsWorld->ConsumeContactEvents())
 		{
 			m_ScriptEngine->OnCollision(contact.EntityA, contact.EntityB);
@@ -408,15 +421,23 @@ namespace Penumbra {
 			EmitImpactNoise(contact.EntityA, contact.EntityB, contact.Point, contact.Speed);
 			EmitImpactNoise(contact.EntityB, contact.EntityA, contact.Point, contact.Speed);
 		}
+		lap(profile.Contacts);
 		m_StimSystem->Update(ts);
+		lap(profile.Stims);
 		m_PerceptionSystem->Update(ts);
+		lap(profile.Perception);
 		UpdateSmokeVolumes(ts);
+		lap(profile.Smoke);
 		m_AudioScene->Update(ts);
+		lap(profile.Audio);
 		RagdollSystem::Update(*this); // limp bodies pose their skeletons before the animation is drawn
+		lap(profile.Ragdolls);
 		AnimationSystem::Update(*this, ts);
+		lap(profile.Animation);
 
 		m_IsUpdating = false;
 		FlushPendingDestroys();
+		lap(profile.Destruction);
 
 		m_Time += ts;
 		m_FrameCount++;

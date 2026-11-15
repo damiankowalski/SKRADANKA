@@ -1,4 +1,5 @@
-#include "ImGui/ImGuiRenderer.h"
+#include "pnpch.h"
+#include "Penumbra/ImGui/ImGuiRenderer.h"
 
 #include "Penumbra/Core/Base.h"
 #include "Penumbra/Core/Log.h"

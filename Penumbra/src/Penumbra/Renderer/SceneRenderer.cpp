@@ -145,6 +145,44 @@ namespace Penumbra {
 		Scope<GpuResourceCache> Cache;
 		nvrhi::CommandListHandle CommandList;
 
+		// GPU time of Render(): a few timestamp pairs in flight, read back frames later.
+		struct GpuTimer
+		{
+			nvrhi::TimerQueryHandle Query;
+			bool Pending = false;
+		};
+		std::array<GpuTimer, 4> GpuTimers;
+		std::optional<float> GpuTimeMs;
+
+		void CollectGpuTimers()
+		{
+			for (GpuTimer& timer : GpuTimers)
+			{
+				if (timer.Pending && Device->pollTimerQuery(timer.Query))
+				{
+					GpuTimeMs = Device->getTimerQueryTime(timer.Query) * 1000.0f;
+					Device->resetTimerQuery(timer.Query);
+					timer.Pending = false;
+				}
+			}
+		}
+
+		nvrhi::ITimerQuery* NextGpuTimer()
+		{
+			for (GpuTimer& timer : GpuTimers)
+			{
+				if (timer.Pending)
+					continue;
+				if (!timer.Query)
+					timer.Query = Device->createTimerQuery();
+				if (!timer.Query)
+					return nullptr;
+				timer.Pending = true;
+				return timer.Query;
+			}
+			return nullptr; // every query still in flight: this frame goes unmeasured
+		}
+
 		nvrhi::ShaderHandle MeshVS, PrepassPS, ForwardPS, ShadowVS, FullscreenVS, SkyVS, SkyPS, SSAOPS, SSAOBlurPS, BloomDownPS, BloomUpPS,
 			TonemapPS, BlitPS, SmokePS, Overlay2DVS, Overlay3DVS, OverlayPS, FlameVS, FlamePS;
 		nvrhi::ShaderHandle EquirectCS, DownsampleCS, IrradianceCS, PrefilterCS, BRDFCS, SkinningCS;
@@ -1086,7 +1124,11 @@ namespace Penumbra {
 			impl.Cache->CollectGarbage();
 		}
 
+		impl.CollectGpuTimers();
 		commandList->open();
+		nvrhi::ITimerQuery* gpuTimer = impl.NextGpuTimer();
+		if (gpuTimer)
+			commandList->beginTimerQuery(gpuTimer);
 
 		Entity environmentEntity = scene.GetEnvironmentEntity();
 		const EnvironmentComponent defaults;
@@ -1395,9 +1437,13 @@ namespace Penumbra {
 		}
 		m_DebugDraw.Clear();
 
+		if (gpuTimer)
+			commandList->endTimerQuery(gpuTimer);
 		commandList->close();
 		impl.Device->executeCommandList(commandList);
 	}
+
+	std::optional<float> SceneRenderer::GetGpuTimeMs() const { return m_Impl->GpuTimeMs; }
 
 	void SceneRenderer::Present(nvrhi::IFramebuffer* target)
 	{

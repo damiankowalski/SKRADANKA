@@ -242,6 +242,29 @@ TEST_SUITE("Renderer")
 		CHECK(fixture.Renderer->GetViewportWidth() == 64);
 	}
 
+	TEST_CASE("The GPU time of a frame and the video memory in use are measured for the performance overlay")
+	{
+		RendererFixture fixture;
+		CHECK_FALSE(fixture.Renderer->GetGpuTimeMs().has_value()); // nothing rendered yet
+		// Results arrive frames later; a few frames are always enough.
+		for (int frame = 0; frame < 8; ++frame)
+			fixture.RenderFrame(fixture.Camera());
+		fixture.Device->WaitForIdle();
+		fixture.RenderFrame(fixture.Camera());
+		REQUIRE(fixture.Renderer->GetGpuTimeMs().has_value());
+		CHECK(*fixture.Renderer->GetGpuTimeMs() >= 0.0f);
+		CHECK(*fixture.Renderer->GetGpuTimeMs() < 10000.0f);
+		CHECK(fixture.Device->GetErrorCount() == 0);
+
+		VideoMemoryInfo memory;
+		if (fixture.Device->QueryVideoMemory(memory)) // the driver may not tell
+		{
+			CHECK(memory.BudgetBytes > 0);
+			if (memory.HasUsage)
+				CHECK(memory.UsedBytes <= memory.BudgetBytes * 2);
+		}
+	}
+
 	TEST_CASE("Frustum culling")
 	{
 		const RenderCamera camera = RenderCamera::Perspective(glm::vec3(0.0f), glm::quat(1, 0, 0, 0), 60.0f, 1.0f, 0.1f, 100.0f);

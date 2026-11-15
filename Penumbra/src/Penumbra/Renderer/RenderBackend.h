@@ -52,6 +52,9 @@ namespace Penumbra::Detail {
 		// Called after the NVRHI device is gone: releases the swap chain and the native device.
 		virtual void Shutdown() = 0;
 
+		// Device-local memory the process uses and may use. False when the API cannot tell.
+		virtual bool QueryVideoMemory(VideoMemoryInfo& info) const = 0;
+
 		std::string AdapterName;
 		std::string DriverName; // Vulkan: the driver that runs the device (MoltenVK, KosmicKrisp...); empty on D3D12
 		bool Warp = false;

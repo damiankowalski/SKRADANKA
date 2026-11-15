@@ -1,20 +1,20 @@
-#include "ImGui/ImGuiHost.h"
+#include "pnpch.h"
+#include "Penumbra/ImGui/ImGuiHost.h"
 
-#include "ImGui/ImGuiRenderer.h"
+#include "Penumbra/ImGui/ImGuiRenderer.h"
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
-#include <ImGuizmo.h>
 
 namespace Penumbra {
 
-	ImGuiHost::ImGuiHost(GLFWwindow* window, nvrhi::IDevice* device)
+	ImGuiHost::ImGuiHost(GLFWwindow* window, nvrhi::IDevice* device, const char* iniFile)
 	{
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_NavEnableKeyboard;
-		io.IniFilename = "PenumbraEditor.ini";
+		io.IniFilename = iniFile;
 		ApplyStyle();
 		ImGui_ImplGlfw_InitForOther(window, true);
 		m_Renderer = CreateScope<ImGuiRenderer>(device);
@@ -32,7 +32,6 @@ namespace Penumbra {
 	{
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-		ImGuizmo::BeginFrame();
 	}
 
 	void ImGuiHost::EndFrame(nvrhi::IFramebuffer* target)
