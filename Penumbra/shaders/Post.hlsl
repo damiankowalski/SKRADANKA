@@ -152,11 +152,13 @@ float4 PSBloomUpsample(FullscreenOutput input) : SV_Target0
 }
 
 // =============================================================================================
-// Tonemapping: exposure, bloom composite, ACES fitted curve, sRGB encoding.
+// Tonemapping: exposure, bloom composite, fog of war, ACES fitted curve, sRGB encoding.
+// Params0: x fog of war on (1), y brightness and z saturation left where the player does not see.
 // =============================================================================================
 
 Texture2D<float4> g_HDR : register(t0);
 Texture2D<float4> g_Bloom : register(t1);
+Texture2D<float> g_FogMask : register(t2);
 
 float3 ACESFitted(float3 color)
 {
@@ -180,6 +182,13 @@ float4 PSTonemap(FullscreenOutput input) : SV_Target0
 	float3 hdr = g_HDR.SampleLevel(g_PointClamp, input.TexCoord, 0).rgb;
 	float3 bloom = g_Bloom.SampleLevel(g_LinearClamp, input.TexCoord, 0).rgb;
 	float3 color = lerp(hdr, bloom, saturate(g_View.BloomIntensity)) * g_View.Exposure;
+	if (g_Post.Params0.x > 0.5)
+	{
+		// What the player does not see is remembered: darker and drained of colour.
+		float seen = g_FogMask.SampleLevel(g_LinearClamp, input.TexCoord, 0);
+		float saturation = lerp(g_Post.Params0.z, 1.0, seen);
+		color = lerp(Luminance(color).xxx, color, saturation) * lerp(g_Post.Params0.y, 1.0, seen);
+	}
 	color = ACESFitted(color);
 	// Tiny dither breaks up banding in dark gradients (a stealth game lives in them).
 	float dither = (InterleavedGradientNoise(input.Position.xy) - 0.5) / 255.0;

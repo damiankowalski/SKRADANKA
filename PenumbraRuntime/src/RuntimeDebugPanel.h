@@ -31,6 +31,7 @@ namespace Penumbra {
 	//   F4  debug panel: what guards see and hear, test noises clicked into the world, simulation speed
 	//   F5  freelook: the camera leaves the thief and flies through the level (RMB look, WASD, Q/E, Shift)
 	//   F6  pause / resume the simulation
+	//   F7  fog of war on / off (what the thief sees, or the whole level)
 	// While the panel or freelook is up the game gets no keyboard or mouse input (Input::SetGameInputBlocked).
 	class RuntimeDebugPanel
 	{
@@ -67,6 +68,7 @@ namespace Penumbra {
 		void UpdateStyle(float viewportHeight);
 		void DrawPerformance(Scene& scene, SceneRenderer& renderer, RenderDevice& device);
 		void DrawPanel(Scene& scene);
+		void DrawFogOfWar(Scene& scene);
 		void DrawGuardLabels(Scene& scene, const RenderCamera& camera);
 		void HandleWorldClick(Scene& scene, const RenderCamera& camera);
 		void SetPaused(Scene& scene, bool paused);
@@ -95,6 +97,7 @@ namespace Penumbra {
 		bool m_ShowNavMesh = false;
 		bool m_ShowColliders = false;
 		bool m_IgnoreThief = false;
+		bool m_FogOfWar = true; // off: the whole level is drawn, whatever the thief's FogOfWar component says
 		float m_TimeScale = 1.0f;
 
 		// Test noises

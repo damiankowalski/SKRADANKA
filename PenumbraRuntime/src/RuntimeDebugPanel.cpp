@@ -1,5 +1,6 @@
 #include "RuntimeDebugPanel.h"
 
+#include "Penumbra/AI/FogOfWarSystem.h"
 #include "Penumbra/AI/PerceptionSystem.h"
 #include "Penumbra/Core/Input.h"
 #include "Penumbra/Core/Log.h"
@@ -110,6 +111,11 @@ namespace Penumbra {
 				if (scene)
 					SetPaused(*scene, !scene->IsPaused());
 				return true;
+			case Key::F7:
+				m_FogOfWar = !m_FogOfWar;
+				if (FogOfWarSystem* fog = scene ? scene->GetFogOfWarSystem() : nullptr)
+					fog->SetForcedOff(!m_FogOfWar);
+				return true;
 			default:
 				return false;
 		}
@@ -121,6 +127,8 @@ namespace Penumbra {
 	{
 		if (PerceptionSystem* perception = scene.GetPerceptionSystem())
 			perception->SetIgnoreIntruders(m_IgnoreThief);
+		if (FogOfWarSystem* fog = scene.GetFogOfWarSystem())
+			fog->SetForcedOff(!m_FogOfWar);
 		m_Noises.clear();
 		m_NoiseLog.clear();
 		m_LastHearing.clear();
@@ -329,7 +337,7 @@ namespace Penumbra {
 				{ "scripts", systems.Scripts }, { "navigation", systems.Navigation }, { "physics", systems.Physics },
 				{ "contacts", systems.Contacts }, { "stims", systems.Stims }, { "perception", systems.Perception },
 				{ "smoke", systems.Smoke }, { "audio", systems.Audio }, { "ragdolls", systems.Ragdolls },
-				{ "animation", systems.Animation }, { "destroy", systems.Destruction }, { "total", systems.Total() },
+				{ "animation", systems.Animation }, { "fog of war", systems.FogOfWar }, { "destroy", systems.Destruction }, { "total", systems.Total() },
 			};
 			for (size_t i = 0; i < std::size(entries); ++i)
 			{
@@ -357,7 +365,10 @@ namespace Penumbra {
 			return;
 		}
 
-		ImGui::TextDisabled("F3 performance   F5 freelook   F6 pause");
+		ImGui::TextDisabled("F3 performance   F5 freelook   F6 pause   F7 fog of war");
+
+		if (ImGui::CollapsingHeader("Fog of war: what the thief sees", ImGuiTreeNodeFlags_DefaultOpen))
+			DrawFogOfWar(scene);
 
 		if (ImGui::CollapsingHeader("Guards: sight and hearing", ImGuiTreeNodeFlags_DefaultOpen))
 		{
@@ -458,6 +469,36 @@ namespace Penumbra {
 		}
 		ImGui::End();
 		Input::SetGameInputBlocked(BlocksGameInput()); // the window's close button
+	}
+
+	void RuntimeDebugPanel::DrawFogOfWar(Scene& scene)
+	{
+		FogOfWarSystem* fog = scene.GetFogOfWarSystem();
+		if (ImGui::Checkbox("Fog of war (F7)", &m_FogOfWar) && fog)
+			fog->SetForcedOff(!m_FogOfWar);
+		ImGui::SetItemTooltip("Off: the whole level is drawn, guards included, as before the fog of war.");
+
+		auto viewers = scene.GetRegistry().view<FogOfWarComponent>();
+		if (viewers.empty())
+		{
+			ImGui::TextDisabled("No FogOfWar component in this level (add one to the player).");
+			return;
+		}
+		// The thief's settings, live (they are not saved: copy good values into the level).
+		FogOfWarComponent& component = viewers.get<FogOfWarComponent>(viewers.front());
+		ImGui::Checkbox("Enabled on the thief", &component.Enabled);
+		ImGui::SameLine();
+		ImGui::Checkbox("Hide guards out of sight", &component.HideActors);
+		ImGui::SliderFloat("View cone", &component.ViewAngle, 30.0f, 360.0f, "%.0f deg");
+		ImGui::SliderFloat("Cone edge", &component.EdgeSoftness, 0.0f, 60.0f, "%.0f deg");
+		ImGui::SliderFloat("Awareness circle", &component.AwarenessRadius, 0.0f, 6.0f, "%.1f m");
+		ImGui::SliderFloat("View distance", &component.ViewDistance, 5.0f, 100.0f, "%.0f m");
+		ImGui::SliderFloat("Unseen brightness", &component.Brightness, 0.0f, 1.0f, "%.2f");
+		ImGui::SliderFloat("Unseen colour", &component.Saturation, 0.0f, 1.0f, "%.2f");
+		if (fog && fog->GetView())
+			ImGui::Text("Guards and bodies hidden now: %u", component.RuntimeHiddenActors);
+		else
+			ImGui::TextDisabled("Fog is off.");
 	}
 
 	void RuntimeDebugPanel::DrawGuardLabels(Scene& scene, const RenderCamera& camera)

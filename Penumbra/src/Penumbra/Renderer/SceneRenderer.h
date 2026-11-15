@@ -22,6 +22,7 @@ namespace Penumbra {
 		uint32_t CascadeResolution = 2048;
 		uint32_t SpotShadowResolution = 1024;
 		uint32_t PointShadowResolution = 512;
+		uint32_t EyeMapResolution = 1024; // fog of war: the player's eye depth cube (per face)
 		float ShadowDistance = 60.0f;
 		uint32_t CascadeCount = 4;
 		bool DrawOverlay = true;

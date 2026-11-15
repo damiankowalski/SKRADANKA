@@ -1,6 +1,7 @@
 #include "pnpch.h"
 #include "Penumbra/Renderer/SceneRenderer.h"
 
+#include "Penumbra/AI/FogOfWarSystem.h"
 #include "Penumbra/Animation/AnimationSystem.h"
 #include "Penumbra/Asset/AssetManager.h"
 #include "Penumbra/Asset/Importers.h"
@@ -95,6 +96,7 @@ namespace Penumbra {
 			BoundingBox Bounds;
 			bool CastShadows = true;
 			bool Translucent = false;
+			bool SightBlocker = false; // drawn into the fog of war's eye map
 			float CameraDistance = 0.0f;
 		};
 
@@ -132,6 +134,17 @@ namespace Penumbra {
 			std::vector<glm::mat4> JointMatrices;
 			uint32_t VertexCount = 0;
 		};
+
+		// One face of a cube depth map (point light shadows, the fog of war's eye map). Faces in D3D order
+		// (+X, -X, +Y, -Y, +Z, -Z); mirrored X to match D3D cube addressing. Sampled in Lighting.hlsli and FogOfWar.hlsl.
+		glm::mat4 CubeFaceViewProj(const glm::vec3& position, uint32_t face, float nearPlane, float farPlane)
+		{
+			static const glm::vec3 s_FaceDirections[6] = { { 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };
+			static const glm::vec3 s_FaceUps[6] = { { 0, 1, 0 }, { 0, 1, 0 }, { 0, 0, -1 }, { 0, 0, 1 }, { 0, 1, 0 }, { 0, 1, 0 } };
+			const glm::mat4 projection = glm::scale(glm::mat4(1.0f), glm::vec3(-1.0f, 1.0f, 1.0f)) *
+										 glm::perspectiveRH_ZO(glm::radians(90.0f), 1.0f, nearPlane, farPlane);
+			return projection * glm::lookAtRH(position, position + s_FaceDirections[face], s_FaceUps[face]);
+		}
 
 		// Skinned instances not drawn for this many frames release their buffers (several scenes,
 		// such as the editor and play mode, can share one renderer).
@@ -184,7 +197,7 @@ namespace Penumbra {
 		}
 
 		nvrhi::ShaderHandle MeshVS, PrepassPS, ForwardPS, ShadowVS, FullscreenVS, SkyVS, SkyPS, SSAOPS, SSAOBlurPS, BloomDownPS, BloomUpPS,
-			TonemapPS, BlitPS, SmokePS, Overlay2DVS, Overlay3DVS, OverlayPS, FlameVS, FlamePS;
+			TonemapPS, BlitPS, SmokePS, Overlay2DVS, Overlay3DVS, OverlayPS, FlameVS, FlamePS, FogMaskPS;
 		nvrhi::ShaderHandle EquirectCS, DownsampleCS, IrradianceCS, PrefilterCS, BRDFCS, SkinningCS;
 
 		nvrhi::BindingLayoutHandle ViewLayout, MaterialLayout, ShadowLayout, PostLayout, IBLLayout, SkinningLayout;
@@ -194,18 +207,18 @@ namespace Penumbra {
 		nvrhi::BufferHandle ViewBuffer, LightBuffer, OverlayBuffer;
 		size_t OverlayCapacity = 0;
 
-		nvrhi::TextureHandle CascadeShadows, SpotShadows, PointShadows;
-		std::vector<nvrhi::FramebufferHandle> CascadeFramebuffers, SpotFramebuffers, PointFramebuffers;
+		nvrhi::TextureHandle CascadeShadows, SpotShadows, PointShadows, EyeDepth;
+		std::vector<nvrhi::FramebufferHandle> CascadeFramebuffers, SpotFramebuffers, PointFramebuffers, EyeFramebuffers;
 		nvrhi::BindingSetHandle ShadowSet;
 
-		nvrhi::TextureHandle Depth, Normals, AO, AOTemp, HDR, Bloom;
+		nvrhi::TextureHandle Depth, Normals, AO, AOTemp, HDR, Bloom, FogMask, FogMaskTemp;
 		uint32_t BloomMips = 1;
 		nvrhi::FramebufferHandle PrepassFramebuffer, ForwardFramebuffer, HDRFramebuffer, AOFramebuffer, AOTempFramebuffer, OutputFramebuffer,
-			OutputDepthFramebuffer;
+			OutputDepthFramebuffer, FogMaskFramebuffer, FogMaskTempFramebuffer;
 		std::vector<nvrhi::FramebufferHandle> BloomFramebuffers;
 
 		nvrhi::GraphicsPipelineHandle ShadowPipeline, PrepassPipeline, ForwardPipeline, TranslucentPipeline, SkyPipeline, SSAOPipeline,
-			SSAOBlurPipeline, BloomDownPipeline, BloomUpPipeline, TonemapPipeline, SmokePipeline, Overlay2DPipeline, Overlay3DPipeline, OverlayWorldPipeline, FlamePipeline;
+			SSAOBlurPipeline, BloomDownPipeline, BloomUpPipeline, TonemapPipeline, SmokePipeline, Overlay2DPipeline, Overlay3DPipeline, OverlayWorldPipeline, FlamePipeline, FogMaskPipeline;
 		std::map<nvrhi::Format, nvrhi::GraphicsPipelineHandle> BlitPipelines;
 		nvrhi::ComputePipelineHandle EquirectPipeline, DownsamplePipeline, IrradiancePipeline, PrefilterPipeline, BRDFPipeline, SkinningPipeline;
 
@@ -278,6 +291,7 @@ namespace Penumbra {
 		Overlay2DVS = LoadShader(Device, "Overlay2DVS", ST::Vertex);
 		Overlay3DVS = LoadShader(Device, "Overlay3DVS", ST::Vertex);
 		OverlayPS = LoadShader(Device, "OverlayPS", ST::Pixel);
+		FogMaskPS = LoadShader(Device, "FogMaskPS", ST::Pixel);
 		EquirectCS = LoadShader(Device, "EquirectToCubeCS", ST::Compute);
 		DownsampleCS = LoadShader(Device, "CubeDownsampleCS", ST::Compute);
 		IrradianceCS = LoadShader(Device, "IrradianceCS", ST::Compute);
@@ -423,6 +437,7 @@ namespace Penumbra {
 		const nvrhi::RenderState post = MakeRenderState(false, false, CF::Always, Cull::None);
 		SSAOPipeline = graphics(FullscreenVS, SSAOPS, nullptr, { PostLayout }, post, ao);
 		SSAOBlurPipeline = graphics(FullscreenVS, SSAOBlurPS, nullptr, { PostLayout }, post, ao);
+		FogMaskPipeline = graphics(FullscreenVS, FogMaskPS, nullptr, { PostLayout }, post, ao);
 		BloomDownPipeline = graphics(FullscreenVS, BloomDownPS, nullptr, { PostLayout }, post, hdr);
 		BloomUpPipeline = graphics(FullscreenVS, BloomUpPS, nullptr, { PostLayout }, MakeRenderState(false, false, CF::Always, Cull::None, false, true), hdr);
 		TonemapPipeline = graphics(FullscreenVS, TonemapPS, nullptr, { PostLayout }, post, output);
@@ -481,6 +496,7 @@ namespace Penumbra {
 		CascadeShadows = create("CascadeShadows", settings.CascadeResolution, GPU::MaxCascades, nvrhi::TextureDimension::Texture2DArray, CascadeFramebuffers);
 		SpotShadows = create("SpotShadows", settings.SpotShadowResolution, GPU::MaxSpotShadows, nvrhi::TextureDimension::Texture2DArray, SpotFramebuffers);
 		PointShadows = create("PointShadows", settings.PointShadowResolution, GPU::MaxPointShadows * 6, nvrhi::TextureDimension::TextureCubeArray, PointFramebuffers);
+		EyeDepth = create("EyeDepth", settings.EyeMapResolution, 6, nvrhi::TextureDimension::TextureCube, EyeFramebuffers);
 	}
 
 	void SceneRenderer::Impl::CreateTargets(uint32_t width, uint32_t height, nvrhi::TextureHandle& output)
@@ -503,6 +519,8 @@ namespace Penumbra {
 		Normals = target("Normals", NormalFormat, width, height, 1, nvrhi::Color(0.0f));
 		AO = target("AO", AOFormat, width, height, 1, nvrhi::Color(1.0f));
 		AOTemp = target("AOTemp", AOFormat, width, height, 1, nvrhi::Color(1.0f));
+		FogMask = target("FogMask", AOFormat, width, height, 1, nvrhi::Color(1.0f));
+		FogMaskTemp = target("FogMaskTemp", AOFormat, width, height, 1, nvrhi::Color(1.0f));
 		HDR = target("HDR", HDRFormat, width, height, 1, nvrhi::Color(0.0f));
 		output = target("Output", OutputFormat, width, height, 1, nvrhi::Color(0.0f, 0.0f, 0.0f, 1.0f));
 
@@ -515,6 +533,8 @@ namespace Penumbra {
 		HDRFramebuffer = Device->createFramebuffer(nvrhi::FramebufferDesc().addColorAttachment(HDR));
 		AOFramebuffer = Device->createFramebuffer(nvrhi::FramebufferDesc().addColorAttachment(AO));
 		AOTempFramebuffer = Device->createFramebuffer(nvrhi::FramebufferDesc().addColorAttachment(AOTemp));
+		FogMaskFramebuffer = Device->createFramebuffer(nvrhi::FramebufferDesc().addColorAttachment(FogMask));
+		FogMaskTempFramebuffer = Device->createFramebuffer(nvrhi::FramebufferDesc().addColorAttachment(FogMaskTemp));
 		OutputFramebuffer = Device->createFramebuffer(nvrhi::FramebufferDesc().addColorAttachment(output));
 		OutputDepthFramebuffer = Device->createFramebuffer(nvrhi::FramebufferDesc().addColorAttachment(output).setDepthAttachment(Depth));
 		BloomFramebuffers.clear();
@@ -713,6 +733,23 @@ namespace Penumbra {
 		const Frustum frustum(camera.Projection * camera.View);
 		auto& registry = scene.GetRegistry();
 
+		// Fog of war: characters out of the player's sight are not drawn; walls, floors and
+		// furniture (not characters, loose objects or the player himself) block his eye.
+		FogOfWarSystem* fog = scene.IsRunning() ? scene.GetFogOfWarSystem() : nullptr;
+		const bool fogActive = fog && fog->GetView().has_value();
+		auto isSightBlocker = [&](Entity entity) {
+			for (Entity current = entity; current; current = current.GetParent())
+			{
+				if (current.GetUUID() == fog->GetView()->Viewer || current.HasComponent<PerceptionComponent>() ||
+					current.HasComponent<CharacterControllerComponent>() || current.HasComponent<RagdollComponent>())
+					return false;
+				if (const RigidBodyComponent* body = current.TryGetComponent<RigidBodyComponent>();
+					body && (body->TransparentToSight || body->IsTrigger || body->Type == RigidBodyType::Dynamic))
+					return false;
+			}
+			return true;
+		};
+
 		for (auto [handle, meshComponent] : registry.view<MeshComponent>().each())
 		{
 			if (!meshComponent.Visible)
@@ -723,6 +760,8 @@ namespace Penumbra {
 				continue;
 
 			Entity entity(handle, &scene);
+			if (fogActive && fog->IsHidden(entity))
+				continue;
 			const glm::mat4 world = scene.GetWorldTransform(entity);
 
 			// Skinned meshes: pose the skeleton now; the bounds follow the pose.
@@ -753,6 +792,7 @@ namespace Penumbra {
 			}
 
 			const MaterialComponent* overrideMaterial = entity.TryGetComponent<MaterialComponent>();
+			const bool sightBlocker = fogActive && !skinned && meshComponent.CastShadows && isSightBlocker(entity);
 			for (const Submesh& submesh : mesh->Submeshes)
 			{
 				const std::vector<std::string>& hidden = meshComponent.HiddenNodes;
@@ -766,6 +806,7 @@ namespace Penumbra {
 				draw.World = world;
 				draw.Bounds = bounds;
 				draw.CastShadows = meshComponent.CastShadows;
+				draw.SightBlocker = sightBlocker;
 				draw.CameraDistance = glm::distance(glm::vec3(world[3]), camera.Position);
 				GPU::PackWorldRows(world, draw.Constants.WorldRow0, draw.Constants.WorldRow1, draw.Constants.WorldRow2);
 
@@ -1033,22 +1074,17 @@ namespace Penumbra {
 			shadowViews.push_back({ light.ShadowViewProj, SpotFramebuffers[slot], SpotShadows, slot, settings.SpotShadowResolution });
 		}
 
-		// Cube faces in D3D order (+X, -X, +Y, -Y, +Z, -Z); mirrored X to match D3D cube addressing.
-		static const glm::vec3 s_FaceDirections[6] = { { 1, 0, 0 }, { -1, 0, 0 }, { 0, 1, 0 }, { 0, -1, 0 }, { 0, 0, 1 }, { 0, 0, -1 } };
-		static const glm::vec3 s_FaceUps[6] = { { 0, 1, 0 }, { 0, 1, 0 }, { 0, 0, -1 }, { 0, 0, 1 }, { 0, 1, 0 }, { 0, 1, 0 } };
 		for (uint32_t slot = 0; slot < std::min<size_t>(pointCandidates.size(), GPU::MaxPointShadows); slot++)
 		{
 			GPU::Light& light = Lights[pointCandidates[slot].LightIndex];
 			light.ShadowIndex = static_cast<int32_t>(slot);
 			light.ShadowNear = ShadowNearPlane;
 			light.ShadowFar = std::max(light.Range, ShadowNearPlane * 2.0f);
-			const glm::mat4 projection = glm::scale(glm::mat4(1.0f), glm::vec3(-1.0f, 1.0f, 1.0f)) *
-										 glm::perspectiveRH_ZO(glm::radians(90.0f), 1.0f, light.ShadowNear, light.ShadowFar);
 			for (uint32_t face = 0; face < 6; face++)
 			{
-				const glm::mat4 view = glm::lookAtRH(light.Position, light.Position + s_FaceDirections[face], s_FaceUps[face]);
 				const uint32_t layer = slot * 6 + face;
-				shadowViews.push_back({ projection * view, PointFramebuffers[layer], PointShadows, layer, settings.PointShadowResolution });
+				shadowViews.push_back({ CubeFaceViewProj(light.Position, face, light.ShadowNear, light.ShadowFar), PointFramebuffers[layer],
+					PointShadows, layer, settings.PointShadowResolution });
 			}
 		}
 	}
@@ -1174,15 +1210,14 @@ namespace Penumbra {
 			commandList->writeBuffer(impl.LightBuffer, impl.Lights.data(), impl.Lights.size() * sizeof(GPU::Light));
 
 		// --- Shadows -----------------------------------------------------------------------
-		for (const ShadowView& shadow : shadowViews)
-		{
+		auto renderDepthView = [&](const ShadowView& shadow, bool eyeMap) {
 			commandList->clearDepthStencilTexture(shadow.Texture, nvrhi::TextureSubresourceSet(0, 1, shadow.Slice, 1), true, 1.0f, false, 0);
 			const Frustum frustum(shadow.ViewProj);
 			GPU::ShadowConstants constants{};
 			constants.ViewProj = shadow.ViewProj;
 			for (const DrawItem& draw : impl.Draws)
 			{
-				if (!draw.CastShadows || draw.Translucent || !frustum.IntersectsBox(draw.Bounds, draw.World))
+				if (!(eyeMap ? draw.SightBlocker : draw.CastShadows) || draw.Translucent || !frustum.IntersectsBox(draw.Bounds, draw.World))
 					continue;
 				nvrhi::GraphicsState state;
 				state.pipeline = impl.ShadowPipeline;
@@ -1199,6 +1234,21 @@ namespace Penumbra {
 				commandList->drawIndexed(nvrhi::DrawArguments().setVertexCount(draw.IndexCount).setStartIndexLocation(draw.IndexOffset));
 				m_Statistics.DrawCalls++;
 			}
+		};
+		for (const ShadowView& shadow : shadowViews)
+			renderDepthView(shadow, false);
+
+		// Fog of war: the depth of the first wall in every direction from the player's eye.
+		const FogOfWarSystem* fog = scene.IsRunning() ? scene.GetFogOfWarSystem() : nullptr;
+		const std::optional<FogOfWarView> fogView = fog ? fog->GetView() : std::nullopt;
+		const float eyeNear = ShadowNearPlane;
+		const float eyeFar = fogView ? std::max(fogView->ViewDistance, 1.0f) : 1.0f;
+		if (fogView)
+		{
+			for (uint32_t face = 0; face < 6; face++)
+				renderDepthView({ CubeFaceViewProj(fogView->Eye, face, eyeNear, eyeFar), impl.EyeFramebuffers[face], impl.EyeDepth, face,
+									m_Settings.EyeMapResolution },
+					true);
 		}
 
 		// --- Camera-visible geometry -----------------------------------------------------------
@@ -1308,6 +1358,26 @@ namespace Penumbra {
 			impl.DrawFullscreen(impl.SmokePipeline, impl.HDRFramebuffer, impl.GetPostSet({ impl.Depth }), constants, m_Width, m_Height);
 		}
 
+		// --- Fog of war mask: what the player's eye sees, softened at its edges ----------------
+		if (fogView)
+		{
+			GPU::PostConstants constants;
+			constants.Params0 = glm::vec4(fogView->Eye, fogView->HalfAngle);
+			constants.Params1 = glm::vec4(fogView->Forward.x, fogView->Forward.z, fogView->EdgeSoftness, fogView->ViewDistance);
+			constants.Params2 = glm::vec4(fogView->AwarenessRadius, eyeNear, eyeFar, 0.0f);
+			impl.DrawFullscreen(impl.FogMaskPipeline, impl.FogMaskFramebuffer,
+				impl.GetPostSet({ impl.Depth }, { impl.EyeDepth, -1, nvrhi::TextureDimension::TextureCube }), constants, m_Width, m_Height);
+			// Depth-aware blur (the SSAO one), with wide steps: the edge of sight is a soft gradient.
+			const float step = std::max(1.0f, static_cast<float>(m_Height) / 540.0f) * 2.0f;
+			GPU::PostConstants blur;
+			blur.Params0 = glm::vec4(step / static_cast<float>(m_Width), 0.0f, 0.0f, 0.0f);
+			impl.DrawFullscreen(impl.SSAOBlurPipeline, impl.FogMaskTempFramebuffer, impl.GetPostSet({ impl.Depth }, { impl.Normals }, { impl.FogMask }), blur,
+				m_Width, m_Height);
+			blur.Params0 = glm::vec4(0.0f, step / static_cast<float>(m_Height), 0.0f, 0.0f);
+			impl.DrawFullscreen(impl.SSAOBlurPipeline, impl.FogMaskFramebuffer, impl.GetPostSet({ impl.Depth }, { impl.Normals }, { impl.FogMaskTemp }), blur,
+				m_Width, m_Height);
+		}
+
 		// --- Bloom ---------------------------------------------------------------------------
 		{
 			const uint32_t bloomWidth = std::max(m_Width / 2, 1u), bloomHeight = std::max(m_Height / 2, 1u);
@@ -1331,7 +1401,13 @@ namespace Penumbra {
 		}
 
 		// --- Tonemap -------------------------------------------------------------------------
-		impl.DrawFullscreen(impl.TonemapPipeline, impl.OutputFramebuffer, impl.GetPostSet({ impl.HDR }, { impl.Bloom, 0 }), {}, m_Width, m_Height);
+		{
+			GPU::PostConstants constants;
+			if (fogView)
+				constants.Params0 = glm::vec4(1.0f, fogView->Brightness, fogView->Saturation, 0.0f);
+			impl.DrawFullscreen(impl.TonemapPipeline, impl.OutputFramebuffer, impl.GetPostSet({ impl.HDR }, { impl.Bloom, 0 }, { impl.FogMask }), constants,
+				m_Width, m_Height);
+		}
 
 		// --- Debug lines and HUD -------------------------------------------------------------------
 		std::vector<GPU::OverlayVertex> hud, world;

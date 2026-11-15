@@ -1,5 +1,6 @@
 #include "TestHelpers.h"
 
+#include "Penumbra/AI/FogOfWarSystem.h"
 #include "Penumbra/Asset/AssetManager.h"
 #include "Penumbra/Renderer/RenderDevice.h"
 #include "Penumbra/Renderer/SceneRenderer.h"
@@ -411,6 +412,79 @@ TEST_SUITE("Renderer")
 		fixture.SceneInstance.DestroyEntity(fixture.SceneInstance.FindEntityByName("Wall"));
 		const std::vector<uint8_t> open = draw();
 		CHECK(isGreen(RendererFixture::Pixel(open, hidden.x, hidden.y)));
+		CHECK(fixture.Device->GetErrorCount() == 0);
+	}
+
+	TEST_CASE("Fog of war darkens and greys what the thief does not see, and leaves out guards there")
+	{
+		RendererFixture fixture;
+		Scene& scene = fixture.SceneInstance;
+		auto glowingBox = [&](const std::string& name, const glm::vec3& position, const glm::vec3& color) {
+			Entity box = Test::CreateBox(scene, name, position, glm::vec3(0.5f), glm::vec4(color, 1.0f), 1.0f);
+			box.GetComponent<MaterialComponent>().EmissiveColor = color;
+			return box;
+		};
+		Test::CreateBox(scene, "Floor", { 0.0f, -0.5f, 0.0f }, { 20.0f, 0.5f, 20.0f }, glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
+		Test::CreateBox(scene, "Wall", { 0.0f, 1.5f, -3.1f }, { 1.5f, 1.5f, 0.1f }, glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
+		glowingBox("Seen", { 1.0f, 0.5f, -1.5f }, { 0.0f, 1.0f, 0.0f });
+		glowingBox("BehindWall", { -0.6f, 0.5f, -6.0f }, { 1.0f, 0.0f, 0.0f });
+		// A guard behind the wall: his body is a child without a collider.
+		Entity guard = scene.CreateEntity("Guard");
+		guard.Transform().Translation = { 0.8f, 0.0f, -6.0f };
+		guard.AddComponent<PerceptionComponent>();
+		Entity body = glowingBox("GuardBody", { 0.0f, 0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f });
+		body.RemoveComponent<BoxColliderComponent>();
+		scene.SetParent(body, guard, false);
+
+		Entity thief = scene.CreateEntity("Thief");
+		thief.Transform().Translation = { 0.0f, 0.05f, 0.0f };
+		thief.AddComponent<CharacterControllerComponent>();
+		auto& fog = thief.AddComponent<FogOfWarComponent>();
+		fog.Brightness = 0.2f;
+		fog.Saturation = 0.0f;
+		// High above and behind him, looking over the wall: his cone faces -Z like the camera.
+		const glm::vec3 eye(0.0f, 9.0f, 4.0f), target(0.0f, 0.0f, -4.0f);
+		Entity cameraEntity = scene.CreateEntity("Camera");
+		cameraEntity.Transform().Translation = eye;
+		cameraEntity.Transform().Rotation = Math::LookRotation(target - eye);
+		cameraEntity.AddComponent<CameraComponent>();
+		const RenderCamera camera = RenderCamera::Perspective(eye, Math::LookRotation(target - eye), 60.0f,
+			static_cast<float>(RendererFixture::Width) / static_cast<float>(RendererFixture::Height), 0.1f, 100.0f);
+
+		scene.OnRuntimeStart();
+		scene.OnUpdateRuntime(Timestep(1.0f / 60.0f));
+		REQUIRE(scene.GetFogOfWarSystem()->GetView());
+
+		const glm::uvec2 seen = RendererFixture::ToPixel(camera, { 1.0f, 1.0f, -1.5f });
+		const glm::uvec2 behind = RendererFixture::ToPixel(camera, { -0.6f, 1.0f, -6.0f });
+		const glm::uvec2 guardPixel = RendererFixture::ToPixel(camera, { 0.8f, 1.0f, -6.0f });
+
+		const std::vector<uint8_t> fogged = fixture.RenderFrame(camera);
+		const glm::vec3 seenColor = RendererFixture::Pixel(fogged, seen.x, seen.y);
+		const glm::vec3 behindColor = RendererFixture::Pixel(fogged, behind.x, behind.y);
+		CHECK(seenColor.g > 0.5f); // in view: as it is
+		CHECK(seenColor.g > seenColor.r + 0.4f);
+		CHECK(std::abs(behindColor.r - behindColor.g) < 0.05f); // behind the wall: grey
+		CHECK(scene.GetFogOfWarSystem()->IsHidden(guard));
+
+		// The testing switch shows everything as it is.
+		scene.GetFogOfWarSystem()->SetForcedOff(true);
+		scene.OnUpdateRuntime(Timestep(1.0f / 60.0f));
+		const std::vector<uint8_t> clear = fixture.RenderFrame(camera);
+		const glm::vec3 behindClear = RendererFixture::Pixel(clear, behind.x, behind.y);
+		CHECK(behindClear.r > 0.5f);
+		CHECK(behindClear.r > behindColor.r + 0.2f);
+		CHECK(RendererFixture::Pixel(clear, guardPixel.x, guardPixel.y).b > 0.5f);
+
+		// Fog that changes nothing on screen still leaves the guard out: he is not drawn at all.
+		scene.GetFogOfWarSystem()->SetForcedOff(false);
+		fog.Brightness = 1.0f;
+		fog.Saturation = 1.0f;
+		scene.OnUpdateRuntime(Timestep(1.0f / 60.0f));
+		const std::vector<uint8_t> unseen = fixture.RenderFrame(camera);
+		CHECK(RendererFixture::Pixel(unseen, behind.x, behind.y).r > 0.5f);
+		CHECK(RendererFixture::Pixel(unseen, guardPixel.x, guardPixel.y).b < 0.2f);
+		scene.OnRuntimeStop();
 		CHECK(fixture.Device->GetErrorCount() == 0);
 	}
 }

@@ -13,6 +13,7 @@ set(PENUMBRA_SHADERS
     "BloomDownsamplePS|Post.hlsl|PSBloomDownsample|ps_6_0"
     "BloomUpsamplePS|Post.hlsl|PSBloomUpsample|ps_6_0"
     "TonemapPS|Post.hlsl|PSTonemap|ps_6_0"
+    "FogMaskPS|FogOfWar.hlsl|PSFogMask|ps_6_0"
     "BlitPS|Post.hlsl|PSBlit|ps_6_0"
     "SmokePS|Effects.hlsl|PSSmoke|ps_6_0"
     "FlameVS|Effects.hlsl|VSFlame|vs_6_0"

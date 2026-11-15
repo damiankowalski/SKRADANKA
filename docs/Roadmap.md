@@ -99,15 +99,16 @@ loudness table of the game's sounds and a report of who hears them, guards ignor
 steps, time scale), F5 freelook (the camera leaves the thief and flies through the level), F6 pause. Dear ImGui
 moved from the editor into the engine; shipping builds have the tools with `--dev`. See docs/DebugTools.md.
 
+**Fog of war** (L): the thief sees only what his own eyes see, in the spirit of Darkwood. A view cone where the
+camera looks (120 degrees, soft edge), a circle of awareness around him, out to 40 m and never through walls (an
+eye depth cube rendered like a point light's shadow, tested per pixel); the rest is darkened and drained of
+colour, and guards and bodies there are not drawn, though still heard. `FogOfWar` component on the player (in
+every demo level), Lua `fog.*`, F7 and the F4 panel switch and tune it. See docs/FogOfWar.md. Leaning on Q/E
+follows as its own package (it moves the eye; the use key must leave E first).
+
 ## In progress
 
-**Fog of war** (L, approved; the next PR): what the thief cannot see from his own eyes goes dark, in the
-spirit of Darkwood: a view cone in front of him (where the camera looks), a small circle of awareness around
-him, everything his eyes have no line to (behind walls, round corners, behind his back) darkened and drained of
-colour, and guards and other moving things there hidden, while their noises are still heard. Rendered from the
-character's eye (a depth cube map like a point light's shadow, tested per pixel), not from the camera: no
-peeking round corners for free. Component on the player, Lua to switch it and to ask what he sees, a toggle in
-the F4 panel. Leaning on Q/E follows as its own package (it moves the eye; the use key must leave E first).
+Nothing: the next package waits for the owner's choice (leaning on Q/E is the natural follow-up).
 
 ## Known bugs
 

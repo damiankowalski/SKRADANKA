@@ -2,6 +2,7 @@
 #include "Penumbra/Scene/Scene.h"
 
 #include "Penumbra/AI/PerceptionModel.h"
+#include "Penumbra/AI/FogOfWarSystem.h"
 #include "Penumbra/AI/PerceptionSystem.h"
 #include "Penumbra/Animation/AnimationSystem.h"
 #include "Penumbra/Animation/RagdollSystem.h"
@@ -340,6 +341,7 @@ namespace Penumbra {
 		m_PhysicsWorld = CreateScope<PhysicsWorld>(*this);
 		m_AudioScene = CreateScope<AudioScene>(*this, m_AudioDeviceEnabled);
 		m_PerceptionSystem = CreateScope<PerceptionSystem>(*this);
+		m_FogOfWarSystem = CreateScope<FogOfWarSystem>(*this);
 		m_StimSystem = CreateScope<StimSystem>(*this);
 		m_NavigationSystem = CreateScope<NavigationSystem>(*this);
 		m_ScriptEngine = CreateScope<ScriptEngine>(*this);
@@ -371,6 +373,7 @@ namespace Penumbra {
 		m_NavigationSystem.reset();
 		m_StimSystem.reset();
 		m_PerceptionSystem.reset();
+		m_FogOfWarSystem.reset();
 		if (m_AudioScene)
 			m_AudioScene->Stop();
 		m_AudioScene.reset();
@@ -434,6 +437,8 @@ namespace Penumbra {
 		lap(profile.Ragdolls);
 		AnimationSystem::Update(*this, ts);
 		lap(profile.Animation);
+		m_FogOfWarSystem->Update(ts); // what the player sees, once everything has moved
+		lap(profile.FogOfWar);
 
 		m_IsUpdating = false;
 		FlushPendingDestroys();

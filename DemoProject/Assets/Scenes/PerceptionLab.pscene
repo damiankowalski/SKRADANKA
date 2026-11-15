@@ -963,7 +963,7 @@
         },
         "Transform": {
           "Translation": [
-            -0.3889537692815525,
+            -0.38895376928155256,
             0.08,
             -0.3888636848069936
           ],
@@ -1821,6 +1821,7 @@
           "Reflectance": 0.25
         },
         "AudioListener": {},
+        "FogOfWar": {},
         "Script": {
           "Script": "Scripts/Player.lua"
         }

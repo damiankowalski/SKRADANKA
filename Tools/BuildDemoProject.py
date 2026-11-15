@@ -259,6 +259,7 @@ def add_player(doc, position, yaw=0.0):
                      CharacterController={"Radius": 0.3, "Height": 1.8},
                      PerceptionTarget={"Reflectance": 0.25},
                      AudioListener={},
+                     FogOfWar={},  # he sees a cone in front and a little circle around him (docs/FogOfWar.md)
                      Script={"Script": "Scripts/Player.lua"})
     character_model(doc, player, THIEF)
     return player

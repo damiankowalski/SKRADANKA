@@ -10,6 +10,7 @@ window (nothing is drawn headless).
 | F4 | debug panel (frees the mouse; the game gets no input while it is up) |
 | F5 | freelook: the camera leaves the thief |
 | F6 | pause / resume the simulation |
+| F7 | fog of war on / off (what the thief sees, or the whole level) |
 
 `--debug-ui performance,panel,freelook` opens any of them at start. F1 (the game's controls panel) and F12
 (screenshot) stay with the game. The panel's text follows the HUD's scale (1080 lines = 1, twice as large on a
@@ -23,7 +24,7 @@ Top left, refreshed twice a second over the frames since the last refresh:
 * **CPU**: the process's CPU time over wall time, as a share of one core (100% = one core busy) and of every
   logical core; the time the simulation (`update`) and the CPU side of rendering (`render`) take per frame.
 * **Systems**: what each step of `Scene::RunRuntimeFrame` costs (scripts, navigation, physics, contacts, stims,
-  perception, smoke, audio, ragdolls, animation, deferred destruction), averaged (`Scene::GetFrameProfile`).
+  perception, smoke, audio, ragdolls, animation, fog of war, deferred destruction), averaged (`Scene::GetFrameProfile`).
 * **GPU**: the time the GPU spends on a frame (timestamp queries around `SceneRenderer::Render`, read back a
   few frames later; "no timer" until the first arrives) and video memory: used of budget on D3D12 (DXGI) and on
   Vulkan with `VK_EXT_memory_budget` (MoltenVK has it); otherwise only the size of the GPU's memory.
@@ -31,6 +32,12 @@ Top left, refreshed twice a second over the frames since the last refresh:
 * Draw calls, triangles, lights, shadow views and culled objects of the last frame; entity and body counts.
 
 ## Debug panel (F4)
+
+**Fog of war: what the thief sees** (`FogOfWar.md`): the switch (also F7; it lasts across scene loads and
+overrides the level's FogOfWar component, without changing it), and the thief's FogOfWar settings live: whether
+it is on for him and hides guards, the cone, its soft edge, the awareness circle, the view distance, and how
+dark and grey the unseen part is. Values tuned here are not saved: copy them into the level. The count shows the
+guards and bodies hidden right now.
 
 **Guards: sight and hearing** draws, for every awake NPC with `Perception`:
 
@@ -82,7 +89,8 @@ a patrol or a search in slow motion or fast forward.
 The camera detaches from the thief and starts where the game camera was. Hold the right mouse button to look,
 WASD to move, Q/E down/up, Shift for four times the speed, the wheel to change the speed. The game goes on (pause
 with F6); the thief does not move. The guards' overlays are drawn while it is on, so their fans and labels can be
-followed from above. F5 again returns to the thief's camera.
+followed from above. F5 again returns to the thief's camera. The fog of war stays the thief's: from freelook you see
+what he sees (and what he does not, dark); F7 shows the whole level.
 
 ## For engine code
 
