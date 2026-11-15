@@ -26,6 +26,7 @@ end
 function MossArrow:on_collision(other)
     if self.burst then return end
     self.burst = true
+    require("Scripts/Arrow").push(self.entity, other)
     local point = MossArrow.floor_point(self.entity, self.min_up)
     if point then scene.instantiate(self.patch, point + vec3(0, 0.01, 0)) end -- resting on the floor, not in it
     Noises.emit("Moss", self.entity:get_position(), self.entity)

@@ -108,6 +108,48 @@ TEST_SUITE("Physics")
 		fixture.SceneInstance.OnRuntimeStop();
 	}
 
+	TEST_CASE("Ragdoll hinges turn one way only: positive about the axis by the right-hand rule")
+	{
+		// A root high up (no gravity) and a shin hanging from it on a hinge about +X that may only turn
+		// positive (0..90 degrees): a positive turn about +X swings the hanging part towards -Z.
+		auto swing = [](float push) {
+			PhysicsFixture fixture;
+			fixture.SceneInstance.OnRuntimeStart();
+			PhysicsWorld& physics = *fixture.SceneInstance.GetPhysicsWorld();
+			physics.SetGravity(glm::vec3(0.0f));
+			std::vector<RagdollPartDesc> parts(2);
+			parts[0].Position = { 0.0f, 3.0f, 0.0f };
+			parts[0].Radius = 0.1f;
+			parts[0].HalfHeight = 0.2f;
+			parts[0].Mass = 10.0f; // Stabilize() evens out large mass ratios between parts
+			parts[1].Parent = 0;
+			parts[1].Position = { 0.0f, 2.3f, 0.0f };
+			parts[1].Radius = 0.08f;
+			parts[1].HalfHeight = 0.2f;
+			parts[1].Mass = 3.0f;
+			parts[1].JointPosition = { 0.0f, 2.6f, 0.0f };
+			parts[1].TwistAxis = { 0.0f, -1.0f, 0.0f };
+			parts[1].Hinge = true;
+			parts[1].HingeAxis = { 1.0f, 0.0f, 0.0f };
+			parts[1].HingeMinDegrees = 0.0f;
+			parts[1].HingeMaxDegrees = 90.0f;
+			std::string error;
+			const UUID owner(42);
+			REQUIRE_MESSAGE(physics.CreateRagdoll(owner, parts, glm::vec3(0.0f), error), error);
+			physics.AddRagdollImpulse(owner, { 0.0f, 0.0f, push }, { 0.0f, 2.1f, 0.0f });
+			Test::Simulate(fixture.SceneInstance, 1.0f);
+			std::vector<RagdollPartTransform> transforms;
+			REQUIRE(physics.GetRagdollTransforms(owner, transforms));
+			fixture.SceneInstance.OnRuntimeStop();
+			// The hanging part's turn about X relative to the root (the pair also turns as a whole).
+			const glm::quat relative = glm::inverse(transforms[0].Rotation) * transforms[1].Rotation;
+			return glm::degrees(2.0f * std::atan2(relative.x, relative.w));
+		};
+		const float allowed = swing(-3.0f), blocked = swing(3.0f);
+		CHECK(allowed > 20.0f);  // pushed towards -Z: turns positive, freely
+		CHECK(blocked > -3.0f);  // pushed towards +Z: held at the limit (0)
+	}
+
 	TEST_CASE("Impulses, velocities, teleport and radial impulses")
 	{
 		PhysicsFixture fixture;

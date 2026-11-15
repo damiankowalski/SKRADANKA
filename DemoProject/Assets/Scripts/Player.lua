@@ -456,6 +456,8 @@ end
 
 function Player:pick_up(body)
     -- Over the shoulders it is not a separate body anyone can find; it becomes one again when put down.
+    -- A limp body (ragdoll) is lifted in the carrying pose of its animation.
+    if physics.ragdoll_active(body) then physics.ragdoll_stop(body) end
     self.carrying = { entity = body, target = body:get("PerceptionTarget") }
     if self.carrying.target then body:remove("PerceptionTarget") end
     body:set_parent(self.entity)
@@ -479,6 +481,8 @@ function Player:drop_body()
     body:set_position(floor and floor.point or spot)
     body:set_rotation(vec3(0, self.yaw, 0))
     if target then body:add("PerceptionTarget", target) end
+    -- Put down, it slumps where it lands (a ragdoll again).
+    if body:has("Ragdoll") then physics.ragdoll_start(body) end
     Noises.emit("BodyDrop", body:get_position(), self.entity)
     return "drop"
 end

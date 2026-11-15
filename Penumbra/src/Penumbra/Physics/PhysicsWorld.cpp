@@ -25,8 +25,11 @@
 #include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Collision/Shape/StaticCompoundShape.h>
+#include <Jolt/Physics/Constraints/HingeConstraint.h>
+#include <Jolt/Physics/Constraints/SwingTwistConstraint.h>
 #include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/Physics/PhysicsSystem.h>
+#include <Jolt/Physics/Ragdoll/Ragdoll.h>
 #include <Jolt/RegisterTypes.h>
 
 namespace Penumbra {
@@ -141,7 +144,7 @@ namespace Penumbra {
 			{
 				const uint64_t a = body1.GetUserData();
 				const uint64_t b = body2.GetUserData();
-				if (a == 0 || b == 0)
+				if (a == 0 || b == 0 || a == b) // a == b: two parts of one ragdoll
 					return;
 				const JPH::RVec3 point = manifold.GetWorldSpaceContactPointOn1(0);
 				// Called before the solver: the velocities are those of the moment of impact.
@@ -183,6 +186,8 @@ namespace Penumbra {
 		std::unordered_map<UUID, JPH::BodyID> Bodies;
 		std::unordered_map<UUID, JPH::Ref<JPH::CharacterVirtual>> Characters;
 		std::unordered_map<UUID, float> CharacterHeights; // height of the current character shape
+		std::unordered_map<UUID, JPH::Ref<JPH::Ragdoll>> Ragdolls;
+		JPH::CollisionGroup::GroupID NextRagdollGroup = 1; // each ragdoll its own group: its parts skip each other, not other ragdolls
 		float Accumulator = 0.0f;
 		bool Started = false;
 
@@ -390,6 +395,16 @@ namespace Penumbra {
 				Characters.erase(it);
 				CharacterHeights.erase(uuid);
 			}
+			RemoveRagdoll(uuid);
+		}
+
+		void RemoveRagdoll(UUID uuid)
+		{
+			if (const auto it = Ragdolls.find(uuid); it != Ragdolls.end())
+			{
+				it->second->RemoveFromPhysicsSystem();
+				Ragdolls.erase(it);
+			}
 		}
 
 		void UpdateCharacters(float dt)
@@ -552,6 +567,8 @@ namespace Penumbra {
 		for (const auto& [uuid, body] : m_Impl->Bodies)
 			all.push_back(uuid);
 		for (const auto& [uuid, character] : m_Impl->Characters)
+			all.push_back(uuid);
+		for (const auto& [uuid, ragdoll] : m_Impl->Ragdolls)
 			all.push_back(uuid);
 		for (UUID uuid : all)
 			m_Impl->RemoveEntity(uuid);
@@ -769,6 +786,141 @@ namespace Penumbra {
 			const float falloff = 1.0f - std::clamp(distance / radius, 0.0f, 1.0f);
 			m_Impl->Bodies_().AddImpulse(it->second, ToJolt(offset * strength * falloff));
 		}
+	}
+
+	bool PhysicsWorld::CreateRagdoll(UUID owner, const std::vector<RagdollPartDesc>& parts, const glm::vec3& velocity, std::string& error)
+	{
+		if (parts.empty() || parts.front().Parent != -1)
+		{
+			error = "a ragdoll needs a root part first";
+			return false;
+		}
+		m_Impl->RemoveRagdoll(owner);
+
+		JPH::Ref<JPH::Skeleton> skeleton = new JPH::Skeleton;
+		JPH::Ref<JPH::RagdollSettings> settings = new JPH::RagdollSettings;
+		settings->mSkeleton = skeleton;
+		settings->mParts.resize(parts.size());
+		for (size_t i = 0; i < parts.size(); ++i)
+		{
+			const RagdollPartDesc& desc = parts[i];
+			if (desc.Parent >= static_cast<int32_t>(i) || desc.Radius <= 0.0f || desc.Mass <= 0.0f)
+			{
+				error = std::format("ragdoll part {}: parents must come first, radius and mass must be positive", i);
+				return false;
+			}
+			skeleton->AddJoint(std::format("part{}", i), desc.Parent);
+
+			JPH::RagdollSettings::Part& part = settings->mParts[i];
+			if (desc.HalfHeight > 0.001f)
+				part.SetShape(new JPH::CapsuleShape(desc.HalfHeight, desc.Radius));
+			else
+				part.SetShape(new JPH::SphereShape(desc.Radius));
+			part.mPosition = JPH::RVec3(ToJolt(desc.Position));
+			part.mRotation = ToJolt(glm::normalize(desc.Rotation));
+			part.mMotionType = JPH::EMotionType::Dynamic;
+			part.mMotionQuality = JPH::EMotionQuality::LinearCast; // thin limbs must not tunnel through floors
+			part.mObjectLayer = Layers::Moving;
+			part.mOverrideMassProperties = JPH::EOverrideMassProperties::CalculateInertia;
+			part.mMassPropertiesOverride.mMass = desc.Mass;
+			part.mLinearDamping = 0.1f;
+			part.mAngularDamping = 0.8f; // limp, not floppy
+			part.mFriction = std::max(desc.Friction, 0.0f);
+			part.mUserData = static_cast<uint64_t>(owner);
+			part.mLinearVelocity = ToJolt(velocity);
+			if (desc.Parent >= 0 && desc.Hinge)
+			{
+				const glm::vec3 axis = glm::normalize(desc.HingeAxis);
+				// The normal axis: the part's own direction, made square to the hinge.
+				glm::vec3 normal = desc.TwistAxis - axis * glm::dot(desc.TwistAxis, axis);
+				normal = glm::length(normal) > 1e-4f ? glm::normalize(normal) : glm::normalize(glm::cross(axis, glm::vec3(0.0f, 1.0f, 0.0f)));
+				JPH::Ref<JPH::HingeConstraintSettings> joint = new JPH::HingeConstraintSettings;
+				joint->mSpace = JPH::EConstraintSpace::WorldSpace;
+				joint->mPoint1 = joint->mPoint2 = JPH::RVec3(ToJolt(desc.JointPosition));
+				joint->mHingeAxis1 = joint->mHingeAxis2 = ToJolt(axis);
+				joint->mNormalAxis1 = joint->mNormalAxis2 = ToJolt(normal);
+				joint->mLimitsMin = glm::radians(std::clamp(desc.HingeMinDegrees, -180.0f, 0.0f));
+				joint->mLimitsMax = glm::radians(std::clamp(desc.HingeMaxDegrees, 0.0f, 180.0f));
+				part.mToParent = joint;
+			}
+			else if (desc.Parent >= 0)
+			{
+				const glm::vec3 twist = glm::normalize(desc.TwistAxis);
+				// Any axis across the twist axis will do as the plane axis.
+				const glm::vec3 across = glm::normalize(glm::abs(twist.y) < 0.9f ? glm::cross(twist, glm::vec3(0.0f, 1.0f, 0.0f))
+																				 : glm::cross(twist, glm::vec3(1.0f, 0.0f, 0.0f)));
+				JPH::Ref<JPH::SwingTwistConstraintSettings> joint = new JPH::SwingTwistConstraintSettings;
+				joint->mSpace = JPH::EConstraintSpace::WorldSpace;
+				joint->mPosition1 = joint->mPosition2 = JPH::RVec3(ToJolt(desc.JointPosition));
+				joint->mTwistAxis1 = joint->mTwistAxis2 = ToJolt(twist);
+				joint->mPlaneAxis1 = joint->mPlaneAxis2 = ToJolt(across);
+				joint->mNormalHalfConeAngle = joint->mPlaneHalfConeAngle = glm::radians(std::clamp(desc.SwingDegrees, 0.0f, 170.0f));
+				const float twistLimit = glm::radians(std::clamp(desc.TwistDegrees, 0.0f, 170.0f));
+				joint->mTwistMinAngle = -twistLimit;
+				joint->mTwistMaxAngle = twistLimit;
+				part.mToParent = joint;
+			}
+		}
+		skeleton->CalculateParentJointIndices();
+		settings->Stabilize();
+		settings->DisableParentChildCollisions();
+		settings->CalculateBodyIndexToConstraintIndex();
+
+		JPH::Ref<JPH::Ragdoll> ragdoll = settings->CreateRagdoll(m_Impl->NextRagdollGroup++, static_cast<uint64_t>(owner), m_Impl->System.get());
+		if (!ragdoll)
+		{
+			error = "Jolt could not create the ragdoll (out of bodies?)";
+			return false;
+		}
+		ragdoll->AddToPhysicsSystem(JPH::EActivation::Activate);
+		m_Impl->Ragdolls[owner] = ragdoll;
+		return true;
+	}
+
+	void PhysicsWorld::RemoveRagdoll(UUID owner) { m_Impl->RemoveRagdoll(owner); }
+
+	bool PhysicsWorld::HasRagdoll(UUID owner) const { return m_Impl->Ragdolls.contains(owner); }
+
+	bool PhysicsWorld::GetRagdollTransforms(UUID owner, std::vector<RagdollPartTransform>& transforms) const
+	{
+		const auto it = m_Impl->Ragdolls.find(owner);
+		if (it == m_Impl->Ragdolls.end())
+			return false;
+		transforms.clear();
+		for (const JPH::BodyID& body : it->second->GetBodyIDs())
+		{
+			JPH::RVec3 position;
+			JPH::Quat rotation;
+			m_Impl->Bodies_().GetPositionAndRotation(body, position, rotation);
+			transforms.push_back({ FromJolt(JPH::Vec3(position)), FromJolt(rotation) });
+		}
+		return true;
+	}
+
+	bool PhysicsWorld::IsRagdollAwake(UUID owner) const
+	{
+		const auto it = m_Impl->Ragdolls.find(owner);
+		return it != m_Impl->Ragdolls.end() && it->second->IsActive();
+	}
+
+	void PhysicsWorld::AddRagdollImpulse(UUID owner, const glm::vec3& impulse, const glm::vec3& point)
+	{
+		const auto it = m_Impl->Ragdolls.find(owner);
+		if (it == m_Impl->Ragdolls.end())
+			return;
+		JPH::BodyID nearest;
+		float nearestDistance = std::numeric_limits<float>::max();
+		for (const JPH::BodyID& body : it->second->GetBodyIDs())
+		{
+			const float distance = glm::distance(FromJolt(JPH::Vec3(m_Impl->Bodies_().GetCenterOfMassPosition(body))), point);
+			if (distance < nearestDistance)
+			{
+				nearestDistance = distance;
+				nearest = body;
+			}
+		}
+		if (!nearest.IsInvalid())
+			m_Impl->Bodies_().AddImpulse(nearest, ToJolt(impulse), JPH::RVec3(ToJolt(point)));
 	}
 
 	void PhysicsWorld::SetGravity(const glm::vec3& gravity) { m_Impl->System->SetGravity(ToJolt(gravity)); }

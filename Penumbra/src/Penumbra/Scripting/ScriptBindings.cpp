@@ -4,6 +4,7 @@
 #include "Penumbra/AI/PerceptionModel.h"
 #include "Penumbra/AI/PerceptionSystem.h"
 #include "Penumbra/Animation/AnimationSystem.h"
+#include "Penumbra/Animation/RagdollSystem.h"
 #include "Penumbra/Asset/AssetManager.h"
 #include "Penumbra/Audio/AudioScene.h"
 #include "Penumbra/Core/Input.h"
@@ -226,6 +227,13 @@ namespace Penumbra {
 				e.SceneRef->SetWorldTransform(entity, Math::ComposeTransform(position, rotation, scale));
 				if (PhysicsWorld* physics = e.SceneRef->GetPhysicsWorld())
 					physics->Teleport(entity, position, rotation);
+				// A limp body moves whole, in the pose it lay in.
+				if (const RagdollComponent* ragdoll = entity.TryGetComponent<RagdollComponent>(); ragdoll && ragdoll->RuntimeActive)
+				{
+					std::string error;
+					if (!RagdollSystem::Teleport(*e.SceneRef, entity, error))
+						PN_CORE_WARN("set_position: the ragdoll of '{}' could not follow: {}", entity.GetName(), error);
+				}
 			},
 			"get_local_position", [](const ScriptEntity& e) { return e.Resolve().GetComponent<TransformComponent>().Translation; },
 			"set_local_position", [](const ScriptEntity& e, const glm::vec3& p) { e.Resolve().GetComponent<TransformComponent>().Translation = p; },
@@ -481,6 +489,22 @@ namespace Penumbra {
 		physics.set_function("set_velocity", [requirePhysics](const ScriptEntity& e, const glm::vec3& v) { requirePhysics().SetLinearVelocity(e.Resolve(), v); });
 		physics.set_function("get_velocity", [requirePhysics](const ScriptEntity& e) { return requirePhysics().GetLinearVelocity(e.Resolve()); });
 		physics.set_function("radial_impulse", [requirePhysics](const glm::vec3& c, float r, float s) { requirePhysics().AddRadialImpulse(c, r, s); });
+		// Ragdolls (RagdollComponent): start hands the body to physics from its pose, stop gives it back to the animation.
+		physics.set_function("ragdoll_start", [scene](const ScriptEntity& e) {
+			std::string error;
+			if (RagdollSystem::Activate(*scene, e.Resolve(), error))
+				return true;
+			PN_CORE_WARN("physics.ragdoll_start: {}", error);
+			return false;
+		});
+		physics.set_function("ragdoll_stop", [scene](const ScriptEntity& e) { RagdollSystem::Deactivate(*scene, e.Resolve()); });
+		physics.set_function("ragdoll_active", [](const ScriptEntity& e) {
+			const RagdollComponent* ragdoll = e.Resolve().TryGetComponent<RagdollComponent>();
+			return ragdoll && ragdoll->RuntimeActive;
+		});
+		physics.set_function("ragdoll_impulse", [requirePhysics](const ScriptEntity& e, const glm::vec3& impulse, const glm::vec3& point) {
+			requirePhysics().AddRagdollImpulse(e.Resolve().GetUUID(), impulse, point);
+		});
 		physics.set_function("get_gravity", [requirePhysics]() { return requirePhysics().GetGravity(); });
 		physics.set_function("set_gravity", [requirePhysics](const glm::vec3& g) { requirePhysics().SetGravity(g); });
 

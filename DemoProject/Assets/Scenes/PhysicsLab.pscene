@@ -1145,6 +1145,7 @@
             }
           ]
         },
+        "Ragdoll": {},
         "Script": {
           "Script": "Scripts/Guard.lua",
           "Properties": {
@@ -1199,6 +1200,123 @@
       "ID": "1025",
       "Components": {
         "Tag": {
+          "Tag": "Lookout"
+        },
+        "Transform": {
+          "Translation": [
+            -1.6,
+            1.73,
+            -3.0
+          ],
+          "Rotation": [
+            0,
+            90,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "CharacterController": {
+          "Radius": 0.3,
+          "Height": 1.8
+        },
+        "Perception": {},
+        "StimResponse": {
+          "Rules": [
+            {
+              "Stim": "Gas",
+              "Threshold": 0.3,
+              "Once": true,
+              "Actions": [
+                {
+                  "Type": "Knockout"
+                }
+              ]
+            },
+            {
+              "Stim": "Fire",
+              "Threshold": 0.5,
+              "Once": false,
+              "Actions": [
+                {
+                  "Type": "Damage",
+                  "Value": 75.0
+                },
+                {
+                  "Type": "Alarm"
+                }
+              ]
+            },
+            {
+              "Stim": "Water",
+              "Threshold": 0.5,
+              "Once": false,
+              "Actions": [
+                {
+                  "Type": "Alarm"
+                }
+              ]
+            }
+          ]
+        },
+        "Ragdoll": {},
+        "Script": {
+          "Script": "Scripts/Guard.lua",
+          "Properties": {
+            "waypoints": "",
+            "catch_scene": "Scenes/PhysicsLab.pscene"
+          }
+        }
+      }
+    },
+    {
+      "ID": "1026",
+      "Components": {
+        "Tag": {
+          "Tag": "Model"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            0,
+            180,
+            0
+          ],
+          "Scale": [
+            0.8,
+            0.8,
+            0.8
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Characters/Knight.glb",
+          "HiddenNodes": [
+            "Knight_Cape",
+            "1H_Sword_Offhand",
+            "2H_Sword",
+            "Badge_Shield",
+            "Rectangle_Shield",
+            "Spike_Shield"
+          ]
+        },
+        "Animator": {
+          "Clip": "Idle",
+          "BlendDuration": 0.2
+        }
+      },
+      "Parent": "1025"
+    },
+    {
+      "ID": "1027",
+      "Components": {
+        "Tag": {
           "Tag": "Player"
         },
         "Transform": {
@@ -1232,7 +1350,7 @@
       }
     },
     {
-      "ID": "1026",
+      "ID": "1028",
       "Components": {
         "Tag": {
           "Tag": "Model"
@@ -1268,10 +1386,10 @@
           "BlendDuration": 0.2
         }
       },
-      "Parent": "1025"
+      "Parent": "1027"
     },
     {
-      "ID": "1027",
+      "ID": "1029",
       "Components": {
         "Tag": {
           "Tag": "Navigation"

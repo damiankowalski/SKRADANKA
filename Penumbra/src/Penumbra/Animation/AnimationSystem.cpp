@@ -124,6 +124,12 @@ namespace Penumbra {
 		pose = Animation::RestPose(mesh.Skeleton);
 		if (!animator)
 			return;
+		// A ragdoll (or anything else) has taken over the pose.
+		if (animator->RuntimePoseOverride && animator->RuntimePoseOverride->size() == mesh.Skeleton.Nodes.size())
+		{
+			pose = *animator->RuntimePoseOverride;
+			return;
+		}
 
 		// Not updated yet (editor, first frame): show the authored clip's first frame.
 		const bool started = !animator->RuntimeClip.empty();

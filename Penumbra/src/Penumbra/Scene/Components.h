@@ -1,9 +1,11 @@
 #pragma once
 
+#include "Penumbra/Animation/AnimationData.h"
 #include "Penumbra/Core/Base.h"
 #include "Penumbra/Core/UUID.h"
 #include "Penumbra/Math/Math.h"
 
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <variant>
@@ -88,6 +90,9 @@ namespace Penumbra {
 		float RuntimeFadeDuration = 0.0f; // duration of the current crossfade
 		float RuntimeRequestedFade = -1.0f; // one-shot crossfade override for the next clip change (anim.play)
 		bool RuntimeFinished = false;     // a non-looping clip reached its end
+		// Not a field (not saved, not in the registry): a pose that replaces the animation while set,
+		// indexed like the skeleton. A ragdoll writes its bodies' pose here (RagdollSystem).
+		std::shared_ptr<const Pose> RuntimePoseOverride;
 	};
 
 	// Overrides every material of the mesh. Without it the mesh's own (glTF) materials are used.
@@ -393,6 +398,23 @@ namespace Penumbra {
 		float Health = 100.0f; // the Damage stim action and ai.damage take it away; at 0 the NPC is Dead
 	};
 
+	struct RagdollRig; // RagdollSystem's per-body state
+
+	// A character whose body goes limp: knocked out or killed, its skinned model (the first child
+	// with an Animator) is handed to jointed physics bodies built from the skeleton (Animation/RagdollSystem).
+	struct RagdollComponent
+	{
+		bool Enabled = true;      // a knockout or death starts the ragdoll
+		float Mass = 70.0f;       // kg, the whole body
+		float RadiusScale = 1.0f; // limb thickness relative to the built-in humanoid
+		float Friction = 0.6f;    // of the body against floors (cloth and leather on stone): below tan(slope) it slides
+
+		// Runtime only
+		bool RuntimeActive = false; // physics drives the pose
+		bool RuntimeAwake = false;  // still moving; false once the body has come to rest
+		std::shared_ptr<RagdollRig> RuntimeRig; // not a field
+	};
+
 	// Something NPCs can see: the player, or a body. Silhouette points are local offsets sampled
 	// as the "control points" of the silhouette (head, shoulders, sides, centre...).
 	struct PerceptionTargetComponent
@@ -571,6 +593,6 @@ namespace Penumbra {
 		DirectionalLightComponent, PointLightComponent, SpotLightComponent, EnvironmentComponent, RigidBodyComponent, BoxColliderComponent,
 		SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent, CharacterControllerComponent, ScriptComponent,
 		AudioSourceComponent, AudioListenerComponent, PerceptionComponent, PerceptionTargetComponent, VitalityComponent, SmokeVolumeComponent, FlameComponent,
-		StimSourceComponent, StimResponseComponent, NavMeshComponent, NavAgentComponent, SurfaceComponent, PrefabComponent>;
+		StimSourceComponent, StimResponseComponent, NavMeshComponent, NavAgentComponent, SurfaceComponent, PrefabComponent, RagdollComponent>;
 
 }

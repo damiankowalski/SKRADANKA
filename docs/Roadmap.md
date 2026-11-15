@@ -80,18 +80,22 @@ give way: an agent sees another NPC up to ~2 m ahead and steps to its right when
 do), goes round one who stands, and stops beside a waypoint another NPC already stands on (the two
 cloister guards used to circle a shared corner for good).
 
+**Ragdolls**: knocked out or killed, a guard or servant goes limp. Twelve capsules and a ball (hips,
+spine, chest, head, arms, legs) built from the humanoid skeleton and sized to the rig, swing-twist joints
+for the trunk, shoulders and hips, hinges for knees (backwards) and elbows (forwards); the fall starts
+from the pose and speed he had, the body settles and sleeps, and his origin follows the hips along the
+floor. Guards see a body by its parts (less of it behind a crate); a bolt shoves the part it strikes;
+carried in the animation's pose, limp again when put down; `set_position` moves a limp body whole. The
+PhysicsLab has a lookout on the ramp to knock out and shove down with bolts (an 18 degree slope is too
+gentle for a body to roll by itself). Component `Ragdoll` (`Mass`, `RadiusScale`, `Friction`), Lua
+`physics.ragdoll_start/stop/active/impulse`. Out of scope: ragdolls for the dogs (another skeleton),
+per-bone tuning in the editor.
+
 ## In progress
 
-Nothing: the next package is ragdolls.
+Nothing: the next package is to be chosen from Next and Later.
 
 ## Next
-
-**Ragdolls** (L, ~3 sessions; Animation, Physics, AI, `Player.lua`): Jolt ragdolls built from the
-skeleton (capsules per main bone, swing-twist limits) that take over from the animation on a knockout or
-death with the body's current pose and speed; bolts push them; bodies settle and sleep; guards see the
-body by its bones (a body folded behind a crate is harder to spot); carried rigidly, a ragdoll again when
-put down. Risks: the KayKit proportions (big head, short limbs), stability with light limbs, identical
-results on Windows and macOS.
 
 **Later, discussed**: a fog of war over what the thief cannot see (rendered from the character's eyes,
 not the camera: no peeking round corners for free) together with leaning on Q/E, which needs the use key

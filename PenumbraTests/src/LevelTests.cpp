@@ -1,6 +1,9 @@
 #include "TestHelpers.h"
 
+#include "Penumbra/Animation/Animation.h"
+#include "Penumbra/Asset/AssetManager.h"
 #include "Penumbra/Core/Input.h"
+#include "Penumbra/AI/PerceptionSystem.h"
 #include "Penumbra/Navigation/NavigationSystem.h"
 #include "Penumbra/Project/Project.h"
 #include "Penumbra/Scene/SceneSerializer.h"
@@ -59,7 +62,55 @@ namespace {
 
 TEST_SUITE("World")
 {
-	TEST_CASE("Physics lab: an arrow knocks the copper jug off the table, and the guard hears it land")
+	TEST_CASE("Cloister: a knocked-out guard goes limp, falls, settles; carried he is stiff, put down limp again")
+	{
+		Level cloister("Scenes/Cloister.pscene");
+		cloister.Run(1.0f); // walking his round
+		Entity guard = cloister.Entity("GuardNorth");
+		REQUIRE(guard.HasComponent<RagdollComponent>());
+		CHECK(cloister.Lua("return ai.knock_out(scene.find('GuardNorth'))") == "true");
+		CHECK(guard.GetComponent<RagdollComponent>().RuntimeActive);
+
+		// The head, from the pose the ragdoll writes into the model's skeleton.
+		auto headHeight = [&]() {
+			Entity model = guard.GetChildren().front();
+			for (Entity child : guard.GetChildren())
+				if (child.GetName() == "Model")
+					model = child;
+			const AnimatorComponent& animator = model.GetComponent<AnimatorComponent>();
+			REQUIRE(animator.RuntimePoseOverride);
+			const std::shared_ptr<const MeshData> mesh = AssetManager::GetMesh(model.GetComponent<MeshComponent>().Mesh);
+			std::vector<glm::mat4> globals;
+			Animation::ComputeGlobalTransforms(mesh->Skeleton, *animator.RuntimePoseOverride, globals);
+			const int32_t head = mesh->Skeleton.FindNode("head");
+			return (cloister.SceneInstance.GetWorldTransform(model) * globals[static_cast<size_t>(head)])[3].y;
+		};
+		cloister.Run(0.1f);
+		const float standing = headHeight();
+		CHECK(standing > 0.8f); // the head bone of a 1.8 m guard (the model is scaled 0.8), still up
+		bool settled = false;
+		for (int step = 0; step < 15 * 10 && !settled; ++step)
+		{
+			cloister.Run(0.1f);
+			settled = !guard.GetComponent<RagdollComponent>().RuntimeAwake;
+		}
+		CHECK(settled); // came to rest: physics put the bodies to sleep
+		CHECK(headHeight() < 0.6f); // lying on the floor
+		CHECK(std::abs(cloister.Position("GuardNorth").y) < 0.2f); // the origin followed the hips down to the floor
+
+		// Lifted onto the thief's shoulders: the animation's carrying pose; put down: limp again.
+		cloister.Lua("local p = scene.find('Player'); local g = scene.find('GuardNorth'); p:set_position(g:get_position() + vec3(0, 0.1, 0.8)); "
+					 "p:script():pick_up(g)");
+		CHECK_FALSE(guard.GetComponent<RagdollComponent>().RuntimeActive);
+		cloister.Run(0.2f);
+		cloister.Lua("scene.find('Player'):script():drop_body()");
+		CHECK(guard.GetComponent<RagdollComponent>().RuntimeActive);
+		cloister.Run(2.0f);
+		CHECK(headHeight() < 0.7f);
+		CHECK(cloister.SceneInstance.GetScriptEngine()->GetErrors().empty());
+	}
+
+	TEST_CASE("Physics lab: an arrow knocks the copper jug off the table, and the guards hear it land")
 	{
 		Level lab("Scenes/PhysicsLab.pscene");
 		lab.Run(0.5f);
@@ -72,9 +123,37 @@ TEST_SUITE("World")
 		lab.Lua("for _, e in ipairs(scene.entities_with('StimSource')) do if e:get_name() == 'WaterArrow' then physics.set_velocity(e, vec3(0, 0, -32)) end end");
 		lab.Run(2.0f);
 		CHECK(lab.Position("CopperJug").y < 2.5f); // fell off the table onto the platform
+		// The lookout on the ramp hears the clang; the guard below hears it too, or the lookout's shout.
+		const PerceptionComponent& lookout = lab.Entity("Lookout").GetComponent<PerceptionComponent>();
+		CHECK(lookout.RuntimeStimulusCause.find("Metal") != std::string::npos);
 		const PerceptionComponent& guard = lab.Entity("Guard").GetComponent<PerceptionComponent>();
 		CHECK(guard.RuntimeState != AwarenessState::Unaware);
-		CHECK(guard.RuntimeStimulusCause.find("Metal") != std::string::npos);
+		CHECK((guard.RuntimeStimulusCause.find("Metal") != std::string::npos || guard.RuntimeStimulusCause == "Shout"));
+		CHECK(lab.SceneInstance.GetScriptEngine()->GetErrors().empty());
+	}
+
+	TEST_CASE("Physics lab: the lookout on the ramp, knocked out, slumps on the slope; bolts shove him down")
+	{
+		Level lab("Scenes/PhysicsLab.pscene");
+		lab.Run(0.5f);
+		const glm::vec3 standing = lab.Position("Lookout");
+		REQUIRE(standing.y > 1.4f); // on the ramp, well above the floor
+		REQUIRE(lab.Lua("return ai.knock_out(scene.find('Lookout'))") == "true");
+		lab.Run(4.0f);
+		const glm::vec3 slumped = lab.Position("Lookout");
+		CHECK(slumped.y < standing.y);      // down on the slope
+		CHECK(slumped.y > standing.y - 0.6f); // 18 degrees: he does not roll off by himself
+		for (int bolt = 0; bolt < 3; ++bolt) // shot from up the ramp, into the body
+		{
+			lab.Lua("local g = scene.find('Lookout'):get_position(); local a = scene.instantiate('Prefabs/WaterArrow.pprefab', g + vec3(0, 1.2, -1.5)); "
+					"a:look_at(g + vec3(0, 0.2, 0)); _G.lab_bolt = a");
+			lab.Run(1.0f / 60.0f);
+			lab.Lua("physics.set_velocity(_G.lab_bolt, (scene.find('Lookout'):get_position() + vec3(0, 0.2, 0) - _G.lab_bolt:get_position()):normalized() * 32)");
+			lab.Run(1.0f);
+		}
+		const glm::vec3 shoved = lab.Position("Lookout");
+		CHECK(shoved.z > slumped.z + 0.2f); // further down the ramp (it descends southwards)
+		CHECK(shoved.y < slumped.y - 0.05f);
 		CHECK(lab.SceneInstance.GetScriptEngine()->GetErrors().empty());
 	}
 
@@ -156,6 +235,66 @@ TEST_SUITE("World")
 			  "270");
 		CHECK(cloister.Lua("local C = require('Scripts/Compass'); return C.heading(0) == 0 and C.heading(-90) == 90 and C.heading(180) == 180") ==
 			  "true");
+		CHECK(cloister.SceneInstance.GetScriptEngine()->GetErrors().empty());
+	}
+
+	TEST_CASE("Cloister: a bolt shoves a limp body; guards see the body by its bones, less of it behind a crate")
+	{
+		Level cloister("Scenes/Cloister.pscene");
+		cloister.Run(1.0f);
+		REQUIRE(cloister.Lua("return ai.knock_out(scene.find('GuardNorth'))") == "true");
+		Entity body = cloister.Entity("GuardNorth");
+		for (int step = 0; step < 150 && body.GetComponent<RagdollComponent>().RuntimeAwake; ++step)
+			cloister.Run(0.1f);
+		REQUIRE_FALSE(body.GetComponent<RagdollComponent>().RuntimeAwake);
+
+		// Seven silhouette points on the body's parts, all low: it lies on the floor.
+		const PerceptionTargetComponent& target = body.GetComponent<PerceptionTargetComponent>();
+		CHECK(target.Kind == TargetKind::Body);
+		REQUIRE(target.SilhouettePoints.size() == 7);
+		for (const glm::vec3& point : target.SilhouettePoints)
+			CHECK(point.y < 0.6f);
+
+		// Seen down the north corridor by the other guard, then with a waist-high crate in between.
+		auto visible = [&]() {
+			cloister.Lua("local g = scene.find('GuardSouth'); g:set_position(vec3(4, 0.05, -9.6)); g:set_rotation(vec3(0, -90, 0))");
+			return cloister.SceneInstance.GetPerceptionSystem()->ComputeVisibility(cloister.Entity("GuardSouth"), body).VisiblePoints;
+		};
+		const uint32_t open = visible();
+		CHECK(open >= 4);
+		cloister.Lua("local c = scene.create('Crate'); c:set_position(vec3(7.5, 0.5, -9.6)); c:add('BoxCollider', { HalfExtents = vec3(0.3, 0.5, 1.5) })");
+		cloister.Run(1.0f / 60.0f); // its body exists after a physics step
+		CHECK(visible() < open);
+
+		// A bolt into the body from the corridor shoves it along its flight (moved out of the corner
+		// first, so there is no wall behind it).
+		cloister.Lua("scene.find('GuardNorth'):set_position(vec3(2, 0.05, -9.6))");
+		cloister.Run(1.5f);
+		auto worldPoints = [&]() {
+			std::vector<glm::vec3> points;
+			const glm::mat4 world = cloister.SceneInstance.GetWorldTransform(body);
+			for (const glm::vec3& point : body.GetComponent<PerceptionTargetComponent>().SilhouettePoints)
+				points.push_back(glm::vec3(world * glm::vec4(point, 1.0f)));
+			return points;
+		};
+		const std::vector<glm::vec3> limbsBefore = worldPoints();
+		cloister.Lua("local g = scene.find('GuardNorth'):get_position(); local a = scene.instantiate('Prefabs/WaterArrow.pprefab', g + vec3(-1.5, 0.25, 0)); "
+					 "a:look_at(g + vec3(0, 0.15, 0)); _G.test_bolt = a");
+		cloister.Run(1.0f / 60.0f);
+		cloister.Lua("physics.set_velocity(_G.test_bolt, (scene.find('GuardNorth'):get_position() + vec3(0, 0.15, 0) - _G.test_bolt:get_position()):normalized() * 32)");
+		cloister.Run(1.0f);
+		const std::vector<glm::vec3> limbsAfter = worldPoints();
+		float moved = 0.0f, pushedAway = 0.0f;
+		for (size_t i = 0; i < limbsBefore.size(); ++i)
+		{
+			if (glm::distance(limbsAfter[i], limbsBefore[i]) > moved)
+			{
+				moved = glm::distance(limbsAfter[i], limbsBefore[i]);
+				pushedAway = limbsAfter[i].x - limbsBefore[i].x;
+			}
+		}
+		CHECK(moved > 0.15f);     // the struck limb swung
+		CHECK(pushedAway > 0.0f); // away from the shooter
 		CHECK(cloister.SceneInstance.GetScriptEngine()->GetErrors().empty());
 	}
 

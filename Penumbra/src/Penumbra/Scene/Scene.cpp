@@ -4,6 +4,7 @@
 #include "Penumbra/AI/PerceptionModel.h"
 #include "Penumbra/AI/PerceptionSystem.h"
 #include "Penumbra/Animation/AnimationSystem.h"
+#include "Penumbra/Animation/RagdollSystem.h"
 #include "Penumbra/Audio/AudioScene.h"
 #include "Penumbra/Navigation/NavigationSystem.h"
 #include "Penumbra/Physics/PhysicsWorld.h"
@@ -411,6 +412,7 @@ namespace Penumbra {
 		m_PerceptionSystem->Update(ts);
 		UpdateSmokeVolumes(ts);
 		m_AudioScene->Update(ts);
+		RagdollSystem::Update(*this); // limp bodies pose their skeletons before the animation is drawn
 		AnimationSystem::Update(*this, ts);
 
 		m_IsUpdating = false;
