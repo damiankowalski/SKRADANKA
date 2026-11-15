@@ -109,6 +109,14 @@ character's eye (a depth cube map like a point light's shadow, tested per pixel)
 peeking round corners for free. Component on the player, Lua to switch it and to ask what he sees, a toggle in
 the F4 panel. Leaning on Q/E follows as its own package (it moves the eye; the use key must leave E first).
 
+## Known bugs
+
+**Player character jitters** (reported in a playtest after PR #22, not reproduced yet): after a while of
+play the thief starts to shake. It began after several gas arrows, carrying unconscious guards' bodies a few
+times and walking over them. Trigger not narrowed down; the owner will narrow it before we fix it. Suspects
+to check then: the character controller fighting ragdoll bodies it stands on or pushes, and the camera
+following a body the character collides with.
+
 ## Next
 
 **Later, discussed**: leaning on Q/E (S-M, after the fog of war; the use key moves off E first); a
