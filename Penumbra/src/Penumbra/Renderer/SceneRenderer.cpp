@@ -990,6 +990,9 @@ namespace Penumbra {
 		Lights.clear();
 		auto& registry = scene.GetRegistry();
 		const float time = scene.GetTime();
+		// Fog of war: a lamp a hidden guard carries goes with him (lamps on walls stay lit for the player).
+		FogOfWarSystem* fog = scene.IsRunning() ? scene.GetFogOfWarSystem() : nullptr;
+		const bool fogActive = fog && fog->GetView().has_value();
 		View.DirectionalShadowIndex = -1.0f;
 
 		for (auto [handle, light] : registry.view<DirectionalLightComponent>().each())
@@ -1028,6 +1031,8 @@ namespace Penumbra {
 			if (!light.Enabled || Lights.size() >= GPU::MaxLights)
 				continue;
 			Entity entity(handle, &scene);
+			if (fogActive && fog->IsHidden(entity))
+				continue;
 			GPU::Light gpu{};
 			gpu.Type = GPU::LightSpot;
 			gpu.Position = scene.GetWorldPosition(entity);
@@ -1047,6 +1052,8 @@ namespace Penumbra {
 			if (!light.Enabled || Lights.size() >= GPU::MaxLights)
 				continue;
 			Entity entity(handle, &scene);
+			if (fogActive && fog->IsHidden(entity))
+				continue;
 			GPU::Light gpu{};
 			gpu.Type = GPU::LightPoint;
 			gpu.Position = scene.GetWorldPosition(entity);

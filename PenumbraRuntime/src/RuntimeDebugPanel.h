@@ -77,7 +77,7 @@ namespace Penumbra {
 		Scope<ImGuiHost> m_ImGui;
 		ImGuiStyle m_BaseStyle;
 		float m_AppliedScale = 0.0f;
-		float m_UserScale = 1.0f;
+		float m_UserScale = 0.75f;
 
 		// Performance
 		bool m_ShowPerformance = false;

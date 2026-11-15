@@ -24,7 +24,9 @@ Everything else is drawn **darkened** (`Brightness`, 0.22 of its light) and **dr
 (`Saturation`, 0.1). The level stays readable as a memory of the place. **Characters** there (NPCs, bodies:
 entities with Perception, CharacterController or Ragdoll, with all their children) are **not drawn at all**
 (`HideActors`), but their noises are still heard. A guard who walks out of the view stays drawn for
-`MemoryTime` (0.25 s), so he does not flicker on the cone's edge.
+`MemoryTime` (0.25 s), so he does not flicker on the cone's edge. A lamp such a character carries (a light below
+him in the hierarchy) goes dark with him, so a lantern does not give a hidden guard away; lamps on walls and
+posts stay lit whether he sees them or not.
 
 What the fog does not do (yet): it does not remember what was explored (everything unseen is shown dimmed,
 explored or not), and darkness in view is only as dark as the lighting makes it. Leaning (Q/E) will move the eye

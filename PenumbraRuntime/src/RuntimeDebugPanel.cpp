@@ -465,7 +465,7 @@ namespace Penumbra {
 			ImGui::SameLine();
 			if (ImGui::SmallButton("1x"))
 				m_TimeScale = 1.0f;
-			ImGui::SliderFloat("UI size", &m_UserScale, 0.75f, 2.0f, "%.2fx");
+			ImGui::SliderFloat("UI size", &m_UserScale, 0.5f, 2.0f, "%.2fx");
 		}
 		ImGui::End();
 		Input::SetGameInputBlocked(BlocksGameInput()); // the window's close button

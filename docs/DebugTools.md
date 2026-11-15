@@ -14,7 +14,7 @@ window (nothing is drawn headless).
 
 `--debug-ui performance,panel,freelook` opens any of them at start. F1 (the game's controls panel) and F12
 (screenshot) stay with the game. The panel's text follows the HUD's scale (1080 lines = 1, twice as large on a
-Retina Mac), and its "UI size" slider scales it further.
+Retina Mac), and its "UI size" slider scales it further (0.75 by default, 0.5 to 2).
 
 ## Performance overlay (F3)
 

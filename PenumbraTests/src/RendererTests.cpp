@@ -435,6 +435,11 @@ TEST_SUITE("Renderer")
 		Entity body = glowingBox("GuardBody", { 0.0f, 0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f });
 		body.RemoveComponent<BoxColliderComponent>();
 		scene.SetParent(body, guard, false);
+		// The lantern he carries: its light goes with him (a lamp on a wall would stay lit).
+		Entity lantern = scene.CreateEntity("Lantern");
+		lantern.AddComponent<PointLightComponent>().Range = 6.0f;
+		scene.SetParent(lantern, guard, false);
+		lantern.Transform().Translation = { 0.0f, 1.2f, 0.0f };
 
 		Entity thief = scene.CreateEntity("Thief");
 		thief.Transform().Translation = { 0.0f, 0.05f, 0.0f };
@@ -466,6 +471,7 @@ TEST_SUITE("Renderer")
 		CHECK(seenColor.g > seenColor.r + 0.4f);
 		CHECK(std::abs(behindColor.r - behindColor.g) < 0.05f); // behind the wall: grey
 		CHECK(scene.GetFogOfWarSystem()->IsHidden(guard));
+		const uint32_t lightsFogged = fixture.Renderer->GetStatistics().Lights;
 
 		// The testing switch shows everything as it is.
 		scene.GetFogOfWarSystem()->SetForcedOff(true);
@@ -475,6 +481,7 @@ TEST_SUITE("Renderer")
 		CHECK(behindClear.r > 0.5f);
 		CHECK(behindClear.r > behindColor.r + 0.2f);
 		CHECK(RendererFixture::Pixel(clear, guardPixel.x, guardPixel.y).b > 0.5f);
+		CHECK(fixture.Renderer->GetStatistics().Lights == lightsFogged + 1); // his lantern shines again
 
 		// Fog that changes nothing on screen still leaves the guard out: he is not drawn at all.
 		scene.GetFogOfWarSystem()->SetForcedOff(false);
