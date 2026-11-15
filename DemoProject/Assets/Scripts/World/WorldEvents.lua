@@ -157,7 +157,7 @@ function WorldEvents:on_update(dt)
     self:update_storm(dt)
     self:update_dogs(dt)
     if self.show_status and self.storm_time > 0 then
-        ui.text(ui.width() - 220, 20, self.rumble_time > 0 and "storm: thunder" or "storm", 2, { 0.6, 0.7, 1.0, 1 })
+        ui.text(ui.width() - 220, 124, self.rumble_time > 0 and "storm: thunder" or "storm", 2, { 0.6, 0.7, 1.0, 1 })
     end
 end
 

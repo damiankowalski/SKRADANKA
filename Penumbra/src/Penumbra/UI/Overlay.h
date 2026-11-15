@@ -2,14 +2,25 @@
 
 #include <glm/glm.hpp>
 
+#include <algorithm>
+#include <cstdint>
 #include <string>
 #include <vector>
 
 namespace Penumbra {
 
+	// The pixel HUD is laid out for a screen this many lines tall and scaled up on taller ones (a
+	// Retina Mac's framebuffer has twice the lines of its window): scripts work in these logical
+	// pixels (ui.width() / ui.height()), the renderer multiplies them by the scale. Never below 1.
+	inline constexpr float OverlayReferenceHeight = 1080.0f;
+	inline float OverlayScaleFor(uint32_t viewportHeight)
+	{
+		return std::max(1.0f, static_cast<float>(viewportHeight) / OverlayReferenceHeight);
+	}
+
 	// Immediate-mode HUD primitives emitted by gameplay scripts each frame and drawn
-	// on top of the final image by the scene renderer. Coordinates are in pixels,
-	// origin top-left of the viewport.
+	// on top of the final image by the scene renderer. Coordinates are in logical pixels
+	// (see OverlayScaleFor), origin top-left of the viewport.
 	struct OverlayRect
 	{
 		glm::vec2 Position{ 0.0f };

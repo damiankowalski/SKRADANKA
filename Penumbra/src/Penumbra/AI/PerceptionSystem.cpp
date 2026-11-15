@@ -360,6 +360,7 @@ namespace Penumbra {
 		const glm::vec3 eye = m_Scene.GetWorldPosition(observer) + glm::vec3(0.0f, perception.EyeHeight, 0.0f);
 		const glm::vec3 forward = glm::normalize(Math::Forward(observerRotation));
 		const float halfFov = glm::radians(std::clamp(perception.FieldOfView, 1.0f, 359.0f) * 0.5f);
+		const float focusHalfFov = std::min(glm::radians(std::max(perception.FocusFieldOfView, 0.0f) * 0.5f), halfFov);
 
 		const glm::vec3 targetPosition = m_Scene.GetWorldPosition(target);
 		const glm::mat4 targetFrame = Math::ComposeTransform(targetPosition, m_Scene.GetWorldRotation(target), glm::vec3(1.0f));
@@ -403,7 +404,8 @@ namespace Penumbra {
 			}
 
 			result.VisiblePoints++;
-			contrastSum += PerceptionModel::WeberContrast(lb, lp, perception.LuminanceFloor);
+			contrastSum += PerceptionModel::WeberContrast(lb, lp, perception.LuminanceFloor) *
+				PerceptionModel::ZoneContrastFactor(angle, focusHalfFov, perception.PeripheralContrast);
 			targetLumSum += lp;
 			backgroundLumSum += lb;
 			angleSum += angle;

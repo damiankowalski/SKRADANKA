@@ -459,7 +459,8 @@ namespace Penumbra {
 				const glm::vec3 eye = scene.GetWorldPosition(entity) + glm::vec3(0.0f, perception.EyeHeight, 0.0f);
 				const glm::vec3 forward = Math::Forward(scene.GetWorldRotation(entity));
 				const glm::vec4 color = StateColor(perception.RuntimeState);
-				debug.Cone(eye, forward, std::min(perception.ViewDistance, 6.0f), perception.FieldOfView * 0.5f, color);
+				debug.Cone(eye, forward, std::min(perception.ViewDistance, 6.0f), perception.FieldOfView * 0.5f, color * glm::vec4(1.0f, 1.0f, 1.0f, 0.45f));
+				debug.Cone(eye, forward, std::min(perception.ViewDistance, 6.0f), std::min(perception.FocusFieldOfView, perception.FieldOfView) * 0.5f, color);
 				// Suspicion meter above the head.
 				const glm::vec3 barStart = eye + glm::vec3(-0.5f, 0.5f, 0.0f);
 				debug.Line(barStart, barStart + glm::vec3(1.0f, 0.0f, 0.0f), { 0.2f, 0.2f, 0.2f, 1.0f });

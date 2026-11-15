@@ -59,8 +59,8 @@ end
 function MissionControl:draw_objectives(x, y)
     for _, objective in ipairs(self.mission.objectives) do
         local status = Mission.status(self.mission, objective)
-        ui.text(x, y, MARK[status] .. " " .. objective.text, 1.6, COLOR[status])
-        y = y + 24
+        ui.text(x, y, MARK[status] .. " " .. objective.text, 2, COLOR[status])
+        y = y + 28
     end
 end
 
@@ -72,8 +72,10 @@ function MissionControl:draw_hud(dt)
     end
     -- Missions without a loot objective (the cloister) show what was taken, without a target.
     local loot = loot_target > 0 and string.format("Loot %d / %d", self.mission.loot, loot_target) or string.format("Loot %d", self.mission.loot)
-    ui.text(w - #loot * 12 - 20, 20, loot, 2, { 1.0, 0.85, 0.4, 1 })
-    ui.text(w - 220, 48, self.mission.difficulty .. "   [Tab] objectives", 1.4, { 0.7, 0.7, 0.7, 0.8 })
+    -- Under the compass (Scripts/Compass.lua), right-aligned.
+    ui.text(w - #loot * 14.4 - 20, 64, loot, 2.4, { 1.0, 0.85, 0.4, 1 })
+    local line = self.mission.difficulty .. "   [Tab] objectives"
+    ui.text(w - #line * 10.8 - 20, 96, line, 1.8, { 0.7, 0.7, 0.7, 0.8 })
 
     self.show_objectives = math.max(self.show_objectives - dt, 0)
     if input.key("Tab") or self.show_objectives > 0 then self:draw_objectives(20, 50) end

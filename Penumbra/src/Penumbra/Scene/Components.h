@@ -293,7 +293,9 @@ namespace Penumbra {
 		// Vision
 		float EyeHeight = 1.65f;
 		float ViewDistance = 25.0f;
-		float FieldOfView = 120.0f;     // full cone angle, degrees
+		float FieldOfView = 130.0f;     // full cone angle, degrees (focus cone plus the peripheral bands)
+		float FocusFieldOfView = 90.0f; // central cone of full contrast; beyond it, out to FieldOfView, the eye only half sees
+		float PeripheralContrast = 0.5f; // contrast multiplier for silhouette points in the peripheral bands
 		float PeripheralFactor = 0.2f;  // P(theta) at the edge of the cone
 		float ContrastMin = 0.1f;       // C_min
 		float DarkSensitivity = 0.004f; // k_dark: how much darkness of the observed area raises the threshold

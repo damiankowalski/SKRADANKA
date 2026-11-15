@@ -59,6 +59,12 @@ namespace Penumbra {
 
 		std::optional<RaycastHit> Raycast(const glm::vec3& origin, const glm::vec3& direction, float maxDistance,
 			const PhysicsEntityFilter& filter = {}) const;
+		// Sweeps a sphere along the direction: the first solid body it touches (sensors are skipped).
+		// Distance is how far the sphere's centre travelled; 0 when it starts overlapping something.
+		// Point is the contact point on the surface. A thick ray: a camera boom uses it so the near
+		// plane never slips past a wall's edge.
+		std::optional<RaycastHit> SphereCast(const glm::vec3& origin, const glm::vec3& direction, float radius, float maxDistance,
+			const PhysicsEntityFilter& filter = {}) const;
 		std::vector<UUID> OverlapSphere(const glm::vec3& center, float radius) const;
 		// World-space triangles of every static, solid body (the navmesh input). Indices are
 		// appended relative to the vertices already in the output.

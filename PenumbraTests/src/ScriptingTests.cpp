@@ -287,6 +287,26 @@ TEST_SUITE("Scripting")
 		scene.OnRuntimeStop();
 	}
 
+	TEST_CASE("The pixel HUD is laid out in logical pixels: 1080 lines, scaled up on taller screens")
+	{
+		CHECK(OverlayScaleFor(720) == 1.0f); // never shrinks
+		CHECK(OverlayScaleFor(1080) == 1.0f);
+		CHECK(OverlayScaleFor(2160) == 2.0f); // a Retina window or a 4K screen
+
+		ScriptFixture fixture;
+		Entity camera = fixture.SceneInstance.CreateEntity("Camera");
+		camera.AddComponent<CameraComponent>().Primary = true;
+		fixture.SceneInstance.OnViewportResize(3840, 2160);
+		fixture.SceneInstance.OnRuntimeStart();
+		CHECK(fixture.Run("return ui.scale() == 2") == "true");
+		CHECK(fixture.Run("return ui.width() == 1920 and ui.height() == 1080") == "true");
+		CHECK(fixture.Run("local x, y = ui.world_to_screen(vec3(0, 0, -5)); return math.abs(x - 960) < 0.5 and math.abs(y - 540) < 0.5") ==
+			"true");
+		fixture.SceneInstance.OnViewportResize(1920, 1080);
+		CHECK(fixture.Run("return ui.scale() == 1 and ui.width() == 1920") == "true");
+		fixture.SceneInstance.OnRuntimeStop();
+	}
+
 	TEST_CASE("ui.world_to_screen projects through the primary camera; knockouts and shouts from Lua")
 	{
 		ScriptFixture fixture;

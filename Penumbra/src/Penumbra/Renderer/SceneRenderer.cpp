@@ -1309,10 +1309,13 @@ namespace Penumbra {
 			};
 			for (const OverlayWorldRect& rect : overlay.GetWorldRects())
 				worldQuad(rect.Center, -rect.Size * 0.5f, rect.Size * 0.5f, rect.Color);
+			// The pixel HUD is authored in logical pixels (OverlayScaleFor): larger on tall screens.
+			const float uiScale = scene.GetUIScale();
 			for (const OverlayRect& rect : overlay.GetRects())
 			{
-				const glm::vec3 a(rect.Position, 0.0f), b(rect.Position.x + rect.Size.x, rect.Position.y, 0.0f);
-				const glm::vec3 c(rect.Position + rect.Size, 0.0f), d(rect.Position.x, rect.Position.y + rect.Size.y, 0.0f);
+				const glm::vec2 position = rect.Position * uiScale, size = rect.Size * uiScale;
+				const glm::vec3 a(position, 0.0f), b(position.x + size.x, position.y, 0.0f);
+				const glm::vec3 c(position + size, 0.0f), d(position.x, position.y + size.y, 0.0f);
 				for (const glm::vec3& p : { a, b, c, a, c, d })
 					hud.push_back({ p, rect.Color });
 			}
@@ -1342,7 +1345,7 @@ namespace Penumbra {
 					for (int v = 0; v < 4; v++)
 					{
 						const float* vertex = &quads[static_cast<size_t>((q * 4 + v) * 4)];
-						corners[v] = glm::vec3(text.Position + glm::vec2(vertex[0], vertex[1]) * text.Scale, 0.0f);
+						corners[v] = glm::vec3((text.Position + glm::vec2(vertex[0], vertex[1]) * text.Scale) * uiScale, 0.0f);
 					}
 					for (int index : { 0, 1, 2, 0, 2, 3 })
 						hud.push_back({ corners[index], text.Color });

@@ -207,6 +207,8 @@ namespace Penumbra {
 			v("EyeHeight", c.EyeHeight);
 			v("ViewDistance", c.ViewDistance);
 			v("FieldOfView", c.FieldOfView);
+			v("FocusFieldOfView", c.FocusFieldOfView);
+			v("PeripheralContrast", c.PeripheralContrast);
 			v("PeripheralFactor", c.PeripheralFactor);
 			v("ContrastMin", c.ContrastMin);
 			v("DarkSensitivity", c.DarkSensitivity);

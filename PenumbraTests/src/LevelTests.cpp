@@ -95,6 +95,95 @@ TEST_SUITE("World")
 		CHECK(lab.SceneInstance.GetScriptEngine()->GetErrors().empty());
 	}
 
+	TEST_CASE("Cloister: hugging a wall, the camera never sees through it at any angle")
+	{
+		Level cloister("Scenes/Cloister.pscene");
+		// In the east wing (3 m wide), pressed against its north wall, then its south wall.
+		for (const char* spot : { "vec3(18, 0.05, -1.15)", "vec3(18, 0.05, 1.15)" })
+		{
+			cloister.Lua(std::string("scene.find('Player'):set_position(") + spot + ")");
+			cloister.Run(0.3f);
+			const std::string result = cloister.Lua(R"(
+				local p = scene.find('Player'); local s = p:script(); local camera = scene.find('Camera')
+				local bad = {}
+				for yaw = 0, 350, 10 do
+					for _, pitch in ipairs({ -65, -10, 40 }) do
+						s.yaw, s.pitch = yaw, pitch
+						s:update_camera(10) -- a long step: the boom has eased back out
+						local head = p:get_position() + vec3(0, s.visual_height + 0.15, 0)
+						local pivot, eye = s.aim_origin, camera:get_position()
+						local blocked = physics.raycast(head, pivot - head, (pivot - head):length(), p)
+							or physics.raycast(pivot, eye - pivot, (eye - pivot):length(), p)
+						local inside = false
+						for _, e in ipairs(physics.overlap_sphere(eye, 0.1)) do -- solid bodies only (a torch's flame is a sensor)
+							if e ~= p and not (e:has('RigidBody') and e:get('RigidBody').IsTrigger) then inside = true end
+						end
+						if blocked or inside then table.insert(bad, yaw .. '/' .. pitch) end
+					end
+				end
+				return table.concat(bad, ' '))");
+			CHECK_MESSAGE(result == "\"\"", spot, " ", result);
+		}
+		CHECK(cloister.SceneInstance.GetScriptEngine()->GetErrors().empty());
+	}
+
+	TEST_CASE("Cloister: the crossbow shoots only while aimed (right mouse); the compass follows the camera")
+	{
+		Level cloister("Scenes/Cloister.pscene");
+		cloister.Run(0.3f);
+		auto bolts = [&]() {
+			return cloister.Lua("local n = 0; for _, e in ipairs(scene.entities_with('StimSource')) do "
+								"if e:get_name() == 'WaterArrow' then n = n + 1 end end; return n");
+		};
+		Input::SetMouseButtonState(Mouse::ButtonLeft, true);
+		cloister.Run(1.0f / 60.0f);
+		Input::SetMouseButtonState(Mouse::ButtonLeft, false);
+		cloister.Run(0.1f);
+		CHECK(bolts() == "0"); // a plain click does nothing yet
+
+		Input::SetMouseButtonState(Mouse::ButtonRight, true);
+		cloister.Run(0.1f);
+		CHECK(cloister.Lua("return scene.find('Player'):script().aiming") == "true");
+		Input::SetMouseButtonState(Mouse::ButtonLeft, true);
+		cloister.Run(1.0f / 60.0f);
+		Input::SetMouseButtonState(Mouse::ButtonLeft, false);
+		Input::SetMouseButtonState(Mouse::ButtonRight, false);
+		cloister.Run(1.0f / 60.0f);
+		CHECK(bolts() == "1");
+
+		// Bearings clockwise from north (-Z): the player starts facing west, down the wing.
+		CHECK(cloister.Lua("local C = require('Scripts/Compass'); return math.floor(C.heading(scene.find('Player'):script().yaw) + 0.5)") ==
+			  "270");
+		CHECK(cloister.Lua("local C = require('Scripts/Compass'); return C.heading(0) == 0 and C.heading(-90) == 90 and C.heading(180) == 180") ==
+			  "true");
+		CHECK(cloister.SceneInstance.GetScriptEngine()->GetErrors().empty());
+	}
+
+	TEST_CASE("Cloister: the two guards walking the ring opposite ways meet and pass each other")
+	{
+		Level cloister("Scenes/Cloister.pscene");
+		float together = 0.0f, longest = 0.0f, closest = 100.0f, travelledNorth = 0.0f, travelledSouth = 0.0f;
+		glm::vec3 lastNorth = cloister.Position("GuardNorth"), lastSouth = cloister.Position("GuardSouth");
+		for (int step = 0; step < 90 * 10; ++step) // 90 s: they meet several times
+		{
+			cloister.Run(0.1f);
+			const glm::vec3 north = cloister.Position("GuardNorth"), south = cloister.Position("GuardSouth");
+			const float distance = glm::length(glm::vec2(north.x - south.x, north.z - south.z));
+			closest = std::min(closest, distance);
+			together = distance < 1.0f ? together + 0.1f : 0.0f; // a stretch of standing chest to chest
+			longest = std::max(longest, together);
+			travelledNorth += glm::distance(north, lastNorth);
+			travelledSouth += glm::distance(south, lastSouth);
+			lastNorth = north;
+			lastSouth = south;
+		}
+		CHECK(closest < 3.0f);    // they did meet
+		CHECK(longest < 5.0f);    // a pause together at a shared corner, never a deadlock (they used to circle it for good)
+		CHECK(travelledNorth > 60.0f);
+		CHECK(travelledSouth > 60.0f);
+		CHECK(cloister.SceneInstance.GetScriptEngine()->GetErrors().empty());
+	}
+
 	TEST_CASE("Cloister: the way from the east wing to the west leads around the ring or through the garden doors")
 	{
 		Level cloister("Scenes/Cloister.pscene");
