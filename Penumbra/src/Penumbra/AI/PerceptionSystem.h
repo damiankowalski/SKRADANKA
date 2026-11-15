@@ -113,6 +113,11 @@ namespace Penumbra {
 
 		const std::vector<NoiseEvent>& GetRecentNoises() const { return m_RecentNoises; }
 
+		// Testing aid (the runtime's debug panel): NPCs neither see, touch nor hear intruders (noises
+		// an intruder makes, such as footsteps). Everything else (bodies, arrows, thrown objects) still counts.
+		void SetIgnoreIntruders(bool ignore) { m_IgnoreIntruders = ignore; }
+		bool IsIgnoringIntruders() const { return m_IgnoreIntruders; }
+
 	private:
 		void UpdateTargets(float dt);
 		void ProcessNoises();
@@ -132,6 +137,7 @@ namespace Penumbra {
 		Scope<LuminanceProvider> m_Provider;
 		std::vector<NoiseEvent> m_PendingNoises;
 		std::vector<NoiseEvent> m_RecentNoises;
+		bool m_IgnoreIntruders = false;
 		std::unordered_map<UUID, TargetLighting> m_TargetLighting;
 		std::unordered_map<UUID, float> m_VisionTimers; // per observer, staggered so guards do not all think on one frame
 		struct ObserverFocus

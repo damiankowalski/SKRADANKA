@@ -28,6 +28,12 @@ namespace Penumbra {
 		// Called once per frame after gameplay has consumed input.
 		static void EndFrame();
 		static void Reset();
+
+		// While blocked, the queries above report nothing held, pressed or moved (the state is still
+		// tracked): the runtime's debug panel and freelook camera take the keyboard and mouse from
+		// the game. A key held across the unblock does not count as pressed again.
+		static void SetGameInputBlocked(bool blocked);
+		static bool IsGameInputBlocked();
 	};
 
 }

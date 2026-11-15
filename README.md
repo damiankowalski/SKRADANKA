@@ -27,7 +27,8 @@ Tools\Test.bat debug
 ```
 
 Play the demo (WASD, mouse, Shift run, C crouch, 1-4 water/fire/gas/moss bolt, hold right mouse to aim the crossbow and left click to shoot, F1 controls, E use / open doors / pick locks / carry a body,
-F blackjack from behind):
+F blackjack from behind; testing tools: F3 performance, F4 debug panel with guards' view cones and test noises,
+F5 freelook, F6 pause, see [docs/DebugTools.md](docs/DebugTools.md)):
 
 ```bat
 build\debug\bin\PenumbraRuntime.exe --project DemoProject
@@ -52,5 +53,5 @@ folder above the executable, so the commands work from the repository root and f
 
 Requires Visual Studio 2022 or newer with the "Desktop development with C++" workload. On a Mac (Apple Silicon):
 `Tools/Build.sh debug`, `Tools/Test.sh debug`, executables without `.exe`; setup in [docs/macOS.md](docs/macOS.md).
-Docs: `docs/Perception.md`, `docs/ScriptingAPI.md`, `docs/Automation.md`, `docs/Components.md`; plans in `docs/Roadmap.md`.
+Docs: `docs/Perception.md`, `docs/DebugTools.md`, `docs/ScriptingAPI.md`, `docs/Automation.md`, `docs/Components.md`; plans in `docs/Roadmap.md`.
 See [AGENTS.md](AGENTS.md) for the architecture, conventions and workflow.

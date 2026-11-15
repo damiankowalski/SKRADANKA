@@ -8,6 +8,7 @@
 #include <nvrhi/nvrhi.h>
 
 #include <filesystem>
+#include <optional>
 #include <string>
 
 namespace Penumbra {
@@ -58,6 +59,9 @@ namespace Penumbra {
 		nvrhi::ITexture* GetOutputTexture() const { return m_Output; }
 		DebugDraw& GetDebugDraw() { return m_DebugDraw; }
 		const SceneRendererStatistics& GetStatistics() const { return m_Statistics; }
+		// Milliseconds the GPU spent on a recent Render() (a few frames old: queries are read back
+		// once finished). Empty until the first result arrives.
+		std::optional<float> GetGpuTimeMs() const;
 		SceneRendererSettings& GetSettings() { return m_Settings; }
 
 		// Reads the last rendered frame back to the CPU (RGBA8, sRGB encoded).

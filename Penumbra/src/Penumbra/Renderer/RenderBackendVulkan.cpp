@@ -150,6 +150,7 @@ namespace Penumbra::Detail {
 			AcquireResult AcquireNextImage(nvrhi::IDevice* device, uint32_t& imageIndex) override;
 			bool Present(nvrhi::IDevice* device, uint32_t imageIndex, bool vsync) override;
 			void Shutdown() override;
+			bool QueryVideoMemory(VideoMemoryInfo& info) const override;
 
 		private:
 			bool CreateInstance(const RenderDeviceSpecification& specification, MessageCallback& messages);
@@ -166,6 +167,7 @@ namespace Penumbra::Detail {
 			VkQueue m_Queue = VK_NULL_HANDLE;
 			uint32_t m_QueueFamily = 0;
 			uint32_t m_DeviceApiVersion = 0;
+			bool m_MemoryBudget = false; // VK_EXT_memory_budget enabled
 			std::vector<const char*> m_InstanceExtensions;
 			std::vector<const char*> m_DeviceExtensions;
 
@@ -395,6 +397,10 @@ namespace Penumbra::Detail {
 			// Required by the spec whenever the implementation exposes it (MoltenVK does).
 			if (Contains(extensions, "VK_KHR_portability_subset"))
 				m_DeviceExtensions.push_back("VK_KHR_portability_subset");
+			// Lets the performance monitor show how much video memory the game uses.
+			m_MemoryBudget = Contains(extensions, VK_EXT_MEMORY_BUDGET_EXTENSION_NAME);
+			if (m_MemoryBudget)
+				m_DeviceExtensions.push_back(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME);
 			const bool depthClip = Contains(extensions, VK_EXT_DEPTH_CLIP_ENABLE_EXTENSION_NAME);
 			if (depthClip)
 				m_DeviceExtensions.push_back(VK_EXT_DEPTH_CLIP_ENABLE_EXTENSION_NAME);
@@ -725,6 +731,36 @@ namespace Penumbra::Detail {
 				return false;
 			}
 			return true;
+		}
+
+		bool VulkanBackend::QueryVideoMemory(VideoMemoryInfo& info) const
+		{
+			if (!m_PhysicalDevice)
+				return false;
+			auto& api = Dispatch();
+			VkPhysicalDeviceMemoryBudgetPropertiesEXT budget{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_BUDGET_PROPERTIES_EXT };
+			VkPhysicalDeviceMemoryProperties2 properties{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2 };
+			if (m_MemoryBudget)
+				properties.pNext = &budget;
+			api.vkGetPhysicalDeviceMemoryProperties2(m_PhysicalDevice, &properties);
+			info = {};
+			const VkPhysicalDeviceMemoryProperties& memory = properties.memoryProperties;
+			for (uint32_t heap = 0; heap < memory.memoryHeapCount; ++heap)
+			{
+				if ((memory.memoryHeaps[heap].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT) == 0)
+					continue;
+				if (m_MemoryBudget)
+				{
+					info.UsedBytes += budget.heapUsage[heap];
+					info.BudgetBytes += budget.heapBudget[heap];
+				}
+				else
+				{
+					info.BudgetBytes += memory.memoryHeaps[heap].size;
+				}
+			}
+			info.HasUsage = m_MemoryBudget;
+			return info.BudgetBytes > 0;
 		}
 
 		void VulkanBackend::Shutdown()

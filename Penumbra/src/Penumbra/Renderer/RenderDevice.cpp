@@ -241,6 +241,7 @@ namespace Penumbra {
 	const std::string& RenderDevice::GetDriverName() const { return m_Impl->Backend->DriverName; }
 	bool RenderDevice::IsWarp() const { return m_Impl->Backend->Warp; }
 	bool RenderDevice::IsDeviceLost() const { return m_Impl->DeviceLost; }
+	bool RenderDevice::QueryVideoMemory(VideoMemoryInfo& info) const { return m_Impl->Backend->QueryVideoMemory(info); }
 	uint32_t RenderDevice::GetErrorCount() const { return m_Impl->Messages.ErrorCount; }
 
 	bool RenderDevice::IsRayTracingSupported() const

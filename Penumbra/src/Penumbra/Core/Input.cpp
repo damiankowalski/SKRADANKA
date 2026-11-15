@@ -14,24 +14,42 @@ namespace Penumbra {
 			glm::vec2 MousePositionPrevious{ 0.0f };
 			bool HasMousePosition = false;
 			float Scroll = 0.0f;
+			bool Blocked = false;
 		};
 
 		InputState s_State;
 	}
 
-	bool Input::IsKeyDown(KeyCode key) { return key < Key::MaxKey && s_State.KeysDown[key]; }
-	bool Input::IsKeyPressed(KeyCode key) { return key < Key::MaxKey && s_State.KeysDown[key] && !s_State.KeysPrevious[key]; }
-	bool Input::IsKeyReleased(KeyCode key) { return key < Key::MaxKey && !s_State.KeysDown[key] && s_State.KeysPrevious[key]; }
-	bool Input::IsMouseButtonDown(MouseCode button) { return button < Mouse::MaxButton && s_State.ButtonsDown[button]; }
+	bool Input::IsKeyDown(KeyCode key) { return !s_State.Blocked && key < Key::MaxKey && s_State.KeysDown[key]; }
+
+	bool Input::IsKeyPressed(KeyCode key)
+	{
+		return !s_State.Blocked && key < Key::MaxKey && s_State.KeysDown[key] && !s_State.KeysPrevious[key];
+	}
+
+	bool Input::IsKeyReleased(KeyCode key)
+	{
+		return !s_State.Blocked && key < Key::MaxKey && !s_State.KeysDown[key] && s_State.KeysPrevious[key];
+	}
+
+	bool Input::IsMouseButtonDown(MouseCode button) { return !s_State.Blocked && button < Mouse::MaxButton && s_State.ButtonsDown[button]; }
 
 	bool Input::IsMouseButtonPressed(MouseCode button)
 	{
-		return button < Mouse::MaxButton && s_State.ButtonsDown[button] && !s_State.ButtonsPrevious[button];
+		return !s_State.Blocked && button < Mouse::MaxButton && s_State.ButtonsDown[button] && !s_State.ButtonsPrevious[button];
 	}
 
 	glm::vec2 Input::GetMousePosition() { return s_State.MousePosition; }
-	glm::vec2 Input::GetMouseDelta() { return s_State.MousePosition - s_State.MousePositionPrevious; }
-	float Input::GetScrollDelta() { return s_State.Scroll; }
+
+	glm::vec2 Input::GetMouseDelta()
+	{
+		return s_State.Blocked ? glm::vec2(0.0f) : s_State.MousePosition - s_State.MousePositionPrevious;
+	}
+
+	float Input::GetScrollDelta() { return s_State.Blocked ? 0.0f : s_State.Scroll; }
+
+	void Input::SetGameInputBlocked(bool blocked) { s_State.Blocked = blocked; }
+	bool Input::IsGameInputBlocked() { return s_State.Blocked; }
 
 	void Input::SetKeyState(KeyCode key, bool down)
 	{

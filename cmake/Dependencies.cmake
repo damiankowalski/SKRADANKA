@@ -143,22 +143,26 @@ target_include_directories(pn_recast SYSTEM PUBLIC
     "${recastnavigation_SOURCE_DIR}/Detour/Include")
 penumbra_third_party_target(pn_recast)
 
-# Dear ImGui (docking branch) + ImGuizmo, used by the editor only
-if(PENUMBRA_BUILD_EDITOR)
+# Dear ImGui (docking branch): the engine's debug panels (runtime) and the editor
 add_library(pn_imgui STATIC
     "${imgui_SOURCE_DIR}/imgui.cpp"
     "${imgui_SOURCE_DIR}/imgui_draw.cpp"
     "${imgui_SOURCE_DIR}/imgui_tables.cpp"
     "${imgui_SOURCE_DIR}/imgui_widgets.cpp"
     "${imgui_SOURCE_DIR}/imgui_demo.cpp"
-    "${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp"
-    "${imguizmo_SOURCE_DIR}/src/ImGuizmo.cpp")
+    "${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp")
 target_include_directories(pn_imgui SYSTEM PUBLIC
     "${imgui_SOURCE_DIR}"
-    "${imgui_SOURCE_DIR}/backends"
-    "${imguizmo_SOURCE_DIR}/src")
+    "${imgui_SOURCE_DIR}/backends")
 target_link_libraries(pn_imgui PUBLIC glfw)
 penumbra_third_party_target(pn_imgui)
+
+# ImGuizmo (transform gizmos), used by the editor only
+if(PENUMBRA_BUILD_EDITOR)
+add_library(pn_imguizmo STATIC "${imguizmo_SOURCE_DIR}/src/ImGuizmo.cpp")
+target_include_directories(pn_imguizmo SYSTEM PUBLIC "${imguizmo_SOURCE_DIR}/src")
+target_link_libraries(pn_imguizmo PUBLIC pn_imgui)
+penumbra_third_party_target(pn_imguizmo)
 endif()
 
 # ---------------------------------------------------------------------------

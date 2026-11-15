@@ -1,11 +1,12 @@
 #include "EditorLayer.h"
 
-#include "ImGui/ImGuiHost.h"
+#include "Penumbra/ImGui/ImGuiHost.h"
 
 #include "Penumbra/Asset/AssetManager.h"
 #include "Penumbra/Core/Application.h"
 #include "Penumbra/Core/Input.h"
 #include "Penumbra/Core/Platform.h"
+#include "Penumbra/Debug/DebugOverlays.h"
 #include "Penumbra/Navigation/NavigationSystem.h"
 #include "Penumbra/Project/Project.h"
 #include "Penumbra/Project/ProjectExporter.h"
@@ -29,19 +30,6 @@ namespace Penumbra {
 	namespace {
 		constexpr size_t MaxUndoSteps = 64;
 		constexpr size_t MaxConsoleLines = 2000;
-
-		glm::vec4 StateColor(AwarenessState state)
-		{
-			switch (state)
-			{
-				case AwarenessState::Unaware:    return { 0.3f, 0.9f, 0.4f, 1.0f };
-				case AwarenessState::Suspicious: return { 1.0f, 0.9f, 0.2f, 1.0f };
-				case AwarenessState::Investigating: return { 1.0f, 0.72f, 0.15f, 1.0f };
-				case AwarenessState::Searching:  return { 1.0f, 0.55f, 0.1f, 1.0f };
-				case AwarenessState::Alarmed:    return { 1.0f, 0.15f, 0.1f, 1.0f };
-			}
-			return glm::vec4(1.0f);
-		}
 
 		// Ray vs. oriented box (entity-local AABB under a world transform). Returns hit distance.
 		std::optional<float> RayHitsBox(const glm::vec3& origin, const glm::vec3& direction, const BoundingBox& box, const glm::mat4& world)
@@ -93,7 +81,7 @@ namespace Penumbra {
 		});
 
 		Application& app = Application::Get();
-		m_ImGui = CreateScope<ImGuiHost>(app.GetWindow()->GetNativeWindow(), app.GetRenderDevice().GetDevice());
+		m_ImGui = CreateScope<ImGuiHost>(app.GetWindow()->GetNativeWindow(), app.GetRenderDevice().GetDevice(), "PenumbraEditor.ini");
 		m_Renderer = CreateScope<SceneRenderer>(app.GetRenderDevice());
 		m_Commands = CreateScope<CommandProcessor>(*this);
 
@@ -453,73 +441,13 @@ namespace Penumbra {
 
 		if (m_ShowPerception)
 		{
-			for (auto [handle, perception] : scene.GetRegistry().view<PerceptionComponent>().each())
-			{
-				Entity entity(handle, &scene);
-				const glm::vec3 eye = scene.GetWorldPosition(entity) + glm::vec3(0.0f, perception.EyeHeight, 0.0f);
-				const glm::vec3 forward = Math::Forward(scene.GetWorldRotation(entity));
-				const glm::vec4 color = StateColor(perception.RuntimeState);
-				debug.Cone(eye, forward, std::min(perception.ViewDistance, 6.0f), perception.FieldOfView * 0.5f, color * glm::vec4(1.0f, 1.0f, 1.0f, 0.45f));
-				debug.Cone(eye, forward, std::min(perception.ViewDistance, 6.0f), std::min(perception.FocusFieldOfView, perception.FieldOfView) * 0.5f, color);
-				// Suspicion meter above the head.
-				const glm::vec3 barStart = eye + glm::vec3(-0.5f, 0.5f, 0.0f);
-				debug.Line(barStart, barStart + glm::vec3(1.0f, 0.0f, 0.0f), { 0.2f, 0.2f, 0.2f, 1.0f });
-				debug.Line(barStart + glm::vec3(0.0f, 0.03f, 0.0f), barStart + glm::vec3(perception.RuntimeSuspicion, 0.03f, 0.0f), color);
-				if (perception.RuntimeHasStimulus)
-				{
-					debug.Line(eye, perception.RuntimeLastStimulusPosition, { color.r, color.g, color.b, 0.6f });
-					debug.Sphere(perception.RuntimeLastStimulusPosition, 0.2f, color);
-				}
-			}
-			for (auto [handle, smoke] : scene.GetRegistry().view<SmokeVolumeComponent>().each())
-				debug.Sphere(scene.GetWorldPosition(Entity(handle, &scene)), smoke.Radius, { 0.7f, 0.7f, 0.7f, 0.3f });
+			DebugOverlays::DrawVision(scene, debug);
+			DebugOverlays::DrawSmoke(scene, debug);
 		}
-
-		// The navmesh exists while the game runs (it is baked from the physics world).
-		if (NavigationSystem* navigation = scene.GetNavigationSystem(); m_ShowNavMesh && navigation)
-		{
-			if (const NavMesh* navMesh = navigation->GetNavMesh())
-			{
-				const std::vector<glm::vec3> edges = navMesh->GetDebugEdges();
-				const glm::vec3 lift(0.0f, 0.05f, 0.0f);
-				for (size_t i = 0; i + 1 < edges.size(); i += 2)
-					debug.Line(edges[i] + lift, edges[i + 1] + lift, { 0.2f, 0.6f, 1.0f, 0.5f });
-			}
-			for (auto [handle, agent] : scene.GetRegistry().view<NavAgentComponent>().each())
-			{
-				Entity entity(handle, &scene);
-				const std::vector<glm::vec3>* path = navigation->GetAgentPath(entity.GetUUID());
-				if (!path || path->empty())
-					continue;
-				glm::vec3 previous = scene.GetWorldPosition(entity) + glm::vec3(0.0f, 0.1f, 0.0f);
-				for (const glm::vec3& corner : *path)
-				{
-					debug.Line(previous, corner + glm::vec3(0.0f, 0.1f, 0.0f), { 1.0f, 0.9f, 0.2f, 1.0f });
-					previous = corner + glm::vec3(0.0f, 0.1f, 0.0f);
-				}
-				debug.Sphere(agent.RuntimeDestination, 0.15f, { 1.0f, 0.9f, 0.2f, 1.0f });
-			}
-		}
-
+		if (m_ShowNavMesh)
+			DebugOverlays::DrawNavigation(scene, debug);
 		if (m_ShowColliders)
-		{
-			const glm::vec4 color(0.3f, 1.0f, 0.5f, 0.8f);
-			for (auto [handle, box] : scene.GetRegistry().view<BoxColliderComponent>().each())
-			{
-				Entity entity(handle, &scene);
-				glm::vec3 translation, scale;
-				glm::quat rotation;
-				Math::DecomposeTransform(scene.GetWorldTransform(entity), translation, rotation, scale);
-				debug.Box(translation + rotation * (box.Offset * scale), box.HalfExtents * glm::abs(scale), rotation, color);
-			}
-			for (auto [handle, sphere] : scene.GetRegistry().view<SphereColliderComponent>().each())
-			{
-				Entity entity(handle, &scene);
-				const glm::mat4 world = scene.GetWorldTransform(entity);
-				const glm::vec3 scale(glm::length(glm::vec3(world[0])), glm::length(glm::vec3(world[1])), glm::length(glm::vec3(world[2])));
-				debug.Sphere(glm::vec3(world * glm::vec4(sphere.Offset, 1.0f)), sphere.Radius * std::max({ scale.x, scale.y, scale.z }), color);
-			}
-		}
+			DebugOverlays::DrawColliders(scene, debug);
 
 		if (Entity selected = GetSelectedEntity(); selected && !m_PlayScene)
 		{
@@ -551,6 +479,7 @@ namespace Penumbra {
 		m_Renderer->Render(*scene, camera);
 
 		m_ImGui->BeginFrame();
+		ImGuizmo::BeginFrame();
 		ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
 		DrawMenuBar();
 		DrawToolbar();

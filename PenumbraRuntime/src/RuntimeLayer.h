@@ -4,6 +4,7 @@
 #include "Penumbra/Renderer/SceneRenderer.h"
 #include "Penumbra/Scene/Scene.h"
 
+#include <chrono>
 #include <filesystem>
 #include <optional>
 #include <string>
@@ -24,14 +25,21 @@ namespace Penumbra {
 		std::optional<uint64_t> Seed;
 		bool RandomizeSeed = false;
 		GameState GameValues; // initial game.get values (--set)
+		// The testing tools (F3 performance, F4 debug panel, F5 freelook, F6 pause): always in
+		// development builds, with --dev in shipping (Dist) builds. Need a window.
+		bool DebugTools = true;
+		std::string DebugToolsOpen; // tools up from the start (--debug-ui performance,panel,freelook)
 	};
 
 	// Plays a project's scene: runtime simulation, rendering to the window (or offscreen when
 	// headless), scene switching and quitting requested by scripts, scripted test runs.
+	class RuntimeDebugPanel;
+
 	class RuntimeLayer final : public Layer
 	{
 	public:
 		explicit RuntimeLayer(RuntimeOptions options);
+		~RuntimeLayer() override;
 
 		void OnAttach() override;
 		void OnDetach() override;
@@ -45,11 +53,15 @@ namespace Penumbra {
 	private:
 		bool LoadScene(const std::string& path);
 		void Finish(int exitCode);
+		void ApplyCursorLock();
 
 	private:
 		RuntimeOptions m_Options;
 		Ref<Scene> m_Scene;
 		Scope<SceneRenderer> m_Renderer;
+		Scope<RuntimeDebugPanel> m_DebugPanel;
+		bool m_GameCursorLocked = false; // what the game's scripts asked for
+		std::chrono::steady_clock::time_point m_LastFrame;
 		bool m_Finished = false;
 	};
 

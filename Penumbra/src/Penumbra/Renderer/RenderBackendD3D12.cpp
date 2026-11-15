@@ -44,6 +44,7 @@ namespace Penumbra::Detail {
 			AcquireResult AcquireNextImage(nvrhi::IDevice* device, uint32_t& imageIndex) override;
 			bool Present(nvrhi::IDevice* device, uint32_t imageIndex, bool vsync) override;
 			void Shutdown() override;
+			bool QueryVideoMemory(VideoMemoryInfo& info) const override;
 
 		private:
 			ComPtr<IDXGIFactory6> m_Factory;
@@ -232,6 +233,20 @@ namespace Penumbra::Detail {
 				PN_CORE_CRITICAL("GPU device lost (0x{:08X}, reason 0x{:08X})", static_cast<uint32_t>(result), static_cast<uint32_t>(reason));
 				return false;
 			}
+			return true;
+		}
+
+		bool D3D12Backend::QueryVideoMemory(VideoMemoryInfo& info) const
+		{
+			ComPtr<IDXGIAdapter3> adapter;
+			if (!m_Adapter || FAILED(m_Adapter.As(&adapter)))
+				return false;
+			DXGI_QUERY_VIDEO_MEMORY_INFO local{};
+			if (FAILED(adapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &local)))
+				return false;
+			info.UsedBytes = local.CurrentUsage;
+			info.BudgetBytes = local.Budget;
+			info.HasUsage = true;
 			return true;
 		}
 

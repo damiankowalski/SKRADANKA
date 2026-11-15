@@ -25,7 +25,8 @@ target_link_libraries(Penumbra PUBLIC
     pn_miniaudio
     pn_cgltf
     pn_stb
-    pn_recast)
+    pn_recast
+    pn_imgui)
 # The Vulkan device is created by RenderDevice (vulkan.hpp, loader opened at run time).
 target_link_libraries(Penumbra PRIVATE Vulkan::Headers ${CMAKE_DL_LIBS})
 target_compile_definitions(Penumbra PRIVATE VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1)

@@ -91,15 +91,28 @@ gentle for a body to roll by itself). Component `Ragdoll` (`Mass`, `RadiusScale`
 `physics.ragdoll_start/stop/active/impulse`. Out of scope: ragdolls for the dogs (another skeleton),
 per-bone tuning in the editor.
 
+**Testing tools** (asked for before the fog of war, to test it): in the runtime, F3 shows performance (FPS and
+frame times with a graph, CPU of the process and per simulation system, GPU time per frame, video and main
+memory, draw statistics), F4 a debug panel (every guard's view fan cut by walls with focus and side bands, a
+label with his state and how he sees the thief, rings around noises, test noises clicked into the level with a
+loudness table of the game's sounds and a report of who hears them, guards ignoring the thief, pause, single
+steps, time scale), F5 freelook (the camera leaves the thief and flies through the level), F6 pause. Dear ImGui
+moved from the editor into the engine; shipping builds have the tools with `--dev`. See docs/DebugTools.md.
+
 ## In progress
 
-Nothing: the next package is to be chosen from Next and Later.
+**Fog of war** (L, approved; the next PR): what the thief cannot see from his own eyes goes dark, in the
+spirit of Darkwood: a view cone in front of him (where the camera looks), a small circle of awareness around
+him, everything his eyes have no line to (behind walls, round corners, behind his back) darkened and drained of
+colour, and guards and other moving things there hidden, while their noises are still heard. Rendered from the
+character's eye (a depth cube map like a point light's shadow, tested per pixel), not from the camera: no
+peeking round corners for free. Component on the player, Lua to switch it and to ask what he sees, a toggle in
+the F4 panel. Leaning on Q/E follows as its own package (it moves the eye; the use key must leave E first).
 
 ## Next
 
-**Later, discussed**: a fog of war over what the thief cannot see (rendered from the character's eyes,
-not the camera: no peeking round corners for free) together with leaning on Q/E, which needs the use key
-moved off E first; a full-screen map on a key (S as a static picture, M drawn from the level).
+**Later, discussed**: leaning on Q/E (S-M, after the fog of war; the use key moves off E first); a
+full-screen map on a key (S as a static picture, M drawn from the level).
 
 ### Later: movement and UI (~12+ sessions)
 
