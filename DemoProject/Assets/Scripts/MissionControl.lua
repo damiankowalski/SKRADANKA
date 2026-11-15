@@ -70,7 +70,8 @@ function MissionControl:draw_hud(dt)
     for _, objective in ipairs(self.mission.objectives) do
         if objective.loot then loot_target = objective.target end
     end
-    local loot = string.format("Loot %d / %d", self.mission.loot, loot_target)
+    -- Missions without a loot objective (the cloister) show what was taken, without a target.
+    local loot = loot_target > 0 and string.format("Loot %d / %d", self.mission.loot, loot_target) or string.format("Loot %d", self.mission.loot)
     ui.text(w - #loot * 12 - 20, 20, loot, 2, { 1.0, 0.85, 0.4, 1 })
     ui.text(w - 220, 48, self.mission.difficulty .. "   [Tab] objectives", 1.4, { 0.7, 0.7, 0.7, 0.8 })
 

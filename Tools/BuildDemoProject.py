@@ -813,6 +813,136 @@ def build_audio():
     write_wav("Click.wav", [(0.6 * n() * math.exp(-i / (RATE * 0.002)) + 0.3 * math.sin(2 * math.pi * 2400 * i / RATE)
                             * math.exp(-i / (RATE * 0.004))) for i in range(int(RATE * 0.05))])
 
+def build_physics_lab():
+    """Physics sandbox: a ramp up to a stone platform; on top, a table with a copper jug. Push the
+    table down the ramp or shoot the jug off it with an arrow; a guard nearby hears the clatter."""
+    doc = Document("PenumbraScene")
+    add_environment(doc, ambient=0.02, map_intensity=0.25, moon=0.25)
+    doc.add("Camera", Transform=transform((0, 3, 12)), Camera={"VerticalFOV": 65.0, "NearClip": 0.05, "FarClip": 200.0})
+    stone, wood = (0.32, 0.31, 0.3), (0.3, 0.2, 0.12)
+    box(doc, "Ground", (0, -0.5, 0), (30, 1, 30), (0.22, 0.22, 0.21))
+    # The platform (top at 2 m) and the ramp up to it from the south: 6 m long, about 18 degrees.
+    box(doc, "Platform", (0, 1, -6), (6, 2, 4), stone)
+    slope = math.degrees(math.atan2(2.0, 6.0))
+    normal = (0.0, math.cos(math.radians(slope)), math.sin(math.radians(slope)))
+    doc.add("Ramp", Transform=transform((0, 1 - 0.2 * normal[1], -1 - 0.2 * normal[2]), rotation=(slope, 0, 0), scale=(4, 0.4, 6.5)),
+            Mesh={"Mesh": "builtin:cube"}, Material=material(stone), BoxCollider={"HalfExtents": [0.5, 0.5, 0.5]})
+
+    # The table at the top of the ramp: one dynamic box for physics, a top and four legs to look at.
+    table = doc.add("Table", Transform=transform((0, 2.45, -5.0)), BoxCollider={"HalfExtents": [0.8, 0.45, 0.45]},
+                    RigidBody={"Type": "Dynamic", "Mass": 20.0, "Friction": 0.5},
+                    Surface={"Material": "Wood", "NoiseModifier": 0.5, "ImpactLoudness": 7.0, "ImpactSound": "Audio/Thud.wav"})
+    doc.add("Top", table, Transform=transform((0, 0.41, 0), scale=(1.6, 0.08, 0.9)), Mesh={"Mesh": "builtin:cube"},
+            Material=material(wood))
+    for i, (x, z) in enumerate(((-0.72, -0.37), (0.72, -0.37), (-0.72, 0.37), (0.72, 0.37))):
+        doc.add(f"Leg{i}", table, Transform=transform((x, -0.04, z), scale=(0.08, 0.82, 0.08)), Mesh={"Mesh": "builtin:cube"},
+                Material=material(wood))
+    # The copper jug near the table's back edge: loud when it lands (a metal impact).
+    doc.add("CopperJug", Transform=transform((0.3, 3.06, -5.25), scale=(0.2, 0.32, 0.2)), Mesh={"Mesh": "builtin:cylinder"},
+            Material=material((0.72, 0.42, 0.2), roughness=0.35, metallic=0.9),
+            BoxCollider={"HalfExtents": [0.5, 0.5, 0.5]}, RigidBody={"Type": "Dynamic", "Mass": 1.5, "Friction": 0.4},
+            Surface={"Material": "Metal", "NoiseModifier": 2.5, "ImpactLoudness": 8.0, "ImpactSound": "Audio/Clang.wav"})
+
+    torch_prefab_entities(doc, (3.6, 0, -3.6), shadows=True)
+    torch_prefab_entities(doc, (-2.5, 2, -7.6))
+    # A guard pacing east of the platform: he hears the table or the jug come down.
+    for name, position in (("WP_L1", (9, 0, -8)), ("WP_L2", (9, 0, 3))):
+        doc.add(name, Transform=transform(position))
+    add_guard(doc, "Guard", (9, 0.05, -8), 180, ["WP_L1", "WP_L2"], catch_scene="Scenes/PhysicsLab.pscene")
+    add_player(doc, (0, 0.05, 8), yaw=0)
+    doc.add("Navigation", Transform=transform(), NavMesh={})
+    doc.save("Scenes/PhysicsLab.pscene")
+
+
+def add_double_door(doc, name, center, axis, label="garden door"):
+    """Two 1.2 m leaves hinged at the jambs of a 2.4 m opening, meeting in the middle. axis "x":
+    the wall runs along X (the opening spans center.x +-1.2); "z": along Z."""
+    x, z = center
+    if axis == "x":
+        add_door(doc, name + "Left", (x - 1.2, 0, z), 0, label=label)
+        add_door(doc, name + "Right", (x + 1.2, 0, z), 180, label=label)
+    else:
+        add_door(doc, name + "Left", (x, 0, z + 1.2), 90, label=label)
+        add_door(doc, name + "Right", (x, 0, z - 1.2), -90, label=label)
+
+
+def build_cloister():
+    """The cloister (an outbuilding): a square garden ringed by covered corridors, a pair of doors
+    into the garden from each side, wings leading off east and west. Two guards walk the ring the
+    opposite ways. The thief starts at the end of the east wing and must reach the west wing."""
+    doc = Document("PenumbraScene")
+    add_environment(doc)
+    doc.add("Camera", Transform=transform((24, 3, 0)), Camera={"VerticalFOV": 65.0, "NearClip": 0.05, "FarClip": 300.0})
+    stone, dark_stone, wall_height = (0.32, 0.31, 0.3), (0.18, 0.18, 0.19), 3.2
+    box(doc, "Ground", (0, -0.5, 0), (60, 1, 30), (0.22, 0.22, 0.21))
+
+    # The garden: grass, a fountain in the middle and hedges for cover.
+    floor_patch(doc, "Garden", "Grass", (0, 0), (15.6, 15.6))
+    doc.add("Fountain", Transform=transform((0, 0.4, 0), scale=(2.4, 0.8, 2.4)), Mesh={"Mesh": "builtin:cylinder"},
+            Material=material(stone), BoxCollider={"HalfExtents": [0.5, 0.5, 0.5]})
+    for i, (x, z, w, d) in enumerate(((-4.5, -4.5, 3, 1), (4.5, -4.5, 1, 3), (-4.5, 4.5, 1, 3), (4.5, 4.5, 3, 1))):
+        box(doc, f"Hedge{i}", (x, 0.6, z), (w, 1.2, d), (0.1, 0.22, 0.08), roughness=1.0)
+
+    # Garden walls (the inner side of the ring), each with a 2.4 m doorway in the middle.
+    for side, sign in (("North", -1), ("South", 1)):
+        z = 8 * sign
+        box(doc, f"Inner{side}A", (-4.7, wall_height / 2, z), (7.0, wall_height, 0.4), stone)
+        box(doc, f"Inner{side}B", (4.7, wall_height / 2, z), (7.0, wall_height, 0.4), stone)
+        box(doc, f"Inner{side}Lintel", (0, 2.7, z), (2.4, 1.0, 0.4), stone)
+        add_double_door(doc, f"Door{side}", (0, z), "x")
+    for side, sign in (("West", -1), ("East", 1)):
+        x = 8 * sign
+        box(doc, f"Inner{side}A", (x, wall_height / 2, -4.7), (0.4, wall_height, 7.0), stone)
+        box(doc, f"Inner{side}B", (x, wall_height / 2, 4.7), (0.4, wall_height, 7.0), stone)
+        box(doc, f"Inner{side}Lintel", (x, 2.7, 0), (0.4, 1.0, 2.4), stone)
+        add_double_door(doc, f"Door{side}", (x, 0), "z")
+
+    # Outer walls of the ring; the east and west ones open onto the wings.
+    for side, sign in (("North", -1), ("South", 1)):
+        box(doc, f"Outer{side}", (0, wall_height / 2, 11.2 * sign), (22.8, wall_height, 0.4), dark_stone)
+    for side, sign in (("West", -1), ("East", 1)):
+        box(doc, f"Outer{side}A", (11.2 * sign, wall_height / 2, -6.45), (0.4, wall_height, 9.9), dark_stone)
+        box(doc, f"Outer{side}B", (11.2 * sign, wall_height / 2, 6.45), (0.4, wall_height, 9.9), dark_stone)
+    # The ring's roof (the garden stays open to the sky).
+    for name, position, size in (("RoofNorth", (0, 3.3, -9.6), (22.8, 0.2, 3.6)), ("RoofSouth", (0, 3.3, 9.6), (22.8, 0.2, 3.6)),
+                                 ("RoofWest", (-9.6, 3.3, 0), (3.6, 0.2, 15.6)), ("RoofEast", (9.6, 3.3, 0), (3.6, 0.2, 15.6))):
+        box(doc, name, position, size, dark_stone)
+
+    # The wings: 3 m wide corridors, 14 m long, roofed, closed at the far end.
+    for side, sign in (("West", -1), ("East", 1)):
+        middle = 18.7 * sign
+        box(doc, f"{side}WingNorth", (middle, wall_height / 2, -1.7), (14.6, wall_height, 0.4), dark_stone)
+        box(doc, f"{side}WingSouth", (middle, wall_height / 2, 1.7), (14.6, wall_height, 0.4), dark_stone)
+        box(doc, f"{side}WingEnd", (26.2 * sign, wall_height / 2, 0), (0.4, wall_height, 3.8), dark_stone)
+        box(doc, f"{side}WingRoof", (middle, 3.3, 0), (14.6, 0.2, 3.8), dark_stone)
+
+    # Light: torches in the ring's corners and one in each wing; the doorways in between stay dark.
+    for i, (x, z) in enumerate(((10.5, 10.5), (-10.5, 10.5), (10.5, -10.5), (-10.5, -10.5))):
+        torch_prefab_entities(doc, (x, 0, z), shadows=i < 2)
+    torch_prefab_entities(doc, (17, 0, -1.2))
+    torch_prefab_entities(doc, (-17, 0, 1.2))
+
+    # Two guards walk the ring the opposite ways, pausing at the corners.
+    corners = {"NE": (9.6, 0, -9.6), "SE": (9.6, 0, 9.6), "SW": (-9.6, 0, 9.6), "NW": (-9.6, 0, -9.6)}
+    for name, position in corners.items():
+        doc.add(f"WP_{name}", Transform=transform(position))
+    add_guard(doc, "GuardNorth", (9.6, 0.05, -9.6), 180, ["WP_NE", "WP_SE", "WP_SW", "WP_NW"], lantern=True,
+              catch_scene="Scenes/Cloister.pscene")
+    add_guard(doc, "GuardSouth", (-9.6, 0.05, 9.6), -90, ["WP_SW", "WP_SE", "WP_NE", "WP_NW"], character=KNIGHT,
+              catch_scene="Scenes/Cloister.pscene")
+    doc.add("Navigation", Transform=transform(), NavMesh={})
+
+    # Start at the end of the east wing; the way out is the end of the west wing.
+    add_player(doc, (24.5, 0.05, 0), yaw=90)
+    doc.add("Goal", Transform=transform((-24.5, 1.5, 0)), BoxCollider={"HalfExtents": [1.2, 1.5, 1.4]},
+            RigidBody={"Type": "Static", "IsTrigger": True}, Script={"Script": "Scripts/Goal.lua"})
+    doc.add("Mission", Transform=transform(), Script={"Script": "Scripts/MissionControl.lua",
+                                                      "Properties": {"mission": "Scripts/Missions/Cloister"}})
+    doc.add("Ambience", Transform=transform((0, 3, 0)),
+            AudioSource={"Clip": "Audio/Wind.wav", "Loop": True, "PlayOnStart": True, "Spatial": False, "Volume": 0.2})
+    doc.save("Scenes/Cloister.pscene")
+
+
 def build_project_file():
     project = {"Name": "Penumbra Demo", "StartScene": "Scenes/Menu.pscene", "AssetDirectory": "Assets",
                "WindowWidth": 1600, "WindowHeight": 900}
@@ -827,5 +957,7 @@ if __name__ == "__main__":
     build_feature_test()
     build_perception_lab()
     build_ai_lab()
+    build_physics_lab()
+    build_cloister()
     build_audio()
     print(f"Demo project written to {ROOT}")

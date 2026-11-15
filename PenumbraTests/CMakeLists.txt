@@ -9,8 +9,20 @@ target_compile_definitions(PenumbraTests PRIVATE
     PENUMBRA_DOCS_DIR="${PROJECT_SOURCE_DIR}/docs")
 
 # Each doctest test suite is registered separately so CTest reports them individually.
-foreach(suite Core Scene Serialization Assets Animation Physics Audio Scripting Perception Navigation World Stim Automation Mcp Renderer)
+set(PENUMBRA_TEST_SUITES Core Scene Serialization Assets Animation Physics Audio Scripting Perception Navigation World Mission
+    Stim Automation Mcp Renderer)
+foreach(suite ${PENUMBRA_TEST_SUITES})
     add_test(NAME Unit.${suite} COMMAND PenumbraTests --test-suite=${suite} --no-colors)
+endforeach()
+# A suite missing from the list would never run in CTest or CI (Mission once went unnoticed): refuse it.
+foreach(source ${PENUMBRA_TEST_SOURCES})
+    file(STRINGS "${source}" suite_lines REGEX "TEST_SUITE\\(\"[A-Za-z]+\"\\)")
+    foreach(line ${suite_lines})
+        string(REGEX MATCH "TEST_SUITE\\(\"([A-Za-z]+)\"\\)" match "${line}")
+        if(match AND NOT CMAKE_MATCH_1 IN_LIST PENUMBRA_TEST_SUITES)
+            message(FATAL_ERROR "${source}: test suite '${CMAKE_MATCH_1}' is not in PENUMBRA_TEST_SUITES (PenumbraTests/CMakeLists.txt)")
+        endif()
+    endforeach()
 endforeach()
 set_tests_properties(Unit.Renderer PROPERTIES LABELS gpu)
 
