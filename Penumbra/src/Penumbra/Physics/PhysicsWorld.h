@@ -34,8 +34,10 @@ namespace Penumbra {
 	using PhysicsEntityFilter = std::function<bool(UUID)>;
 
 	// One body of a ragdoll, in world space: a capsule (HalfHeight > 0, along its local Y) or a
-	// sphere, joined to its parent part by a swing-twist joint at JointPosition whose twist axis
-	// is TwistAxis. Parts come parents first; the first part is the root.
+	// sphere, joined to its parent part at JointPosition: by a swing-twist joint whose twist axis is
+	// TwistAxis, or (Hinge) by a hinge about HingeAxis turning between HingeMinDegrees and
+	// HingeMaxDegrees from the pose it was created in (right-hand rule). Parts come parents first;
+	// the first part is the root.
 	struct RagdollPartDesc
 	{
 		int32_t Parent = -1;
@@ -48,6 +50,11 @@ namespace Penumbra {
 		glm::vec3 TwistAxis{ 0.0f, 1.0f, 0.0f };
 		float SwingDegrees = 45.0f; // half cone angle the part may swing away from its parent
 		float TwistDegrees = 20.0f; // twist either way about TwistAxis
+		float Friction = 0.6f;
+		bool Hinge = false;         // a knee or an elbow
+		glm::vec3 HingeAxis{ 1.0f, 0.0f, 0.0f };
+		float HingeMinDegrees = 0.0f;
+		float HingeMaxDegrees = 0.0f;
 	};
 
 	struct RagdollPartTransform

@@ -862,6 +862,10 @@ def build_physics_lab():
     for name, position in (("WP_L1", (9, 0, -8)), ("WP_L2", (9, 0, 3))):
         doc.add(name, Transform=transform(position))
     add_guard(doc, "Guard", (9, 0.05, -8), 180, ["WP_L1", "WP_L2"], catch_scene="Scenes/PhysicsLab.pscene")
+    # A lookout on the west side of the ramp, gazing west (away from the table and the jug): knock
+    # him out (a gas bolt, or the blackjack from behind) and he slumps on the slope, a ragdoll;
+    # bolts shove his body further down. An 18 degree ramp alone is too gentle to roll a body.
+    add_guard(doc, "Lookout", (-1.6, 1.73, -3.0), 90, [], catch_scene="Scenes/PhysicsLab.pscene")
     add_player(doc, (0, 0.05, 8), yaw=0)
     doc.add("Navigation", Transform=transform(), NavMesh={})
     doc.save("Scenes/PhysicsLab.pscene")

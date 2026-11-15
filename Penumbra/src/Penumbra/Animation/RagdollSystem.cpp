@@ -27,6 +27,7 @@ namespace Penumbra {
 			float Mass;
 			float Swing;
 			float Twist;
+			int Hinge = 0; // a knee (-1: bends backwards) or an elbow (+1: bends forwards); 0: a swing-twist joint
 		};
 
 		constexpr PartSpec Humanoid[] = {
@@ -35,13 +36,13 @@ namespace Penumbra {
 			{ "chest", "head", 1, 0.16f, 0.18f, 25.0f, 15.0f },
 			{ "head", nullptr, 2, 0.22f, 0.08f, 35.0f, 40.0f },
 			{ "upperarm.l", "lowerarm.l", 2, 0.06f, 0.03f, 80.0f, 45.0f },
-			{ "lowerarm.l", "wrist.l", 4, 0.055f, 0.02f, 75.0f, 20.0f },
+			{ "lowerarm.l", "wrist.l", 4, 0.055f, 0.02f, 75.0f, 20.0f, +1 },
 			{ "upperarm.r", "lowerarm.r", 2, 0.06f, 0.03f, 80.0f, 45.0f },
-			{ "lowerarm.r", "wrist.r", 6, 0.055f, 0.02f, 75.0f, 20.0f },
+			{ "lowerarm.r", "wrist.r", 6, 0.055f, 0.02f, 75.0f, 20.0f, +1 },
 			{ "upperleg.l", "lowerleg.l", 0, 0.08f, 0.10f, 55.0f, 15.0f },
-			{ "lowerleg.l", "foot.l", 8, 0.07f, 0.05f, 65.0f, 10.0f },
+			{ "lowerleg.l", "foot.l", 8, 0.07f, 0.05f, 65.0f, 10.0f, -1 },
 			{ "upperleg.r", "lowerleg.r", 0, 0.08f, 0.10f, 55.0f, 15.0f },
-			{ "lowerleg.r", "foot.r", 10, 0.07f, 0.05f, 65.0f, 10.0f },
+			{ "lowerleg.r", "foot.r", 10, 0.07f, 0.05f, 65.0f, 10.0f, -1 },
 		};
 		constexpr float ReferenceTorso = 0.836f; // hips to head of the reference rig, metres
 		// Parts whose centres are the body's silhouette points for guards: hips, chest, head, the
@@ -95,6 +96,10 @@ namespace Penumbra {
 
 		const float torso = glm::distance(PositionOf(nodeWorld[node("hips")]), PositionOf(nodeWorld[node("head")]));
 		const float size = torso > 0.01f ? torso / ReferenceTorso : 1.0f;
+		// The body's right (from the left thigh to the right one): the knees' and elbows' hinge axis.
+
+		glm::vec3 right = PositionOf(nodeWorld[node("upperleg.r")]) - PositionOf(nodeWorld[node("upperleg.l")]);
+		right = glm::length(right) > 1e-4f ? glm::normalize(right) : glm::vec3(1.0f, 0.0f, 0.0f);
 		float massShares = 0.0f;
 		for (const PartSpec& spec : Humanoid)
 			massShares += spec.Mass;
@@ -107,6 +112,7 @@ namespace Penumbra {
 			part.Parent = spec.Parent;
 			part.Radius = std::max(spec.Radius * size * radiusScale, 0.02f);
 			part.Mass = std::max(mass, 1.0f) * spec.Mass / massShares;
+
 			part.SwingDegrees = spec.Swing;
 			part.TwistDegrees = spec.Twist;
 			part.JointPosition = start;
@@ -120,6 +126,17 @@ namespace Penumbra {
 				part.Rotation = glm::rotation(glm::vec3(0.0f, 1.0f, 0.0f), direction);
 				part.HalfHeight = std::max(length * 0.5f - part.Radius, 0.02f);
 				part.TwistAxis = direction;
+				if (spec.Hinge != 0)
+				{
+					// Knees bend backwards, elbows forwards: 130 degrees one way from the pose it fell
+					// in, 10 the other (a bent knee may straighten a little, never hyperextend). The angle
+					// is the child's turn against its parent about the right axis: positive swings a
+					// hanging limb forwards.
+					part.Hinge = true;
+					part.HingeAxis = right;
+					part.HingeMinDegrees = spec.Hinge > 0 ? -10.0f : -130.0f;
+					part.HingeMaxDegrees = spec.Hinge > 0 ? 130.0f : 10.0f;
+				}
 			}
 			else
 			{
@@ -168,6 +185,8 @@ namespace Penumbra {
 		auto rig = std::make_shared<RagdollRig>();
 		if (!BuildHumanoid(mesh->Skeleton, nodeWorld, component->RadiusScale, component->Mass, parts, rig->PartNodes, error))
 			return false;
+		for (RagdollPartDesc& part : parts)
+			part.Friction = component->Friction;
 		const CharacterControllerComponent* controller = entity.TryGetComponent<CharacterControllerComponent>();
 		const glm::vec3 velocity = controller ? controller->RuntimeVelocity : glm::vec3(0.0f);
 		if (!physics->CreateRagdoll(entity.GetUUID(), parts, velocity, error))

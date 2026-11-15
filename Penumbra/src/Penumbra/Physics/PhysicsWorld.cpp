@@ -25,6 +25,7 @@
 #include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Collision/Shape/StaticCompoundShape.h>
+#include <Jolt/Physics/Constraints/HingeConstraint.h>
 #include <Jolt/Physics/Constraints/SwingTwistConstraint.h>
 #include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/Physics/PhysicsSystem.h>
@@ -824,10 +825,25 @@ namespace Penumbra {
 			part.mMassPropertiesOverride.mMass = desc.Mass;
 			part.mLinearDamping = 0.1f;
 			part.mAngularDamping = 0.8f; // limp, not floppy
-			part.mFriction = 0.8f;
+			part.mFriction = std::max(desc.Friction, 0.0f);
 			part.mUserData = static_cast<uint64_t>(owner);
 			part.mLinearVelocity = ToJolt(velocity);
-			if (desc.Parent >= 0)
+			if (desc.Parent >= 0 && desc.Hinge)
+			{
+				const glm::vec3 axis = glm::normalize(desc.HingeAxis);
+				// The normal axis: the part's own direction, made square to the hinge.
+				glm::vec3 normal = desc.TwistAxis - axis * glm::dot(desc.TwistAxis, axis);
+				normal = glm::length(normal) > 1e-4f ? glm::normalize(normal) : glm::normalize(glm::cross(axis, glm::vec3(0.0f, 1.0f, 0.0f)));
+				JPH::Ref<JPH::HingeConstraintSettings> joint = new JPH::HingeConstraintSettings;
+				joint->mSpace = JPH::EConstraintSpace::WorldSpace;
+				joint->mPoint1 = joint->mPoint2 = JPH::RVec3(ToJolt(desc.JointPosition));
+				joint->mHingeAxis1 = joint->mHingeAxis2 = ToJolt(axis);
+				joint->mNormalAxis1 = joint->mNormalAxis2 = ToJolt(normal);
+				joint->mLimitsMin = glm::radians(std::clamp(desc.HingeMinDegrees, -180.0f, 0.0f));
+				joint->mLimitsMax = glm::radians(std::clamp(desc.HingeMaxDegrees, 0.0f, 180.0f));
+				part.mToParent = joint;
+			}
+			else if (desc.Parent >= 0)
 			{
 				const glm::vec3 twist = glm::normalize(desc.TwistAxis);
 				// Any axis across the twist axis will do as the plane axis.

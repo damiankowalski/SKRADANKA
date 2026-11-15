@@ -407,6 +407,7 @@ namespace Penumbra {
 		bool Enabled = true;      // a knockout or death starts the ragdoll
 		float Mass = 70.0f;       // kg, the whole body
 		float RadiusScale = 1.0f; // limb thickness relative to the built-in humanoid
+		float Friction = 0.6f;    // of the body against floors (cloth and leather on stone): below tan(slope) it slides
 
 		// Runtime only
 		bool RuntimeActive = false; // physics drives the pose

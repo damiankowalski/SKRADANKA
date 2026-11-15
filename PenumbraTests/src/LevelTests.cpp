@@ -110,7 +110,7 @@ TEST_SUITE("World")
 		CHECK(cloister.SceneInstance.GetScriptEngine()->GetErrors().empty());
 	}
 
-	TEST_CASE("Physics lab: an arrow knocks the copper jug off the table, and the guard hears it land")
+	TEST_CASE("Physics lab: an arrow knocks the copper jug off the table, and the guards hear it land")
 	{
 		Level lab("Scenes/PhysicsLab.pscene");
 		lab.Run(0.5f);
@@ -123,9 +123,37 @@ TEST_SUITE("World")
 		lab.Lua("for _, e in ipairs(scene.entities_with('StimSource')) do if e:get_name() == 'WaterArrow' then physics.set_velocity(e, vec3(0, 0, -32)) end end");
 		lab.Run(2.0f);
 		CHECK(lab.Position("CopperJug").y < 2.5f); // fell off the table onto the platform
+		// The lookout on the ramp hears the clang; the guard below hears it too, or the lookout's shout.
+		const PerceptionComponent& lookout = lab.Entity("Lookout").GetComponent<PerceptionComponent>();
+		CHECK(lookout.RuntimeStimulusCause.find("Metal") != std::string::npos);
 		const PerceptionComponent& guard = lab.Entity("Guard").GetComponent<PerceptionComponent>();
 		CHECK(guard.RuntimeState != AwarenessState::Unaware);
-		CHECK(guard.RuntimeStimulusCause.find("Metal") != std::string::npos);
+		CHECK((guard.RuntimeStimulusCause.find("Metal") != std::string::npos || guard.RuntimeStimulusCause == "Shout"));
+		CHECK(lab.SceneInstance.GetScriptEngine()->GetErrors().empty());
+	}
+
+	TEST_CASE("Physics lab: the lookout on the ramp, knocked out, slumps on the slope; bolts shove him down")
+	{
+		Level lab("Scenes/PhysicsLab.pscene");
+		lab.Run(0.5f);
+		const glm::vec3 standing = lab.Position("Lookout");
+		REQUIRE(standing.y > 1.4f); // on the ramp, well above the floor
+		REQUIRE(lab.Lua("return ai.knock_out(scene.find('Lookout'))") == "true");
+		lab.Run(4.0f);
+		const glm::vec3 slumped = lab.Position("Lookout");
+		CHECK(slumped.y < standing.y);      // down on the slope
+		CHECK(slumped.y > standing.y - 0.6f); // 18 degrees: he does not roll off by himself
+		for (int bolt = 0; bolt < 3; ++bolt) // shot from up the ramp, into the body
+		{
+			lab.Lua("local g = scene.find('Lookout'):get_position(); local a = scene.instantiate('Prefabs/WaterArrow.pprefab', g + vec3(0, 1.2, -1.5)); "
+					"a:look_at(g + vec3(0, 0.2, 0)); _G.lab_bolt = a");
+			lab.Run(1.0f / 60.0f);
+			lab.Lua("physics.set_velocity(_G.lab_bolt, (scene.find('Lookout'):get_position() + vec3(0, 0.2, 0) - _G.lab_bolt:get_position()):normalized() * 32)");
+			lab.Run(1.0f);
+		}
+		const glm::vec3 shoved = lab.Position("Lookout");
+		CHECK(shoved.z > slumped.z + 0.2f); // further down the ramp (it descends southwards)
+		CHECK(shoved.y < slumped.y - 0.05f);
 		CHECK(lab.SceneInstance.GetScriptEngine()->GetErrors().empty());
 	}
 

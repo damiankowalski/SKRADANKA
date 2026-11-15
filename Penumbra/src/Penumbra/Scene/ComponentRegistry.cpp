@@ -311,6 +311,7 @@ namespace Penumbra {
 			v("Enabled", c.Enabled);
 			v("Mass", c.Mass);
 			v("RadiusScale", c.RadiusScale);
+			v("Friction", c.Friction);
 			v("Active", c.RuntimeActive, FieldKind::Runtime);
 			v("Awake", c.RuntimeAwake, FieldKind::Runtime);
 		}
