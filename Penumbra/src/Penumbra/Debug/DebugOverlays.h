@@ -56,7 +56,8 @@ namespace Penumbra {
 		// Every awake NPC with Perception: its view fan in the colour of its state (focus bright,
 		// peripheral bands dim), a suspicion bar above the head, a line to what it is reacting to,
 		// and lines to each intruder's silhouette points it has in view.
-		void DrawVision(Scene& scene, DebugDraw& debug);
+		// onlyObserver: draw this NPC's fan alone (the inspector's "only his view").
+		void DrawVision(Scene& scene, DebugDraw& debug, UUID onlyObserver = UUID::Invalid);
 		// Rings around recent noises: the outer one is how far it carries at all, the inner one where
 		// a guard would still hear it at InvestigateLevel 4 (walks over to look). Fade over lifetime seconds.
 		void DrawNoises(DebugDraw& debug, const std::vector<DebugNoise>& noises, float now, float lifetime);

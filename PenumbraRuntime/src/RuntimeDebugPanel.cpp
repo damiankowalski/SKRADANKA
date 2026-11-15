@@ -5,9 +5,12 @@
 #include "Penumbra/Core/Input.h"
 #include "Penumbra/Core/Log.h"
 #include "Penumbra/Core/Platform.h"
+#include "Penumbra/Debug/ObjectInspector.h"
+#include "Penumbra/ImGui/ComponentInspector.h"
 #include "Penumbra/ImGui/ImGuiHost.h"
 #include "Penumbra/Physics/PhysicsWorld.h"
 #include "Penumbra/Renderer/SceneRenderer.h"
+#include "Penumbra/Scene/ComponentRegistry.h"
 #include "Penumbra/Scene/Entity.h"
 #include "Penumbra/Scene/JsonSerialization.h"
 #include "Penumbra/Scene/Scene.h"
@@ -134,6 +137,8 @@ namespace Penumbra {
 		m_LastHearing.clear();
 		m_LastNoisePosition.reset();
 		m_LastNoiseFrame = ~0ull;
+		m_Selection = UUID::Invalid;
+		m_Placing = false;
 	}
 
 	std::optional<bool> RuntimeDebugPanel::GetCursorOverride() const
@@ -226,9 +231,11 @@ namespace Penumbra {
 		DebugDraw& debug = renderer.GetDebugDraw();
 		if (m_PanelOpen || m_FreeLook)
 		{
+			Entity selected = m_PanelOpen ? GetSelection(scene) : Entity{};
 			if (m_ShowVision)
 			{
-				DebugOverlays::DrawVision(scene, debug);
+				const bool onlySelected = m_OnlySelectedVision && selected && selected.HasComponent<PerceptionComponent>();
+				DebugOverlays::DrawVision(scene, debug, onlySelected ? selected.GetUUID() : UUID(UUID::Invalid));
 				DebugOverlays::DrawSmoke(scene, debug);
 			}
 			if (m_ShowNoises)
@@ -237,6 +244,16 @@ namespace Penumbra {
 				DebugOverlays::DrawNavigation(scene, debug);
 			if (m_ShowColliders)
 				DebugOverlays::DrawColliders(scene, debug);
+			// The selection: a box round its meshes (a lamp without one: a ball at the light).
+			if (selected)
+			{
+				const glm::vec4 color(1.0f, 0.85f, 0.2f, 1.0f);
+				const BoundingBox bounds = ObjectInspector::WorldBounds(scene, selected);
+				if (bounds.IsValid())
+					debug.Box(bounds.GetCenter(), bounds.GetExtents() + glm::vec3(0.03f), glm::quat(1.0f, 0.0f, 0.0f, 0.0f), color);
+				else
+					debug.Sphere(scene.GetWorldPosition(selected), 0.3f, color);
+			}
 		}
 		return camera;
 	}
@@ -257,7 +274,11 @@ namespace Penumbra {
 			HandleWorldClick(scene, camera);
 		}
 		if (m_PanelOpen)
+		{
 			DrawPanel(scene);
+			DrawInspector(scene);
+			DrawObjectMenu(scene);
+		}
 		else if (m_FreeLook)
 		{
 			ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, 10.0f * m_AppliedScale), ImGuiCond_Always, ImVec2(0.5f, 0.0f));
@@ -402,7 +423,14 @@ namespace Penumbra {
 
 		if (ImGui::CollapsingHeader("Test noise", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			ImGui::Checkbox("Left click in the world makes the noise", &m_NoiseOnClick);
+			ImGui::TextUnformatted("Left click in the world:");
+			ImGui::SameLine();
+			if (ImGui::RadioButton("selects", m_ClickMode == ClickMode::Select))
+				m_ClickMode = ClickMode::Select;
+			ImGui::SameLine();
+			if (ImGui::RadioButton("makes the noise", m_ClickMode == ClickMode::Noise))
+				m_ClickMode = ClickMode::Noise;
+			ImGui::TextDisabled("Shift+click always makes the noise.");
 			ImGui::SliderFloat("Loudness", &m_NoiseLoudness, 0.5f, 10.0f, "%.1f");
 			if (ImGui::BeginTable("##references", 2, ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit))
 			{
@@ -546,14 +574,12 @@ namespace Penumbra {
 		}
 	}
 
-	void RuntimeDebugPanel::HandleWorldClick(Scene& scene, const RenderCamera& camera)
+	std::optional<glm::vec3> RuntimeDebugPanel::WorldPointUnderMouse(Scene& scene, const RenderCamera& camera)
 	{
-		const ImGuiIO& io = ImGui::GetIO();
-		if (!m_PanelOpen || !m_NoiseOnClick || io.WantCaptureMouse || !ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-			return;
 		PhysicsWorld* physics = scene.GetPhysicsWorld();
 		if (!physics)
-			return;
+			return std::nullopt;
+		const ImGuiIO& io = ImGui::GetIO();
 		const glm::vec3 direction = ScreenRayDirection(camera, glm::vec2(io.MousePos.x, io.MousePos.y), glm::vec2(io.DisplaySize.x, io.DisplaySize.y));
 		// Through characters and triggers, onto the floor or a wall.
 		auto filter = [&scene](UUID id) {
@@ -565,12 +591,238 @@ namespace Penumbra {
 		};
 		const std::optional<RaycastHit> hit = physics->Raycast(camera.Position, direction, 200.0f, filter);
 		if (!hit)
-			return;
-		const glm::vec3 position = hit->Point + hit->Normal * 0.05f;
+			return std::nullopt;
+		return hit->Point + hit->Normal * 0.05f;
+	}
+
+	void RuntimeDebugPanel::MakeTestNoise(Scene& scene, const glm::vec3& position)
+	{
 		m_LastHearing = NoiseProbe::Emit(scene, position, m_NoiseLoudness);
 		m_LastNoisePosition = position;
 		m_LastNoiseLoudness = m_NoiseLoudness;
 		m_Noises.push_back({ position, m_NoiseLoudness, static_cast<float>(ImGui::GetTime()) });
+	}
+
+	void RuntimeDebugPanel::HandleWorldClick(Scene& scene, const RenderCamera& camera)
+	{
+		const ImGuiIO& io = ImGui::GetIO();
+		if (!m_PanelOpen)
+		{
+			m_Placing = false;
+			return;
+		}
+		if (m_Placing && ImGui::IsKeyPressed(ImGuiKey_Escape))
+			m_Placing = false;
+		if (io.WantCaptureMouse)
+			return;
+
+		const glm::vec3 direction = ScreenRayDirection(camera, glm::vec2(io.MousePos.x, io.MousePos.y), glm::vec2(io.DisplaySize.x, io.DisplaySize.y));
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		{
+			if (m_Placing)
+			{
+				// "Move here": onto the floor or wall under the cursor.
+				Entity selected = GetSelection(scene);
+				if (const std::optional<glm::vec3> point = WorldPointUnderMouse(scene, camera); point && selected)
+					ObjectInspector::MoveTo(scene, selected, *point);
+				m_Placing = false;
+			}
+			else if (m_ClickMode == ClickMode::Noise || io.KeyShift)
+			{
+				if (const std::optional<glm::vec3> point = WorldPointUnderMouse(scene, camera))
+					MakeTestNoise(scene, *point);
+			}
+			else
+			{
+				const std::optional<ObjectInspector::PickResult> pick = ObjectInspector::Pick(scene, camera.Position, direction);
+				m_Selection = pick ? pick->Object.GetUUID() : UUID(UUID::Invalid);
+			}
+		}
+
+		// A right click (not a drag: freelook looks with the right button) selects what is under the
+		// cursor and opens its menu.
+		if (ImGui::IsMouseReleased(ImGuiMouseButton_Right) && !m_Placing)
+		{
+			const ImVec2 drag = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right, 0.0f);
+			if (drag.x * drag.x + drag.y * drag.y < 16.0f)
+			{
+				if (const std::optional<ObjectInspector::PickResult> pick = ObjectInspector::Pick(scene, camera.Position, direction))
+				{
+					m_Selection = pick->Object.GetUUID();
+					m_OpenObjectMenu = true;
+				}
+			}
+		}
+	}
+
+	Entity RuntimeDebugPanel::GetSelection(Scene& scene)
+	{
+		if (m_Selection == UUID::Invalid)
+			return {};
+		std::optional<Entity> entity = scene.TryGetEntityByUUID(m_Selection);
+		if (!entity)
+		{
+			m_Selection = UUID::Invalid; // destroyed
+			return {};
+		}
+		return *entity;
+	}
+
+	void RuntimeDebugPanel::DrawObjectActions(Scene& scene, Entity entity, bool asMenu)
+	{
+		auto action = [asMenu](const char* label, bool enabled = true) {
+			if (asMenu)
+				return ImGui::MenuItem(label, nullptr, false, enabled);
+			ImGui::BeginDisabled(!enabled);
+			const bool pressed = ImGui::SmallButton(label);
+			ImGui::EndDisabled();
+			ImGui::SameLine();
+			return pressed;
+		};
+		auto toggle = [asMenu](const char* label, bool& value) {
+			if (asMenu)
+				return ImGui::MenuItem(label, nullptr, &value);
+			const bool changed = ImGui::Checkbox(label, &value);
+			ImGui::SameLine();
+			return changed;
+		};
+
+		PerceptionSystem* perception = scene.GetPerceptionSystem();
+		if (entity.HasComponent<PerceptionComponent>() && perception)
+		{
+			const bool awake = PerceptionSystem::IsAwake(entity);
+			if (action("Knock out", awake))
+				perception->KnockOut(entity, VitalState::Unconscious);
+			if (action("Kill", awake))
+				perception->KnockOut(entity, VitalState::Dead);
+			if (action("Calm down", awake))
+				PerceptionSystem::Calm(entity.GetComponent<PerceptionComponent>());
+			bool ignores = perception->IgnoresIntruders(entity);
+			if (toggle("Ignores the thief", ignores))
+				perception->SetIgnoresIntruders(entity, ignores);
+			if (asMenu)
+				ImGui::SetItemTooltip("He neither sees, touches nor hears the thief; other noises still count.");
+			toggle("Only his view cone", m_OnlySelectedVision);
+		}
+		if (ObjectInspector::HasLights(entity))
+		{
+			const bool on = ObjectInspector::AreLightsOn(entity);
+			if (action(on ? "Light off" : "Light on"))
+				ObjectInspector::SetLightsOn(entity, !on);
+		}
+		if (action("Move here..."))
+			m_Placing = true;
+		if (asMenu)
+			ImGui::SetItemTooltip("Then left-click where it goes (Esc cancels).");
+		if (action("Copy values"))
+		{
+			ImGui::SetClipboardText(ComponentRegistry::SerializeEntityComponents(entity).dump(2).c_str());
+			PN_CORE_INFO("Inspector: the components of '{}' are on the clipboard", entity.GetName());
+		}
+		if (asMenu)
+			ImGui::SetItemTooltip("Its components as JSON (the scene file's form), to carry good values into the level.");
+		if (action("Delete"))
+		{
+			scene.DestroyEntity(entity);
+			m_Selection = UUID::Invalid;
+		}
+		if (!asMenu)
+			ImGui::NewLine();
+	}
+
+	void RuntimeDebugPanel::DrawObjectMenu(Scene& scene)
+	{
+		if (m_OpenObjectMenu)
+		{
+			ImGui::OpenPopup("##object");
+			m_OpenObjectMenu = false;
+		}
+		if (!ImGui::BeginPopup("##object"))
+			return;
+		if (Entity entity = GetSelection(scene))
+		{
+			ImGui::TextDisabled("%s  (%s)", entity.GetName().c_str(), ObjectInspector::Describe(entity).Kind.c_str());
+			ImGui::Separator();
+			DrawObjectActions(scene, entity, true);
+		}
+		else
+			ImGui::CloseCurrentPopup();
+		ImGui::EndPopup();
+	}
+
+	void RuntimeDebugPanel::DrawInspector(Scene& scene)
+	{
+		const ImGuiIO& io = ImGui::GetIO();
+		ImGui::SetNextWindowPos(ImVec2(10.0f * m_AppliedScale, io.DisplaySize.y * 0.25f), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowSize(ImVec2(420.0f * m_AppliedScale, io.DisplaySize.y * 0.6f), ImGuiCond_FirstUseEver);
+		if (!ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoSavedSettings))
+		{
+			ImGui::End();
+			return;
+		}
+		if (m_Placing)
+			ImGui::TextColored(ImVec4(1.0f, 0.85f, 0.2f, 1.0f), "Left-click where it goes (Esc cancels).");
+
+		Entity entity = GetSelection(scene);
+		if (!entity)
+		{
+			ImGui::TextWrapped("Click an object in the world to select it: a guard, a lamp, a door, a crate. Right-click for its menu.");
+			ImGui::End();
+			return;
+		}
+
+		const ObjectInspector::ObjectContext context = ObjectInspector::Describe(entity);
+		ImGui::Text("%s", entity.GetName().c_str());
+		ImGui::SameLine();
+		ImGui::TextDisabled("%s", context.Kind.c_str());
+		if (Entity parent = entity.GetParent())
+		{
+			ImGui::TextDisabled("in");
+			ImGui::SameLine();
+			if (ImGui::SmallButton(parent.GetName().c_str()))
+				m_Selection = parent.GetUUID();
+		}
+		DrawObjectActions(scene, entity, false);
+		ImGui::TextDisabled("Changes apply at once and are not saved: Copy values carries them to the level.");
+		ImGui::Separator();
+
+		// The components that matter for this kind of thing first, open; then the rest, folded.
+		auto drawComponent = [&](const ComponentInfo& info, bool open) {
+			ImGui::PushID(info.Name.c_str());
+			if (ImGui::CollapsingHeader(info.Name.c_str(), open ? ImGuiTreeNodeFlags_DefaultOpen : 0))
+			{
+				ComponentInspector::DrawFields(entity, info);
+				ComponentInspector::DrawRuntimeState(entity, info);
+			}
+			ImGui::PopID();
+		};
+		for (const std::string& name : context.KeyComponents)
+		{
+			if (const ComponentInfo* info = ComponentRegistry::Find(name))
+				drawComponent(*info, true);
+		}
+		if (ImGui::TreeNodeEx("Other components", ImGuiTreeNodeFlags_SpanAvailWidth))
+		{
+			for (const ComponentInfo& info : ComponentRegistry::GetAll())
+			{
+				if (info.Has(entity) && std::find(context.KeyComponents.begin(), context.KeyComponents.end(), info.Name) == context.KeyComponents.end())
+					drawComponent(info, false);
+			}
+			ImGui::TreePop();
+		}
+		const std::vector<Entity> children = entity.GetChildren();
+		if (!children.empty() && ImGui::TreeNodeEx("Parts", ImGuiTreeNodeFlags_SpanAvailWidth, "Parts (%zu)", children.size()))
+		{
+			for (Entity child : children)
+			{
+				const std::string label = std::format("{}  ({})##{}", child.GetName(), ObjectInspector::Describe(child).Kind,
+					static_cast<uint64_t>(child.GetUUID()));
+				if (ImGui::Selectable(label.c_str()))
+					m_Selection = child.GetUUID();
+			}
+			ImGui::TreePop();
+		}
+		ImGui::End();
 	}
 
 }

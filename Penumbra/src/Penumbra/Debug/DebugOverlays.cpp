@@ -139,7 +139,7 @@ namespace Penumbra::DebugOverlays {
 		return lines;
 	}
 
-	void DrawVision(Scene& scene, DebugDraw& debug)
+	void DrawVision(Scene& scene, DebugDraw& debug, UUID onlyObserver)
 	{
 		std::vector<Entity> intruders;
 		for (auto [handle, target] : scene.GetRegistry().view<PerceptionTargetComponent>().each())
@@ -151,6 +151,8 @@ namespace Penumbra::DebugOverlays {
 		for (auto [handle, perception] : scene.GetRegistry().view<PerceptionComponent>().each())
 		{
 			Entity observer(handle, &scene);
+			if (onlyObserver != UUID::Invalid && observer.GetUUID() != onlyObserver)
+				continue;
 			if (!PerceptionSystem::IsAwake(observer))
 				continue;
 			const glm::vec3 eye = Eye(scene, observer, perception);
