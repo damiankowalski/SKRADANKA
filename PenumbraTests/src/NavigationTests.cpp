@@ -150,6 +150,67 @@ TEST_SUITE("Navigation")
 		lab.SceneInstance.OnRuntimeStop();
 	}
 
+	TEST_CASE("Avoidance: keep right for someone coming the other way, go round someone standing")
+	{
+		using N = NavigationSystem::Neighbour;
+		const UUID self(1), other(2);
+		const glm::vec3 north(0.0f, 0.0f, -1.0f), east(1.0f, 0.0f, 0.0f); // walking north, the right hand is east
+		auto steer = [&](const std::vector<N>& neighbours) {
+			return NavigationSystem::AvoidNeighbours(self, glm::vec3(0.0f), north, 1.4f, 0.3f, neighbours);
+		};
+
+		// Nobody, or only itself: straight on at full speed.
+		CHECK(Test::Near(steer({}).first, north, 1e-4f));
+		CHECK(steer({ N{ self, { 0.0f, 0.0f, -1.0f }, {}, 0.3f } }).second == 1.0f);
+		// Coming the other way, dead ahead or a little to the right: both step to their right.
+		for (float x : { 0.0f, 0.2f, -0.2f })
+		{
+			const auto [direction, factor] = steer({ N{ other, { x, 0.0f, -1.5f }, { 0.0f, 0.0f, 1.4f }, 0.3f } });
+			CHECK(glm::dot(direction, east) > 0.2f);
+			CHECK(glm::dot(direction, north) > 0.0f); // still going forward
+			CHECK(factor < 1.0f);
+		}
+		// Standing a little to the right: go round on the left.
+		CHECK(glm::dot(steer({ N{ other, { 0.3f, 0.0f, -1.2f }, {}, 0.3f } }).first, east) < -0.2f);
+		// Behind, far off to the side, beyond the look-ahead, or walking ahead the same way: ignored.
+		for (const N& ignored : { N{ other, { 0.0f, 0.0f, 1.5f }, {}, 0.3f }, N{ other, { 2.0f, 0.0f, -1.0f }, {}, 0.3f },
+				 N{ other, { 0.0f, 0.0f, -5.0f }, {}, 0.3f }, N{ other, { 0.0f, 0.0f, -1.0f }, { 0.0f, 0.0f, -1.4f }, 0.3f } })
+			CHECK(Test::Near(steer({ ignored }).first, north, 1e-4f));
+	}
+
+	TEST_CASE("Two NPCs meeting head on in a 3 m corridor pass each other and both arrive")
+	{
+		Test::TemporaryProject project;
+		Scene scene;
+		scene.SetAudioDeviceEnabled(false);
+		Test::CreateBox(scene, "Ground", { 0.0f, -0.5f, 0.0f }, { 3.0f, 0.5f, 12.0f });
+		Test::CreateBox(scene, "WallWest", { -1.7f, 1.5f, 0.0f }, { 0.2f, 1.5f, 12.0f });
+		Test::CreateBox(scene, "WallEast", { 1.7f, 1.5f, 0.0f }, { 0.2f, 1.5f, 12.0f });
+		scene.CreateEntity("Navigation").AddComponent<NavMeshComponent>();
+		Entity north = scene.CreateEntity("FromNorth"), south = scene.CreateEntity("FromSouth");
+		north.Transform().Translation = { 0.0f, 0.05f, -9.0f };
+		south.Transform().Translation = { 0.0f, 0.05f, 9.0f };
+		north.AddComponent<CharacterControllerComponent>();
+		south.AddComponent<CharacterControllerComponent>();
+		scene.OnRuntimeStart();
+		NavigationSystem& navigation = *scene.GetNavigationSystem();
+		REQUIRE(navigation.MoveTo(north, { 0.0f, 0.0f, 9.0f }, 1.4f));
+		REQUIRE(navigation.MoveTo(south, { 0.0f, 0.0f, -9.0f }, 1.4f));
+
+		float closest = 100.0f;
+		auto moving = [&](Entity e) { return e.GetComponent<NavAgentComponent>().RuntimeStatus == NavStatus::Moving; };
+		for (int i = 0; i < 60 * 25 && (moving(north) || moving(south)); ++i)
+		{
+			scene.OnUpdateRuntime(Timestep(1.0f / 60.0f));
+			const glm::vec3 a = scene.GetWorldPosition(north), b = scene.GetWorldPosition(south);
+			closest = std::min(closest, glm::length(glm::vec2(a.x - b.x, a.z - b.z)));
+		}
+		CHECK(north.GetComponent<NavAgentComponent>().RuntimeStatus == NavStatus::Arrived);
+		CHECK(south.GetComponent<NavAgentComponent>().RuntimeStatus == NavStatus::Arrived);
+		CHECK(closest > 0.6f); // they stepped aside before touching (two 0.3 m capsules)
+		scene.OnRuntimeStop();
+	}
+
 	TEST_CASE("Destroying a static obstacle rebuilds the navmesh; character.move style steering takes over")
 	{
 		NavLab lab;

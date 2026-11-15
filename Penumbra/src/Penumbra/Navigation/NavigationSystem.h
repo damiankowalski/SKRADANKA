@@ -26,6 +26,26 @@ namespace Penumbra {
 		static constexpr float StuckTime = 2.0f;        // seconds of no progress before an agent is Stuck
 		static constexpr float CornerRadius = 0.25f;    // a path corner counts as reached this close
 		static constexpr float RebuildCooldown = 0.25f; // minimum seconds between automatic rebuilds
+		static constexpr float AvoidLookAhead = 1.5f;   // metres (plus half a second of walking) an agent looks ahead for others
+		static constexpr float AvoidClearance = 0.3f;   // gap kept between two passing agents' capsules
+
+		// Another NPC (a character with a NavAgent) as seen by an agent deciding where to step.
+		struct Neighbour
+		{
+			UUID ID = UUID::Invalid;
+			glm::vec3 Position{ 0.0f };
+			glm::vec3 Velocity{ 0.0f };
+			float Radius = 0.3f;
+		};
+
+		// People give way to the right: an agent heading in `direction` (unit, horizontal) at `speed`
+		// that sees another NPC ahead within AvoidLookAhead, close enough to its line to bump into,
+		// bends its course before they meet: to its right when the other is coming the other way
+		// (both do, so they pass left shoulder to left shoulder), away from it when it stands or
+		// dawdles. Returns the steering direction (unit) and a speed factor in (0, 1]; unchanged
+		// when nobody is in the way. Agents walking the same way at a similar pace are ignored.
+		static std::pair<glm::vec3, float> AvoidNeighbours(UUID self, const glm::vec3& position, const glm::vec3& direction, float speed,
+			float radius, const std::vector<Neighbour>& neighbours);
 
 		explicit NavigationSystem(Scene& scene);
 		~NavigationSystem();
@@ -75,6 +95,7 @@ namespace Penumbra {
 		float m_RebuildTimer = 0.0f;
 		uint32_t m_RandomState = 0x2545F491u;
 		std::unordered_map<UUID, AgentState> m_Agents;
+		std::vector<Neighbour> m_Neighbours; // every NPC this frame, for avoidance
 	};
 
 }

@@ -159,6 +159,31 @@ TEST_SUITE("World")
 		CHECK(cloister.SceneInstance.GetScriptEngine()->GetErrors().empty());
 	}
 
+	TEST_CASE("Cloister: the two guards walking the ring opposite ways meet and pass each other")
+	{
+		Level cloister("Scenes/Cloister.pscene");
+		float together = 0.0f, longest = 0.0f, closest = 100.0f, travelledNorth = 0.0f, travelledSouth = 0.0f;
+		glm::vec3 lastNorth = cloister.Position("GuardNorth"), lastSouth = cloister.Position("GuardSouth");
+		for (int step = 0; step < 90 * 10; ++step) // 90 s: they meet several times
+		{
+			cloister.Run(0.1f);
+			const glm::vec3 north = cloister.Position("GuardNorth"), south = cloister.Position("GuardSouth");
+			const float distance = glm::length(glm::vec2(north.x - south.x, north.z - south.z));
+			closest = std::min(closest, distance);
+			together = distance < 1.0f ? together + 0.1f : 0.0f; // a stretch of standing chest to chest
+			longest = std::max(longest, together);
+			travelledNorth += glm::distance(north, lastNorth);
+			travelledSouth += glm::distance(south, lastSouth);
+			lastNorth = north;
+			lastSouth = south;
+		}
+		CHECK(closest < 3.0f);    // they did meet
+		CHECK(longest < 5.0f);    // a pause together at a shared corner, never a deadlock (they used to circle it for good)
+		CHECK(travelledNorth > 60.0f);
+		CHECK(travelledSouth > 60.0f);
+		CHECK(cloister.SceneInstance.GetScriptEngine()->GetErrors().empty());
+	}
+
 	TEST_CASE("Cloister: the way from the east wing to the west leads around the ring or through the garden doors")
 	{
 		Level cloister("Scenes/Cloister.pscene");

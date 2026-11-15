@@ -180,6 +180,51 @@ namespace Penumbra {
 		agent.GetComponent<TransformComponent>().Rotation = glm::normalize(world);
 	}
 
+	std::pair<glm::vec3, float> NavigationSystem::AvoidNeighbours(UUID self, const glm::vec3& position, const glm::vec3& direction, float speed,
+		float radius, const std::vector<Neighbour>& neighbours)
+	{
+		const glm::vec3 forward = glm::normalize(glm::vec3(direction.x, 0.0f, direction.z));
+		const glm::vec3 right(-forward.z, 0.0f, forward.x);
+		const float lookAhead = AvoidLookAhead + speed * 0.5f;
+
+		// The nearest NPC ahead (or alongside) whose capsule would brush this one's.
+		const Neighbour* nearest = nullptr;
+		float nearestAlong = 0.0f, nearestSide = 0.0f, nearestReach = 0.0f;
+		for (const Neighbour& other : neighbours)
+		{
+			if (other.ID == self)
+				continue;
+			const glm::vec3 offset(other.Position.x - position.x, 0.0f, other.Position.z - position.z);
+			const float along = glm::dot(offset, forward);
+			const float side = glm::dot(offset, right);
+			const float reach = radius + other.Radius;
+			if (along < -reach || along > lookAhead + reach || std::abs(side) > reach + AvoidClearance)
+				continue;
+			// Walking the same way, not slower: no need to go round.
+			if (glm::dot(other.Velocity, forward) > speed * 0.8f)
+				continue;
+			if (!nearest || along < nearestAlong)
+			{
+				nearest = &other;
+				nearestAlong = along;
+				nearestSide = side;
+				nearestReach = reach;
+			}
+		}
+		if (!nearest)
+			return { forward, 1.0f };
+
+		// Coming the other way: keep right. Standing or dawdling: go round on the far side from it.
+		const bool oncoming = glm::dot(nearest->Velocity, forward) < -0.3f;
+		float turn = 1.0f;
+		if (!oncoming && nearestSide > 0.05f)
+			turn = -1.0f;
+		// The closer, the harder the turn and the slower the step.
+		const float urgency = 1.0f - std::clamp((nearestAlong - nearestReach) / lookAhead, 0.0f, 1.0f);
+		const glm::vec3 steered = glm::normalize(forward + right * (turn * (0.4f + 1.2f * urgency)));
+		return { steered, 1.0f - 0.3f * urgency };
+	}
+
 	void NavigationSystem::SteerAgent(Entity agent, NavAgentComponent& component, CharacterControllerComponent& controller, AgentState& state, float dt)
 	{
 		state.ReplanTimer -= dt;
@@ -198,7 +243,23 @@ namespace Penumbra {
 			remaining += HorizontalDistance(state.Path[i], state.Path[i + 1]);
 		component.RuntimeRemainingDistance = remaining;
 
-		if (state.Next == last && toCorner <= std::max(component.StoppingDistance, 0.05f))
+		// Arrived: at the destination, or next to it while another NPC stands on it (two guards whose
+		// rounds share a waypoint would otherwise circle each other there forever).
+		bool arrived = state.Next == last && toCorner <= std::max(component.StoppingDistance, 0.05f);
+		if (state.Next == last && !arrived)
+		{
+			for (const Neighbour& other : m_Neighbours)
+			{
+				const float reach = controller.Radius + other.Radius;
+				if (other.ID != agent.GetUUID() && HorizontalDistance(other.Position, corner) < reach &&
+					toCorner < reach + other.Radius + AvoidClearance + 0.4f)
+				{
+					arrived = true;
+					break;
+				}
+			}
+		}
+		if (arrived)
 		{
 			component.RuntimeStatus = NavStatus::Arrived;
 			controller.RuntimeDesiredVelocity = glm::vec3(0.0f);
@@ -209,7 +270,14 @@ namespace Penumbra {
 		glm::vec3 direction(corner.x - position.x, 0.0f, corner.z - position.z);
 		direction = toCorner > Math::Epsilon ? direction / toCorner : glm::vec3(0.0f);
 		// Ease into the final stop so agents do not overshoot and turn around.
-		const float speed = state.Speed * (state.Next == last ? std::clamp(toCorner / 0.6f, 0.35f, 1.0f) : 1.0f);
+		float speed = state.Speed * (state.Next == last ? std::clamp(toCorner / 0.6f, 0.35f, 1.0f) : 1.0f);
+		// Give way to other NPCs; the path's next corner pulls the agent back once they have passed.
+		if (glm::length(direction) > Math::Epsilon)
+		{
+			const auto [steered, factor] = AvoidNeighbours(agent.GetUUID(), position, direction, speed, controller.Radius, m_Neighbours);
+			direction = steered;
+			speed *= factor;
+		}
 		controller.RuntimeDesiredVelocity = direction * speed;
 		if (component.FaceMovement)
 			FaceDirection(agent, direction, component.TurnSpeed * dt);
@@ -232,6 +300,13 @@ namespace Penumbra {
 			std::string error;
 			Bake(error);
 			m_RebuildTimer = RebuildCooldown;
+		}
+
+		m_Neighbours.clear();
+		for (auto [handle, component, controller] : m_Scene.GetRegistry().view<NavAgentComponent, CharacterControllerComponent>().each())
+		{
+			Entity entity(handle, &m_Scene);
+			m_Neighbours.push_back({ entity.GetUUID(), m_Scene.GetWorldPosition(entity), controller.RuntimeVelocity, controller.Radius });
 		}
 
 		std::vector<std::pair<Entity, UUID>> agents;

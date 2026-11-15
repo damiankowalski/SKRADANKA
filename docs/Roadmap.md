@@ -75,17 +75,16 @@ no longer sees through walls; the crossbow (the main weapon from now on) aims wi
 (a dot at the centre) and shoots with the left, which stays free for another action when not aiming;
 crossbow bolts with a shaft, a head and glowing fletchings; a compass strip (top right, `north_yaw` per
 level, no position: no minimap, ever); guards see a 130 degree cone: a 90 degree focus plus 20 degree
-bands each side where the thief's contrast counts half (`FocusFieldOfView`, `PeripheralContrast`).
+bands each side where the thief's contrast counts half (`FocusFieldOfView`, `PeripheralContrast`). NPCs
+give way: an agent sees another NPC up to ~2 m ahead and steps to its right when they meet head on (both
+do), goes round one who stands, and stops beside a waypoint another NPC already stands on (the two
+cloister guards used to circle a shared corner for good).
 
 ## In progress
 
-Nothing: the next package is NPC avoidance.
+Nothing: the next package is ragdolls.
 
 ## Next
-
-**NPCs give way** (M, Navigation): agents look about 1.5 m ahead and, seeing another NPC coming the other
-way, step to their right before they meet (keep-right rule for people); a standing NPC is walked around
-with clearance, then the agent rejoins its path. Today they walk into each other and stop.
 
 **Ragdolls** (L, ~3 sessions; Animation, Physics, AI, `Player.lua`): Jolt ragdolls built from the
 skeleton (capsules per main bone, swing-twist limits) that take over from the animation on a knockout or
