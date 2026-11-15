@@ -18,6 +18,7 @@
 #include <Jolt/Physics/Collision/CollisionCollectorImpl.h>
 #include <Jolt/Physics/Collision/NarrowPhaseQuery.h>
 #include <Jolt/Physics/Collision/RayCast.h>
+#include <Jolt/Physics/Collision/ShapeCast.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
 #include <Jolt/Physics/Collision/Shape/MeshShape.h>
@@ -613,6 +614,34 @@ namespace Penumbra {
 			hit.Entity = UUID(body.GetUserData());
 			hit.Normal = FromJolt(body.GetWorldSpaceSurfaceNormal(collector.mHit.mSubShapeID2, JPH::RVec3(ToJolt(hit.Point))));
 		}
+		return hit;
+	}
+
+	std::optional<RaycastHit> PhysicsWorld::SphereCast(const glm::vec3& origin, const glm::vec3& direction, float radius, float maxDistance,
+		const PhysicsEntityFilter& filter) const
+	{
+		const float length = glm::length(direction);
+		if (length < Math::Epsilon || maxDistance <= 0.0f || radius <= 0.0f)
+			return std::nullopt;
+		const glm::vec3 unit = direction / length;
+
+		JPH::SphereShape sphere(radius);
+		sphere.SetEmbedded();
+		const JPH::RShapeCast cast(&sphere, JPH::Vec3::sReplicate(1.0f), JPH::RMat44::sTranslation(JPH::RVec3(ToJolt(origin))),
+			ToJolt(unit * maxDistance));
+		JPH::ShapeCastSettings settings;
+		settings.mBackFaceModeTriangles = JPH::EBackFaceMode::IgnoreBackFaces;
+		JPH::ClosestHitCollisionCollector<JPH::CastShapeCollector> collector;
+		const EntityBodyFilter bodyFilter(filter);
+		m_Impl->System->GetNarrowPhaseQuery().CastShape(cast, settings, JPH::RVec3::sZero(), collector, {}, {}, bodyFilter);
+		if (!collector.HadHit())
+			return std::nullopt;
+
+		RaycastHit hit;
+		hit.Distance = std::max(collector.mHit.mFraction, 0.0f) * maxDistance;
+		hit.Point = FromJolt(JPH::Vec3(collector.mHit.mContactPointOn2));
+		hit.Normal = -FromJolt(collector.mHit.mPenetrationAxis.NormalizedOr(JPH::Vec3::sAxisY() * -1.0f));
+		hit.Entity = UUID(m_Impl->System->GetBodyInterface().GetUserData(collector.mHit.mBodyID2));
 		return hit;
 	}
 

@@ -42,6 +42,11 @@ namespace Penumbra::PerceptionModel {
 		return 1.0f - (1.0f - edgeFactor) * t * t;
 	}
 
+	float ZoneContrastFactor(float angle, float focusHalfAngle, float peripheralContrast)
+	{
+		return angle <= focusHalfAngle ? 1.0f : std::clamp(peripheralContrast, 0.0f, 1.0f);
+	}
+
 	float MotionFactor(float speed, float peripherality, float motionWeight)
 	{
 		return std::min(1.0f + motionWeight * std::max(speed, 0.0f) * (1.0f + std::clamp(peripherality, 0.0f, 1.0f)), MaxMotionFactor);

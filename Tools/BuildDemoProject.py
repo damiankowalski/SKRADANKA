@@ -136,6 +136,24 @@ def arrow_target(emissive=0.0):
             "Reflectance": 0.25, "Emissive": emissive}
 
 
+def bolt(doc, arrow, color, emissive, light=None):
+    """The crossbow bolt's look (it flies along -Z): a wooden shaft, an iron head and two crossed
+    fletchings in the bolt's colour. The fletchings glow a little so the flight can be followed in
+    the dark. Visual only: the arrow's physics is the small sphere on the root."""
+    wood = material((0.32, 0.22, 0.12), roughness=0.9)
+    doc.add("Shaft", arrow, Transform=transform(rotation=(90, 0, 0), scale=(0.022, 0.55, 0.022)),
+            Mesh={"Mesh": "builtin:cylinder", "CastShadows": False}, Material=wood)
+    doc.add("Head", arrow, Transform=transform((0, 0, -0.3), scale=(0.04, 0.04, 0.09)),
+            Mesh={"Mesh": "builtin:sphere", "CastShadows": False}, Material=material((0.55, 0.55, 0.58), roughness=0.35, metallic=0.9))
+    fletching = material(color, emissive=emissive, emissive_color=color)
+    for index, size in enumerate(((0.1, 0.006, 0.13), (0.006, 0.1, 0.13))):
+        doc.add(f"Fletching{index + 1}", arrow, Transform=transform((0, 0, 0.21), scale=size),
+                Mesh={"Mesh": "builtin:cube", "CastShadows": False}, Material=fletching)
+    if light:
+        doc.add("Glow", arrow, Transform=transform((0, 0, -0.3)),
+                PointLight={"Color": list(light), "Intensity": 4.0, "Range": 5.0, "Flicker": 0.2})
+
+
 def build_prefabs():
     doc = Document("PenumbraPrefab")
     torch_prefab_entities(doc)
@@ -152,11 +170,7 @@ def build_prefabs():
                         StimSource={"Stim": stim, "Delivery": "Contact", "Intensity": 1.0, "Radius": 1.0, "DestroyOnContact": True},
                         PerceptionTarget=arrow_target(emissive=1.5 if light else 0.0),
                         Script={"Script": "Scripts/Arrow.lua"})
-        components = {"Transform": transform(scale=(0.05, 0.05, 0.6)), "Mesh": {"Mesh": "builtin:cube", "CastShadows": False},
-                      "Material": material(color, emissive=4.0 if light else 0.5, emissive_color=color)}
-        if light:
-            components["PointLight"] = {"Color": list(light), "Intensity": 4.0, "Range": 5.0, "Flicker": 0.2}
-        doc.add("Shaft", arrow, **components)
+        bolt(doc, arrow, color, 4.0 if light else 1.5, light)
         doc.save(f"Prefabs/{name}.pprefab")
 
     # Gas arrow: bursts into a sleeping-gas cloud where it lands (Scripts/GasArrow.lua).
@@ -166,8 +180,7 @@ def build_prefabs():
                                "TransparentToSight": True},
                     PerceptionTarget=arrow_target(emissive=0.3),
                     Script={"Script": "Scripts/GasArrow.lua"})
-    doc.add("Shaft", arrow, Transform=transform(scale=(0.05, 0.05, 0.6)), Mesh={"Mesh": "builtin:cube", "CastShadows": False},
-            Material=material((0.4, 0.8, 0.3), emissive=1.5, emissive_color=(0.4, 0.9, 0.3)))
+    bolt(doc, arrow, (0.4, 0.9, 0.3), 1.5)
     doc.save("Prefabs/GasArrow.pprefab")
     # Moss arrow: a patch of moss where it lands on a floor (Scripts/MossArrow.lua).
     doc = Document("PenumbraPrefab")
@@ -176,8 +189,7 @@ def build_prefabs():
                                "TransparentToSight": True},
                     PerceptionTarget=arrow_target(),
                     Script={"Script": "Scripts/MossArrow.lua"})
-    doc.add("Shaft", arrow, Transform=transform(scale=(0.05, 0.05, 0.6)), Mesh={"Mesh": "builtin:cube", "CastShadows": False},
-            Material=material((0.25, 0.4, 0.15), emissive=0.3, emissive_color=(0.3, 0.5, 0.2)))
+    bolt(doc, arrow, (0.3, 0.5, 0.2), 0.8)
     doc.save("Prefabs/MossArrow.pprefab")
     # The patch: a 2 m disc of moss, 2 cm thick, footsteps on it near silent. Kinematic, so it does
     # not trigger a navmesh rebuild; transparent to sight like any floor covering.

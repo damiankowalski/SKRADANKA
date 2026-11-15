@@ -99,6 +99,8 @@ namespace Penumbra {
 		void OnViewportResize(uint32_t width, uint32_t height);
 		uint32_t GetViewportWidth() const { return m_ViewportWidth; }
 		uint32_t GetViewportHeight() const { return m_ViewportHeight; }
+		// Logical-to-physical pixel factor of the HUD (OverlayScaleFor): 1 up to 1080 lines.
+		float GetUIScale() const;
 
 		// Requests (made by scripts) that the host application acts on between frames.
 		void RequestSceneLoad(const std::string& scenePath) { m_RequestedScene = scenePath; }

@@ -83,14 +83,108 @@
             0
           ],
           "Rotation": [
+            90,
+            0,
+            0
+          ],
+          "Scale": [
+            0.022,
+            0.55,
+            0.022
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.32,
+            0.22,
+            0.12,
+            1.0
+          ],
+          "Roughness": 0.9,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1000"
+    },
+    {
+      "ID": "1002",
+      "Components": {
+        "Tag": {
+          "Tag": "Head"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            -0.3
+          ],
+          "Rotation": [
             0,
             0,
             0
           ],
           "Scale": [
-            0.05,
-            0.05,
-            0.6
+            0.04,
+            0.04,
+            0.09
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:sphere",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.55,
+            0.55,
+            0.58,
+            1.0
+          ],
+          "Roughness": 0.35,
+          "Metallic": 0.9,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1000"
+    },
+    {
+      "ID": "1003",
+      "Components": {
+        "Tag": {
+          "Tag": "Fletching1"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0.21
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.1,
+            0.006,
+            0.13
           ]
         },
         "Mesh": {
@@ -113,6 +207,79 @@
             0.1
           ],
           "Translucent": false
+        }
+      },
+      "Parent": "1000"
+    },
+    {
+      "ID": "1004",
+      "Components": {
+        "Tag": {
+          "Tag": "Fletching2"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0.21
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.006,
+            0.1,
+            0.13
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            1.0,
+            0.45,
+            0.1,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 4.0,
+          "EmissiveColor": [
+            1.0,
+            0.45,
+            0.1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1000"
+    },
+    {
+      "ID": "1005",
+      "Components": {
+        "Tag": {
+          "Tag": "Glow"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            -0.3
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
         },
         "PointLight": {
           "Color": [

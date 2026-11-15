@@ -74,6 +74,40 @@ TEST_SUITE("Physics")
 		fixture.SceneInstance.OnRuntimeStop();
 	}
 
+	TEST_CASE("Sphere casts are thick rays: they stop a radius short of a wall and do not slip through narrow gaps")
+	{
+		PhysicsFixture fixture;
+		Entity wall = Test::CreateBox(fixture.SceneInstance, "Wall", { 0.0f, 1.0f, -5.0f }, { 2.0f, 1.0f, 0.1f });
+		// Two posts with a 0.6 m gap centred on x = 4.
+		Test::CreateBox(fixture.SceneInstance, "PostA", { 3.4f, 1.0f, -5.0f }, { 0.3f, 1.0f, 0.1f });
+		Test::CreateBox(fixture.SceneInstance, "PostB", { 4.6f, 1.0f, -5.0f }, { 0.3f, 1.0f, 0.1f });
+		fixture.SceneInstance.OnRuntimeStart();
+		PhysicsWorld& physics = *fixture.SceneInstance.GetPhysicsWorld();
+
+		std::optional<RaycastHit> hit = physics.SphereCast({ 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, -1.0f }, 0.25f, 100.0f);
+		REQUIRE(hit);
+		CHECK(hit->Entity == wall.GetUUID());
+		CHECK(Test::Near(hit->Distance, 4.65f, 0.02f)); // the centre stops a radius before the face at z = -4.9
+		CHECK(Test::Near(hit->Point.z, -4.9f, 0.02f));
+		CHECK(Test::Near(hit->Normal, { 0.0f, 0.0f, 1.0f }, 0.05f));
+
+		// A ray threads the gap, a sphere wider than it does not.
+		CHECK_FALSE(physics.Raycast({ 4.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, -1.0f }, 10.0f).has_value());
+		CHECK(physics.SphereCast({ 4.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, -1.0f }, 0.4f, 10.0f).has_value());
+		CHECK_FALSE(physics.SphereCast({ 4.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, -1.0f }, 0.2f, 10.0f).has_value());
+
+		// Starting against the wall: distance 0. Filters, short casts and degenerate input miss.
+		std::optional<RaycastHit> touching = physics.SphereCast({ 0.0f, 1.0f, -4.8f }, { 0.0f, 0.0f, -1.0f }, 0.25f, 1.0f);
+		REQUIRE(touching);
+		CHECK(touching->Distance < 0.01f);
+		const UUID wallID = wall.GetUUID();
+		CHECK_FALSE(physics.SphereCast({ 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, -1.0f }, 0.25f, 100.0f, [&](UUID e) { return e != wallID; }).has_value());
+		CHECK_FALSE(physics.SphereCast({ 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, -1.0f }, 0.25f, 3.0f).has_value());
+		CHECK_FALSE(physics.SphereCast({ 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, -1.0f }, 0.0f, 10.0f).has_value());
+		CHECK_FALSE(physics.SphereCast({ 0.0f, 1.0f, 0.0f }, glm::vec3(0.0f), 0.25f, 10.0f).has_value());
+		fixture.SceneInstance.OnRuntimeStop();
+	}
+
 	TEST_CASE("Impulses, velocities, teleport and radial impulses")
 	{
 		PhysicsFixture fixture;

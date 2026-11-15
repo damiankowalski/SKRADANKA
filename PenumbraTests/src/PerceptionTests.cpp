@@ -123,6 +123,8 @@ TEST_SUITE("Perception")
 		CHECK(Test::Near(PerceptionModel::AtmosphereFactor(1.0f), std::exp(-1.0f)));
 		CHECK(PerceptionModel::PeripheralFactor(0.0f, 0.2f) == 1.0f);
 		CHECK(Test::Near(PerceptionModel::PeripheralFactor(1.0f, 0.2f), 0.2f));
+		CHECK(PerceptionModel::ZoneContrastFactor(glm::radians(30.0f), glm::radians(45.0f), 0.5f) == 1.0f);
+		CHECK(PerceptionModel::ZoneContrastFactor(glm::radians(50.0f), glm::radians(45.0f), 0.5f) == 0.5f);
 		CHECK(PerceptionModel::MotionFactor(0.0f, 1.0f, 0.3f) == 1.0f);
 		CHECK(PerceptionModel::MotionFactor(4.0f, 1.0f, 0.3f) > PerceptionModel::MotionFactor(4.0f, 0.0f, 0.3f));
 		CHECK(PerceptionModel::Stimulus(0.5f, 0.1f, 0.0f, 1.0f, 1.0f, 1.0f) == 0.0f);
@@ -263,12 +265,12 @@ TEST_SUITE("Perception")
 		CHECK(peekTime > fullTime * 2.0f);
 	}
 
-	TEST_CASE("Scenario 6: at the edge of the cone a running player is detected, a still one is not")
+	TEST_CASE("Scenario 6: in the peripheral band a running player is detected, a still one is not")
 	{
 		auto run = [](bool moving) {
-			StealthLab lab(0.3f); // dim daylight: low but non-zero contrast
-			lab.Wall(-14.0f, 0.5f, 0.0f, 30.0f);
-			const float angle = glm::radians(55.0f); // half FOV is 60 degrees
+			StealthLab lab(0.3f); // dim daylight: low but non-zero contrast (the band halves it)
+			lab.Wall(-14.0f, 0.6f, 0.0f, 30.0f);
+			const float angle = glm::radians(55.0f); // in the peripheral band (focus 45, cone 65 degrees each side)
 			const glm::vec3 direction(-std::sin(angle), 0.0f, -std::cos(angle));
 			lab.Player.Transform().Translation = direction * 8.0f;
 			lab.Start();
@@ -479,6 +481,29 @@ TEST_SUITE("Perception")
 		CHECK(first.find('0') != std::string::npos); // even odds: both outcomes happen
 		CHECK(first.find('1') != std::string::npos);
 		lab.SceneInstance.OnRuntimeStop();
+	}
+
+	TEST_CASE("The cone is 130 degrees: a 90 degree focus and side bands where the thief stands out half as much")
+	{
+		auto visibilityAt = [](float degrees) {
+			StealthLab lab(0.3f); // dim daylight against an even wall: the same contrast in every direction
+			lab.Wall(-14.0f, 0.5f, 0.0f, 30.0f);
+			const float angle = glm::radians(degrees);
+			lab.Player.Transform().Translation = glm::vec3(-std::sin(angle), 0.0f, -std::cos(angle)) * 6.0f;
+			lab.Start();
+			lab.SceneInstance.OnUpdateRuntime(Timestep(1.0f / 60.0f));
+			const VisibilityResult result = lab.Visibility();
+			lab.SceneInstance.OnRuntimeStop();
+			return result;
+		};
+		const VisibilityResult focus = visibilityAt(30.0f), band = visibilityAt(55.0f), edge = visibilityAt(62.0f), outside = visibilityAt(70.0f);
+		REQUIRE(focus.VisiblePoints > 0);
+		REQUIRE(band.VisiblePoints > 0);
+		CHECK(band.Contrast == doctest::Approx(focus.Contrast * 0.5f).epsilon(0.15));
+		CHECK(band.Stimulus > 0.0f); // dimmer, not blind
+		CHECK(band.Stimulus < focus.Stimulus);
+		CHECK(edge.VisiblePoints > 0);    // the band reaches 65 degrees
+		CHECK(outside.VisiblePoints == 0);
 	}
 
 	TEST_CASE("Targets behind the guard or out of range are never seen")

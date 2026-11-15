@@ -459,7 +459,16 @@ namespace Penumbra {
 				return sol::lua_nil;
 			return HitToTable(state, *scene, *hit);
 		});
-		physics.set_function("overlap_sphere", [scene, requirePhysics](const glm::vec3& center, float radius, sol::this_state state) {
+		physics.set_function("spherecast", [scene, requirePhysics](const glm::vec3& origin, const glm::vec3& direction, float radius,
+											   float maxDistance, sol::optional<ScriptEntity> ignore, sol::this_state state) -> sol::object {
+			const UUID ignored = ignore ? ignore->ID : UUID(UUID::Invalid);
+			PhysicsEntityFilter filter = [ignored](UUID entity) { return entity != ignored; };
+			std::optional<RaycastHit> hit = requirePhysics().SphereCast(origin, direction, radius, maxDistance, filter);
+			if (!hit)
+				return sol::lua_nil;
+			return HitToTable(state, *scene, *hit);
+		});
+		physics.set_function("overlap_sphere",[scene, requirePhysics](const glm::vec3& center, float radius, sol::this_state state) {
 			sol::state_view view(state);
 			sol::table result = view.create_table();
 			int index = 1;
@@ -779,12 +788,15 @@ namespace Penumbra {
 				return results;
 			}
 			const glm::vec2 ndc = glm::vec2(clip) / clip.w;
-			results.push_back(sol::make_object(state, (ndc.x * 0.5f + 0.5f) * width));
-			results.push_back(sol::make_object(state, (0.5f - ndc.y * 0.5f) * height));
+			const float uiScale = scene->GetUIScale(); // HUD coordinates are logical pixels
+			results.push_back(sol::make_object(state, (ndc.x * 0.5f + 0.5f) * width / uiScale));
+			results.push_back(sol::make_object(state, (0.5f - ndc.y * 0.5f) * height / uiScale));
 			return results;
 		});
-		ui.set_function("width", [scene]() { return static_cast<double>(scene->GetViewportWidth()); });
-		ui.set_function("height", [scene]() { return static_cast<double>(scene->GetViewportHeight()); });
+		// Logical pixels: the viewport divided by the HUD scale (1 up to 1080 lines, 2 on a 2160-line screen).
+		ui.set_function("width", [scene]() { return static_cast<double>(scene->GetViewportWidth()) / scene->GetUIScale(); });
+		ui.set_function("height", [scene]() { return static_cast<double>(scene->GetViewportHeight()) / scene->GetUIScale(); });
+		ui.set_function("scale", [scene]() { return static_cast<double>(scene->GetUIScale()); });
 
 		// --- test -------------------------------------------------------------------------
 		sol::table test = lua.create_named_table("test");

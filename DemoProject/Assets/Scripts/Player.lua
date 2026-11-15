@@ -1,13 +1,18 @@
 -- Third-person thief: movement, over-the-shoulder camera, footstep noise, arrows and HUD.
 --
--- Controls: WASD move, Shift run, C crouch, Space jump, mouse look,
---           1 = water arrow, 2 = fire arrow, 3 = gas arrow, 4 = moss arrow, left mouse = shoot,
+-- Controls (CONTROLS below; F1 shows them in the game):
+--           WASD move, Shift run, C crouch, Space jump, mouse look,
+--           1 = water bolt, 2 = fire bolt, 3 = gas bolt, 4 = moss bolt,
+--           right mouse (held) = aim the crossbow: a dot marks the aim, left mouse shoots,
 --           E = use (take loot, pick a pocket from behind, pick up / drop a body, or whatever the
 --               object offers: on_use / use_prompt), Tab = objectives,
 --           F = blackjack (knocks out an NPC from behind who is not on alert), Esc = release the mouse.
+-- Left mouse means one thing while aiming (aim_action: shoot) and another without (plain_action:
+-- nothing yet), so other tools can claim either.
 -- Noise probe (when the noise_probe property is on): - / = pick a loudness, G makes that noise
 -- where you aim. The HUD shows the floor under you and how loud your last step was.
 
+local Compass = require("Scripts/Compass")
 local LightGem = require("Scripts/LightGem")
 local Mission = require("Scripts/Mission/Mission")
 local Noises = require("Scripts/AI/Noises")
@@ -23,6 +28,8 @@ local Player = {
         camera_distance = 3.2,
         arrow_speed = 32.0,
         noise_probe = true,
+        north_yaw = 0.0,   -- the compass: yaw (degrees) of the direction this level calls north
+        help_seconds = 15, -- how long the controls stay up when the level starts (F1 toggles them)
     }
 }
 
@@ -32,6 +39,17 @@ local ARROWS = {
     { name = "Gas", prefab = "Prefabs/GasArrow.pprefab", color = { 0.55, 0.9, 0.4, 1.0 } },
     { name = "Moss", prefab = "Prefabs/MossArrow.pprefab", color = { 0.45, 0.65, 0.3, 1.0 } },
 }
+
+-- The controls panel (F1).
+local CONTROLS = {
+    { "W A S D", "move" }, { "Shift", "run" }, { "C", "crouch" }, { "Space", "jump" },
+    { "Right mouse", "aim the crossbow" }, { "Left mouse", "shoot (while aiming)" }, { "1 - 4", "water / fire / gas / moss bolt" },
+    { "E", "use, take, open, pick up a body" }, { "F", "blackjack (from behind)" }, { "Tab", "objectives" },
+    { "Esc", "release the mouse" }, { "F1", "show / hide this" },
+}
+
+local CAMERA_RADIUS = 0.2  -- the camera's clearance from walls: wider than its near plane
+local SHOULDER = 0.5       -- the over-the-shoulder offset to the right
 
 local REACH = 2.2          -- metres: how far E and F reach
 local CARRY_SLOWDOWN = 0.6 -- speed multiplier with a body on the shoulders
@@ -73,6 +91,9 @@ function Player:on_create()
     self.carrying = nil     -- body on the shoulders: { entity, points }
     self.swing_cooldown = 0
     self.camera = scene.find("Camera")
+    self.aiming = false
+    self.boom = self.camera_distance -- current camera distance (eases back out after a wall)
+    self.help_time = self.help_seconds
     input.set_cursor_locked(true)
 end
 
@@ -119,8 +140,10 @@ function Player:update_movement(dt)
     if self.carrying then speed = speed * CARRY_SLOWDOWN end
 
     local moving = move:length() > 0.01
-    if moving then
-        move = move:normalized()
+    if moving then move = move:normalized() end
+    if self.aiming then -- facing the aim, side-stepping
+        self.entity:look_at(self.entity:get_position() + forward, true)
+    elseif moving then
         self.entity:look_at(self.entity:get_position() + move, true)
     end
     character.move(self.entity, move * speed)
@@ -190,19 +213,32 @@ function Player:update_animation(dt, running)
     anim.set_speed(self.model, reference and math.max(0.5, math.min(speed / reference, 2.0)) or 1.0)
 end
 
-function Player:update_camera()
+-- The over-the-shoulder camera never sees through walls: a sphere wider than the camera's near
+-- plane is swept from the head out to the shoulder (a wall on the right pulls the shoulder in),
+-- then back along the boom (a wall behind pulls the camera in). Pulling in is instant, easing
+-- back out is gradual, so the view does not pump along a rough wall.
+function Player:update_camera(dt)
     if not self.camera then return end
     local yaw, pitch = math.rad(self.yaw), math.rad(self.pitch)
     local look = vec3(-math.sin(yaw) * math.cos(pitch), math.sin(pitch), -math.cos(yaw) * math.cos(pitch))
     local right = vec3(math.cos(yaw), 0, -math.sin(yaw))
-    local pivot = self.entity:get_position() + vec3(0, self.visual_height + 0.15, 0) + right * 0.5
+    local head = self.entity:get_position() + vec3(0, self.visual_height + 0.15, 0)
 
-    -- Pull the camera in when a wall is behind the player.
-    local distance = self.camera_distance
-    local hit = physics.raycast(pivot, -look, distance, self.entity)
-    if hit then distance = math.max(hit.distance - 0.2, 0.3) end
+    local shoulder = SHOULDER
+    local side = physics.spherecast(head, right, CAMERA_RADIUS, SHOULDER, self.entity)
+    if side then shoulder = side.distance end
+    local pivot = head + right * shoulder
 
-    self.camera:set_position(pivot - look * distance)
+    local wanted = self.camera_distance
+    local behind = physics.spherecast(pivot, -look, CAMERA_RADIUS, wanted, self.entity)
+    if behind then wanted = behind.distance end
+    if wanted < self.boom then
+        self.boom = wanted
+    else
+        self.boom = math.min(wanted, self.boom + (dt or 0) * 4.0)
+    end
+
+    self.camera:set_position(pivot - look * self.boom)
     self.camera:look_at(pivot + look * 10)
     self.aim_origin = pivot
     self.aim_direction = look
@@ -223,20 +259,30 @@ function Player:update_arrows(dt)
     if input.key_pressed("4") then self.arrow = 4 end
     if self.carrying then return end -- hands full
     self.cooldown = math.max(self.cooldown - dt, 0)
-    if input.mouse_pressed("Left") and self.cooldown <= 0 and self.aim_origin then
-        local origin = self.aim_origin + self.aim_direction * 0.8
-        local arrow = scene.instantiate(ARROWS[self.arrow].prefab, origin)
-        arrow:look_at(origin + self.aim_direction)
-        self.pending_arrow = { entity = arrow, velocity = self.aim_direction * self.arrow_speed }
-        if self.model then
-            anim.play(self.model, "1H_Ranged_Shoot", 0.05, false)
-            anim.set_speed(self.model, 1.5)
-            self.shoot_timer = 0.45
-        end
-        Noises.emit("Bow", origin, self.entity)
-        self.cooldown = 0.6
+    if input.mouse_pressed("Left") then
+        if self.aiming then self:aim_action() else self:plain_action() end
     end
 end
+
+-- Left mouse while aiming: shoot a bolt. Returns the bolt (nil while reloading).
+function Player:aim_action()
+    if self.cooldown > 0 or not self.aim_origin then return nil end
+    local origin = self.aim_origin + self.aim_direction * 0.8
+    local arrow = scene.instantiate(ARROWS[self.arrow].prefab, origin)
+    arrow:look_at(origin + self.aim_direction)
+    self.pending_arrow = { entity = arrow, velocity = self.aim_direction * self.arrow_speed }
+    if self.model then
+        anim.play(self.model, "1H_Ranged_Shoot", 0.05, false)
+        anim.set_speed(self.model, 1.5)
+        self.shoot_timer = 0.45
+    end
+    Noises.emit("Bow", origin, self.entity)
+    self.cooldown = 0.6
+    return arrow
+end
+
+-- Left mouse without aiming: free for a future tool or attack.
+function Player:plain_action() end
 
 function Player:draw_hud(dt)
     local target = self.entity:get("PerceptionTarget")
@@ -244,16 +290,39 @@ function Player:draw_hud(dt)
     LightGem.draw(LightGem.update(self.gem, target.LightGem or 0, dt), w / 2, h - 50)
 
     local arrow = ARROWS[self.arrow]
-    ui.text(20, h - 40, arrow.name .. " arrow  [1-4]", 2, arrow.color)
+    ui.text(20, h - 44, arrow.name .. " bolt  [1-4]", 2.4, arrow.color)
+    if self.aiming then -- the dot: the bolt flies from the camera's line through the screen centre
+        ui.rect(w / 2 - 3, h / 2 - 3, 6, 6, { 0, 0, 0, 0.6 })
+        ui.rect(w / 2 - 2, h / 2 - 2, 4, 4, { 1, 1, 1, 0.9 })
+    end
     local prompt = not self.busy and self:interaction_prompt() or nil
-    if prompt then ui.text(w / 2 - #prompt * 6, h / 2 + 40, prompt, 2, { 1, 1, 1, 0.85 }) end
+    if prompt then ui.text(w / 2 - #prompt * 7.2, h / 2 + 40, prompt, 2.4, { 1, 1, 1, 0.85 }) end
     if self.crouched then ui.text(w / 2 + 70, h - 58, "crouching", 2, { 0.7, 0.7, 0.7, 1 }) end
     if self.noise_probe then
         local step = self.last_step
         local floor = Noises.surface_under(self.entity)
-        ui.text(20, h - 70, string.format("floor %s   last step %s", floor,
-            step and string.format("%.1f/10 (%s)", step.loudness, step.material) or "-"), 1.5, { 0.7, 0.7, 0.7, 1 })
-        ui.text(20, h - 92, string.format("noise probe %d/10  [- =] G", self.probe_loudness), 1.5, { 0.7, 0.7, 0.7, 1 })
+        ui.text(20, h - 76, string.format("floor %s   last step %s", floor,
+            step and string.format("%.1f/10 (%s)", step.loudness, step.material) or "-"), 1.8, { 0.7, 0.7, 0.7, 1 })
+        ui.text(20, h - 100, string.format("noise probe %d/10  [- =] G", self.probe_loudness), 1.8, { 0.7, 0.7, 0.7, 1 })
+    end
+    Compass.draw(w - 20, 16, Compass.heading(self.yaw, self.north_yaw))
+    self:draw_controls(dt)
+end
+
+-- The controls panel: up for a while when the level starts, F1 toggles it.
+function Player:draw_controls(dt)
+    if input.key_pressed("F1") then self.help_time = self.help_time > 0 and 0 or math.huge end
+    self.help_time = math.max(self.help_time - dt, 0)
+    local h = ui.height()
+    if self.help_time <= 0 then
+        ui.text(20, h - 124, "[F1] controls", 1.8, { 0.7, 0.7, 0.7, 0.8 })
+        return
+    end
+    local x, y, line = 20, 220, 26
+    ui.rect(x - 10, y - 12, 470, #CONTROLS * line + 20, { 0, 0, 0, 0.6 })
+    for i, entry in ipairs(CONTROLS) do
+        ui.text(x, y + (i - 1) * line, entry[1], 2, { 1.0, 0.85, 0.4, 1 })
+        ui.text(x + 160, y + (i - 1) * line, entry[2], 2, { 0.9, 0.9, 0.9, 1 })
     end
 end
 
@@ -265,8 +334,9 @@ function Player:on_update(dt)
     if input.key_pressed("Escape") then input.set_cursor_locked(false) end
     if input.mouse_pressed("Left") then input.set_cursor_locked(true) end
     self:update_look()
+    self.aiming = input.mouse_button("Right") and not self.busy and not self.carrying
     self:update_movement(dt)
-    self:update_camera()
+    self:update_camera(dt)
     if self.busy then
         -- Both hands on a task (a lock): no shooting or using until it is over.
         if not self.busy:update(self, dt) then self.busy = nil end

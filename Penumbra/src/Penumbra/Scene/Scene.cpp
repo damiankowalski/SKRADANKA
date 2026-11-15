@@ -481,4 +481,6 @@ namespace Penumbra {
 		m_ViewportHeight = std::max(height, 1u);
 	}
 
+	float Scene::GetUIScale() const { return OverlayScaleFor(m_ViewportHeight); }
+
 }

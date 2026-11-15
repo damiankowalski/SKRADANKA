@@ -68,11 +68,35 @@ as a mission) and `PhysicsLab` (a ramp up to a table with a copper jug: push the
 the jug off and let the guard hear it). Doors now open only for NPCs heading at them, not for those
 walking past along a corridor.
 
+**Playtest fixes** (from playing the cloister): the HUD is laid out for 1080 lines and scales up on taller
+screens (`ui.scale()`: a Retina Mac draws it twice as large), an F1 controls panel (up for 15 s when a level
+starts); the camera sweeps a sphere (`physics.spherecast`) to the shoulder and back along the boom, so it
+no longer sees through walls; the crossbow (the main weapon from now on) aims with the right mouse button
+(a dot at the centre) and shoots with the left, which stays free for another action when not aiming;
+crossbow bolts with a shaft, a head and glowing fletchings; a compass strip (top right, `north_yaw` per
+level, no position: no minimap, ever); guards see a 130 degree cone: a 90 degree focus plus 20 degree
+bands each side where the thief's contrast counts half (`FocusFieldOfView`, `PeripheralContrast`).
+
 ## In progress
 
-Nothing: the next package is to be chosen from Later.
+Nothing: the next package is NPC avoidance.
 
 ## Next
+
+**NPCs give way** (M, Navigation): agents look about 1.5 m ahead and, seeing another NPC coming the other
+way, step to their right before they meet (keep-right rule for people); a standing NPC is walked around
+with clearance, then the agent rejoins its path. Today they walk into each other and stop.
+
+**Ragdolls** (L, ~3 sessions; Animation, Physics, AI, `Player.lua`): Jolt ragdolls built from the
+skeleton (capsules per main bone, swing-twist limits) that take over from the animation on a knockout or
+death with the body's current pose and speed; bolts push them; bodies settle and sleep; guards see the
+body by its bones (a body folded behind a crate is harder to spot); carried rigidly, a ragdoll again when
+put down. Risks: the KayKit proportions (big head, short limbs), stability with light limbs, identical
+results on Windows and macOS.
+
+**Later, discussed**: a fog of war over what the thief cannot see (rendered from the character's eyes,
+not the camera: no peeking round corners for free) together with leaning on Q/E, which needs the use key
+moved off E first; a full-screen map on a key (S as a static picture, M drawn from the level).
 
 ### Later: movement and UI (~12+ sessions)
 

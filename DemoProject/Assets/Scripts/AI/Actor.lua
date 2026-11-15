@@ -84,7 +84,7 @@ function Actor.draw_bark(self, dt)
     local x, y = ui.world_to_screen(self.entity:get_position() + vec3(0, 2.25, 0))
     if x then
         local alpha = math.min(self.bark_timer / 0.5, 1.0)
-        ui.text(x - #self.bark_text * 4.5, y, self.bark_text, 1.5, { 1.0, 0.95, 0.8, alpha })
+        ui.text(x - #self.bark_text * 5.4, y, self.bark_text, 1.8, { 1.0, 0.95, 0.8, alpha })
     end
 end
 
