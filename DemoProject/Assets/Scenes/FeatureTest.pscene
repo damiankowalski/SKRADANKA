@@ -287,7 +287,8 @@
           ]
         },
         "CharacterController": {},
-        "Perception": {}
+        "Perception": {},
+        "Ragdoll": {}
       }
     },
     {

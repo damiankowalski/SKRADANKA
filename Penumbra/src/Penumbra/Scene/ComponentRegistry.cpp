@@ -306,6 +306,16 @@ namespace Penumbra {
 		}
 
 		template<typename V>
+		void VisitFields(RagdollComponent& c, V&& v)
+		{
+			v("Enabled", c.Enabled);
+			v("Mass", c.Mass);
+			v("RadiusScale", c.RadiusScale);
+			v("Active", c.RuntimeActive, FieldKind::Runtime);
+			v("Awake", c.RuntimeAwake, FieldKind::Runtime);
+		}
+
+		template<typename V>
 		void VisitFields(SmokeVolumeComponent& c, V&& v)
 		{
 			v("Radius", c.Radius);
@@ -486,6 +496,7 @@ namespace Penumbra {
 			registry.push_back(MakeInfo<PerceptionComponent>("Perception"));
 			registry.push_back(MakeInfo<PerceptionTargetComponent>("PerceptionTarget"));
 			registry.push_back(MakeInfo<VitalityComponent>("Vitality"));
+			registry.push_back(MakeInfo<RagdollComponent>("Ragdoll"));
 			registry.push_back(MakeInfo<SmokeVolumeComponent>("SmokeVolume"));
 			registry.push_back(MakeInfo<FlameComponent>("Flame"));
 			registry.push_back(MakeInfo<StimSourceComponent>("StimSource"));

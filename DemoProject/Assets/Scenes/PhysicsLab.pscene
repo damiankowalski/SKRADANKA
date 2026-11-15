@@ -1145,6 +1145,7 @@
             }
           ]
         },
+        "Ragdoll": {},
         "Script": {
           "Script": "Scripts/Guard.lua",
           "Properties": {

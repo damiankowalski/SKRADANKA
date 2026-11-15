@@ -2456,6 +2456,7 @@
             }
           ]
         },
+        "Ragdoll": {},
         "Script": {
           "Script": "Scripts/Guard.lua",
           "Properties": {
@@ -2697,6 +2698,7 @@
             }
           ]
         },
+        "Ragdoll": {},
         "Script": {
           "Script": "Scripts/Guard.lua",
           "Properties": {
@@ -2814,6 +2816,7 @@
             }
           ]
         },
+        "Ragdoll": {},
         "Script": {
           "Script": "Scripts/Servant.lua",
           "Properties": {

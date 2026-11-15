@@ -82,7 +82,10 @@ cloister guards used to circle a shared corner for good).
 
 ## In progress
 
-Nothing: the next package is ragdolls.
+**Ragdolls**, session 1 of 3 (branch `feature/ragdolls`): the Ragdoll component, 12 jointed capsules built
+from the humanoid skeleton, physics posing the skin on a knockout or death, the body followed along the
+floor, settling to sleep; carried in the animation's pose, limp again when put down. Next: bolts push
+bodies, guards see a body by its bones, tuning and a PhysicsLab demo.
 
 ## Next
 

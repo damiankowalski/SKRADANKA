@@ -33,6 +33,29 @@ namespace Penumbra {
 	// Returns true when the body owned by the entity should be considered by the query.
 	using PhysicsEntityFilter = std::function<bool(UUID)>;
 
+	// One body of a ragdoll, in world space: a capsule (HalfHeight > 0, along its local Y) or a
+	// sphere, joined to its parent part by a swing-twist joint at JointPosition whose twist axis
+	// is TwistAxis. Parts come parents first; the first part is the root.
+	struct RagdollPartDesc
+	{
+		int32_t Parent = -1;
+		glm::vec3 Position{ 0.0f };
+		glm::quat Rotation{ 1.0f, 0.0f, 0.0f, 0.0f };
+		float HalfHeight = 0.0f;
+		float Radius = 0.1f;
+		float Mass = 1.0f;
+		glm::vec3 JointPosition{ 0.0f };
+		glm::vec3 TwistAxis{ 0.0f, 1.0f, 0.0f };
+		float SwingDegrees = 45.0f; // half cone angle the part may swing away from its parent
+		float TwistDegrees = 20.0f; // twist either way about TwistAxis
+	};
+
+	struct RagdollPartTransform
+	{
+		glm::vec3 Position{ 0.0f };
+		glm::quat Rotation{ 1.0f, 0.0f, 0.0f, 0.0f };
+	};
+
 	// Jolt-backed rigid body simulation for a running scene. Bodies are created for every
 	// entity that has a collider (static if it has no RigidBody), characters for every
 	// CharacterController. Entities spawned at runtime get their bodies on the next step.
@@ -76,6 +99,19 @@ namespace Penumbra {
 		glm::vec3 GetLinearVelocity(Entity entity) const;
 		void Teleport(Entity entity, const glm::vec3& position, const glm::quat& rotation);
 		void AddRadialImpulse(const glm::vec3& center, float radius, float strength);
+
+		// Ragdolls: jointed bodies owned by an entity (raycasts and contacts report the owner).
+		// Creating one replaces any the owner had. Parts keep the given velocity (the body falls
+		// the way it was moving). False with a message when the description is unusable.
+		bool CreateRagdoll(UUID owner, const std::vector<RagdollPartDesc>& parts, const glm::vec3& velocity, std::string& error);
+		void RemoveRagdoll(UUID owner);
+		bool HasRagdoll(UUID owner) const;
+		// World transforms of the parts, in the order they were created; false without a ragdoll.
+		bool GetRagdollTransforms(UUID owner, std::vector<RagdollPartTransform>& transforms) const;
+		// False once every part has come to rest (Jolt put them to sleep).
+		bool IsRagdollAwake(UUID owner) const;
+		// An impulse on the part nearest the point (a bolt striking a limb).
+		void AddRagdollImpulse(UUID owner, const glm::vec3& impulse, const glm::vec3& point);
 
 		void SetGravity(const glm::vec3& gravity);
 		glm::vec3 GetGravity() const;

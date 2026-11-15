@@ -270,6 +270,7 @@ def add_guard(doc, name, position, yaw, waypoints, lantern=False, character=WATC
                     CharacterController={"Radius": 0.3, "Height": 1.8},
                     Perception={},
                     StimResponse=NPC_RESPONSES,
+                    Ragdoll={},  # knocked out or killed, the body goes limp (physics)
                     Script={"Script": "Scripts/Guard.lua", "Properties": {"waypoints": ",".join(waypoints), **properties}})
     character_model(doc, guard, character)
     if lantern:
@@ -320,7 +321,7 @@ def add_purse(doc, npc, value, side=1.0, name="Purse"):
 def add_servant(doc, name, position, yaw, waypoints, bell="Bell"):
     """A servant doing chores between waypoints; alarmed, he runs to the bell (Scripts/Servant.lua)."""
     servant = doc.add(name, Transform=transform(position, (0, yaw, 0)), CharacterController={"Radius": 0.3, "Height": 1.8},
-                      Perception={"FieldOfView": 140.0}, StimResponse=NPC_RESPONSES,
+                      Perception={"FieldOfView": 140.0}, StimResponse=NPC_RESPONSES, Ragdoll={},
                       Script={"Script": "Scripts/Servant.lua", "Properties": {"waypoints": ",".join(waypoints), "bell": bell}})
     character_model(doc, servant, COOK)
     return servant
@@ -664,7 +665,7 @@ def build_feature_test():
     box(doc, "Ground", (0, -0.5, 0), (40, 1, 40), (0.3, 0.3, 0.3))
     box(doc, "Doorway", (0, 3, -9), (12, 6, 0.4), (0.3, 0.3, 0.3), emissive=2.0)
     box(doc, "Curtain", (0, 2, -3), (6, 4, 0.2), (0.3, 0.3, 0.3))
-    guard = doc.add("Guard", Transform=transform((0, 0.05, 0)), CharacterController={}, Perception={})
+    guard = doc.add("Guard", Transform=transform((0, 0.05, 0)), CharacterController={}, Perception={}, Ragdoll={})
     character_model(doc, guard, WATCHMAN)
     player = doc.add("Player", Transform=transform((0, 0.05, -6)), CharacterController={}, PerceptionTarget={})
     character_model(doc, player, THIEF)

@@ -80,7 +80,7 @@ macOS (setup in `docs/macOS.md`): `Tools/Build.sh debug`, `Tools/Test.sh debug`,
    read-only through the generic APIs.
 4. **Simulation order** (per frame, `Scene::RunRuntimeFrame`): scripts → navigation agents → physics
    (fixed 60 Hz) → contacts (collisions, stims, impact noise) → stims → perception → smoke → audio →
-   animation → deferred destruction. Do not destroy entities
+   ragdolls → animation → deferred destruction. Do not destroy entities
    immediately inside systems: `Scene::DestroyEntity` defers during updates.
 5. **Shared lighting math.** Light falloff lives in `Scene/LightUtils.h` and is mirrored in
    `shaders/Lighting.hlsli`. Change both or neither — perception must agree with what is rendered.

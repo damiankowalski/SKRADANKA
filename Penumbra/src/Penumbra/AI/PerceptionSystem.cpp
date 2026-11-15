@@ -2,6 +2,7 @@
 #include "Penumbra/AI/PerceptionSystem.h"
 
 #include "Penumbra/AI/PerceptionModel.h"
+#include "Penumbra/Animation/RagdollSystem.h"
 #include "Penumbra/Navigation/NavigationSystem.h"
 #include "Penumbra/Scene/JsonSerialization.h"
 #include "Penumbra/Physics/PhysicsWorld.h"
@@ -104,6 +105,13 @@ namespace Penumbra {
 			Calm(*perception);
 		if (NavigationSystem* navigation = m_Scene.GetNavigationSystem())
 			navigation->Stop(npc);
+		// The body goes limp: physics takes it from its pose and speed (before the character is removed).
+		if (const RagdollComponent* ragdoll = npc.TryGetComponent<RagdollComponent>(); ragdoll && ragdoll->Enabled)
+		{
+			std::string error;
+			if (!RagdollSystem::Activate(m_Scene, npc, error))
+				PN_CORE_WARN("'{}' cannot go limp: {}", npc.GetName(), error);
+		}
 		if (npc.HasComponent<CharacterControllerComponent>())
 		{
 			if (PhysicsWorld* physics = m_Scene.GetPhysicsWorld())

@@ -1,5 +1,7 @@
 #include "TestHelpers.h"
 
+#include "Penumbra/Animation/Animation.h"
+#include "Penumbra/Asset/AssetManager.h"
 #include "Penumbra/Core/Input.h"
 #include "Penumbra/Navigation/NavigationSystem.h"
 #include "Penumbra/Project/Project.h"
@@ -59,6 +61,54 @@ namespace {
 
 TEST_SUITE("World")
 {
+	TEST_CASE("Cloister: a knocked-out guard goes limp, falls, settles; carried he is stiff, put down limp again")
+	{
+		Level cloister("Scenes/Cloister.pscene");
+		cloister.Run(1.0f); // walking his round
+		Entity guard = cloister.Entity("GuardNorth");
+		REQUIRE(guard.HasComponent<RagdollComponent>());
+		CHECK(cloister.Lua("return ai.knock_out(scene.find('GuardNorth'))") == "true");
+		CHECK(guard.GetComponent<RagdollComponent>().RuntimeActive);
+
+		// The head, from the pose the ragdoll writes into the model's skeleton.
+		auto headHeight = [&]() {
+			Entity model = guard.GetChildren().front();
+			for (Entity child : guard.GetChildren())
+				if (child.GetName() == "Model")
+					model = child;
+			const AnimatorComponent& animator = model.GetComponent<AnimatorComponent>();
+			REQUIRE(animator.RuntimePoseOverride);
+			const std::shared_ptr<const MeshData> mesh = AssetManager::GetMesh(model.GetComponent<MeshComponent>().Mesh);
+			std::vector<glm::mat4> globals;
+			Animation::ComputeGlobalTransforms(mesh->Skeleton, *animator.RuntimePoseOverride, globals);
+			const int32_t head = mesh->Skeleton.FindNode("head");
+			return (cloister.SceneInstance.GetWorldTransform(model) * globals[static_cast<size_t>(head)])[3].y;
+		};
+		cloister.Run(0.1f);
+		const float standing = headHeight();
+		CHECK(standing > 0.8f); // the head bone of a 1.8 m guard (the model is scaled 0.8), still up
+		bool settled = false;
+		for (int step = 0; step < 15 * 10 && !settled; ++step)
+		{
+			cloister.Run(0.1f);
+			settled = !guard.GetComponent<RagdollComponent>().RuntimeAwake;
+		}
+		CHECK(settled); // came to rest: physics put the bodies to sleep
+		CHECK(headHeight() < 0.6f); // lying on the floor
+		CHECK(std::abs(cloister.Position("GuardNorth").y) < 0.2f); // the origin followed the hips down to the floor
+
+		// Lifted onto the thief's shoulders: the animation's carrying pose; put down: limp again.
+		cloister.Lua("local p = scene.find('Player'); local g = scene.find('GuardNorth'); p:set_position(g:get_position() + vec3(0, 0.1, 0.8)); "
+					 "p:script():pick_up(g)");
+		CHECK_FALSE(guard.GetComponent<RagdollComponent>().RuntimeActive);
+		cloister.Run(0.2f);
+		cloister.Lua("scene.find('Player'):script():drop_body()");
+		CHECK(guard.GetComponent<RagdollComponent>().RuntimeActive);
+		cloister.Run(2.0f);
+		CHECK(headHeight() < 0.7f);
+		CHECK(cloister.SceneInstance.GetScriptEngine()->GetErrors().empty());
+	}
+
 	TEST_CASE("Physics lab: an arrow knocks the copper jug off the table, and the guard hears it land")
 	{
 		Level lab("Scenes/PhysicsLab.pscene");
