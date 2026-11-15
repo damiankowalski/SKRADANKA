@@ -110,8 +110,9 @@ Shadow hides the player from eyes, not from hands.
 
 * **Vitality** — `ai.knock_out(e, dead?)` (the player's blackjack, the `Knockout` stim action of sleeping gas)
   sets `Vitality.State` to Unconscious or Dead. A downed NPC perceives nothing, stops walking, loses its
-  physics character (lies where it fell) and becomes a **body**: a `PerceptionTarget` of kind Body with low,
-  long silhouette points and dark reflectance.
+  physics character and becomes a **body**: a `PerceptionTarget` of kind Body with low, long silhouette
+  points and dark reflectance. With a `Ragdoll` it goes limp and the seven points sit on its parts (hips,
+  chest, head, forearms, shins) wherever they lie: a body folded behind a crate shows less of itself.
 * **Bodies** are seen through the same contrast model as the player — a body in a dark corner goes
   unnoticed, one in torchlight does not. A body is found once per guard: a Seen stimulus of strength
   `BodyAlarm` (8: a search around it) that no storm can explain away. Carrying a body (Player.lua: E)

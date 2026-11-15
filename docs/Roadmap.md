@@ -84,8 +84,9 @@ cloister guards used to circle a shared corner for good).
 
 **Ragdolls**, session 1 of 3 (branch `feature/ragdolls`): the Ragdoll component, 12 jointed capsules built
 from the humanoid skeleton, physics posing the skin on a knockout or death, the body followed along the
-floor, settling to sleep; carried in the animation's pose, limp again when put down. Next: bolts push
-bodies, guards see a body by its bones, tuning and a PhysicsLab demo.
+floor, settling to sleep; carried in the animation's pose, limp again when put down. Session 2: a bolt
+shoves the part of a body it strikes (50 N*s, `Arrow.push`), guards see a body by its parts. Next
+(session 3): joint tuning and a PhysicsLab demo.
 
 ## Next
 

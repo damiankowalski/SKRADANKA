@@ -28,7 +28,8 @@ namespace Penumbra {
 	// jointed capsules (Jolt) that take over from the animation on a knockout or death, falling
 	// from the pose and the speed the character had. Each frame after physics the bodies write the
 	// skeleton pose (AnimatorComponent::RuntimePoseOverride) and the entity's origin follows the
-	// hips along the floor, so the body is found, searched and picked up where it lies.
+	// hips along the floor, so the body is found, searched and picked up where it lies; a body's
+	// silhouette points for guards (PerceptionTarget) are its hips, chest, head, forearms and shins.
 	class RagdollSystem
 	{
 	public:

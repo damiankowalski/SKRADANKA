@@ -44,6 +44,9 @@ namespace Penumbra {
 			{ "lowerleg.r", "foot.r", 10, 0.07f, 0.05f, 65.0f, 10.0f },
 		};
 		constexpr float ReferenceTorso = 0.836f; // hips to head of the reference rig, metres
+		// Parts whose centres are the body's silhouette points for guards: hips, chest, head, the
+		// forearms and the shins (seven, like the fixed points of a body without a ragdoll).
+		constexpr size_t SilhouetteParts[] = { 0, 2, 3, 5, 7, 9, 11 };
 
 		glm::vec3 PositionOf(const glm::mat4& m) { return glm::vec3(m[3]); }
 
@@ -241,6 +244,16 @@ namespace Penumbra {
 				glm::vec3& translation = entity.GetComponent<TransformComponent>().Translation;
 				const std::optional<RaycastHit> floor = physics->Raycast(hips, { 0.0f, -1.0f, 0.0f }, 4.0f, [self](UUID e) { return e != self; });
 				translation = glm::vec3(hips.x, floor ? floor->Point.y : std::min(translation.y, hips.y), hips.z);
+			}
+
+			// Guards see the body where its parts lie: a body folded behind a crate shows less of itself.
+			if (PerceptionTargetComponent* target = entity.TryGetComponent<PerceptionTargetComponent>();
+				target && target->Kind == TargetKind::Body && bodies.size() > SilhouetteParts[std::size(SilhouetteParts) - 1])
+			{
+				const glm::mat4 toLocal = glm::inverse(scene.GetWorldTransform(entity));
+				target->SilhouettePoints.clear();
+				for (size_t part : SilhouetteParts)
+					target->SilhouettePoints.push_back(glm::vec3(toLocal * glm::vec4(bodies[part].Position, 1.0f)));
 			}
 
 			// Driven nodes take their part's transform; the others keep their pose under their parent.

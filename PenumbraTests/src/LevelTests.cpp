@@ -3,6 +3,7 @@
 #include "Penumbra/Animation/Animation.h"
 #include "Penumbra/Asset/AssetManager.h"
 #include "Penumbra/Core/Input.h"
+#include "Penumbra/AI/PerceptionSystem.h"
 #include "Penumbra/Navigation/NavigationSystem.h"
 #include "Penumbra/Project/Project.h"
 #include "Penumbra/Scene/SceneSerializer.h"
@@ -206,6 +207,66 @@ TEST_SUITE("World")
 			  "270");
 		CHECK(cloister.Lua("local C = require('Scripts/Compass'); return C.heading(0) == 0 and C.heading(-90) == 90 and C.heading(180) == 180") ==
 			  "true");
+		CHECK(cloister.SceneInstance.GetScriptEngine()->GetErrors().empty());
+	}
+
+	TEST_CASE("Cloister: a bolt shoves a limp body; guards see the body by its bones, less of it behind a crate")
+	{
+		Level cloister("Scenes/Cloister.pscene");
+		cloister.Run(1.0f);
+		REQUIRE(cloister.Lua("return ai.knock_out(scene.find('GuardNorth'))") == "true");
+		Entity body = cloister.Entity("GuardNorth");
+		for (int step = 0; step < 150 && body.GetComponent<RagdollComponent>().RuntimeAwake; ++step)
+			cloister.Run(0.1f);
+		REQUIRE_FALSE(body.GetComponent<RagdollComponent>().RuntimeAwake);
+
+		// Seven silhouette points on the body's parts, all low: it lies on the floor.
+		const PerceptionTargetComponent& target = body.GetComponent<PerceptionTargetComponent>();
+		CHECK(target.Kind == TargetKind::Body);
+		REQUIRE(target.SilhouettePoints.size() == 7);
+		for (const glm::vec3& point : target.SilhouettePoints)
+			CHECK(point.y < 0.6f);
+
+		// Seen down the north corridor by the other guard, then with a waist-high crate in between.
+		auto visible = [&]() {
+			cloister.Lua("local g = scene.find('GuardSouth'); g:set_position(vec3(4, 0.05, -9.6)); g:set_rotation(vec3(0, -90, 0))");
+			return cloister.SceneInstance.GetPerceptionSystem()->ComputeVisibility(cloister.Entity("GuardSouth"), body).VisiblePoints;
+		};
+		const uint32_t open = visible();
+		CHECK(open >= 4);
+		cloister.Lua("local c = scene.create('Crate'); c:set_position(vec3(7.5, 0.5, -9.6)); c:add('BoxCollider', { HalfExtents = vec3(0.3, 0.5, 1.5) })");
+		cloister.Run(1.0f / 60.0f); // its body exists after a physics step
+		CHECK(visible() < open);
+
+		// A bolt into the body from the corridor shoves it along its flight (moved out of the corner
+		// first, so there is no wall behind it).
+		cloister.Lua("scene.find('GuardNorth'):set_position(vec3(2, 0.05, -9.6))");
+		cloister.Run(1.5f);
+		auto worldPoints = [&]() {
+			std::vector<glm::vec3> points;
+			const glm::mat4 world = cloister.SceneInstance.GetWorldTransform(body);
+			for (const glm::vec3& point : body.GetComponent<PerceptionTargetComponent>().SilhouettePoints)
+				points.push_back(glm::vec3(world * glm::vec4(point, 1.0f)));
+			return points;
+		};
+		const std::vector<glm::vec3> limbsBefore = worldPoints();
+		cloister.Lua("local g = scene.find('GuardNorth'):get_position(); local a = scene.instantiate('Prefabs/WaterArrow.pprefab', g + vec3(-1.5, 0.25, 0)); "
+					 "a:look_at(g + vec3(0, 0.15, 0)); _G.test_bolt = a");
+		cloister.Run(1.0f / 60.0f);
+		cloister.Lua("physics.set_velocity(_G.test_bolt, (scene.find('GuardNorth'):get_position() + vec3(0, 0.15, 0) - _G.test_bolt:get_position()):normalized() * 32)");
+		cloister.Run(1.0f);
+		const std::vector<glm::vec3> limbsAfter = worldPoints();
+		float moved = 0.0f, pushedAway = 0.0f;
+		for (size_t i = 0; i < limbsBefore.size(); ++i)
+		{
+			if (glm::distance(limbsAfter[i], limbsBefore[i]) > moved)
+			{
+				moved = glm::distance(limbsAfter[i], limbsBefore[i]);
+				pushedAway = limbsAfter[i].x - limbsBefore[i].x;
+			}
+		}
+		CHECK(moved > 0.15f);     // the struck limb swung
+		CHECK(pushedAway > 0.0f); // away from the shooter
 		CHECK(cloister.SceneInstance.GetScriptEngine()->GetErrors().empty());
 	}
 

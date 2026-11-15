@@ -9,6 +9,7 @@ local GasArrow = {}
 function GasArrow:on_collision(other)
     if self.burst then return end
     self.burst = true
+    require("Scripts/Arrow").push(self.entity, other)
     local position = self.entity:get_position()
     scene.instantiate("Prefabs/GasCloud.pprefab", position)
     audio.play_at("Audio/Hiss.wav", position, 0.8)
