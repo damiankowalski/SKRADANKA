@@ -16,14 +16,14 @@ contract for every human or AI agent changing this repository. Read it fully bef
 | `Penumbra/src/Penumbra/Physics` | Jolt wrapper (`PhysicsWorld`): bodies, characters, raycasts, contacts |
 | `Penumbra/src/Penumbra/Audio` | miniaudio wrapper (`AudioScene`) |
 | `Penumbra/src/Penumbra/Scripting` | Lua 5.4 + sol2: `ScriptEngine`, the whole Lua API in `ScriptBindings.cpp` |
-| `Penumbra/src/Penumbra/AI` | Silhouette-contrast perception, hearing (0-10 loudness) and reactions (`PerceptionModel`, `PerceptionSystem`) |
+| `Penumbra/src/Penumbra/AI` | Silhouette-contrast perception, hearing (0-10 loudness) and reactions (`PerceptionModel`, `PerceptionSystem`); the player's fog of war (`FogOfWarSystem`) |
 | `Penumbra/src/Penumbra/Navigation` | Recast/Detour navmesh (`NavMesh`) and agent steering (`NavigationSystem`) |
 | `Penumbra/src/Penumbra/Stim` | Act/React elemental interactions (`StimSystem`) |
 | `Penumbra/src/Penumbra/Debug` | Testing tools: performance monitor, freelook camera, debug overlays (view fans, noise rings), noise probe |
 | `Penumbra/src/Penumbra/ImGui` | Dear ImGui host and NVRHI renderer (editor UI, the runtime's debug panel) |
 | `Penumbra/src/Penumbra/Automation` | JSON command API used by the editor, CLI and AI agents; TCP command server; MCP server |
 | `PenumbraEditor` | Editor executable (ImGui, gizmos, command server) |
-| `PenumbraRuntime` | Shipping game executable (no editor code); F3/F4/F5/F6 testing tools (`docs/DebugTools.md`) |
+| `PenumbraRuntime` | Shipping game executable (no editor code); F3-F7 testing tools (`docs/DebugTools.md`) |
 | `PenumbraTests` | doctest unit + integration tests |
 | `DemoProject` | Demo stealth level and the `FeatureTest` scene covering every feature |
 | `docs/` | Design documents (`GAME ENGINE SKRADANKA.md` is the original brief), API references, examples |
@@ -82,10 +82,11 @@ macOS (setup in `docs/macOS.md`): `Tools/Build.sh debug`, `Tools/Test.sh debug`,
    read-only through the generic APIs.
 4. **Simulation order** (per frame, `Scene::RunRuntimeFrame`): scripts → navigation agents → physics
    (fixed 60 Hz) → contacts (collisions, stims, impact noise) → stims → perception → smoke → audio →
-   ragdolls → animation → deferred destruction. Do not destroy entities
+   ragdolls → animation → fog of war → deferred destruction. Do not destroy entities
    immediately inside systems: `Scene::DestroyEntity` defers during updates.
 5. **Shared lighting math.** Light falloff lives in `Scene/LightUtils.h` and is mirrored in
    `shaders/Lighting.hlsli`. Change both or neither — perception must agree with what is rendered.
+   Likewise the fog of war's coverage (`FogOfWarView::Coverage` / `shaders/FogOfWar.hlsli`).
 6. **Tests are mandatory.** Every behaviour change ships with a doctest test in `PenumbraTests` (unit
    test for pure logic, scene-level integration test for systems). Every new Lua API function is also
    called from `DemoProject/Assets/Scripts/Tests/FeatureTest.lua`.

@@ -443,6 +443,31 @@ namespace Penumbra {
 		glm::vec3 RuntimeOrigin{ 0.0f };  // where it was first seen by the engine (an arrow: where it was shot from)
 	};
 
+	// Fog of war: on the player, it limits the picture to what the character's own eyes see. A cone
+	// in front of him (centred on where the primary camera looks, measured in the ground plane) and
+	// a small circle of awareness around him are seen, where nothing stands between them and his
+	// eye; everything else is drawn darkened and drained of colour, and characters there (NPCs,
+	// bodies) are not drawn at all (their noises are still heard). AI/FogOfWarSystem.
+	struct FogOfWarComponent
+	{
+		bool Enabled = true;
+		float EyeHeight = 1.65f;       // metres above the entity origin; a CharacterController lower than this (crouching) lowers it
+		float ViewAngle = 120.0f;      // full cone angle in the ground plane, degrees
+		float EdgeSoftness = 15.0f;    // degrees over which the cone's edge fades out
+		float ViewDistance = 40.0f;    // metres; nothing further is seen
+		float AwarenessRadius = 1.8f;  // metres around the character seen in every direction (still not through walls)
+		float Brightness = 0.22f;      // brightness left in what is not seen (0 black)
+		float Saturation = 0.1f;       // colour left in what is not seen (0 grey)
+		bool HideActors = true;        // characters (NPCs, bodies) out of sight are not drawn
+		float MemoryTime = 0.25f;      // seconds a character stays drawn after it leaves the view
+
+		// Runtime only
+		bool RuntimeActive = false;    // the eye and facing below are valid this frame
+		glm::vec3 RuntimeEye{ 0.0f };
+		glm::vec3 RuntimeForward{ 0.0f, 0.0f, -1.0f }; // horizontal, normalised
+		uint32_t RuntimeHiddenActors = 0;
+	};
+
 	// Procedural animated fire (torches, campfires) rendered as layered billboards in the HDR
 	// pass. Pair it with a flickering PointLight; extinguishing (DisableLights) turns both off.
 	struct FlameComponent
@@ -593,6 +618,7 @@ namespace Penumbra {
 		DirectionalLightComponent, PointLightComponent, SpotLightComponent, EnvironmentComponent, RigidBodyComponent, BoxColliderComponent,
 		SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent, CharacterControllerComponent, ScriptComponent,
 		AudioSourceComponent, AudioListenerComponent, PerceptionComponent, PerceptionTargetComponent, VitalityComponent, SmokeVolumeComponent, FlameComponent,
-		StimSourceComponent, StimResponseComponent, NavMeshComponent, NavAgentComponent, SurfaceComponent, PrefabComponent, RagdollComponent>;
+		StimSourceComponent, StimResponseComponent, NavMeshComponent, NavAgentComponent, SurfaceComponent, PrefabComponent, RagdollComponent,
+		FogOfWarComponent>;
 
 }

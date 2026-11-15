@@ -10,7 +10,7 @@ target_compile_definitions(PenumbraTests PRIVATE
 
 # Each doctest test suite is registered separately so CTest reports them individually.
 set(PENUMBRA_TEST_SUITES Core Scene Serialization Assets Animation Physics Audio Scripting Perception Navigation World Mission
-    Stim Automation Mcp Renderer Debug)
+    Stim Automation Mcp Renderer Debug FogOfWar)
 foreach(suite ${PENUMBRA_TEST_SUITES})
     add_test(NAME Unit.${suite} COMMAND PenumbraTests --test-suite=${suite} --no-colors)
 endforeach()

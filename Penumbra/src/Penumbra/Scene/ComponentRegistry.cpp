@@ -306,6 +306,25 @@ namespace Penumbra {
 		}
 
 		template<typename V>
+		void VisitFields(FogOfWarComponent& c, V&& v)
+		{
+			v("Enabled", c.Enabled);
+			v("EyeHeight", c.EyeHeight);
+			v("ViewAngle", c.ViewAngle);
+			v("EdgeSoftness", c.EdgeSoftness);
+			v("ViewDistance", c.ViewDistance);
+			v("AwarenessRadius", c.AwarenessRadius);
+			v("Brightness", c.Brightness);
+			v("Saturation", c.Saturation);
+			v("HideActors", c.HideActors);
+			v("MemoryTime", c.MemoryTime);
+			v("Active", c.RuntimeActive, FieldKind::Runtime);
+			v("Eye", c.RuntimeEye, FieldKind::Runtime);
+			v("Forward", c.RuntimeForward, FieldKind::Runtime);
+			v("HiddenActors", c.RuntimeHiddenActors, FieldKind::Runtime);
+		}
+
+		template<typename V>
 		void VisitFields(RagdollComponent& c, V&& v)
 		{
 			v("Enabled", c.Enabled);
@@ -498,6 +517,7 @@ namespace Penumbra {
 			registry.push_back(MakeInfo<PerceptionTargetComponent>("PerceptionTarget"));
 			registry.push_back(MakeInfo<VitalityComponent>("Vitality"));
 			registry.push_back(MakeInfo<RagdollComponent>("Ragdoll"));
+			registry.push_back(MakeInfo<FogOfWarComponent>("FogOfWar"));
 			registry.push_back(MakeInfo<SmokeVolumeComponent>("SmokeVolume"));
 			registry.push_back(MakeInfo<FlameComponent>("Flame"));
 			registry.push_back(MakeInfo<StimSourceComponent>("StimSource"));

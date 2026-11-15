@@ -335,7 +335,7 @@ TEST_SUITE("Debug")
 		CHECK(profile.Perception >= 0.0f);
 		CHECK(profile.Total() > 0.0f);
 		CHECK(profile.Total() == doctest::Approx(profile.Scripts + profile.Navigation + profile.Physics + profile.Contacts + profile.Stims +
-												 profile.Perception + profile.Smoke + profile.Audio + profile.Ragdolls + profile.Animation +
+												 profile.Perception + profile.Smoke + profile.Audio + profile.Ragdolls + profile.Animation + profile.FogOfWar +
 												 profile.Destruction));
 	}
 }

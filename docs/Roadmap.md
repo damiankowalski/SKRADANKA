@@ -99,17 +99,36 @@ loudness table of the game's sounds and a report of who hears them, guards ignor
 steps, time scale), F5 freelook (the camera leaves the thief and flies through the level), F6 pause. Dear ImGui
 moved from the editor into the engine; shipping builds have the tools with `--dev`. See docs/DebugTools.md.
 
+**Fog of war** (L): the thief sees only what his own eyes see, in the spirit of Darkwood. A view cone where the
+camera looks (120 degrees, soft edge), a circle of awareness around him, out to 40 m and never through walls (an
+eye depth cube rendered like a point light's shadow, tested per pixel); the rest is darkened and drained of
+colour, and guards and bodies there are not drawn, though still heard. `FogOfWar` component on the player (in
+every demo level), Lua `fog.*`, F7 and the F4 panel switch and tune it. See docs/FogOfWar.md. Leaning on Q/E
+follows as its own package (it moves the eye; the use key must leave E first).
+
 ## In progress
 
-**Fog of war** (L, approved; the next PR): what the thief cannot see from his own eyes goes dark, in the
-spirit of Darkwood: a view cone in front of him (where the camera looks), a small circle of awareness around
-him, everything his eyes have no line to (behind walls, round corners, behind his back) darkened and drained of
-colour, and guards and other moving things there hidden, while their noises are still heard. Rendered from the
-character's eye (a depth cube map like a point light's shadow, tested per pixel), not from the camera: no
-peeking round corners for free. Component on the player, Lua to switch it and to ask what he sees, a toggle in
-the F4 panel. Leaning on Q/E follows as its own package (it moves the eye; the use key must leave E first).
+Nothing: the next package waits for the owner's choice (leaning on Q/E is the natural follow-up).
+
+## Known bugs
+
+**Player character jitters** (reported in a playtest after PR #22, not reproduced yet): after a while of
+play the thief starts to shake. It began after several gas arrows, carrying unconscious guards' bodies a few
+times and walking over them. Trigger not narrowed down; the owner will narrow it before we fix it. Suspects
+to check then: the character controller fighting ragdoll bodies it stands on or pushes, and the camera
+following a body the character collides with.
 
 ## Next
+
+**In-game inspector** (M, asked for after playing the fog of war): in the runtime's debug panel, click a guard,
+a lamp, a door or any object to select it (a whole character, not one of his parts; outlined in the world) and
+edit its components live, like the editor's Properties panel (which moves from the editor into the engine and
+serves both). Contextual: the sections that matter for the kind of thing come first (a guard's sight, hearing
+and AI state; a lamp's light; a door's lock), the rest folded. A right-click menu of actions on the selection
+(knock out, kill, move to the cursor, ignore the thief, show only his view cone). Risks: the panel's left click
+makes test noises today (selection needs its own button or mode); some fields are read only when a system
+starts (collider shapes, a nav agent's speed) and need the object rebuilt to take effect; edits are not saved
+to the scene (a "copy values" button carries them to the editor).
 
 **Later, discussed**: leaning on Q/E (S-M, after the fog of war; the use key moves off E first); a
 full-screen map on a key (S as a static picture, M drawn from the level).

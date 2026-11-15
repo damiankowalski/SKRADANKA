@@ -3030,6 +3030,7 @@
           "Reflectance": 0.25
         },
         "AudioListener": {},
+        "FogOfWar": {},
         "Script": {
           "Script": "Scripts/Player.lua"
         }

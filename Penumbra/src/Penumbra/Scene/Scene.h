@@ -21,6 +21,7 @@ namespace Penumbra {
 	class ScriptEngine;
 	class AudioScene;
 	class PerceptionSystem;
+	class FogOfWarSystem;
 	class StimSystem;
 	class NavigationSystem;
 	class OverlayList;
@@ -39,11 +40,12 @@ namespace Penumbra {
 		float Audio = 0.0f;
 		float Ragdolls = 0.0f;
 		float Animation = 0.0f;
+		float FogOfWar = 0.0f;
 		float Destruction = 0.0f;
 
 		float Total() const
 		{
-			return Scripts + Navigation + Physics + Contacts + Stims + Perception + Smoke + Audio + Ragdolls + Animation + Destruction;
+			return Scripts + Navigation + Physics + Contacts + Stims + Perception + Smoke + Audio + Ragdolls + Animation + FogOfWar + Destruction;
 		}
 	};
 
@@ -149,6 +151,7 @@ namespace Penumbra {
 		ScriptEngine* GetScriptEngine() const { return m_ScriptEngine.get(); }
 		AudioScene* GetAudioScene() const { return m_AudioScene.get(); }
 		PerceptionSystem* GetPerceptionSystem() const { return m_PerceptionSystem.get(); }
+		FogOfWarSystem* GetFogOfWarSystem() const { return m_FogOfWarSystem.get(); }
 		StimSystem* GetStimSystem() const { return m_StimSystem.get(); }
 		NavigationSystem* GetNavigationSystem() const { return m_NavigationSystem.get(); }
 		OverlayList& GetOverlay() { return *m_Overlay; }
@@ -184,6 +187,7 @@ namespace Penumbra {
 		Scope<ScriptEngine> m_ScriptEngine;
 		Scope<AudioScene> m_AudioScene;
 		Scope<PerceptionSystem> m_PerceptionSystem;
+		Scope<FogOfWarSystem> m_FogOfWarSystem;
 		Scope<StimSystem> m_StimSystem;
 		Scope<NavigationSystem> m_NavigationSystem;
 		Scope<OverlayList> m_Overlay;

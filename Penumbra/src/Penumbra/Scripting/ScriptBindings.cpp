@@ -1,6 +1,7 @@
 #include "pnpch.h"
 #include "Penumbra/Scripting/ScriptInternal.h"
 
+#include "Penumbra/AI/FogOfWarSystem.h"
 #include "Penumbra/AI/PerceptionModel.h"
 #include "Penumbra/AI/PerceptionSystem.h"
 #include "Penumbra/Animation/AnimationSystem.h"
@@ -670,6 +671,30 @@ namespace Penumbra {
 			table["total_points"] = result.TotalPoints;
 			return table;
 		});
+
+		// --- fog (fog of war: what the player sees) -------------------------------------------
+		// Answers come from the last finished frame (the fog is worked out after everything moved).
+		auto requireFog = [scene]() -> FogOfWarSystem& {
+			FogOfWarSystem* fog = scene->GetFogOfWarSystem();
+			if (!fog)
+				throw std::runtime_error("the fog of war is only available while the scene is running");
+			return *fog;
+		};
+		sol::table fogTable = lua.create_named_table("fog");
+		fogTable.set_function("active", [requireFog]() { return requireFog().GetView().has_value(); });
+		fogTable.set_function("can_see", [requireFog](sol::object what) {
+			FogOfWarSystem& fog = requireFog();
+			if (what.is<ScriptEntity>())
+				return fog.CanSeeEntity(what.as<ScriptEntity>().Resolve());
+			if (what.is<glm::vec3>())
+				return fog.CanSee(what.as<glm::vec3>());
+			throw std::runtime_error("fog.can_see expects an entity or a vec3");
+		});
+		fogTable.set_function("coverage", [requireFog](const glm::vec3& point) {
+			const std::optional<FogOfWarView>& view = requireFog().GetView();
+			return view ? view->Coverage(point) : 1.0f;
+		});
+		fogTable.set_function("hidden", [requireFog](const ScriptEntity& e) { return requireFog().IsHidden(e.Resolve()); });
 
 		// --- nav (navmesh pathfinding) ----------------------------------------------------
 		auto requireNavigation = [scene]() -> NavigationSystem& {

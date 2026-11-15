@@ -16,6 +16,7 @@ namespace Penumbra {
 			sum.Audio += frame.Audio * scale;
 			sum.Ragdolls += frame.Ragdolls * scale;
 			sum.Animation += frame.Animation * scale;
+			sum.FogOfWar += frame.FogOfWar * scale;
 			sum.Destruction += frame.Destruction * scale;
 		}
 	}
