@@ -50,5 +50,11 @@ if(PENUMBRA_BUILD_EDITOR)
         COMMAND ${CMAKE_COMMAND} -DEDITOR=$<TARGET_FILE:PenumbraEditor>
                 -DSESSION=${CMAKE_CURRENT_SOURCE_DIR}/mcp/StdioSession.jsonl -P ${CMAKE_CURRENT_SOURCE_DIR}/mcp/StdioTest.cmake
         WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/AgentQuickstart")
-    set_tests_properties(Automation.EditorCLI Automation.McpStdio Editor.Smoke PROPERTIES LABELS gpu TIMEOUT 600)
+    # The mood lab (docs/art/mood): four lighting variants of the cloister rendered to eight PNGs.
+    add_test(NAME Automation.MoodLab
+        COMMAND PenumbraEditor --headless --warp --exec "${PROJECT_SOURCE_DIR}/docs/art/mood/MoodLab.jsonl"
+                --project "${PROJECT_SOURCE_DIR}/DemoProject"
+        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/MoodLab")
+    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/MoodLab/docs/art/mood/v1")
+    set_tests_properties(Automation.EditorCLI Automation.McpStdio Editor.Smoke Automation.MoodLab PROPERTIES LABELS gpu TIMEOUT 600)
 endif()

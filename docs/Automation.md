@@ -41,7 +41,8 @@ are decimal strings. Asset paths are relative to the project's asset directory a
 4. Look at the result with `render.screenshot`; fix and iterate.
 5. `scene.save`, `project.set {startScene}`, `project.export {output}`.
 
-`docs/examples/AgentQuickstart.jsonl` is a complete example and runs in CI.
+`docs/examples/AgentQuickstart.jsonl` is a complete example and runs in CI. So does `docs/art/mood/MoodLab.jsonl`, which switches lighting variants
+through `script.exec` and renders them from fixed cameras (`docs/art/mood/README.md`).
 
 ## MCP server
 

@@ -1,0 +1,7000 @@
+{
+  "Format": "PenumbraScene",
+  "Version": 1,
+  "Entities": [
+    {
+      "ID": "1000",
+      "Components": {
+        "Tag": {
+          "Tag": "Environment"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Environment": {
+          "EnvironmentMap": "Environment/NightSky_1k.hdr",
+          "EnvironmentIntensity": 0.12,
+          "SkyboxIntensity": 0.6,
+          "AmbientColor": [
+            0.006,
+            0.006,
+            0.0084
+          ],
+          "Exposure": 1.4,
+          "FogDensity": 0.01,
+          "FogColor": [
+            0.02,
+            0.025,
+            0.035
+          ],
+          "SSAOEnabled": true,
+          "BloomIntensity": 0.05
+        }
+      }
+    },
+    {
+      "ID": "1001",
+      "Components": {
+        "Tag": {
+          "Tag": "Moon"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            -35,
+            140,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "DirectionalLight": {
+          "Color": [
+            0.55,
+            0.65,
+            1.0
+          ],
+          "Intensity": 0.08,
+          "CastShadows": true,
+          "ShadowSoftness": 1.5
+        }
+      }
+    },
+    {
+      "ID": "1002",
+      "Components": {
+        "Tag": {
+          "Tag": "Camera"
+        },
+        "Transform": {
+          "Translation": [
+            1.5,
+            1.6,
+            -9.4
+          ],
+          "Rotation": [
+            0,
+            -90,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Camera": {
+          "VerticalFOV": 65.0,
+          "NearClip": 0.05,
+          "FarClip": 300.0
+        }
+      }
+    },
+    {
+      "ID": "1003",
+      "Components": {
+        "Tag": {
+          "Tag": "Ground"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            -0.5,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            60,
+            1,
+            30
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.22,
+            0.22,
+            0.21,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1004",
+      "Components": {
+        "Tag": {
+          "Tag": "Garden"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.01,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            15.6,
+            0.02,
+            15.6
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.12,
+            0.2,
+            0.08,
+            1.0
+          ],
+          "Roughness": 0.9,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        },
+        "Surface": {
+          "Material": "Grass",
+          "NoiseModifier": -1.0
+        }
+      }
+    },
+    {
+      "ID": "1005",
+      "Components": {
+        "Tag": {
+          "Tag": "Fountain"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.4,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            0.8,
+            2.4
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.32,
+            0.31,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1006",
+      "Components": {
+        "Tag": {
+          "Tag": "Hedge0"
+        },
+        "Transform": {
+          "Translation": [
+            -4.5,
+            0.6,
+            -4.5
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            3,
+            1.2,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.1,
+            0.22,
+            0.08,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1007",
+      "Components": {
+        "Tag": {
+          "Tag": "Hedge1"
+        },
+        "Transform": {
+          "Translation": [
+            4.5,
+            0.6,
+            -4.5
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1.2,
+            3
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.1,
+            0.22,
+            0.08,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1008",
+      "Components": {
+        "Tag": {
+          "Tag": "Hedge2"
+        },
+        "Transform": {
+          "Translation": [
+            -4.5,
+            0.6,
+            4.5
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1.2,
+            3
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.1,
+            0.22,
+            0.08,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1009",
+      "Components": {
+        "Tag": {
+          "Tag": "Hedge3"
+        },
+        "Transform": {
+          "Translation": [
+            4.5,
+            0.6,
+            4.5
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            3,
+            1.2,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.1,
+            0.22,
+            0.08,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1010",
+      "Components": {
+        "Tag": {
+          "Tag": "InnerNorthA"
+        },
+        "Transform": {
+          "Translation": [
+            -4.7,
+            1.6,
+            -8
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            7.0,
+            3.2,
+            0.4
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.32,
+            0.31,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1011",
+      "Components": {
+        "Tag": {
+          "Tag": "InnerNorthB"
+        },
+        "Transform": {
+          "Translation": [
+            4.7,
+            1.6,
+            -8
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            7.0,
+            3.2,
+            0.4
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.32,
+            0.31,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1012",
+      "Components": {
+        "Tag": {
+          "Tag": "InnerNorthLintel"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            2.7,
+            -8
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            1.0,
+            0.4
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.32,
+            0.31,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1013",
+      "Components": {
+        "Tag": {
+          "Tag": "DoorNorthLeft"
+        },
+        "Transform": {
+          "Translation": [
+            -1.2,
+            0,
+            -8
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Script": {
+          "Script": "Scripts/World/Door.lua",
+          "Properties": {
+            "label": "garden door",
+            "width": 1.2,
+            "locked": false,
+            "key": "",
+            "key_label": "key",
+            "pins": 6
+          }
+        }
+      }
+    },
+    {
+      "ID": "1014",
+      "Components": {
+        "Tag": {
+          "Tag": "Panel"
+        },
+        "Transform": {
+          "Translation": [
+            0.6,
+            1.1,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1.18,
+            2.2,
+            0.08
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.26,
+            0.17,
+            0.1,
+            1.0
+          ],
+          "Roughness": 0.9,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        },
+        "RigidBody": {
+          "Type": "Kinematic"
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5,
+          "SoundLoss": 2.5
+        }
+      },
+      "Parent": "1013"
+    },
+    {
+      "ID": "1015",
+      "Components": {
+        "Tag": {
+          "Tag": "Lock"
+        },
+        "Transform": {
+          "Translation": [
+            1.05,
+            1.0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.06,
+            0.1,
+            0.12
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.45,
+            0.4,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.4,
+          "Metallic": 0.8,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1013"
+    },
+    {
+      "ID": "1016",
+      "Components": {
+        "Tag": {
+          "Tag": "DoorNorthRight"
+        },
+        "Transform": {
+          "Translation": [
+            1.2,
+            0,
+            -8
+          ],
+          "Rotation": [
+            0,
+            180,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Script": {
+          "Script": "Scripts/World/Door.lua",
+          "Properties": {
+            "label": "garden door",
+            "width": 1.2,
+            "locked": false,
+            "key": "",
+            "key_label": "key",
+            "pins": 6
+          }
+        }
+      }
+    },
+    {
+      "ID": "1017",
+      "Components": {
+        "Tag": {
+          "Tag": "Panel"
+        },
+        "Transform": {
+          "Translation": [
+            0.6,
+            1.1,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1.18,
+            2.2,
+            0.08
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.26,
+            0.17,
+            0.1,
+            1.0
+          ],
+          "Roughness": 0.9,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        },
+        "RigidBody": {
+          "Type": "Kinematic"
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5,
+          "SoundLoss": 2.5
+        }
+      },
+      "Parent": "1016"
+    },
+    {
+      "ID": "1018",
+      "Components": {
+        "Tag": {
+          "Tag": "Lock"
+        },
+        "Transform": {
+          "Translation": [
+            1.05,
+            1.0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.06,
+            0.1,
+            0.12
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.45,
+            0.4,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.4,
+          "Metallic": 0.8,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1016"
+    },
+    {
+      "ID": "1019",
+      "Components": {
+        "Tag": {
+          "Tag": "InnerSouthA"
+        },
+        "Transform": {
+          "Translation": [
+            -4.7,
+            1.6,
+            8
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            7.0,
+            3.2,
+            0.4
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.32,
+            0.31,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1020",
+      "Components": {
+        "Tag": {
+          "Tag": "InnerSouthB"
+        },
+        "Transform": {
+          "Translation": [
+            4.7,
+            1.6,
+            8
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            7.0,
+            3.2,
+            0.4
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.32,
+            0.31,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1021",
+      "Components": {
+        "Tag": {
+          "Tag": "InnerSouthLintel"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            2.7,
+            8
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            1.0,
+            0.4
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.32,
+            0.31,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1022",
+      "Components": {
+        "Tag": {
+          "Tag": "DoorSouthLeft"
+        },
+        "Transform": {
+          "Translation": [
+            -1.2,
+            0,
+            8
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Script": {
+          "Script": "Scripts/World/Door.lua",
+          "Properties": {
+            "label": "garden door",
+            "width": 1.2,
+            "locked": false,
+            "key": "",
+            "key_label": "key",
+            "pins": 6
+          }
+        }
+      }
+    },
+    {
+      "ID": "1023",
+      "Components": {
+        "Tag": {
+          "Tag": "Panel"
+        },
+        "Transform": {
+          "Translation": [
+            0.6,
+            1.1,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1.18,
+            2.2,
+            0.08
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.26,
+            0.17,
+            0.1,
+            1.0
+          ],
+          "Roughness": 0.9,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        },
+        "RigidBody": {
+          "Type": "Kinematic"
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5,
+          "SoundLoss": 2.5
+        }
+      },
+      "Parent": "1022"
+    },
+    {
+      "ID": "1024",
+      "Components": {
+        "Tag": {
+          "Tag": "Lock"
+        },
+        "Transform": {
+          "Translation": [
+            1.05,
+            1.0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.06,
+            0.1,
+            0.12
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.45,
+            0.4,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.4,
+          "Metallic": 0.8,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1022"
+    },
+    {
+      "ID": "1025",
+      "Components": {
+        "Tag": {
+          "Tag": "DoorSouthRight"
+        },
+        "Transform": {
+          "Translation": [
+            1.2,
+            0,
+            8
+          ],
+          "Rotation": [
+            0,
+            180,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Script": {
+          "Script": "Scripts/World/Door.lua",
+          "Properties": {
+            "label": "garden door",
+            "width": 1.2,
+            "locked": false,
+            "key": "",
+            "key_label": "key",
+            "pins": 6
+          }
+        }
+      }
+    },
+    {
+      "ID": "1026",
+      "Components": {
+        "Tag": {
+          "Tag": "Panel"
+        },
+        "Transform": {
+          "Translation": [
+            0.6,
+            1.1,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1.18,
+            2.2,
+            0.08
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.26,
+            0.17,
+            0.1,
+            1.0
+          ],
+          "Roughness": 0.9,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        },
+        "RigidBody": {
+          "Type": "Kinematic"
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5,
+          "SoundLoss": 2.5
+        }
+      },
+      "Parent": "1025"
+    },
+    {
+      "ID": "1027",
+      "Components": {
+        "Tag": {
+          "Tag": "Lock"
+        },
+        "Transform": {
+          "Translation": [
+            1.05,
+            1.0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.06,
+            0.1,
+            0.12
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.45,
+            0.4,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.4,
+          "Metallic": 0.8,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1025"
+    },
+    {
+      "ID": "1028",
+      "Components": {
+        "Tag": {
+          "Tag": "InnerWestA"
+        },
+        "Transform": {
+          "Translation": [
+            -8,
+            1.6,
+            -4.7
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.4,
+            3.2,
+            7.0
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.32,
+            0.31,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1029",
+      "Components": {
+        "Tag": {
+          "Tag": "InnerWestB"
+        },
+        "Transform": {
+          "Translation": [
+            -8,
+            1.6,
+            4.7
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.4,
+            3.2,
+            7.0
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.32,
+            0.31,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1030",
+      "Components": {
+        "Tag": {
+          "Tag": "InnerWestLintel"
+        },
+        "Transform": {
+          "Translation": [
+            -8,
+            2.7,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.4,
+            1.0,
+            2.4
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.32,
+            0.31,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1031",
+      "Components": {
+        "Tag": {
+          "Tag": "DoorWestLeft"
+        },
+        "Transform": {
+          "Translation": [
+            -8,
+            0,
+            1.2
+          ],
+          "Rotation": [
+            0,
+            90,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Script": {
+          "Script": "Scripts/World/Door.lua",
+          "Properties": {
+            "label": "garden door",
+            "width": 1.2,
+            "locked": false,
+            "key": "",
+            "key_label": "key",
+            "pins": 6
+          }
+        }
+      }
+    },
+    {
+      "ID": "1032",
+      "Components": {
+        "Tag": {
+          "Tag": "Panel"
+        },
+        "Transform": {
+          "Translation": [
+            0.6,
+            1.1,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1.18,
+            2.2,
+            0.08
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.26,
+            0.17,
+            0.1,
+            1.0
+          ],
+          "Roughness": 0.9,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        },
+        "RigidBody": {
+          "Type": "Kinematic"
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5,
+          "SoundLoss": 2.5
+        }
+      },
+      "Parent": "1031"
+    },
+    {
+      "ID": "1033",
+      "Components": {
+        "Tag": {
+          "Tag": "Lock"
+        },
+        "Transform": {
+          "Translation": [
+            1.05,
+            1.0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.06,
+            0.1,
+            0.12
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.45,
+            0.4,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.4,
+          "Metallic": 0.8,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1031"
+    },
+    {
+      "ID": "1034",
+      "Components": {
+        "Tag": {
+          "Tag": "DoorWestRight"
+        },
+        "Transform": {
+          "Translation": [
+            -8,
+            0,
+            -1.2
+          ],
+          "Rotation": [
+            0,
+            -90,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Script": {
+          "Script": "Scripts/World/Door.lua",
+          "Properties": {
+            "label": "garden door",
+            "width": 1.2,
+            "locked": false,
+            "key": "",
+            "key_label": "key",
+            "pins": 6
+          }
+        }
+      }
+    },
+    {
+      "ID": "1035",
+      "Components": {
+        "Tag": {
+          "Tag": "Panel"
+        },
+        "Transform": {
+          "Translation": [
+            0.6,
+            1.1,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1.18,
+            2.2,
+            0.08
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.26,
+            0.17,
+            0.1,
+            1.0
+          ],
+          "Roughness": 0.9,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        },
+        "RigidBody": {
+          "Type": "Kinematic"
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5,
+          "SoundLoss": 2.5
+        }
+      },
+      "Parent": "1034"
+    },
+    {
+      "ID": "1036",
+      "Components": {
+        "Tag": {
+          "Tag": "Lock"
+        },
+        "Transform": {
+          "Translation": [
+            1.05,
+            1.0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.06,
+            0.1,
+            0.12
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.45,
+            0.4,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.4,
+          "Metallic": 0.8,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1034"
+    },
+    {
+      "ID": "1037",
+      "Components": {
+        "Tag": {
+          "Tag": "InnerEastA"
+        },
+        "Transform": {
+          "Translation": [
+            8,
+            1.6,
+            -4.7
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.4,
+            3.2,
+            7.0
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.32,
+            0.31,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1038",
+      "Components": {
+        "Tag": {
+          "Tag": "InnerEastB"
+        },
+        "Transform": {
+          "Translation": [
+            8,
+            1.6,
+            4.7
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.4,
+            3.2,
+            7.0
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.32,
+            0.31,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1039",
+      "Components": {
+        "Tag": {
+          "Tag": "InnerEastLintel"
+        },
+        "Transform": {
+          "Translation": [
+            8,
+            2.7,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.4,
+            1.0,
+            2.4
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.32,
+            0.31,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1040",
+      "Components": {
+        "Tag": {
+          "Tag": "DoorEastLeft"
+        },
+        "Transform": {
+          "Translation": [
+            8,
+            0,
+            1.2
+          ],
+          "Rotation": [
+            0,
+            90,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Script": {
+          "Script": "Scripts/World/Door.lua",
+          "Properties": {
+            "label": "garden door",
+            "width": 1.2,
+            "locked": false,
+            "key": "",
+            "key_label": "key",
+            "pins": 6
+          }
+        }
+      }
+    },
+    {
+      "ID": "1041",
+      "Components": {
+        "Tag": {
+          "Tag": "Panel"
+        },
+        "Transform": {
+          "Translation": [
+            0.6,
+            1.1,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1.18,
+            2.2,
+            0.08
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.26,
+            0.17,
+            0.1,
+            1.0
+          ],
+          "Roughness": 0.9,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        },
+        "RigidBody": {
+          "Type": "Kinematic"
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5,
+          "SoundLoss": 2.5
+        }
+      },
+      "Parent": "1040"
+    },
+    {
+      "ID": "1042",
+      "Components": {
+        "Tag": {
+          "Tag": "Lock"
+        },
+        "Transform": {
+          "Translation": [
+            1.05,
+            1.0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.06,
+            0.1,
+            0.12
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.45,
+            0.4,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.4,
+          "Metallic": 0.8,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1040"
+    },
+    {
+      "ID": "1043",
+      "Components": {
+        "Tag": {
+          "Tag": "DoorEastRight"
+        },
+        "Transform": {
+          "Translation": [
+            8,
+            0,
+            -1.2
+          ],
+          "Rotation": [
+            0,
+            -90,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Script": {
+          "Script": "Scripts/World/Door.lua",
+          "Properties": {
+            "label": "garden door",
+            "width": 1.2,
+            "locked": false,
+            "key": "",
+            "key_label": "key",
+            "pins": 6
+          }
+        }
+      }
+    },
+    {
+      "ID": "1044",
+      "Components": {
+        "Tag": {
+          "Tag": "Panel"
+        },
+        "Transform": {
+          "Translation": [
+            0.6,
+            1.1,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1.18,
+            2.2,
+            0.08
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.26,
+            0.17,
+            0.1,
+            1.0
+          ],
+          "Roughness": 0.9,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        },
+        "RigidBody": {
+          "Type": "Kinematic"
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5,
+          "SoundLoss": 2.5
+        }
+      },
+      "Parent": "1043"
+    },
+    {
+      "ID": "1045",
+      "Components": {
+        "Tag": {
+          "Tag": "Lock"
+        },
+        "Transform": {
+          "Translation": [
+            1.05,
+            1.0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.06,
+            0.1,
+            0.12
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.45,
+            0.4,
+            0.3,
+            1.0
+          ],
+          "Roughness": 0.4,
+          "Metallic": 0.8,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1043"
+    },
+    {
+      "ID": "1046",
+      "Components": {
+        "Tag": {
+          "Tag": "OuterNorth"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.6,
+            -11.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            22.8,
+            3.2,
+            0.4
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.19,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1047",
+      "Components": {
+        "Tag": {
+          "Tag": "OuterSouth"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.6,
+            11.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            22.8,
+            3.2,
+            0.4
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.19,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1048",
+      "Components": {
+        "Tag": {
+          "Tag": "OuterWestA"
+        },
+        "Transform": {
+          "Translation": [
+            -11.2,
+            1.6,
+            -6.45
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.4,
+            3.2,
+            9.9
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.19,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1049",
+      "Components": {
+        "Tag": {
+          "Tag": "OuterWestB"
+        },
+        "Transform": {
+          "Translation": [
+            -11.2,
+            1.6,
+            6.45
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.4,
+            3.2,
+            9.9
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.19,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1050",
+      "Components": {
+        "Tag": {
+          "Tag": "OuterEastA"
+        },
+        "Transform": {
+          "Translation": [
+            11.2,
+            1.6,
+            -6.45
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.4,
+            3.2,
+            9.9
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.19,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1051",
+      "Components": {
+        "Tag": {
+          "Tag": "OuterEastB"
+        },
+        "Transform": {
+          "Translation": [
+            11.2,
+            1.6,
+            6.45
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.4,
+            3.2,
+            9.9
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.19,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1052",
+      "Components": {
+        "Tag": {
+          "Tag": "RoofNorth"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            3.3,
+            -9.6
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            22.8,
+            0.2,
+            3.6
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.19,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1053",
+      "Components": {
+        "Tag": {
+          "Tag": "RoofSouth"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            3.3,
+            9.6
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            22.8,
+            0.2,
+            3.6
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.19,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1054",
+      "Components": {
+        "Tag": {
+          "Tag": "RoofWest"
+        },
+        "Transform": {
+          "Translation": [
+            -9.6,
+            3.3,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            3.6,
+            0.2,
+            15.6
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.19,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1055",
+      "Components": {
+        "Tag": {
+          "Tag": "RoofEast"
+        },
+        "Transform": {
+          "Translation": [
+            9.6,
+            3.3,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            3.6,
+            0.2,
+            15.6
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.19,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1056",
+      "Components": {
+        "Tag": {
+          "Tag": "WestWingNorth"
+        },
+        "Transform": {
+          "Translation": [
+            -18.7,
+            1.6,
+            -1.7
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            14.6,
+            3.2,
+            0.4
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.19,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1057",
+      "Components": {
+        "Tag": {
+          "Tag": "WestWingSouth"
+        },
+        "Transform": {
+          "Translation": [
+            -18.7,
+            1.6,
+            1.7
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            14.6,
+            3.2,
+            0.4
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.19,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1058",
+      "Components": {
+        "Tag": {
+          "Tag": "WestWingEnd"
+        },
+        "Transform": {
+          "Translation": [
+            -26.2,
+            1.6,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.4,
+            3.2,
+            3.8
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.19,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1059",
+      "Components": {
+        "Tag": {
+          "Tag": "WestWingRoof"
+        },
+        "Transform": {
+          "Translation": [
+            -18.7,
+            3.3,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            14.6,
+            0.2,
+            3.8
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.19,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1060",
+      "Components": {
+        "Tag": {
+          "Tag": "EastWingNorth"
+        },
+        "Transform": {
+          "Translation": [
+            18.7,
+            1.6,
+            -1.7
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            14.6,
+            3.2,
+            0.4
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.19,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1061",
+      "Components": {
+        "Tag": {
+          "Tag": "EastWingSouth"
+        },
+        "Transform": {
+          "Translation": [
+            18.7,
+            1.6,
+            1.7
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            14.6,
+            3.2,
+            0.4
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.19,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1062",
+      "Components": {
+        "Tag": {
+          "Tag": "EastWingEnd"
+        },
+        "Transform": {
+          "Translation": [
+            26.2,
+            1.6,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.4,
+            3.2,
+            3.8
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.19,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1063",
+      "Components": {
+        "Tag": {
+          "Tag": "EastWingRoof"
+        },
+        "Transform": {
+          "Translation": [
+            18.7,
+            3.3,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            14.6,
+            0.2,
+            3.8
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.19,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1064",
+      "Components": {
+        "Tag": {
+          "Tag": "Fire_Warm_Torch1"
+        },
+        "Transform": {
+          "Translation": [
+            10.5,
+            0,
+            10.5
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "StimResponse": {
+          "Rules": [
+            {
+              "Stim": "Water",
+              "Threshold": 0.3,
+              "Once": false,
+              "Actions": [
+                {
+                  "Type": "DisableLights"
+                },
+                {
+                  "Type": "PlaySound",
+                  "Asset": "Audio/Hiss.wav",
+                  "Value": 0.7
+                },
+                {
+                  "Type": "SpawnPrefab",
+                  "Asset": "Prefabs/Steam.pprefab"
+                }
+              ]
+            },
+            {
+              "Stim": "Fire",
+              "Threshold": 0.3,
+              "Once": false,
+              "Actions": [
+                {
+                  "Type": "EnableLights"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1065",
+      "Components": {
+        "Tag": {
+          "Tag": "Pole"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.6,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.08,
+            1.2,
+            0.08
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.25,
+            0.16,
+            0.1,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      },
+      "Parent": "1064"
+    },
+    {
+      "ID": "1066",
+      "Components": {
+        "Tag": {
+          "Tag": "Wrap"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.22,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.13,
+            0.16,
+            0.13
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.08,
+            0.06,
+            0.04,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1064"
+    },
+    {
+      "ID": "1067",
+      "Components": {
+        "Tag": {
+          "Tag": "Flame"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.28,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Flame": {
+          "Height": 0.5,
+          "Radius": 0.11,
+          "Intensity": 4.5
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.55,
+            0.25
+          ],
+          "Intensity": 11.0,
+          "Range": 10.0,
+          "Flicker": 0.18,
+          "CastShadows": true
+        },
+        "StimSource": {
+          "Stim": "Fire",
+          "Delivery": "Continuous",
+          "Radius": 0.5,
+          "Intensity": 1.0
+        },
+        "SphereCollider": {
+          "Radius": 1.2
+        },
+        "RigidBody": {
+          "Type": "Static",
+          "IsTrigger": true
+        }
+      },
+      "Parent": "1064"
+    },
+    {
+      "ID": "1068",
+      "Components": {
+        "Tag": {
+          "Tag": "Fire_Warm_Torch2"
+        },
+        "Transform": {
+          "Translation": [
+            10.5,
+            0,
+            -10.5
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "StimResponse": {
+          "Rules": [
+            {
+              "Stim": "Water",
+              "Threshold": 0.3,
+              "Once": false,
+              "Actions": [
+                {
+                  "Type": "DisableLights"
+                },
+                {
+                  "Type": "PlaySound",
+                  "Asset": "Audio/Hiss.wav",
+                  "Value": 0.7
+                },
+                {
+                  "Type": "SpawnPrefab",
+                  "Asset": "Prefabs/Steam.pprefab"
+                }
+              ]
+            },
+            {
+              "Stim": "Fire",
+              "Threshold": 0.3,
+              "Once": false,
+              "Actions": [
+                {
+                  "Type": "EnableLights"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1069",
+      "Components": {
+        "Tag": {
+          "Tag": "Pole"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.6,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.08,
+            1.2,
+            0.08
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.25,
+            0.16,
+            0.1,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      },
+      "Parent": "1068"
+    },
+    {
+      "ID": "1070",
+      "Components": {
+        "Tag": {
+          "Tag": "Wrap"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.22,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.13,
+            0.16,
+            0.13
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.08,
+            0.06,
+            0.04,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1068"
+    },
+    {
+      "ID": "1071",
+      "Components": {
+        "Tag": {
+          "Tag": "Flame"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.28,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Flame": {
+          "Height": 0.5,
+          "Radius": 0.11,
+          "Intensity": 4.5
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.55,
+            0.25
+          ],
+          "Intensity": 11.0,
+          "Range": 10.0,
+          "Flicker": 0.18,
+          "CastShadows": false
+        },
+        "StimSource": {
+          "Stim": "Fire",
+          "Delivery": "Continuous",
+          "Radius": 0.5,
+          "Intensity": 1.0
+        },
+        "SphereCollider": {
+          "Radius": 1.2
+        },
+        "RigidBody": {
+          "Type": "Static",
+          "IsTrigger": true
+        }
+      },
+      "Parent": "1068"
+    },
+    {
+      "ID": "1072",
+      "Components": {
+        "Tag": {
+          "Tag": "Fire_Warm_Torch3"
+        },
+        "Transform": {
+          "Translation": [
+            17,
+            0,
+            -1.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "StimResponse": {
+          "Rules": [
+            {
+              "Stim": "Water",
+              "Threshold": 0.3,
+              "Once": false,
+              "Actions": [
+                {
+                  "Type": "DisableLights"
+                },
+                {
+                  "Type": "PlaySound",
+                  "Asset": "Audio/Hiss.wav",
+                  "Value": 0.7
+                },
+                {
+                  "Type": "SpawnPrefab",
+                  "Asset": "Prefabs/Steam.pprefab"
+                }
+              ]
+            },
+            {
+              "Stim": "Fire",
+              "Threshold": 0.3,
+              "Once": false,
+              "Actions": [
+                {
+                  "Type": "EnableLights"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1073",
+      "Components": {
+        "Tag": {
+          "Tag": "Pole"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.6,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.08,
+            1.2,
+            0.08
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.25,
+            0.16,
+            0.1,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      },
+      "Parent": "1072"
+    },
+    {
+      "ID": "1074",
+      "Components": {
+        "Tag": {
+          "Tag": "Wrap"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.22,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.13,
+            0.16,
+            0.13
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.08,
+            0.06,
+            0.04,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1072"
+    },
+    {
+      "ID": "1075",
+      "Components": {
+        "Tag": {
+          "Tag": "Flame"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.28,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Flame": {
+          "Height": 0.5,
+          "Radius": 0.11,
+          "Intensity": 4.5
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.55,
+            0.25
+          ],
+          "Intensity": 11.0,
+          "Range": 10.0,
+          "Flicker": 0.18,
+          "CastShadows": false
+        },
+        "StimSource": {
+          "Stim": "Fire",
+          "Delivery": "Continuous",
+          "Radius": 0.5,
+          "Intensity": 1.0
+        },
+        "SphereCollider": {
+          "Radius": 1.2
+        },
+        "RigidBody": {
+          "Type": "Static",
+          "IsTrigger": true
+        }
+      },
+      "Parent": "1072"
+    },
+    {
+      "ID": "1076",
+      "Components": {
+        "Tag": {
+          "Tag": "Fire_Cold_Torch4"
+        },
+        "Transform": {
+          "Translation": [
+            -10.5,
+            0,
+            10.5
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "StimResponse": {
+          "Rules": [
+            {
+              "Stim": "Water",
+              "Threshold": 0.3,
+              "Once": false,
+              "Actions": [
+                {
+                  "Type": "DisableLights"
+                },
+                {
+                  "Type": "PlaySound",
+                  "Asset": "Audio/Hiss.wav",
+                  "Value": 0.7
+                },
+                {
+                  "Type": "SpawnPrefab",
+                  "Asset": "Prefabs/Steam.pprefab"
+                }
+              ]
+            },
+            {
+              "Stim": "Fire",
+              "Threshold": 0.3,
+              "Once": false,
+              "Actions": [
+                {
+                  "Type": "EnableLights"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1077",
+      "Components": {
+        "Tag": {
+          "Tag": "Pole"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.6,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.08,
+            1.2,
+            0.08
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.25,
+            0.16,
+            0.1,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      },
+      "Parent": "1076"
+    },
+    {
+      "ID": "1078",
+      "Components": {
+        "Tag": {
+          "Tag": "Wrap"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.22,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.13,
+            0.16,
+            0.13
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.08,
+            0.06,
+            0.04,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1076"
+    },
+    {
+      "ID": "1079",
+      "Components": {
+        "Tag": {
+          "Tag": "Flame"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.28,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Flame": {
+          "Height": 0.5,
+          "Radius": 0.11,
+          "Intensity": 4.5
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.55,
+            0.25
+          ],
+          "Intensity": 11.0,
+          "Range": 10.0,
+          "Flicker": 0.18,
+          "CastShadows": true
+        },
+        "StimSource": {
+          "Stim": "Fire",
+          "Delivery": "Continuous",
+          "Radius": 0.5,
+          "Intensity": 1.0
+        },
+        "SphereCollider": {
+          "Radius": 1.2
+        },
+        "RigidBody": {
+          "Type": "Static",
+          "IsTrigger": true
+        }
+      },
+      "Parent": "1076"
+    },
+    {
+      "ID": "1080",
+      "Components": {
+        "Tag": {
+          "Tag": "Fire_Cold_Torch5"
+        },
+        "Transform": {
+          "Translation": [
+            -10.5,
+            0,
+            -10.5
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "StimResponse": {
+          "Rules": [
+            {
+              "Stim": "Water",
+              "Threshold": 0.3,
+              "Once": false,
+              "Actions": [
+                {
+                  "Type": "DisableLights"
+                },
+                {
+                  "Type": "PlaySound",
+                  "Asset": "Audio/Hiss.wav",
+                  "Value": 0.7
+                },
+                {
+                  "Type": "SpawnPrefab",
+                  "Asset": "Prefabs/Steam.pprefab"
+                }
+              ]
+            },
+            {
+              "Stim": "Fire",
+              "Threshold": 0.3,
+              "Once": false,
+              "Actions": [
+                {
+                  "Type": "EnableLights"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1081",
+      "Components": {
+        "Tag": {
+          "Tag": "Pole"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.6,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.08,
+            1.2,
+            0.08
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.25,
+            0.16,
+            0.1,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      },
+      "Parent": "1080"
+    },
+    {
+      "ID": "1082",
+      "Components": {
+        "Tag": {
+          "Tag": "Wrap"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.22,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.13,
+            0.16,
+            0.13
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.08,
+            0.06,
+            0.04,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1080"
+    },
+    {
+      "ID": "1083",
+      "Components": {
+        "Tag": {
+          "Tag": "Flame"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.28,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Flame": {
+          "Height": 0.5,
+          "Radius": 0.11,
+          "Intensity": 4.5
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.55,
+            0.25
+          ],
+          "Intensity": 11.0,
+          "Range": 10.0,
+          "Flicker": 0.18,
+          "CastShadows": false
+        },
+        "StimSource": {
+          "Stim": "Fire",
+          "Delivery": "Continuous",
+          "Radius": 0.5,
+          "Intensity": 1.0
+        },
+        "SphereCollider": {
+          "Radius": 1.2
+        },
+        "RigidBody": {
+          "Type": "Static",
+          "IsTrigger": true
+        }
+      },
+      "Parent": "1080"
+    },
+    {
+      "ID": "1084",
+      "Components": {
+        "Tag": {
+          "Tag": "Fire_Cold_Torch6"
+        },
+        "Transform": {
+          "Translation": [
+            -17,
+            0,
+            1.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "StimResponse": {
+          "Rules": [
+            {
+              "Stim": "Water",
+              "Threshold": 0.3,
+              "Once": false,
+              "Actions": [
+                {
+                  "Type": "DisableLights"
+                },
+                {
+                  "Type": "PlaySound",
+                  "Asset": "Audio/Hiss.wav",
+                  "Value": 0.7
+                },
+                {
+                  "Type": "SpawnPrefab",
+                  "Asset": "Prefabs/Steam.pprefab"
+                }
+              ]
+            },
+            {
+              "Stim": "Fire",
+              "Threshold": 0.3,
+              "Once": false,
+              "Actions": [
+                {
+                  "Type": "EnableLights"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1085",
+      "Components": {
+        "Tag": {
+          "Tag": "Pole"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.6,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.08,
+            1.2,
+            0.08
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.25,
+            0.16,
+            0.1,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      },
+      "Parent": "1084"
+    },
+    {
+      "ID": "1086",
+      "Components": {
+        "Tag": {
+          "Tag": "Wrap"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.22,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.13,
+            0.16,
+            0.13
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.08,
+            0.06,
+            0.04,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1084"
+    },
+    {
+      "ID": "1087",
+      "Components": {
+        "Tag": {
+          "Tag": "Flame"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.28,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Flame": {
+          "Height": 0.5,
+          "Radius": 0.11,
+          "Intensity": 4.5
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.55,
+            0.25
+          ],
+          "Intensity": 11.0,
+          "Range": 10.0,
+          "Flicker": 0.18,
+          "CastShadows": false
+        },
+        "StimSource": {
+          "Stim": "Fire",
+          "Delivery": "Continuous",
+          "Radius": 0.5,
+          "Intensity": 1.0
+        },
+        "SphereCollider": {
+          "Radius": 1.2
+        },
+        "RigidBody": {
+          "Type": "Static",
+          "IsTrigger": true
+        }
+      },
+      "Parent": "1084"
+    },
+    {
+      "ID": "1088",
+      "Components": {
+        "Tag": {
+          "Tag": "Fire_Warm_Brazier1"
+        },
+        "Transform": {
+          "Translation": [
+            21.5,
+            0,
+            0.9
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1089",
+      "Components": {
+        "Tag": {
+          "Tag": "Leg1"
+        },
+        "Transform": {
+          "Translation": [
+            0.0,
+            0.4,
+            0.22
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.04,
+            0.8,
+            0.04
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.08,
+            0.07,
+            0.07,
+            1.0
+          ],
+          "Roughness": 0.6,
+          "Metallic": 0.7,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1088"
+    },
+    {
+      "ID": "1090",
+      "Components": {
+        "Tag": {
+          "Tag": "Leg2"
+        },
+        "Transform": {
+          "Translation": [
+            0.1905255888325765,
+            0.4,
+            -0.10999999999999996
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.04,
+            0.8,
+            0.04
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.08,
+            0.07,
+            0.07,
+            1.0
+          ],
+          "Roughness": 0.6,
+          "Metallic": 0.7,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1088"
+    },
+    {
+      "ID": "1091",
+      "Components": {
+        "Tag": {
+          "Tag": "Leg3"
+        },
+        "Transform": {
+          "Translation": [
+            -0.19052558883257645,
+            0.4,
+            -0.1100000000000001
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.04,
+            0.8,
+            0.04
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.08,
+            0.07,
+            0.07,
+            1.0
+          ],
+          "Roughness": 0.6,
+          "Metallic": 0.7,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1088"
+    },
+    {
+      "ID": "1092",
+      "Components": {
+        "Tag": {
+          "Tag": "Bowl"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.85,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.6,
+            0.18,
+            0.6
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.08,
+            0.07,
+            0.07,
+            1.0
+          ],
+          "Roughness": 0.6,
+          "Metallic": 0.7,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1088"
+    },
+    {
+      "ID": "1093",
+      "Components": {
+        "Tag": {
+          "Tag": "Embers"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.95,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.5,
+            0.04,
+            0.5
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.3,
+            0.08,
+            0.02,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 3.0,
+          "EmissiveColor": [
+            1.0,
+            0.35,
+            0.08
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1088"
+    },
+    {
+      "ID": "1094",
+      "Components": {
+        "Tag": {
+          "Tag": "Flame"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.95,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Flame": {
+          "Height": 0.75,
+          "Radius": 0.22,
+          "Intensity": 5.0
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.5,
+            0.2
+          ],
+          "Intensity": 20.0,
+          "Range": 12.0,
+          "Flicker": 0.2,
+          "CastShadows": true
+        }
+      },
+      "Parent": "1088"
+    },
+    {
+      "ID": "1095",
+      "Components": {
+        "Tag": {
+          "Tag": "Fire_Warm_Brazier2"
+        },
+        "Transform": {
+          "Translation": [
+            3.0,
+            0,
+            3.0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1096",
+      "Components": {
+        "Tag": {
+          "Tag": "Leg1"
+        },
+        "Transform": {
+          "Translation": [
+            0.0,
+            0.4,
+            0.22
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.04,
+            0.8,
+            0.04
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.08,
+            0.07,
+            0.07,
+            1.0
+          ],
+          "Roughness": 0.6,
+          "Metallic": 0.7,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1095"
+    },
+    {
+      "ID": "1097",
+      "Components": {
+        "Tag": {
+          "Tag": "Leg2"
+        },
+        "Transform": {
+          "Translation": [
+            0.1905255888325765,
+            0.4,
+            -0.10999999999999996
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.04,
+            0.8,
+            0.04
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.08,
+            0.07,
+            0.07,
+            1.0
+          ],
+          "Roughness": 0.6,
+          "Metallic": 0.7,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1095"
+    },
+    {
+      "ID": "1098",
+      "Components": {
+        "Tag": {
+          "Tag": "Leg3"
+        },
+        "Transform": {
+          "Translation": [
+            -0.19052558883257645,
+            0.4,
+            -0.1100000000000001
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.04,
+            0.8,
+            0.04
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.08,
+            0.07,
+            0.07,
+            1.0
+          ],
+          "Roughness": 0.6,
+          "Metallic": 0.7,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1095"
+    },
+    {
+      "ID": "1099",
+      "Components": {
+        "Tag": {
+          "Tag": "Bowl"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.85,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.6,
+            0.18,
+            0.6
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.08,
+            0.07,
+            0.07,
+            1.0
+          ],
+          "Roughness": 0.6,
+          "Metallic": 0.7,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1095"
+    },
+    {
+      "ID": "1100",
+      "Components": {
+        "Tag": {
+          "Tag": "Embers"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.95,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.5,
+            0.04,
+            0.5
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.3,
+            0.08,
+            0.02,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 3.0,
+          "EmissiveColor": [
+            1.0,
+            0.35,
+            0.08
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1095"
+    },
+    {
+      "ID": "1101",
+      "Components": {
+        "Tag": {
+          "Tag": "Flame"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.95,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Flame": {
+          "Height": 0.75,
+          "Radius": 0.22,
+          "Intensity": 5.0
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.5,
+            0.2
+          ],
+          "Intensity": 20.0,
+          "Range": 12.0,
+          "Flicker": 0.2,
+          "CastShadows": false
+        }
+      },
+      "Parent": "1095"
+    },
+    {
+      "ID": "1102",
+      "Components": {
+        "Tag": {
+          "Tag": "Fire_Cold_Brazier3"
+        },
+        "Transform": {
+          "Translation": [
+            -21.5,
+            0,
+            -0.9
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1103",
+      "Components": {
+        "Tag": {
+          "Tag": "Leg1"
+        },
+        "Transform": {
+          "Translation": [
+            0.0,
+            0.4,
+            0.22
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.04,
+            0.8,
+            0.04
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.08,
+            0.07,
+            0.07,
+            1.0
+          ],
+          "Roughness": 0.6,
+          "Metallic": 0.7,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1102"
+    },
+    {
+      "ID": "1104",
+      "Components": {
+        "Tag": {
+          "Tag": "Leg2"
+        },
+        "Transform": {
+          "Translation": [
+            0.1905255888325765,
+            0.4,
+            -0.10999999999999996
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.04,
+            0.8,
+            0.04
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.08,
+            0.07,
+            0.07,
+            1.0
+          ],
+          "Roughness": 0.6,
+          "Metallic": 0.7,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1102"
+    },
+    {
+      "ID": "1105",
+      "Components": {
+        "Tag": {
+          "Tag": "Leg3"
+        },
+        "Transform": {
+          "Translation": [
+            -0.19052558883257645,
+            0.4,
+            -0.1100000000000001
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.04,
+            0.8,
+            0.04
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.08,
+            0.07,
+            0.07,
+            1.0
+          ],
+          "Roughness": 0.6,
+          "Metallic": 0.7,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1102"
+    },
+    {
+      "ID": "1106",
+      "Components": {
+        "Tag": {
+          "Tag": "Bowl"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.85,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.6,
+            0.18,
+            0.6
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.08,
+            0.07,
+            0.07,
+            1.0
+          ],
+          "Roughness": 0.6,
+          "Metallic": 0.7,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1102"
+    },
+    {
+      "ID": "1107",
+      "Components": {
+        "Tag": {
+          "Tag": "Embers"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.95,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.5,
+            0.04,
+            0.5
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.3,
+            0.08,
+            0.02,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 3.0,
+          "EmissiveColor": [
+            1.0,
+            0.35,
+            0.08
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1102"
+    },
+    {
+      "ID": "1108",
+      "Components": {
+        "Tag": {
+          "Tag": "Flame"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.95,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Flame": {
+          "Height": 0.75,
+          "Radius": 0.22,
+          "Intensity": 5.0
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.5,
+            0.2
+          ],
+          "Intensity": 20.0,
+          "Range": 12.0,
+          "Flicker": 0.2,
+          "CastShadows": true
+        }
+      },
+      "Parent": "1102"
+    },
+    {
+      "ID": "1109",
+      "Components": {
+        "Tag": {
+          "Tag": "Fire_Cold_Brazier4"
+        },
+        "Transform": {
+          "Translation": [
+            -3.0,
+            0,
+            -3.0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1110",
+      "Components": {
+        "Tag": {
+          "Tag": "Leg1"
+        },
+        "Transform": {
+          "Translation": [
+            0.0,
+            0.4,
+            0.22
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.04,
+            0.8,
+            0.04
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.08,
+            0.07,
+            0.07,
+            1.0
+          ],
+          "Roughness": 0.6,
+          "Metallic": 0.7,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1109"
+    },
+    {
+      "ID": "1111",
+      "Components": {
+        "Tag": {
+          "Tag": "Leg2"
+        },
+        "Transform": {
+          "Translation": [
+            0.1905255888325765,
+            0.4,
+            -0.10999999999999996
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.04,
+            0.8,
+            0.04
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.08,
+            0.07,
+            0.07,
+            1.0
+          ],
+          "Roughness": 0.6,
+          "Metallic": 0.7,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1109"
+    },
+    {
+      "ID": "1112",
+      "Components": {
+        "Tag": {
+          "Tag": "Leg3"
+        },
+        "Transform": {
+          "Translation": [
+            -0.19052558883257645,
+            0.4,
+            -0.1100000000000001
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.04,
+            0.8,
+            0.04
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.08,
+            0.07,
+            0.07,
+            1.0
+          ],
+          "Roughness": 0.6,
+          "Metallic": 0.7,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1109"
+    },
+    {
+      "ID": "1113",
+      "Components": {
+        "Tag": {
+          "Tag": "Bowl"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.85,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.6,
+            0.18,
+            0.6
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.08,
+            0.07,
+            0.07,
+            1.0
+          ],
+          "Roughness": 0.6,
+          "Metallic": 0.7,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1109"
+    },
+    {
+      "ID": "1114",
+      "Components": {
+        "Tag": {
+          "Tag": "Embers"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.95,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.5,
+            0.04,
+            0.5
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.3,
+            0.08,
+            0.02,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 3.0,
+          "EmissiveColor": [
+            1.0,
+            0.35,
+            0.08
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1109"
+    },
+    {
+      "ID": "1115",
+      "Components": {
+        "Tag": {
+          "Tag": "Flame"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.95,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Flame": {
+          "Height": 0.75,
+          "Radius": 0.22,
+          "Intensity": 5.0
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.5,
+            0.2
+          ],
+          "Intensity": 20.0,
+          "Range": 12.0,
+          "Flicker": 0.2,
+          "CastShadows": false
+        }
+      },
+      "Parent": "1109"
+    },
+    {
+      "ID": "1116",
+      "Components": {
+        "Tag": {
+          "Tag": "Astral_Warm_Lamp1"
+        },
+        "Transform": {
+          "Translation": [
+            8.8,
+            0,
+            -10.6
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1117",
+      "Components": {
+        "Tag": {
+          "Tag": "Post"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.75,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.07,
+            1.5,
+            0.07
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.06,
+            0.06,
+            0.08,
+            1.0
+          ],
+          "Roughness": 0.5,
+          "Metallic": 0.8,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1116"
+    },
+    {
+      "ID": "1118",
+      "Components": {
+        "Tag": {
+          "Tag": "Crystal"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.72,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.16,
+            0.34,
+            0.16
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:sphere",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.3,
+            0.8,
+            1.0,
+            1.0
+          ],
+          "Roughness": 0.2,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 6.0,
+          "EmissiveColor": [
+            0.35,
+            0.85,
+            1.0
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1116"
+    },
+    {
+      "ID": "1119",
+      "Components": {
+        "Tag": {
+          "Tag": "Glow"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.72,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            0.35,
+            0.85,
+            1.0
+          ],
+          "Intensity": 14.0,
+          "Range": 10.0,
+          "Flicker": 0.0,
+          "CastShadows": true
+        }
+      },
+      "Parent": "1116"
+    },
+    {
+      "ID": "1120",
+      "Components": {
+        "Tag": {
+          "Tag": "Astral_Warm_Lamp2"
+        },
+        "Transform": {
+          "Translation": [
+            9.6,
+            0,
+            5.0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1121",
+      "Components": {
+        "Tag": {
+          "Tag": "Post"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.75,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.07,
+            1.5,
+            0.07
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.06,
+            0.06,
+            0.08,
+            1.0
+          ],
+          "Roughness": 0.5,
+          "Metallic": 0.8,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1120"
+    },
+    {
+      "ID": "1122",
+      "Components": {
+        "Tag": {
+          "Tag": "Crystal"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.72,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.16,
+            0.34,
+            0.16
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:sphere",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.3,
+            0.8,
+            1.0,
+            1.0
+          ],
+          "Roughness": 0.2,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 6.0,
+          "EmissiveColor": [
+            0.35,
+            0.85,
+            1.0
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1120"
+    },
+    {
+      "ID": "1123",
+      "Components": {
+        "Tag": {
+          "Tag": "Glow"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.72,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            0.35,
+            0.85,
+            1.0
+          ],
+          "Intensity": 14.0,
+          "Range": 10.0,
+          "Flicker": 0.0,
+          "CastShadows": false
+        }
+      },
+      "Parent": "1120"
+    },
+    {
+      "ID": "1124",
+      "Components": {
+        "Tag": {
+          "Tag": "Astral_Warm_Lamp3"
+        },
+        "Transform": {
+          "Translation": [
+            14.0,
+            0,
+            1.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1125",
+      "Components": {
+        "Tag": {
+          "Tag": "Post"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.75,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.07,
+            1.5,
+            0.07
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.06,
+            0.06,
+            0.08,
+            1.0
+          ],
+          "Roughness": 0.5,
+          "Metallic": 0.8,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1124"
+    },
+    {
+      "ID": "1126",
+      "Components": {
+        "Tag": {
+          "Tag": "Crystal"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.72,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.16,
+            0.34,
+            0.16
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:sphere",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.3,
+            0.8,
+            1.0,
+            1.0
+          ],
+          "Roughness": 0.2,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 6.0,
+          "EmissiveColor": [
+            0.35,
+            0.85,
+            1.0
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1124"
+    },
+    {
+      "ID": "1127",
+      "Components": {
+        "Tag": {
+          "Tag": "Glow"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.72,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            0.35,
+            0.85,
+            1.0
+          ],
+          "Intensity": 14.0,
+          "Range": 10.0,
+          "Flicker": 0.0,
+          "CastShadows": false
+        }
+      },
+      "Parent": "1124"
+    },
+    {
+      "ID": "1128",
+      "Components": {
+        "Tag": {
+          "Tag": "Astral_Warm_Lamp4"
+        },
+        "Transform": {
+          "Translation": [
+            3.0,
+            0,
+            -3.0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1129",
+      "Components": {
+        "Tag": {
+          "Tag": "Post"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.75,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.07,
+            1.5,
+            0.07
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.06,
+            0.06,
+            0.08,
+            1.0
+          ],
+          "Roughness": 0.5,
+          "Metallic": 0.8,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1128"
+    },
+    {
+      "ID": "1130",
+      "Components": {
+        "Tag": {
+          "Tag": "Crystal"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.72,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.16,
+            0.34,
+            0.16
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:sphere",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.3,
+            0.8,
+            1.0,
+            1.0
+          ],
+          "Roughness": 0.2,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 6.0,
+          "EmissiveColor": [
+            0.35,
+            0.85,
+            1.0
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1128"
+    },
+    {
+      "ID": "1131",
+      "Components": {
+        "Tag": {
+          "Tag": "Glow"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.72,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            0.35,
+            0.85,
+            1.0
+          ],
+          "Intensity": 14.0,
+          "Range": 10.0,
+          "Flicker": 0.0,
+          "CastShadows": false
+        }
+      },
+      "Parent": "1128"
+    },
+    {
+      "ID": "1132",
+      "Components": {
+        "Tag": {
+          "Tag": "Astral_Cold_Lamp5"
+        },
+        "Transform": {
+          "Translation": [
+            -8.8,
+            0,
+            -10.6
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1133",
+      "Components": {
+        "Tag": {
+          "Tag": "Post"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.75,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.07,
+            1.5,
+            0.07
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.06,
+            0.06,
+            0.08,
+            1.0
+          ],
+          "Roughness": 0.5,
+          "Metallic": 0.8,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1132"
+    },
+    {
+      "ID": "1134",
+      "Components": {
+        "Tag": {
+          "Tag": "Crystal"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.72,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.16,
+            0.34,
+            0.16
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:sphere",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.3,
+            0.8,
+            1.0,
+            1.0
+          ],
+          "Roughness": 0.2,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 6.0,
+          "EmissiveColor": [
+            0.35,
+            0.85,
+            1.0
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1132"
+    },
+    {
+      "ID": "1135",
+      "Components": {
+        "Tag": {
+          "Tag": "Glow"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.72,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            0.35,
+            0.85,
+            1.0
+          ],
+          "Intensity": 14.0,
+          "Range": 10.0,
+          "Flicker": 0.0,
+          "CastShadows": true
+        }
+      },
+      "Parent": "1132"
+    },
+    {
+      "ID": "1136",
+      "Components": {
+        "Tag": {
+          "Tag": "Astral_Cold_Lamp6"
+        },
+        "Transform": {
+          "Translation": [
+            -9.6,
+            0,
+            5.0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1137",
+      "Components": {
+        "Tag": {
+          "Tag": "Post"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.75,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.07,
+            1.5,
+            0.07
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.06,
+            0.06,
+            0.08,
+            1.0
+          ],
+          "Roughness": 0.5,
+          "Metallic": 0.8,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1136"
+    },
+    {
+      "ID": "1138",
+      "Components": {
+        "Tag": {
+          "Tag": "Crystal"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.72,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.16,
+            0.34,
+            0.16
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:sphere",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.3,
+            0.8,
+            1.0,
+            1.0
+          ],
+          "Roughness": 0.2,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 6.0,
+          "EmissiveColor": [
+            0.35,
+            0.85,
+            1.0
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1136"
+    },
+    {
+      "ID": "1139",
+      "Components": {
+        "Tag": {
+          "Tag": "Glow"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.72,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            0.35,
+            0.85,
+            1.0
+          ],
+          "Intensity": 14.0,
+          "Range": 10.0,
+          "Flicker": 0.0,
+          "CastShadows": false
+        }
+      },
+      "Parent": "1136"
+    },
+    {
+      "ID": "1140",
+      "Components": {
+        "Tag": {
+          "Tag": "Astral_Cold_Lamp7"
+        },
+        "Transform": {
+          "Translation": [
+            -14.0,
+            0,
+            -1.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1141",
+      "Components": {
+        "Tag": {
+          "Tag": "Post"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.75,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.07,
+            1.5,
+            0.07
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.06,
+            0.06,
+            0.08,
+            1.0
+          ],
+          "Roughness": 0.5,
+          "Metallic": 0.8,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1140"
+    },
+    {
+      "ID": "1142",
+      "Components": {
+        "Tag": {
+          "Tag": "Crystal"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.72,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.16,
+            0.34,
+            0.16
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:sphere",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.3,
+            0.8,
+            1.0,
+            1.0
+          ],
+          "Roughness": 0.2,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 6.0,
+          "EmissiveColor": [
+            0.35,
+            0.85,
+            1.0
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1140"
+    },
+    {
+      "ID": "1143",
+      "Components": {
+        "Tag": {
+          "Tag": "Glow"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.72,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            0.35,
+            0.85,
+            1.0
+          ],
+          "Intensity": 14.0,
+          "Range": 10.0,
+          "Flicker": 0.0,
+          "CastShadows": false
+        }
+      },
+      "Parent": "1140"
+    },
+    {
+      "ID": "1144",
+      "Components": {
+        "Tag": {
+          "Tag": "Astral_Cold_Lamp8"
+        },
+        "Transform": {
+          "Translation": [
+            -3.0,
+            0,
+            3.0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1145",
+      "Components": {
+        "Tag": {
+          "Tag": "Post"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.75,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.07,
+            1.5,
+            0.07
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cylinder"
+        },
+        "Material": {
+          "BaseColor": [
+            0.06,
+            0.06,
+            0.08,
+            1.0
+          ],
+          "Roughness": 0.5,
+          "Metallic": 0.8,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1144"
+    },
+    {
+      "ID": "1146",
+      "Components": {
+        "Tag": {
+          "Tag": "Crystal"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.72,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.16,
+            0.34,
+            0.16
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:sphere",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            0.3,
+            0.8,
+            1.0,
+            1.0
+          ],
+          "Roughness": 0.2,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 6.0,
+          "EmissiveColor": [
+            0.35,
+            0.85,
+            1.0
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1144"
+    },
+    {
+      "ID": "1147",
+      "Components": {
+        "Tag": {
+          "Tag": "Glow"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.72,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            0.35,
+            0.85,
+            1.0
+          ],
+          "Intensity": 14.0,
+          "Range": 10.0,
+          "Flicker": 0.0,
+          "CastShadows": false
+        }
+      },
+      "Parent": "1144"
+    },
+    {
+      "ID": "1148",
+      "Components": {
+        "Tag": {
+          "Tag": "Thief"
+        },
+        "Transform": {
+          "Translation": [
+            5.0,
+            0.05,
+            -9.6
+          ],
+          "Rotation": [
+            0,
+            90,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PerceptionTarget": {
+          "Reflectance": 0.25
+        }
+      }
+    },
+    {
+      "ID": "1149",
+      "Components": {
+        "Tag": {
+          "Tag": "Model"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            0,
+            180,
+            0
+          ],
+          "Scale": [
+            0.8,
+            0.8,
+            0.8
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Characters/Thief.glb",
+          "HiddenNodes": [
+            "Knife",
+            "Knife_Offhand",
+            "2H_Crossbow",
+            "Throwable"
+          ]
+        },
+        "Animator": {
+          "Clip": "Idle",
+          "BlendDuration": 0.2
+        }
+      },
+      "Parent": "1148"
+    },
+    {
+      "ID": "1150",
+      "Components": {
+        "Tag": {
+          "Tag": "MoodLab"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Script": {
+          "Script": "Scripts/MoodLab.lua"
+        }
+      }
+    }
+  ]
+}
