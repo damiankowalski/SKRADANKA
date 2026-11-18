@@ -2,6 +2,7 @@
 #define PENUMBRA_LIGHTING_HLSLI
 
 #include "ViewBindings.hlsli"
+#include "Fog.hlsli"
 
 // Mirrors Penumbra/src/Penumbra/Scene/LightUtils.h (perception uses the same falloff).
 float DistanceAttenuation(float distance, float range)
@@ -254,12 +255,6 @@ float3 EvaluateAmbient(float3 N, float3 V, float3 albedo, float metallic, float 
 	// Specular occlusion approximation from ambient occlusion.
 	float specularOcclusion = saturate(pow(NdotV + ao, exp2(-16.0 * roughness - 1.0)) - 1.0 + ao);
 	return diffuse * ao + specular * specularOcclusion;
-}
-
-float3 ApplyFog(float3 color, float distance)
-{
-	float fog = 1.0 - exp(-g_View.FogDensity * distance);
-	return lerp(color, g_View.FogColor, saturate(fog));
 }
 
 #endif

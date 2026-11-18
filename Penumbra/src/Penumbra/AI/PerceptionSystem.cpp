@@ -6,6 +6,7 @@
 #include "Penumbra/Navigation/NavigationSystem.h"
 #include "Penumbra/Scene/JsonSerialization.h"
 #include "Penumbra/Physics/PhysicsWorld.h"
+#include "Penumbra/Scene/FogUtils.h"
 
 #include <glm/gtc/constants.hpp>
 
@@ -297,9 +298,8 @@ namespace Penumbra {
 			return 0.0f;
 		const glm::vec3 direction = delta / length;
 
-		float depth = 0.0f;
-		if (Entity environment = m_Scene.GetEnvironmentEntity())
-			depth += environment.GetComponent<EnvironmentComponent>().FogDensity * length;
+		// The fog the player sees (environment, height fog, fog volumes: Scene/FogUtils.h), then smoke.
+		float depth = FogMedium::FromScene(m_Scene).OpticalDepth(from, to);
 
 		for (auto [handle, smoke] : m_Scene.GetRegistry().view<SmokeVolumeComponent>().each())
 		{

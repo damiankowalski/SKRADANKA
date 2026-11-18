@@ -391,6 +391,9 @@ namespace Penumbra {
 		if (ImGui::CollapsingHeader("Fog of war: what the thief sees", ImGuiTreeNodeFlags_DefaultOpen))
 			DrawFogOfWar(scene);
 
+		if (ImGui::CollapsingHeader("Fog and volumetric light"))
+			DrawFog(scene);
+
 		if (ImGui::CollapsingHeader("Guards: sight and hearing", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			ImGui::Checkbox("View cones (cut by walls)", &m_ShowVision);
@@ -527,6 +530,30 @@ namespace Penumbra {
 			ImGui::Text("Guards and bodies hidden now: %u", component.RuntimeHiddenActors);
 		else
 			ImGui::TextDisabled("Fog is off.");
+	}
+
+	void RuntimeDebugPanel::DrawFog(Scene& scene)
+	{
+		Entity environmentEntity = scene.GetEnvironmentEntity();
+		if (!environmentEntity)
+		{
+			ImGui::TextDisabled("No Environment in this level.");
+			return;
+		}
+		// The level's fog, live (not saved: copy good values into the level). Guards see through the same fog.
+		EnvironmentComponent& environment = environmentEntity.GetComponent<EnvironmentComponent>();
+		ImGui::Checkbox("Volumetric (lamps light the fog)", &environment.VolumetricFog);
+		ImGui::SliderFloat("Density", &environment.FogDensity, 0.0f, 0.3f, "%.3f /m", ImGuiSliderFlags_Logarithmic);
+		ImGui::ColorEdit3("Own glow", &environment.FogColor.x, ImGuiColorEditFlags_Float);
+		ImGui::SliderFloat("Height", &environment.FogHeight, -5.0f, 10.0f, "%.1f m");
+		ImGui::SetItemTooltip("Full density below this height; above it the fog thins by the falloff.");
+		ImGui::SliderFloat("Height falloff", &environment.FogHeightFalloff, 0.0f, 2.0f, "%.2f /m");
+		ImGui::SliderFloat("Scattering", &environment.FogScattering, 0.0f, 1.0f, "%.2f");
+		ImGui::SetItemTooltip("How much lamp light the fog sends towards the eye.");
+		ImGui::SliderFloat("Forward glare", &environment.FogAnisotropy, -0.9f, 0.9f, "%.2f");
+		ImGui::SetItemTooltip("0 = the same in every direction; higher = brighter looking into a lamp.");
+		const size_t volumes = scene.GetRegistry().view<FogVolumeComponent>().size();
+		ImGui::TextDisabled("%zu fog volume(s) in the level (FogVolume; tuned in the editor).", volumes);
 	}
 
 	void RuntimeDebugPanel::DrawGuardLabels(Scene& scene, const RenderCamera& camera)

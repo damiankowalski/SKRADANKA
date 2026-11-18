@@ -84,6 +84,9 @@ The log under it lists the last noises the game made with their loudness and cau
 **Camera and time**: freelook and its speed, pause (F6) and single steps, a time scale (0.1x - 4x) for watching
 a patrol or a search in slow motion or fast forward.
 
+**Fog and volumetric light** (folded; `Fog.md`): the level's fog live, not saved: volumetric on or off, density,
+its own glow, height and height falloff, scattering and forward glare. Guards see through the fog the sliders set.
+
 ## Inspector (F4)
 
 With the panel up, a **left click** on anything in the level selects it (pick "left click in the world: makes the

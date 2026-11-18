@@ -10,7 +10,7 @@ target_compile_definitions(PenumbraTests PRIVATE
 
 # Each doctest test suite is registered separately so CTest reports them individually.
 set(PENUMBRA_TEST_SUITES Core Scene Serialization Assets Animation Physics Audio Scripting Perception Navigation World Mission
-    Stim Automation Mcp Renderer Debug FogOfWar)
+    Stim Automation Mcp Renderer Debug FogOfWar Fog)
 foreach(suite ${PENUMBRA_TEST_SUITES})
     add_test(NAME Unit.${suite} COMMAND PenumbraTests --test-suite=${suite} --no-colors)
 endforeach()
@@ -55,6 +55,6 @@ if(PENUMBRA_BUILD_EDITOR)
         COMMAND PenumbraEditor --headless --warp --exec "${PROJECT_SOURCE_DIR}/docs/art/mood/MoodLab.jsonl"
                 --project "${PROJECT_SOURCE_DIR}/DemoProject"
         WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/MoodLab")
-    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/MoodLab/docs/art/mood/v1")
+    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/MoodLab/docs/art/mood/v2")
     set_tests_properties(Automation.EditorCLI Automation.McpStdio Editor.Smoke Automation.MoodLab PROPERTIES LABELS gpu TIMEOUT 600)
 endif()

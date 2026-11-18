@@ -27,5 +27,7 @@ set(PENUMBRA_SHADERS
     "PrefilterCS|IBL.hlsl|CSPrefilter|cs_6_0"
     "BRDFLutCS|IBL.hlsl|CSBRDFLut|cs_6_0"
     "SkinningCS|Skinning.hlsl|CSMain|cs_6_0"
+    "FogScatterCS|Fog.hlsl|CSFogScatter|cs_6_0"
+    "FogIntegrateCS|FogIntegrate.hlsl|CSFogIntegrate|cs_6_0"
     "ImGuiVS|ImGui.hlsl|VSMain|vs_6_0"
     "ImGuiPS|ImGui.hlsl|PSMain|ps_6_0")

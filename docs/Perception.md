@@ -22,7 +22,8 @@ corners, the AI lab guard end to end).
    two black values give ≈ 0 contrast). Points outside the focus cone (`FocusFieldOfView`, 90°) but inside
    the full cone (`FieldOfView`, 130°: 20° bands on each side) count with `PeripheralContrast` (0.5) of
    their contrast: the corner of the eye notices the thief, only less readily. Averaged over visible points, then × `exp(−optical depth)` of fog
-   (`Environment.FogDensity`) and smoke volumes along the line.
+   (the fog the player sees: the environment's, thinning with height, and fog volumes, `Scene/FogUtils.h`, `Fog.md`) and
+   smoke volumes along the line.
 4. **Threshold** — see the deviation below.
 5. **Factors** — size `S` (angular size vs. `ReferenceAngularSize`), peripheral `P(θ)` (1 → `PeripheralFactor`
    at the cone edge), motion `M = 1 + m·speed·(1 + peripherality)`.

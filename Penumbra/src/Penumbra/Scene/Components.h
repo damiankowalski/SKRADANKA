@@ -153,8 +153,17 @@ namespace Penumbra {
 		float SkyboxIntensity = 1.0f;
 		glm::vec3 AmbientColor{ 0.02f, 0.02f, 0.03f }; // used when no environment map is set
 		float Exposure = 1.0f;
-		float FogDensity = 0.0f; // also used as the perception atmosphere coefficient (beta)
-		glm::vec3 FogColor{ 0.05f, 0.05f, 0.06f };
+		float FogDensity = 0.0f; // extinction per metre (beta); also the perception atmosphere coefficient
+		glm::vec3 FogColor{ 0.05f, 0.05f, 0.06f }; // the fog's own glow where no lamp lights it
+		// Height fog (Scene/FogUtils.h): FogDensity below FogHeight, thinning above it by FogHeightFalloff per metre
+		// (0 = the same density at every height).
+		float FogHeight = 0.0f;
+		float FogHeightFalloff = 0.0f;
+		// Volumetric light: how much light the fog scatters towards the eye (0 = none, 1 = all it stops) and how
+		// much of it goes forward (0 = every direction, 0.9 = a glare when looking into a lamp).
+		bool VolumetricFog = true;
+		float FogScattering = 0.5f;
+		float FogAnisotropy = 0.3f;
 		bool SSAOEnabled = true;
 		float SSAORadius = 0.5f;
 		float SSAOIntensity = 1.0f;
@@ -480,6 +489,17 @@ namespace Penumbra {
 		bool Enabled = true;
 	};
 
+	// Local fog: a box of extra fog (mist over a garden, a cellar's haze) added to the environment's. It fades
+	// in over EdgeFade metres from its sides. Rotates with the entity; HalfExtents are metres (scale ignored).
+	// Lit like the rest of the fog and seen through the same way by guards (Scene/FogUtils.h).
+	struct FogVolumeComponent
+	{
+		glm::vec3 HalfExtents{ 5.0f, 1.0f, 5.0f };
+		float Density = 0.1f; // extinction per metre added inside
+		float EdgeFade = 1.0f;
+		bool Enabled = true;
+	};
+
 	// Smoke / fog volume that flattens contrast along sight lines passing through it.
 	struct SmokeVolumeComponent
 	{
@@ -619,6 +639,6 @@ namespace Penumbra {
 		SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent, CharacterControllerComponent, ScriptComponent,
 		AudioSourceComponent, AudioListenerComponent, PerceptionComponent, PerceptionTargetComponent, VitalityComponent, SmokeVolumeComponent, FlameComponent,
 		StimSourceComponent, StimResponseComponent, NavMeshComponent, NavAgentComponent, SurfaceComponent, PrefabComponent, RagdollComponent,
-		FogOfWarComponent>;
+		FogOfWarComponent, FogVolumeComponent>;
 
 }

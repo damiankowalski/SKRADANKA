@@ -13,6 +13,7 @@ namespace Penumbra::GPU {
 	constexpr uint32_t MaxLights = 256;
 	constexpr uint32_t MaxSpotShadows = 8;
 	constexpr uint32_t MaxPointShadows = 4;
+	constexpr uint32_t MaxFogVolumes = 32;
 
 	constexpr uint32_t LightDirectional = 0;
 	constexpr uint32_t LightPoint = 1;
@@ -47,8 +48,30 @@ namespace Penumbra::GPU {
 		float SSAOIntensity;
 		float BloomIntensity;
 		float DirectionalShadowIndex;
+		// Volumetric fog (shaders/Fog.hlsl): the environment's height fog and how the fog scatters light,
+		// the froxel grid's reach and this frame's depth jitter, last frame's camera for reprojection.
+		float FogHeight;
+		float FogHeightFalloff;
+		float FogScattering;
+		float FogAnisotropy;
+		float VolumetricFog;  // 1 when the froxel volume is valid this frame
+		float FogDistance;    // the grid's far end (view depth, metres)
+		uint32_t FogVolumeCount;
+		float FogJitter;      // 0..1, the slice offset of this frame's samples
+		glm::mat4 PrevViewProj;
 	};
-	static_assert(sizeof(ViewConstants) == 704, "ViewConstants must match Common.hlsli");
+	static_assert(sizeof(ViewConstants) == 800, "ViewConstants must match Common.hlsli");
+
+	// A local fog box (FogVolumeComponent) for shaders/Fog.hlsl: world to box space as rows of a rotation.
+	struct FogVolume
+	{
+		glm::vec4 CenterDensity;     // xyz centre, w density
+		glm::vec4 HalfExtentsFade;   // xyz half extents, w edge fade
+		glm::vec4 Row0;
+		glm::vec4 Row1;
+		glm::vec4 Row2;
+	};
+	static_assert(sizeof(FogVolume) == 80, "FogVolume must match Fog.hlsl");
 
 	struct Light
 	{

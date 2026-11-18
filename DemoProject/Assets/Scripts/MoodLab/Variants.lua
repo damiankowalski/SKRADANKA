@@ -1,6 +1,6 @@
 -- Mood lab (docs/art/mood/README.md): the lighting variants of Scenes/MoodLab.pscene, all in one table.
--- A variant sets the environment, the moon, which light sources burn (by name prefix; every other
--- source is hidden whole) and how fire and astral light look. Apply one with
+-- A variant sets the environment, the moon, the garden's low mist, which light sources burn (by name
+-- prefix; every other source is hidden whole) and how fire and astral light look. Apply one with
 --   require("Scripts/MoodLab/Variants").apply("Fire")
 -- (docs/art/mood/MoodLab.jsonl does, through script.exec) or play the scene with --set mood=Fire.
 
@@ -10,7 +10,22 @@ local M = {}
 local BASE_ENVIRONMENT = {
     EnvironmentIntensity = 0.12, SkyboxIntensity = 0.6, AmbientColor = vec3(0.006, 0.006, 0.0084),
     Exposure = 1.4, FogDensity = 0.01, FogColor = vec3(0.02, 0.025, 0.035), BloomIntensity = 0.05,
+    -- The engine's defaults for what the cloister does not set (volumetric fog, no height fog).
+    VolumetricFog = true, FogScattering = 0.5, FogAnisotropy = 0.3, FogHeight = 0.0, FogHeightFalloff = 0.0,
 }
+
+-- The thick fog of A-C (v2, volumetric): dense at the ground, thinning above 1.5 m so the roofs and the
+-- sky show through; it scatters a little of every lamp's light, mostly forwards (a glare looking into one).
+local THICK_FOG = {
+    VolumetricFog = true, FogDensity = 0.06, FogHeight = 1.5, FogHeightFalloff = 0.25, FogScattering = 0.12, FogAnisotropy = 0.4,
+}
+
+local function with_fog(environment)
+    for key, value in pairs(THICK_FOG) do
+        environment[key] = value
+    end
+    return environment
+end
 
 -- Fire: warm, flickering. Astral: cold cyan and violet, steady.
 local FIRE = {
@@ -31,27 +46,30 @@ M.Variants = {
     },
     -- A. Fire: thick fog, a near-black world, only torches and fire baskets.
     Fire = {
-        environment = {
+        mist = true,
+        environment = with_fog {
             EnvironmentIntensity = 0.02, SkyboxIntensity = 0.12, AmbientColor = vec3(0.0015, 0.0013, 0.0012),
-            Exposure = 1.6, FogDensity = 0.07, FogColor = vec3(0.014, 0.010, 0.008), BloomIntensity = 0.09,
+            Exposure = 1.6, FogColor = vec3(0.014, 0.010, 0.008), BloomIntensity = 0.09,
         },
         moon = 0.015,
         burning = { "Fire_" },
     },
     -- B. Astral: the same fog, only astral lamps (cyan in the east, violet in the west).
     Astral = {
-        environment = {
+        mist = true,
+        environment = with_fog {
             EnvironmentIntensity = 0.02, SkyboxIntensity = 0.12, AmbientColor = vec3(0.0012, 0.0014, 0.002),
-            Exposure = 1.6, FogDensity = 0.07, FogColor = vec3(0.008, 0.011, 0.016), BloomIntensity = 0.12,
+            Exposure = 1.6, FogColor = vec3(0.008, 0.011, 0.016), BloomIntensity = 0.12,
         },
         moon = 0.015,
         burning = { "Astral_" },
     },
     -- C. Mixed: fire in the east (warm zone), astral lamps in the west (cold zone), darkness between.
     Mixed = {
-        environment = {
+        mist = true,
+        environment = with_fog {
             EnvironmentIntensity = 0.02, SkyboxIntensity = 0.12, AmbientColor = vec3(0.0013, 0.0013, 0.0016),
-            Exposure = 1.6, FogDensity = 0.07, FogColor = vec3(0.011, 0.010, 0.012), BloomIntensity = 0.1,
+            Exposure = 1.6, FogColor = vec3(0.011, 0.010, 0.012), BloomIntensity = 0.1,
         },
         moon = 0.015,
         burning = { "Fire_Warm_", "Astral_Cold_" },
@@ -105,6 +123,7 @@ function M.apply(name)
     if not variant then error("unknown mood variant '" .. tostring(name) .. "'") end
     scene.find("Environment"):set("Environment", variant.environment)
     scene.find("Moon"):set("DirectionalLight", { Intensity = variant.moon })
+    scene.find("Mist_Garden"):set("FogVolume", { Enabled = variant.mist == true })
     for _, e in ipairs(scene.entities_with("Transform")) do
         local entity_name = e:get_name()
         if (starts_with(entity_name, "Fire_") or starts_with(entity_name, "Astral_")) and not e:parent() then

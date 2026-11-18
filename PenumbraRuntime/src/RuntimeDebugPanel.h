@@ -70,6 +70,7 @@ namespace Penumbra {
 		void DrawPerformance(Scene& scene, SceneRenderer& renderer, RenderDevice& device);
 		void DrawPanel(Scene& scene);
 		void DrawFogOfWar(Scene& scene);
+		void DrawFog(Scene& scene);
 		void DrawGuardLabels(Scene& scene, const RenderCamera& camera);
 		void HandleWorldClick(Scene& scene, const RenderCamera& camera);
 		std::optional<glm::vec3> WorldPointUnderMouse(Scene& scene, const RenderCamera& camera);

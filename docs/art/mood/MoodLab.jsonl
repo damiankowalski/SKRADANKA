@@ -9,21 +9,21 @@
 # 0. Base: the cloister's torches and environment as they are today.
 {"cmd": "script.exec", "code": "return require('Scripts/MoodLab/Variants').apply('Base')"}
 {"cmd": "simulate", "frames": 6}
-{"cmd": "render.screenshot", "path": "docs/art/mood/v1/0_base_wide.png", "width": 1280, "height": 720, "camera": {"position": [0.0, 2.0, 7.3], "target": [0.0, 1.0, -8.0], "fov": 75}}
-{"cmd": "render.screenshot", "path": "docs/art/mood/v1/0_base_close.png", "width": 1280, "height": 720, "camera": {"position": [1.2, 1.5, -9.1], "target": [6.0, 1.1, -9.7], "fov": 55}}
+{"cmd": "render.screenshot", "path": "docs/art/mood/v2/0_base_wide.png", "width": 1280, "height": 720, "camera": {"position": [0.0, 2.0, 7.3], "target": [0.0, 1.0, -8.0], "fov": 75}}
+{"cmd": "render.screenshot", "path": "docs/art/mood/v2/0_base_close.png", "width": 1280, "height": 720, "camera": {"position": [1.2, 1.5, -9.1], "target": [6.0, 1.1, -9.7], "fov": 55}}
 # A. Fire: thick fog, near-black world, torches and fire baskets.
 {"cmd": "script.exec", "code": "return require('Scripts/MoodLab/Variants').apply('Fire')"}
 {"cmd": "simulate", "frames": 6}
-{"cmd": "render.screenshot", "path": "docs/art/mood/v1/A_fire_wide.png", "width": 1280, "height": 720, "camera": {"position": [0.0, 2.0, 7.3], "target": [0.0, 1.0, -8.0], "fov": 75}}
-{"cmd": "render.screenshot", "path": "docs/art/mood/v1/A_fire_close.png", "width": 1280, "height": 720, "camera": {"position": [1.2, 1.5, -9.1], "target": [6.0, 1.1, -9.7], "fov": 55}}
+{"cmd": "render.screenshot", "path": "docs/art/mood/v2/A_fire_wide.png", "width": 1280, "height": 720, "camera": {"position": [0.0, 2.0, 7.3], "target": [0.0, 1.0, -8.0], "fov": 75}}
+{"cmd": "render.screenshot", "path": "docs/art/mood/v2/A_fire_close.png", "width": 1280, "height": 720, "camera": {"position": [1.2, 1.5, -9.1], "target": [6.0, 1.1, -9.7], "fov": 55}}
 # B. Astral: the same fog, only astral lamps.
 {"cmd": "script.exec", "code": "return require('Scripts/MoodLab/Variants').apply('Astral')"}
 {"cmd": "simulate", "frames": 6}
-{"cmd": "render.screenshot", "path": "docs/art/mood/v1/B_astral_wide.png", "width": 1280, "height": 720, "camera": {"position": [0.0, 2.0, 7.3], "target": [0.0, 1.0, -8.0], "fov": 75}}
-{"cmd": "render.screenshot", "path": "docs/art/mood/v1/B_astral_close.png", "width": 1280, "height": 720, "camera": {"position": [1.2, 1.5, -9.1], "target": [6.0, 1.1, -9.7], "fov": 55}}
+{"cmd": "render.screenshot", "path": "docs/art/mood/v2/B_astral_wide.png", "width": 1280, "height": 720, "camera": {"position": [0.0, 2.0, 7.3], "target": [0.0, 1.0, -8.0], "fov": 75}}
+{"cmd": "render.screenshot", "path": "docs/art/mood/v2/B_astral_close.png", "width": 1280, "height": 720, "camera": {"position": [1.2, 1.5, -9.1], "target": [6.0, 1.1, -9.7], "fov": 55}}
 # C. Mixed: fire in the east, astral lamps in the west, darkness between.
 {"cmd": "script.exec", "code": "return require('Scripts/MoodLab/Variants').apply('Mixed')"}
 {"cmd": "simulate", "frames": 6}
-{"cmd": "render.screenshot", "path": "docs/art/mood/v1/C_mixed_wide.png", "width": 1280, "height": 720, "camera": {"position": [0.0, 2.0, 7.3], "target": [0.0, 1.0, -8.0], "fov": 75}}
-{"cmd": "render.screenshot", "path": "docs/art/mood/v1/C_mixed_close.png", "width": 1280, "height": 720, "camera": {"position": [1.2, 1.5, -9.1], "target": [6.0, 1.1, -9.7], "fov": 55}}
+{"cmd": "render.screenshot", "path": "docs/art/mood/v2/C_mixed_wide.png", "width": 1280, "height": 720, "camera": {"position": [0.0, 2.0, 7.3], "target": [0.0, 1.0, -8.0], "fov": 75}}
+{"cmd": "render.screenshot", "path": "docs/art/mood/v2/C_mixed_close.png", "width": 1280, "height": 720, "camera": {"position": [1.2, 1.5, -9.1], "target": [6.0, 1.1, -9.7], "fov": 55}}
 {"cmd": "stop"}

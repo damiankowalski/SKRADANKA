@@ -86,7 +86,8 @@ macOS (setup in `docs/macOS.md`): `Tools/Build.sh debug`, `Tools/Test.sh debug`,
    immediately inside systems: `Scene::DestroyEntity` defers during updates.
 5. **Shared lighting math.** Light falloff lives in `Scene/LightUtils.h` and is mirrored in
    `shaders/Lighting.hlsli`. Change both or neither — perception must agree with what is rendered.
-   Likewise the fog of war's coverage (`FogOfWarView::Coverage` / `shaders/FogOfWar.hlsli`).
+   Likewise the fog of war's coverage (`FogOfWarView::Coverage` / `shaders/FogOfWar.hlsli`) and the fog's density
+   (`Scene/FogUtils.h` / `shaders/Fog.hlsli` and `Fog.hlsl`): guards see through the fog the player sees.
 6. **Tests are mandatory.** Every behaviour change ships with a doctest test in `PenumbraTests` (unit
    test for pure logic, scene-level integration test for systems). Every new Lua API function is also
    called from `DemoProject/Assets/Scripts/Tests/FeatureTest.lua`.

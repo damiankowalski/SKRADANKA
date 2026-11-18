@@ -120,6 +120,11 @@ namespace Penumbra {
 			v("Exposure", c.Exposure);
 			v("FogDensity", c.FogDensity);
 			v("FogColor", c.FogColor);
+			v("FogHeight", c.FogHeight);
+			v("FogHeightFalloff", c.FogHeightFalloff);
+			v("VolumetricFog", c.VolumetricFog);
+			v("FogScattering", c.FogScattering);
+			v("FogAnisotropy", c.FogAnisotropy);
 			v("SSAOEnabled", c.SSAOEnabled);
 			v("SSAORadius", c.SSAORadius);
 			v("SSAOIntensity", c.SSAOIntensity);
@@ -336,6 +341,15 @@ namespace Penumbra {
 		}
 
 		template<typename V>
+		void VisitFields(FogVolumeComponent& c, V&& v)
+		{
+			v("HalfExtents", c.HalfExtents);
+			v("Density", c.Density);
+			v("EdgeFade", c.EdgeFade);
+			v("Enabled", c.Enabled);
+		}
+
+		template<typename V>
 		void VisitFields(SmokeVolumeComponent& c, V&& v)
 		{
 			v("Radius", c.Radius);
@@ -519,6 +533,7 @@ namespace Penumbra {
 			registry.push_back(MakeInfo<RagdollComponent>("Ragdoll"));
 			registry.push_back(MakeInfo<FogOfWarComponent>("FogOfWar"));
 			registry.push_back(MakeInfo<SmokeVolumeComponent>("SmokeVolume"));
+			registry.push_back(MakeInfo<FogVolumeComponent>("FogVolume"));
 			registry.push_back(MakeInfo<FlameComponent>("Flame"));
 			registry.push_back(MakeInfo<StimSourceComponent>("StimSource"));
 			registry.push_back(MakeInfo<StimResponseComponent>("StimResponse"));

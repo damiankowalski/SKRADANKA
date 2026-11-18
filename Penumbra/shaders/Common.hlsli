@@ -46,6 +46,16 @@ struct ViewConstants
 	float SSAOIntensity;
 	float BloomIntensity;
 	float DirectionalShadowIndex; // -1 when no directional shadow
+	// Volumetric fog (Fog.hlsl)
+	float FogHeight;
+	float FogHeightFalloff;
+	float FogScattering;
+	float FogAnisotropy;
+	float VolumetricFog;      // 1 when the froxel volume is valid this frame
+	float FogDistance;        // the grid's far end (view depth, metres)
+	uint FogVolumeCount;
+	float FogJitter;
+	float4x4 PrevViewProj;
 };
 
 struct GPULight

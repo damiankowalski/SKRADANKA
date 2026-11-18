@@ -10,6 +10,7 @@
 #include "Penumbra/Renderer/RenderDevice.h"
 #include "Penumbra/Renderer/ShaderLibrary.h"
 #include "Penumbra/Scene/Entity.h"
+#include "Penumbra/Scene/FogUtils.h"
 #include "Penumbra/Scene/LightUtils.h"
 #include "Penumbra/UI/Overlay.h"
 
@@ -198,9 +199,9 @@ namespace Penumbra {
 
 		nvrhi::ShaderHandle MeshVS, PrepassPS, ForwardPS, ShadowVS, FullscreenVS, SkyVS, SkyPS, SSAOPS, SSAOBlurPS, BloomDownPS, BloomUpPS,
 			TonemapPS, BlitPS, SmokePS, Overlay2DVS, Overlay3DVS, OverlayPS, FlameVS, FlamePS, FogMaskPS;
-		nvrhi::ShaderHandle EquirectCS, DownsampleCS, IrradianceCS, PrefilterCS, BRDFCS, SkinningCS;
+		nvrhi::ShaderHandle EquirectCS, DownsampleCS, IrradianceCS, PrefilterCS, BRDFCS, SkinningCS, FogScatterCS, FogIntegrateCS;
 
-		nvrhi::BindingLayoutHandle ViewLayout, MaterialLayout, ShadowLayout, PostLayout, IBLLayout, SkinningLayout;
+		nvrhi::BindingLayoutHandle ViewLayout, MaterialLayout, ShadowLayout, PostLayout, IBLLayout, SkinningLayout, FogLayout, FogIntegrateLayout;
 		nvrhi::InputLayoutHandle MeshInput, ShadowInput, OverlayInput;
 		nvrhi::SamplerHandle LinearWrap, ShadowSampler, LinearClamp, PointClamp;
 
@@ -220,7 +221,19 @@ namespace Penumbra {
 		nvrhi::GraphicsPipelineHandle ShadowPipeline, PrepassPipeline, ForwardPipeline, TranslucentPipeline, SkyPipeline, SSAOPipeline,
 			SSAOBlurPipeline, BloomDownPipeline, BloomUpPipeline, TonemapPipeline, SmokePipeline, Overlay2DPipeline, Overlay3DPipeline, OverlayWorldPipeline, FlamePipeline, FogMaskPipeline;
 		std::map<nvrhi::Format, nvrhi::GraphicsPipelineHandle> BlitPipelines;
-		nvrhi::ComputePipelineHandle EquirectPipeline, DownsamplePipeline, IrradiancePipeline, PrefilterPipeline, BRDFPipeline, SkinningPipeline;
+		nvrhi::ComputePipelineHandle EquirectPipeline, DownsamplePipeline, IrradiancePipeline, PrefilterPipeline, BRDFPipeline, SkinningPipeline,
+			FogScatterPipeline, FogIntegratePipeline;
+
+		// Volumetric fog: two froxel volumes (this frame's and last frame's, swapped), the integrated one the
+		// mesh and sky shaders read, and the fog boxes. History is used only for the next frame of the same scene.
+		nvrhi::TextureHandle FogScatter[2], FogIntegrated;
+		nvrhi::BufferHandle FogVolumeBuffer;
+		nvrhi::BindingSetHandle FogScatterSets[2], FogIntegrateSets[2];
+		uint32_t FogCurrent = 0;
+		bool FogHistoryValid = false;
+		const Scene* FogScene = nullptr;
+		float FogTime = 0.0f;
+		glm::mat4 PrevViewProj{ 1.0f };
 
 		nvrhi::TextureHandle BRDFLut, EnvironmentCube, IrradianceCube, PrefilteredCube, DummyUAVArray, DummyUAV2D;
 		std::string EnvironmentPath;
@@ -248,6 +261,7 @@ namespace Penumbra {
 		void CreateShadowMaps(const SceneRendererSettings& settings);
 		void CreateTargets(uint32_t width, uint32_t height, nvrhi::TextureHandle& output);
 		void CreateBRDFLut();
+		void CreateFogVolumes(const SceneRendererSettings& settings);
 
 		nvrhi::IBindingSet* GetMaterialSet(nvrhi::ITexture* albedo, nvrhi::ITexture* normal, nvrhi::ITexture* metallicRoughness, nvrhi::ITexture* emissive);
 		nvrhi::IBindingSet* GetPostSet(SampledTexture t0 = {}, SampledTexture t1 = {}, SampledTexture t2 = {});
@@ -298,6 +312,8 @@ namespace Penumbra {
 		PrefilterCS = LoadShader(Device, "PrefilterCS", ST::Compute);
 		BRDFCS = LoadShader(Device, "BRDFLutCS", ST::Compute);
 		SkinningCS = LoadShader(Device, "SkinningCS", ST::Compute);
+		FogScatterCS = LoadShader(Device, "FogScatterCS", ST::Compute);
+		FogIntegrateCS = LoadShader(Device, "FogIntegrateCS", ST::Compute);
 
 		{
 			nvrhi::BindingLayoutDesc desc;
@@ -307,9 +323,28 @@ namespace Penumbra {
 			desc.bindings = { nvrhi::BindingLayoutItem::VolatileConstantBuffer(0), nvrhi::BindingLayoutItem::StructuredBuffer_SRV(0),
 				nvrhi::BindingLayoutItem::Texture_SRV(1), nvrhi::BindingLayoutItem::Texture_SRV(2), nvrhi::BindingLayoutItem::Texture_SRV(3),
 				nvrhi::BindingLayoutItem::Texture_SRV(4), nvrhi::BindingLayoutItem::Texture_SRV(5), nvrhi::BindingLayoutItem::Texture_SRV(6),
-				nvrhi::BindingLayoutItem::Texture_SRV(7), nvrhi::BindingLayoutItem::Sampler(0), nvrhi::BindingLayoutItem::Sampler(1),
-				nvrhi::BindingLayoutItem::Sampler(2), nvrhi::BindingLayoutItem::Sampler(3) };
+				nvrhi::BindingLayoutItem::Texture_SRV(7), nvrhi::BindingLayoutItem::Texture_SRV(8), nvrhi::BindingLayoutItem::Sampler(0),
+				nvrhi::BindingLayoutItem::Sampler(1), nvrhi::BindingLayoutItem::Sampler(2), nvrhi::BindingLayoutItem::Sampler(3) };
 			ViewLayout = Device->createBindingLayout(desc);
+		}
+		{
+			// Fog.hlsl's own resources (space 1, next to the view set).
+			nvrhi::BindingLayoutDesc desc;
+			desc.registerSpaceIsDescriptorSet = true;
+			desc.visibility = ST::Compute;
+			desc.registerSpace = 1;
+			desc.bindings = { nvrhi::BindingLayoutItem::PushConstants(0, sizeof(GPU::PostConstants)), nvrhi::BindingLayoutItem::Texture_SRV(0),
+				nvrhi::BindingLayoutItem::StructuredBuffer_SRV(1), nvrhi::BindingLayoutItem::Texture_UAV(0) };
+			FogLayout = Device->createBindingLayout(desc);
+		}
+		{
+			// FogIntegrate.hlsl: no view set (that reads its output).
+			nvrhi::BindingLayoutDesc desc;
+			desc.registerSpaceIsDescriptorSet = true;
+			desc.visibility = ST::Compute;
+			desc.bindings = { nvrhi::BindingLayoutItem::PushConstants(0, sizeof(GPU::PostConstants)), nvrhi::BindingLayoutItem::Texture_SRV(0),
+				nvrhi::BindingLayoutItem::Texture_UAV(0) };
+			FogIntegrateLayout = Device->createBindingLayout(desc);
 		}
 		{
 			nvrhi::BindingLayoutDesc desc;
@@ -468,6 +503,17 @@ namespace Penumbra {
 		skinning.bindingLayouts = { SkinningLayout };
 		SkinningPipeline = Device->createComputePipeline(skinning);
 		PN_CORE_VERIFY(SkinningPipeline, "Failed to create the skinning pipeline");
+
+		nvrhi::ComputePipelineDesc fogScatter;
+		fogScatter.CS = FogScatterCS;
+		fogScatter.bindingLayouts = { ViewLayout, FogLayout };
+		FogScatterPipeline = Device->createComputePipeline(fogScatter);
+		PN_CORE_VERIFY(FogScatterPipeline, "Failed to create the fog scatter pipeline");
+		nvrhi::ComputePipelineDesc fogIntegrate;
+		fogIntegrate.CS = FogIntegrateCS;
+		fogIntegrate.bindingLayouts = { FogIntegrateLayout };
+		FogIntegratePipeline = Device->createComputePipeline(fogIntegrate);
+		PN_CORE_VERIFY(FogIntegratePipeline, "Failed to create the fog integrate pipeline");
 	}
 
 	void SceneRenderer::Impl::CreateShadowMaps(const SceneRendererSettings& settings)
@@ -544,6 +590,46 @@ namespace Penumbra {
 
 		PostSets.clear();
 		ViewSetDirty = true;
+	}
+
+	void SceneRenderer::Impl::CreateFogVolumes(const SceneRendererSettings& settings)
+	{
+		auto volume = [&](const char* name) {
+			nvrhi::TextureDesc desc;
+			desc.width = std::max(settings.FogGridWidth, 1u);
+			desc.height = std::max(settings.FogGridHeight, 1u);
+			desc.depth = std::max(settings.FogGridDepth, 1u);
+			desc.dimension = nvrhi::TextureDimension::Texture3D;
+			desc.format = nvrhi::Format::RGBA16_FLOAT;
+			desc.isUAV = true;
+			desc.debugName = name;
+			desc.initialState = nvrhi::ResourceStates::ShaderResource;
+			desc.keepInitialState = true;
+			return Device->createTexture(desc);
+		};
+		FogScatter[0] = volume("FogScatterA");
+		FogScatter[1] = volume("FogScatterB");
+		FogIntegrated = volume("FogIntegrated");
+		FogVolumeBuffer = Device->createBuffer(nvrhi::BufferDesc()
+				.setByteSize(sizeof(GPU::FogVolume) * GPU::MaxFogVolumes)
+				.setStructStride(sizeof(GPU::FogVolume))
+				.setInitialState(nvrhi::ResourceStates::ShaderResource)
+				.setKeepInitialState(true)
+				.setDebugName("FogVolumes"));
+		for (uint32_t i = 0; i < 2; i++)
+		{
+			FogScatterSets[i] = Device->createBindingSet(nvrhi::BindingSetDesc()
+					.addItem(nvrhi::BindingSetItem::PushConstants(0, sizeof(GPU::PostConstants)))
+					.addItem(nvrhi::BindingSetItem::Texture_SRV(0, FogScatter[1 - i]))
+					.addItem(nvrhi::BindingSetItem::StructuredBuffer_SRV(1, FogVolumeBuffer))
+					.addItem(nvrhi::BindingSetItem::Texture_UAV(0, FogScatter[i])),
+				FogLayout);
+			FogIntegrateSets[i] = Device->createBindingSet(nvrhi::BindingSetDesc()
+					.addItem(nvrhi::BindingSetItem::PushConstants(0, sizeof(GPU::PostConstants)))
+					.addItem(nvrhi::BindingSetItem::Texture_SRV(0, FogScatter[i]))
+					.addItem(nvrhi::BindingSetItem::Texture_UAV(0, FogIntegrated)),
+				FogIntegrateLayout);
+		}
 	}
 
 	void SceneRenderer::Impl::CreateBRDFLut()
@@ -640,7 +726,7 @@ namespace Penumbra {
 			nvrhi::BindingSetItem::Texture_SRV(1, CascadeShadows), nvrhi::BindingSetItem::Texture_SRV(2, SpotShadows),
 			nvrhi::BindingSetItem::Texture_SRV(3, PointShadows), nvrhi::BindingSetItem::Texture_SRV(4, irradiance),
 			nvrhi::BindingSetItem::Texture_SRV(5, prefiltered), nvrhi::BindingSetItem::Texture_SRV(6, BRDFLut),
-			nvrhi::BindingSetItem::Texture_SRV(7, AO), nvrhi::BindingSetItem::Sampler(0, LinearWrap),
+			nvrhi::BindingSetItem::Texture_SRV(7, AO), nvrhi::BindingSetItem::Texture_SRV(8, FogIntegrated), nvrhi::BindingSetItem::Sampler(0, LinearWrap),
 			nvrhi::BindingSetItem::Sampler(1, ShadowSampler), nvrhi::BindingSetItem::Sampler(2, LinearClamp),
 			nvrhi::BindingSetItem::Sampler(3, PointClamp) };
 		ViewSet = Device->createBindingSet(desc, ViewLayout);
@@ -1130,6 +1216,7 @@ namespace Penumbra {
 		impl.CreatePipelines();
 		impl.CreateShadowMaps(m_Settings);
 		impl.CreateBRDFLut();
+		impl.CreateFogVolumes(m_Settings);
 		SetViewportSize(1280, 720);
 	}
 
@@ -1199,8 +1286,23 @@ namespace Penumbra {
 		view.InvViewportSize = 1.0f / view.ViewportSize;
 		view.AmbientColor = environment.AmbientColor;
 		view.EnvironmentIntensity = environment.EnvironmentIntensity;
+		// Fog (Scene/FogUtils.h): volumetric when the environment asks for it and there is fog to light.
+		const FogMedium fogMedium = FogMedium::FromScene(scene);
+		const bool volumetricFog = environment.VolumetricFog && (fogMedium.Density > 0.0f || !fogMedium.Boxes.empty());
+		const float fogDeltaTime = scene.GetTime() - impl.FogTime;
+		const bool fogHistory = volumetricFog && impl.FogHistoryValid && impl.FogScene == &scene && fogDeltaTime >= 0.0f && fogDeltaTime <= 0.05f;
 		view.FogColor = environment.FogColor;
-		view.FogDensity = environment.FogDensity;
+		view.FogDensity = fogMedium.Density;
+		view.FogHeight = fogMedium.Height;
+		view.FogHeightFalloff = fogMedium.HeightFalloff;
+		view.FogScattering = std::max(environment.FogScattering, 0.0f);
+		view.FogAnisotropy = std::clamp(environment.FogAnisotropy, -0.95f, 0.95f);
+		view.VolumetricFog = volumetricFog ? 1.0f : 0.0f;
+		view.FogDistance = std::max(m_Settings.FogDistance, 1.0f);
+		view.FogVolumeCount = static_cast<uint32_t>(std::min<size_t>(fogMedium.Boxes.size(), GPU::MaxFogVolumes));
+		// Without last frame's samples, sample every slice's middle (no noise to average away).
+		view.FogJitter = fogHistory ? std::fmod(static_cast<float>(impl.FrameIndex) * 0.6180339f, 1.0f) : 0.5f;
+		view.PrevViewProj = fogHistory ? impl.PrevViewProj : view.ViewProj;
 		view.LightCount = static_cast<uint32_t>(impl.Lights.size());
 		view.HasEnvironment = impl.HasEnvironment ? 1u : 0u;
 		view.SkyboxIntensity = environment.SkyboxIntensity;
@@ -1258,6 +1360,53 @@ namespace Penumbra {
 					true);
 		}
 
+		nvrhi::IBindingSet* viewSet = impl.GetViewSet();
+
+		// --- Volumetric fog: light the froxels, then sum them along every view ray ---------------
+		if (volumetricFog)
+		{
+			std::vector<GPU::FogVolume> boxes;
+			for (const FogBox& box : fogMedium.Boxes)
+			{
+				if (boxes.size() >= GPU::MaxFogVolumes)
+					break;
+				const glm::mat3 toLocal = glm::mat3_cast(glm::inverse(box.Rotation));
+				GPU::FogVolume gpu;
+				gpu.CenterDensity = glm::vec4(box.Center, box.Density);
+				gpu.HalfExtentsFade = glm::vec4(box.HalfExtents, box.EdgeFade);
+				gpu.Row0 = glm::vec4(toLocal[0][0], toLocal[1][0], toLocal[2][0], 0.0f);
+				gpu.Row1 = glm::vec4(toLocal[0][1], toLocal[1][1], toLocal[2][1], 0.0f);
+				gpu.Row2 = glm::vec4(toLocal[0][2], toLocal[1][2], toLocal[2][2], 0.0f);
+				boxes.push_back(gpu);
+			}
+			if (!boxes.empty())
+				commandList->writeBuffer(impl.FogVolumeBuffer, boxes.data(), boxes.size() * sizeof(GPU::FogVolume));
+
+			const uint32_t current = impl.FogCurrent;
+			GPU::PostConstants scatter;
+			scatter.Params0 = glm::vec4(fogHistory ? 0.85f : 0.0f, std::clamp(m_Settings.FogUnshadowedLight, 0.0f, 1.0f), 0.0f, 0.0f);
+			commandList->setComputeState(
+				nvrhi::ComputeState().setPipeline(impl.FogScatterPipeline).addBindingSet(viewSet).addBindingSet(impl.FogScatterSets[current]));
+			commandList->setPushConstants(&scatter, sizeof(scatter));
+			commandList->dispatch((m_Settings.FogGridWidth + 3) / 4, (m_Settings.FogGridHeight + 3) / 4, (m_Settings.FogGridDepth + 3) / 4);
+
+			GPU::PostConstants integrate;
+			integrate.Params0 = glm::vec4(view.FogDistance, 1.0f / camera.Projection[0][0], 1.0f / camera.Projection[1][1], 0.0f);
+			commandList->setComputeState(nvrhi::ComputeState().setPipeline(impl.FogIntegratePipeline).addBindingSet(impl.FogIntegrateSets[current]));
+			commandList->setPushConstants(&integrate, sizeof(integrate));
+			commandList->dispatch((m_Settings.FogGridWidth + 7) / 8, (m_Settings.FogGridHeight + 7) / 8, 1);
+
+			impl.FogCurrent = 1 - current;
+			impl.FogHistoryValid = true;
+			impl.FogScene = &scene;
+			impl.FogTime = scene.GetTime();
+			impl.PrevViewProj = view.ViewProj;
+		}
+		else
+		{
+			impl.FogHistoryValid = false;
+		}
+
 		// --- Camera-visible geometry -----------------------------------------------------------
 		const Frustum cameraFrustum(view.ViewProj);
 		std::vector<const DrawItem*> opaque, translucent;
@@ -1273,7 +1422,6 @@ namespace Penumbra {
 		std::sort(opaque.begin(), opaque.end(), [](const DrawItem* a, const DrawItem* b) { return a->CameraDistance < b->CameraDistance; });
 		std::sort(translucent.begin(), translucent.end(), [](const DrawItem* a, const DrawItem* b) { return a->CameraDistance > b->CameraDistance; });
 
-		nvrhi::IBindingSet* viewSet = impl.GetViewSet();
 		auto drawMeshes = [&](const std::vector<const DrawItem*>& items, nvrhi::IGraphicsPipeline* pipeline, nvrhi::IFramebuffer* framebuffer) {
 			for (const DrawItem* draw : items)
 			{
@@ -1319,7 +1467,8 @@ namespace Penumbra {
 		drawMeshes(opaque, impl.ForwardPipeline, impl.ForwardFramebuffer);
 
 		nvrhi::ITexture* skyCube = impl.HasEnvironment ? impl.EnvironmentCube.Get() : impl.Cache->GetBlackCubeTexture();
-		impl.DrawFullscreen(impl.SkyPipeline, impl.ForwardFramebuffer, impl.GetPostSet({ skyCube }), {}, m_Width, m_Height);
+		impl.DrawFullscreen(impl.SkyPipeline, impl.ForwardFramebuffer,
+			impl.GetPostSet({ skyCube }, { impl.FogIntegrated, -1, nvrhi::TextureDimension::Texture3D }), {}, m_Width, m_Height);
 
 		drawMeshes(translucent, impl.TranslucentPipeline, impl.ForwardFramebuffer);
 

@@ -23,6 +23,12 @@ namespace Penumbra {
 		uint32_t SpotShadowResolution = 1024;
 		uint32_t PointShadowResolution = 512;
 		uint32_t EyeMapResolution = 1024; // fog of war: the player's eye depth cube (per face)
+		// Volumetric fog: the froxel grid over the view frustum (columns, rows, depth slices) and how far it reaches.
+		uint32_t FogGridWidth = 160;
+		uint32_t FogGridHeight = 90;
+		uint32_t FogGridDepth = 64;
+		float FogDistance = 64.0f;
+		float FogUnshadowedLight = 0.5f; // share of a lamp without a shadow map that lights the fog (it would shine through walls)
 		float ShadowDistance = 60.0f;
 		uint32_t CascadeCount = 4;
 		bool DrawOverlay = true;
@@ -38,8 +44,9 @@ namespace Penumbra {
 	};
 
 	// Physically based forward renderer:
-	//   shadows (cascades, spot, point cube maps; PCSS soft filtering) -> depth/normal prepass ->
-	//   SSAO -> forward PBR with IBL -> sky -> translucent + smoke -> bloom -> ACES tonemap -> HUD.
+	//   shadows (cascades, spot, point cube maps; PCSS soft filtering) -> volumetric fog (froxels lit by the
+	//   lamps, integrated along every view ray) -> depth/normal prepass -> SSAO -> forward PBR with IBL, seen
+	//   through the fog -> sky -> translucent + smoke -> bloom -> ACES tonemap -> HUD.
 	// The final sRGB-encoded image is GetOutputTexture(); Present() copies it into a swap chain.
 	class SceneRenderer
 	{

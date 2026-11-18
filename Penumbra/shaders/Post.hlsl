@@ -1,10 +1,12 @@
 #include "PostCommon.hlsli"
+#include "Fog.hlsli"
 
 // =============================================================================================
 // Sky: environment cube map (or ambient colour) behind all geometry. Drawn at depth 1.
 // =============================================================================================
 
 TextureCube<float4> g_SkyCube : register(t0);
+Texture3D<float4> g_SkyFog : register(t1); // the integrated volumetric fog (Fog.hlsli)
 
 FullscreenOutput VSSky(uint vertexId : SV_VertexID)
 {
@@ -20,9 +22,10 @@ float4 PSSky(FullscreenOutput input) : SV_Target0
 	float3 direction = normalize(world.xyz / world.w - g_View.CameraPosition);
 	float3 color = g_View.HasEnvironment != 0 ? g_SkyCube.SampleLevel(g_LinearClamp, direction, 0).rgb : g_View.AmbientColor;
 	color *= g_View.SkyboxIntensity;
-	// Distant fog veils the horizon in foggy scenes.
-	float fog = saturate(1.0 - exp(-g_View.FogDensity * 200.0));
-	return float4(lerp(color, g_View.FogColor, fog), 1.0);
+	// The fog veils the sky as it would a wall 200 m away.
+	float3 farPoint = g_View.CameraPosition + direction * 200.0;
+	float viewDepth = -mul(g_View.View, float4(farPoint, 1.0)).z;
+	return float4(ApplyFog(color, farPoint, input.TexCoord, viewDepth, g_SkyFog, g_LinearClamp), 1.0);
 }
 
 // =============================================================================================

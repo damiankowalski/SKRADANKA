@@ -1018,6 +1018,9 @@ def build_mood_lab():
     # the north-east corner. No script, no controller: only the model playing its idle.
     thief = doc.add("Thief", Transform=transform((5.0, 0.05, -9.6), (0, 90, 0)), PerceptionTarget={"Reflectance": 0.25})
     character_model(doc, thief, THIEF)
+    # Mist lying low over the garden (a FogVolume); the variants switch it on.
+    doc.add("Mist_Garden", Transform=transform((0, 0.6, 0)),
+            FogVolume={"HalfExtents": [7.8, 1.2, 7.8], "Density": 0.12, "EdgeFade": 0.8, "Enabled": False})
     doc.add("MoodLab", Transform=transform(), Script={"Script": "Scripts/MoodLab.lua"})
     doc.save("Scenes/MoodLab.pscene")
 
