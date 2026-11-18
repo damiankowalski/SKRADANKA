@@ -21,6 +21,11 @@ cold astral lamps). Not an engine change: the same renderer, the same components
 * Walk through a variant yourself: `PenumbraRuntime --project DemoProject --scene Scenes/MoodLab.pscene --set mood=Mixed`
   (`Base`, `Fire`, `Astral`, `Mixed`; F5 freelook to move, there is no player script).
 
+## Decision
+
+The owner chose **C. Mixed** (2026-11-18): fire in warm zones, astral lamps in cold ones, darkness between, thick
+fog. The next steps (light in the fog, local fog, height fog, tuning the crystals) wait for his approval; see PR #25.
+
 ## Shots
 
 | | wide: the garden from its south doorway (depth, fog) | close: the thief against the north-east corner's light |

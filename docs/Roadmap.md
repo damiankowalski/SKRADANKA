@@ -119,7 +119,8 @@ fog, warm fire, cold astral lamps): the `MoodLab` scene (the cloister's stone, n
 baskets and astral lamps in a warm east and a cold west zone), its variants in one Lua table
 (`Scripts/MoodLab/Variants.lua`: base, fire, astral, mixed) and `docs/art/mood/MoodLab.jsonl`, which renders each
 in a wide and a close shot (8 PNGs, byte-identical on rerun; CTest `Automation.MoodLab`). No engine change. The
-results and the engine's gaps (no light in the fog, no local fog) are in docs/art/mood/README.md.
+results and the engine's gaps (no light in the fog, no local fog) are in docs/art/mood/README.md. The owner chose
+variant C (mixed: warm fire and cold astral zones apart in thick fog) as the lighting direction.
 
 ## In progress
 
