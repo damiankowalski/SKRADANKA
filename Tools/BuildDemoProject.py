@@ -104,9 +104,9 @@ def material_of(color, surface):
 # Prefabs
 # --------------------------------------------------------------------------------------------
 
-def torch_prefab_entities(doc, position=(0, 0, 0), parent=None, shadows=False):
+def torch_prefab_entities(doc, position=(0, 0, 0), parent=None, shadows=False, name="Torch"):
     """Wall torch: a post plus a flame child (flickering light, emissive, continuous fire)."""
-    post = doc.add("Torch", parent,
+    post = doc.add(name, parent,
                    Transform=transform(position),
                    StimResponse={"Rules": [
                        {"Stim": "Water", "Threshold": 0.3, "Once": False, "Actions": [
@@ -884,13 +884,8 @@ def add_double_door(doc, name, center, axis, label="garden door"):
         add_door(doc, name + "Right", (x, 0, z - 1.2), -90, label=label)
 
 
-def build_cloister():
-    """The cloister (an outbuilding): a square garden ringed by covered corridors, a pair of doors
-    into the garden from each side, wings leading off east and west. Two guards walk the ring the
-    opposite ways. The thief starts at the end of the east wing and must reach the west wing."""
-    doc = Document("PenumbraScene")
-    add_environment(doc)
-    doc.add("Camera", Transform=transform((24, 3, 0)), Camera={"VerticalFOV": 65.0, "NearClip": 0.05, "FarClip": 300.0})
+def cloister_architecture(doc):
+    """The cloister's stone: ground, garden, the ring of covered corridors with doors, the wings."""
     stone, dark_stone, wall_height = (0.32, 0.31, 0.3), (0.18, 0.18, 0.19), 3.2
     box(doc, "Ground", (0, -0.5, 0), (60, 1, 30), (0.22, 0.22, 0.21))
 
@@ -934,6 +929,16 @@ def build_cloister():
         box(doc, f"{side}WingEnd", (26.2 * sign, wall_height / 2, 0), (0.4, wall_height, 3.8), dark_stone)
         box(doc, f"{side}WingRoof", (middle, 3.3, 0), (14.6, 0.2, 3.8), dark_stone)
 
+
+def build_cloister():
+    """The cloister (an outbuilding): a square garden ringed by covered corridors, a pair of doors
+    into the garden from each side, wings leading off east and west. Two guards walk the ring the
+    opposite ways. The thief starts at the end of the east wing and must reach the west wing."""
+    doc = Document("PenumbraScene")
+    add_environment(doc)
+    doc.add("Camera", Transform=transform((24, 3, 0)), Camera={"VerticalFOV": 65.0, "NearClip": 0.05, "FarClip": 300.0})
+    cloister_architecture(doc)
+
     # Light: torches in the ring's corners and one in each wing; the doorways in between stay dark.
     for i, (x, z) in enumerate(((10.5, 10.5), (-10.5, 10.5), (10.5, -10.5), (-10.5, -10.5))):
         torch_prefab_entities(doc, (x, 0, z), shadows=i < 2)
@@ -961,6 +966,62 @@ def build_cloister():
     doc.save("Scenes/Cloister.pscene")
 
 
+# The mood lab (docs/art/mood): the cloister's stone with no guards, lit three ways for choosing the
+# game's lighting. Warm zone = east half, cold zone = west half. Every light source is a root named
+# "<Fire|Astral>_<Warm|Cold>_<kind><n>"; Scripts/MoodLab.lua switches them and the environment per
+# variant (docs/art/mood/MoodLab.jsonl renders them). Not a level: nothing here is played.
+MOOD_TORCHES = (((10.5, 10.5), "Warm", True), ((10.5, -10.5), "Warm", False), ((17, -1.2), "Warm", False),
+                ((-10.5, 10.5), "Cold", True), ((-10.5, -10.5), "Cold", False), ((-17, 1.2), "Cold", False))
+MOOD_BRAZIERS = (((21.5, 0.9), "Warm"), ((3.0, 3.0), "Warm"), ((-21.5, -0.9), "Cold"), ((-3.0, -3.0), "Cold"))
+MOOD_ASTRAL_LAMPS = (((8.8, -10.6), "Warm"), ((9.6, 5.0), "Warm"), ((14.0, 1.2), "Warm"), ((3.0, -3.0), "Warm"),
+                     ((-8.8, -10.6), "Cold"), ((-9.6, 5.0), "Cold"), ((-14.0, -1.2), "Cold"), ((-3.0, 3.0), "Cold"))
+
+
+def mood_brazier(doc, name, position, shadows=False):
+    """A fire basket: an iron bowl on three legs, a big flame and a warm flickering light."""
+    root = doc.add(name, Transform=transform((position[0], 0, position[1])))
+    iron = material((0.08, 0.07, 0.07), roughness=0.6, metallic=0.7)
+    for index, angle in enumerate((0, 120, 240)):
+        doc.add(f"Leg{index + 1}", root, Transform=transform((0.22 * math.sin(math.radians(angle)), 0.4, 0.22 * math.cos(math.radians(angle))),
+                                                             scale=(0.04, 0.8, 0.04)),
+                Mesh={"Mesh": "builtin:cylinder"}, Material=iron)
+    doc.add("Bowl", root, Transform=transform((0, 0.85, 0), scale=(0.6, 0.18, 0.6)), Mesh={"Mesh": "builtin:cylinder"}, Material=iron)
+    doc.add("Embers", root, Transform=transform((0, 0.95, 0), scale=(0.5, 0.04, 0.5)), Mesh={"Mesh": "builtin:cylinder", "CastShadows": False},
+            Material=material((0.3, 0.08, 0.02), emissive=3.0, emissive_color=(1.0, 0.35, 0.08)))
+    doc.add("Flame", root, Transform=transform((0, 0.95, 0)), Flame={"Height": 0.75, "Radius": 0.22, "Intensity": 5.0},
+            PointLight={"Color": [1.0, 0.5, 0.2], "Intensity": 20.0, "Range": 12.0, "Flicker": 0.2, "CastShadows": shadows})
+
+
+def mood_astral_lamp(doc, name, position, shadows=False):
+    """An astral lamp: a dark iron post holding a glowing crystal, a cold steady light."""
+    root = doc.add(name, Transform=transform((position[0], 0, position[1])))
+    doc.add("Post", root, Transform=transform((0, 0.75, 0), scale=(0.07, 1.5, 0.07)), Mesh={"Mesh": "builtin:cylinder"},
+            Material=material((0.06, 0.06, 0.08), roughness=0.5, metallic=0.8))
+    doc.add("Crystal", root, Transform=transform((0, 1.72, 0), scale=(0.16, 0.34, 0.16)), Mesh={"Mesh": "builtin:sphere", "CastShadows": False},
+            Material=material((0.3, 0.8, 1.0), roughness=0.2, emissive=6.0, emissive_color=(0.35, 0.85, 1.0)))
+    doc.add("Glow", root, Transform=transform((0, 1.72, 0)),
+            PointLight={"Color": [0.35, 0.85, 1.0], "Intensity": 14.0, "Range": 10.0, "Flicker": 0.0, "CastShadows": shadows})
+
+
+def build_mood_lab():
+    doc = Document("PenumbraScene")
+    add_environment(doc)
+    doc.add("Camera", Transform=transform((1.5, 1.6, -9.4), (0, -90, 0)), Camera={"VerticalFOV": 65.0, "NearClip": 0.05, "FarClip": 300.0})
+    cloister_architecture(doc)
+    for index, ((x, z), zone, shadows) in enumerate(MOOD_TORCHES):
+        torch_prefab_entities(doc, (x, 0, z), shadows=shadows, name=f"Fire_{zone}_Torch{index + 1}")
+    for index, ((x, z), zone) in enumerate(MOOD_BRAZIERS):
+        mood_brazier(doc, f"Fire_{zone}_Brazier{index + 1}", (x, z), shadows=index in (0, 2))
+    for index, ((x, z), zone) in enumerate(MOOD_ASTRAL_LAMPS):
+        mood_astral_lamp(doc, f"Astral_{zone}_Lamp{index + 1}", (x, z), shadows=index in (0, 4))
+    # The thief in the north corridor, facing west: in the close shot he stands against the lights of
+    # the north-east corner. No script, no controller: only the model playing its idle.
+    thief = doc.add("Thief", Transform=transform((5.0, 0.05, -9.6), (0, 90, 0)), PerceptionTarget={"Reflectance": 0.25})
+    character_model(doc, thief, THIEF)
+    doc.add("MoodLab", Transform=transform(), Script={"Script": "Scripts/MoodLab.lua"})
+    doc.save("Scenes/MoodLab.pscene")
+
+
 def build_project_file():
     project = {"Name": "Penumbra Demo", "StartScene": "Scenes/Menu.pscene", "AssetDirectory": "Assets",
                "WindowWidth": 1600, "WindowHeight": 900}
@@ -977,5 +1038,6 @@ if __name__ == "__main__":
     build_ai_lab()
     build_physics_lab()
     build_cloister()
+    build_mood_lab()
     build_audio()
     print(f"Demo project written to {ROOT}")
