@@ -28,7 +28,8 @@ namespace Penumbra {
 
 	// The runtime's testing tools, drawn with Dear ImGui over the game:
 	//   F3  performance overlay: FPS, frame times, CPU per system, process CPU and memory, GPU time and memory
-	//   F4  debug panel: what guards see and hear, test noises clicked into the world, simulation speed
+	//   F4  debug panel: what guards see and hear, test noises clicked into the world, simulation speed,
+	//       and the inspector: click an object to edit its components live, right-click for actions
 	//   F5  freelook: the camera leaves the thief and flies through the level (RMB look, WASD, Q/E, Shift)
 	//   F6  pause / resume the simulation
 	//   F7  fog of war on / off (what the thief sees, or the whole level)
@@ -71,6 +72,13 @@ namespace Penumbra {
 		void DrawFogOfWar(Scene& scene);
 		void DrawGuardLabels(Scene& scene, const RenderCamera& camera);
 		void HandleWorldClick(Scene& scene, const RenderCamera& camera);
+		std::optional<glm::vec3> WorldPointUnderMouse(Scene& scene, const RenderCamera& camera);
+		void MakeTestNoise(Scene& scene, const glm::vec3& position);
+		Entity GetSelection(Scene& scene);
+		void DrawInspector(Scene& scene);
+		void DrawObjectMenu(Scene& scene);
+		// The actions on an object, as menu items (the right-click menu) or buttons (the inspector).
+		void DrawObjectActions(Scene& scene, Entity entity, bool asMenu);
 		void SetPaused(Scene& scene, bool paused);
 
 	private:
@@ -100,8 +108,19 @@ namespace Penumbra {
 		bool m_FogOfWar = true; // off: the whole level is drawn, whatever the thief's FogOfWar component says
 		float m_TimeScale = 1.0f;
 
+		// Inspector
+		enum class ClickMode
+		{
+			Select,
+			Noise,
+		};
+		ClickMode m_ClickMode = ClickMode::Select; // what a left click in the world does (Shift+click: always a noise)
+		UUID m_Selection = UUID::Invalid;
+		bool m_Placing = false;             // "Move here": the next left click puts the selection there
+		bool m_OnlySelectedVision = false;  // draw the selected NPC's view fan alone
+		bool m_OpenObjectMenu = false;
+
 		// Test noises
-		bool m_NoiseOnClick = true;
 		float m_NoiseLoudness = 5.0f;
 		std::vector<NoiseHearing> m_LastHearing;
 		std::optional<glm::vec3> m_LastNoisePosition;

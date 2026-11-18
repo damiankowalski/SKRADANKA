@@ -560,6 +560,19 @@ namespace Penumbra {
 		}
 	}
 
+	void PerceptionSystem::SetIgnoresIntruders(Entity observer, bool ignore)
+	{
+		if (ignore)
+			m_IgnoringObservers.insert(observer.GetUUID());
+		else
+			m_IgnoringObservers.erase(observer.GetUUID());
+	}
+
+	bool PerceptionSystem::IgnoresIntruders(Entity observer) const
+	{
+		return m_IgnoreIntruders || (observer && m_IgnoringObservers.contains(observer.GetUUID()));
+	}
+
 	void PerceptionSystem::ProcessNoises()
 	{
 		m_RecentNoises = std::move(m_PendingNoises);
@@ -567,8 +580,8 @@ namespace Penumbra {
 		if (m_RecentNoises.empty())
 			return;
 		// Kept in m_RecentNoises (the debug panel draws them) but heard by nobody.
-		auto ignored = [this](const NoiseEvent& noise) {
-			if (!m_IgnoreIntruders)
+		auto ignored = [this](Entity observer, const NoiseEvent& noise) {
+			if (!IgnoresIntruders(observer))
 				return false;
 			std::optional<Entity> source = m_Scene.TryGetEntityByUUID(noise.Source);
 			const PerceptionTargetComponent* target = source ? source->TryGetComponent<PerceptionTargetComponent>() : nullptr;
@@ -589,7 +602,7 @@ namespace Penumbra {
 			CollectHierarchy(observer, ignore);
 			for (const NoiseEvent& noise : m_RecentNoises)
 			{
-				if (Contains(ignore, noise.Source) || ignored(noise))
+				if (Contains(ignore, noise.Source) || ignored(observer, noise))
 					continue;
 				const float level = HearingLevel(observer, noise.Position, noise.Loudness, noise.Source) - masking;
 				if (level > 0.0f)
@@ -620,7 +633,7 @@ namespace Penumbra {
 				}
 				if (targetComponent.Kind == TargetKind::Projectile)
 					continue; // judged every frame below
-				if (targetComponent.Kind == TargetKind::Intruder && m_IgnoreIntruders)
+				if (targetComponent.Kind == TargetKind::Intruder && IgnoresIntruders(observer))
 					continue;
 				const VisibilityResult visibility = ComputeVisibility(observer, target);
 				if (!bestTarget || visibility.Stimulus > bestStimulus)
@@ -674,7 +687,7 @@ namespace Penumbra {
 		for (auto [handle, targetComponent] : m_Scene.GetRegistry().view<PerceptionTargetComponent>().each())
 		{
 			Entity target(handle, &m_Scene);
-			if (targetComponent.Kind != TargetKind::Intruder || m_IgnoreIntruders || !IsTouching(observer, target))
+			if (targetComponent.Kind != TargetKind::Intruder || IgnoresIntruders(observer) || !IsTouching(observer, target))
 				continue;
 			if (Notify(observer, m_Scene.GetWorldPosition(target), perception.TouchAlarm, StimulusKind::Seen, "Touch"))
 			{
