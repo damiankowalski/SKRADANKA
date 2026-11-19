@@ -53,9 +53,11 @@ struct SurfaceData
 SurfaceData GetSurface(VertexOutput input, bool frontFace)
 {
 	SurfaceData surface;
+	// The material's tiling (MaterialComponent::UVScale, UVOffset) applies to every texture alike.
+	float2 uv = input.TexCoord * g_Draw.UVScale + g_Draw.UVOffset;
 	float4 baseColor = g_Draw.BaseColor;
 	if (g_Draw.TextureFlags & 1)
-		baseColor *= g_AlbedoTexture.Sample(g_LinearWrap, input.TexCoord);
+		baseColor *= g_AlbedoTexture.Sample(g_LinearWrap, uv);
 	surface.Albedo = baseColor.rgb;
 	surface.Alpha = baseColor.a;
 
@@ -66,7 +68,7 @@ SurfaceData GetSurface(VertexOutput input, bool frontFace)
 	{
 		float3 T = normalize(input.Tangent.xyz - N * dot(input.Tangent.xyz, N));
 		float3 B = cross(N, T) * input.Tangent.w;
-		float3 tangentNormal = g_NormalTexture.Sample(g_LinearWrap, input.TexCoord).xyz * 2.0 - 1.0;
+		float3 tangentNormal = g_NormalTexture.Sample(g_LinearWrap, uv).xyz * 2.0 - 1.0;
 		N = normalize(tangentNormal.x * T + tangentNormal.y * B + tangentNormal.z * N);
 	}
 	surface.Normal = N;
@@ -75,7 +77,7 @@ SurfaceData GetSurface(VertexOutput input, bool frontFace)
 	surface.Roughness = g_Draw.Roughness;
 	if (g_Draw.TextureFlags & 4)
 	{
-		float4 mr = g_MetallicRoughnessTexture.Sample(g_LinearWrap, input.TexCoord);
+		float4 mr = g_MetallicRoughnessTexture.Sample(g_LinearWrap, uv);
 		surface.Roughness *= mr.g;
 		surface.Metallic *= mr.b;
 	}
@@ -83,7 +85,7 @@ SurfaceData GetSurface(VertexOutput input, bool frontFace)
 
 	surface.Emissive = g_Draw.Emissive;
 	if (g_Draw.TextureFlags & 8)
-		surface.Emissive *= g_EmissiveTexture.Sample(g_LinearWrap, input.TexCoord).rgb;
+		surface.Emissive *= g_EmissiveTexture.Sample(g_LinearWrap, uv).rgb;
 	return surface;
 }
 

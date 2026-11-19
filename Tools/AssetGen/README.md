@@ -101,7 +101,7 @@ provenance schema and the model allow-list. No model and no Apple Silicon are ne
 and macOS). By hand: `uv run --project Tools/AssetGen --frozen python -m unittest discover -s Tools/AssetGen/tests`.
 
 In the engine: `PenumbraEditor --headless --exec Tools/AssetGen/EngineCheck.jsonl` imports a generated stone wall
-into a throwaway project in `build/` and renders it on a wall of cubes.
+into a throwaway project in `build/` and renders it on a 4 x 2 m box, repeated 4 x 2 times (`Material.UVScale`).
 
 ## Updating
 

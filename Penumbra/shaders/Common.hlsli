@@ -91,6 +91,8 @@ struct DrawConstants
 	float Metallic;
 	float Roughness;
 	uint TextureFlags;       // bit 0 albedo, 1 normal, 2 metallic-roughness, 3 emissive
+	float2 UVScale;          // texture coordinates = mesh UV * UVScale + UVOffset (MaterialComponent)
+	float2 UVOffset;
 	float2 Padding;
 };
 

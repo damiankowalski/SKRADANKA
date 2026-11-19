@@ -109,6 +109,11 @@ namespace Penumbra {
 		std::string NormalTexture;
 		std::string MetallicRoughnessTexture;
 		std::string EmissiveTexture;
+		// How often the textures repeat across the surface's UVs (2 = twice), and where they start (in
+		// repeats). The built-in cube maps each face 0..1, so a 4 x 3 m wall face wants UVScale 4, 3 for a
+		// texture that covers a metre.
+		glm::vec2 UVScale{ 1.0f };
+		glm::vec2 UVOffset{ 0.0f };
 		// Alpha blending for translucent surfaces (smoke, glass).
 		bool Translucent = false;
 	};

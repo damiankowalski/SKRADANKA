@@ -74,6 +74,8 @@ namespace Penumbra {
 			v("NormalTexture", c.NormalTexture);
 			v("MetallicRoughnessTexture", c.MetallicRoughnessTexture);
 			v("EmissiveTexture", c.EmissiveTexture);
+			v("UVScale", c.UVScale);
+			v("UVOffset", c.UVOffset);
 			v("Translucent", c.Translucent);
 		}
 
