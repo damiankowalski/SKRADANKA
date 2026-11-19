@@ -16,3 +16,7 @@ imgui.ini
 
 # Python
 __pycache__/
+
+# AssetGen (Tools/AssetGen/README.md): the environment and exploration renders stay local
+/Tools/AssetGen/.venv/
+/Tools/AssetGen/out/
