@@ -8,6 +8,13 @@
 	#define PN_PUSH_CONSTANT
 #endif
 
+// Storage image formats: Vulkan needs the format of a written image declared; DXIL warns on the attribute.
+#ifdef __spirv__
+	#define PN_IMAGE_FORMAT_RGBA16F [[vk::image_format("rgba16f")]]
+#else
+	#define PN_IMAGE_FORMAT_RGBA16F
+#endif
+
 // Must match Penumbra/src/Penumbra/Renderer/RendererTypes.h exactly.
 
 static const float PI = 3.14159265359;
@@ -46,6 +53,16 @@ struct ViewConstants
 	float SSAOIntensity;
 	float BloomIntensity;
 	float DirectionalShadowIndex; // -1 when no directional shadow
+	// Volumetric fog (Fog.hlsl)
+	float FogHeight;
+	float FogHeightFalloff;
+	float FogScattering;
+	float FogAnisotropy;
+	float VolumetricFog;      // 1 when the froxel volume is valid this frame
+	float FogDistance;        // the grid's far end (view depth, metres)
+	uint FogVolumeCount;
+	float FogJitter;
+	float4x4 PrevViewProj;
 };
 
 struct GPULight

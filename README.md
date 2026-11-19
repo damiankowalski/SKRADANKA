@@ -5,7 +5,8 @@ eyes do: by the **contrast of your silhouette against what is behind you**, not 
 shadow" flag.
 
 * C++20, CMake, Direct3D 12 and Vulkan (MoltenVK on macOS) through [NVRHI](https://github.com/NVIDIA-RTX/NVRHI), GLFW, glm
-* PBR renderer: glTF assets, image-based lighting from HDRIs, soft shadows, SSAO, HDR + tonemapping
+* PBR renderer: glTF assets, image-based lighting from HDRIs, soft shadows, SSAO, HDR + tonemapping;
+  volumetric fog lit by every lamp, with shadows, height fog and local fog boxes (`docs/Fog.md`)
 * Skeletal animation: glTF skins and clips (step/linear/cubic), crossfades, GPU (compute) skinning feeding every pass
 * [Jolt](https://github.com/jrouwe/JoltPhysics) physics, [miniaudio](https://github.com/mackron/miniaudio) audio
 * Lua 5.4 gameplay scripting (sol2), EnTT entity-component system, JSON scenes and prefabs
@@ -55,5 +56,5 @@ folder above the executable, so the commands work from the repository root and f
 
 Requires Visual Studio 2022 or newer with the "Desktop development with C++" workload. On a Mac (Apple Silicon):
 `Tools/Build.sh debug`, `Tools/Test.sh debug`, executables without `.exe`; setup in [docs/macOS.md](docs/macOS.md).
-Docs: `docs/Perception.md`, `docs/FogOfWar.md`, `docs/DebugTools.md`, `docs/ScriptingAPI.md`, `docs/Automation.md`, `docs/Components.md`; plans in `docs/Roadmap.md`.
+Docs: `docs/Perception.md`, `docs/Fog.md`, `docs/FogOfWar.md`, `docs/DebugTools.md`, `docs/ScriptingAPI.md`, `docs/Automation.md`, `docs/Components.md`; plans in `docs/Roadmap.md`.
 See [AGENTS.md](AGENTS.md) for the architecture, conventions and workflow.

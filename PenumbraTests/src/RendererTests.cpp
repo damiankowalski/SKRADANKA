@@ -415,6 +415,88 @@ TEST_SUITE("Renderer")
 		CHECK(fixture.Device->GetErrorCount() == 0);
 	}
 
+	TEST_CASE("Volumetric fog glows round a lamp, and a lamp's shadow keeps the fog dark behind a wall")
+	{
+		// A dark, foggy void: a lamp ahead of the camera, a wall to its right (edge-on to the camera) that
+		// shades the air beyond it. Nothing else is lit, so what shows in the air is the fog's own light.
+		RendererFixture fixture;
+		Scene& scene = fixture.SceneInstance;
+		auto& environment = scene.CreateEntity("Environment").AddComponent<EnvironmentComponent>();
+		environment.AmbientColor = glm::vec3(0.0f);
+		environment.FogColor = glm::vec3(0.0f);
+		environment.FogDensity = 0.15f;
+		environment.FogScattering = 0.8f;
+		environment.FogAnisotropy = 0.0f;
+		environment.SSAOEnabled = false;
+		environment.BloomIntensity = 0.0f;
+		Test::CreateBox(scene, "Wall", { 0.0f, 1.5f, -6.0f }, { 0.05f, 3.0f, 3.0f }, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+		Entity lamp = scene.CreateEntity("Lamp");
+		lamp.Transform().Translation = { -1.0f, 1.5f, -6.0f };
+		auto& light = lamp.AddComponent<PointLightComponent>();
+		light.Intensity = 20.0f;
+		light.Range = 8.0f;
+		light.CastShadows = true;
+
+		const glm::vec3 eye(0.0f, 1.5f, 4.0f);
+		const RenderCamera camera = RenderCamera::Perspective(eye, Math::LookRotation(glm::vec3(0.0f, 0.0f, -1.0f)), 60.0f,
+			static_cast<float>(RendererFixture::Width) / static_cast<float>(RendererFixture::Height), 0.1f, 100.0f);
+		// Air beside the lamp on its own side, and the same distance away behind the wall.
+		const glm::uvec2 litAir = RendererFixture::ToPixel(camera, { -3.0f, 1.5f, -6.0f });
+		const glm::uvec2 shadedAir = RendererFixture::ToPixel(camera, { 1.0f, 1.5f, -6.0f });
+		auto brightness = [&](const std::vector<uint8_t>& pixels, const glm::uvec2& pixel) {
+			return Math::Luminance(RendererFixture::Pixel(pixels, pixel.x, pixel.y));
+		};
+
+		const std::vector<uint8_t> foggy = fixture.RenderFrame(camera);
+		CHECK(brightness(foggy, litAir) > 0.15f);                          // the air glows
+		CHECK(brightness(foggy, shadedAir) < brightness(foggy, litAir) * 0.6f); // the wall's shadow in the fog
+
+		// Without volumetric fog the same air stays black (the fog only hides things).
+		environment.VolumetricFog = false;
+		const std::vector<uint8_t> plain = fixture.RenderFrame(camera);
+		CHECK(brightness(plain, litAir) < 0.02f);
+
+		// A lamp without a shadow map lights the fog on both sides (half as much: it would shine through walls).
+		environment.VolumetricFog = true;
+		light.CastShadows = false;
+		fixture.RenderFrame(camera);
+		const std::vector<uint8_t> unshadowed = fixture.RenderFrame(camera);
+		CHECK(brightness(unshadowed, shadedAir) > brightness(unshadowed, litAir) * 0.6f);
+		CHECK(fixture.Device->GetErrorCount() == 0);
+	}
+
+	TEST_CASE("A fog volume shows as a bank of haze lit by the lamp inside it; clear air around it stays black")
+	{
+		RendererFixture fixture;
+		Scene& scene = fixture.SceneInstance;
+		auto& environment = scene.CreateEntity("Environment").AddComponent<EnvironmentComponent>();
+		environment.AmbientColor = glm::vec3(0.0f);
+		environment.FogColor = glm::vec3(0.0f);
+		environment.SSAOEnabled = false;
+		environment.BloomIntensity = 0.0f;
+		Entity bank = scene.CreateEntity("Bank");
+		bank.Transform().Translation = { -2.0f, 1.0f, -5.0f };
+		auto& volume = bank.AddComponent<FogVolumeComponent>();
+		volume.HalfExtents = { 1.5f, 1.5f, 1.5f };
+		volume.Density = 0.5f;
+		volume.EdgeFade = 0.2f;
+		Entity lamp = scene.CreateEntity("Lamp");
+		lamp.Transform().Translation = { 0.0f, 1.0f, -5.0f };
+		auto& light = lamp.AddComponent<PointLightComponent>();
+		light.Intensity = 10.0f;
+		light.Range = 8.0f;
+
+		const glm::vec3 eye(0.0f, 1.0f, 3.0f);
+		const RenderCamera camera = RenderCamera::Perspective(eye, Math::LookRotation(glm::vec3(0.0f, 0.0f, -1.0f)), 60.0f,
+			static_cast<float>(RendererFixture::Width) / static_cast<float>(RendererFixture::Height), 0.1f, 100.0f);
+		const std::vector<uint8_t> pixels = fixture.RenderFrame(camera);
+		const glm::uvec2 inBank = RendererFixture::ToPixel(camera, { -2.0f, 1.0f, -5.0f });
+		const glm::uvec2 mirror = RendererFixture::ToPixel(camera, { 2.0f, 1.0f, -5.0f }); // as close to the lamp, no fog
+		CHECK(Math::Luminance(RendererFixture::Pixel(pixels, inBank.x, inBank.y)) > 0.1f);
+		CHECK(Math::Luminance(RendererFixture::Pixel(pixels, mirror.x, mirror.y)) < 0.02f);
+		CHECK(fixture.Device->GetErrorCount() == 0);
+	}
+
 	TEST_CASE("Fog of war darkens and greys what the thief does not see, and leaves out guards there")
 	{
 		RendererFixture fixture;

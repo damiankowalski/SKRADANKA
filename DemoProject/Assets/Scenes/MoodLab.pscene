@@ -6972,6 +6972,41 @@
       "ID": "1150",
       "Components": {
         "Tag": {
+          "Tag": "Mist_Garden"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.6,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "FogVolume": {
+          "HalfExtents": [
+            7.8,
+            1.2,
+            7.8
+          ],
+          "Density": 0.12,
+          "EdgeFade": 0.8,
+          "Enabled": false
+        }
+      }
+    },
+    {
+      "ID": "1151",
+      "Components": {
+        "Tag": {
           "Tag": "MoodLab"
         },
         "Transform": {

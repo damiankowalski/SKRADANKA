@@ -13,6 +13,7 @@ TextureCube<float4> g_Irradiance : register(t4, space0);
 TextureCube<float4> g_Prefiltered : register(t5, space0);
 Texture2D<float2> g_BRDFLut : register(t6, space0);
 Texture2D<float> g_AmbientOcclusion : register(t7, space0);
+Texture3D<float4> g_FogVolume : register(t8, space0); // integrated fog: rgb light scattered in, a transmittance
 SamplerState g_LinearWrap : register(s0, space0);
 SamplerComparisonState g_ShadowSampler : register(s1, space0);
 SamplerState g_LinearClamp : register(s2, space0);

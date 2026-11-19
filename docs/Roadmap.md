@@ -122,6 +122,15 @@ in a wide and a close shot (8 PNGs, byte-identical on rerun; CTest `Automation.M
 results and the engine's gaps (no light in the fog, no local fog) are in docs/art/mood/README.md. The owner chose
 variant C (mixed: warm fire and cold astral zones apart in thick fog) as the lighting direction.
 
+**Volumetric fog** (L, approved after the mood lab: the look that makes thick fog read as fog): a froxel grid over
+the view (160 x 90 x 64 out to 64 m, compute) lit by every lamp with a phase function and shadows where the lamp
+has a shadow map (one tap, jittered, blended with the last frame), then integrated along every view ray and read
+by the mesh and sky shaders. Height fog (`FogHeight`, `FogHeightFalloff`) and local fog boxes (`FogVolume`) shape
+it; `VolumetricFog`, `FogScattering`, `FogAnisotropy` light it. The density lives in `Scene/FogUtils.h` and guards
+see through the same fog (`PerceptionSystem::OpticalDepth`). About 0.45 ms of GPU on an M1 Pro. F4 tunes it live;
+the mood lab renders v2 with it. See docs/Fog.md. Out of scope: guards seeing the glow (a thief against lit fog),
+lit smoke volumes, more shadow slots for lamps.
+
 ## In progress
 
 Nothing: the next package waits for the owner's choice (leaning on Q/E is the natural follow-up).

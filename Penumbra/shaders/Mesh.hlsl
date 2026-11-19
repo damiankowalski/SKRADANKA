@@ -113,6 +113,6 @@ float4 PSForward(VertexOutput input, bool frontFace : SV_IsFrontFace) : SV_Targe
 	float3 color = EvaluateLights(input.WorldPosition, surface.Normal, V, surface.Albedo, surface.Metallic, surface.Roughness, viewDepth, noise);
 	color += EvaluateAmbient(surface.Normal, V, surface.Albedo, surface.Metallic, surface.Roughness, ao);
 	color += surface.Emissive;
-	color = ApplyFog(color, distance);
+	color = ApplyFog(color, input.WorldPosition, input.Position.xy * g_View.InvViewportSize, viewDepth, g_FogVolume, g_LinearClamp);
 	return float4(color, surface.Alpha);
 }
