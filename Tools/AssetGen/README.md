@@ -38,8 +38,9 @@ Tools/AssetGen/.venv/bin/python Tools/AssetGen/generate.py stone_wall --variants
 
 Options: `--seed` (variant *i* uses seed + *i*), `--steps` (4), `--size` (1024), `--quantize` (8; 4, or 0 for full
 precision, about twice the memory), `--out`, `--sheet <png>` (a contact sheet of all variants),
-`--no-seamless` (plain sampling, for comparison), `--blend-steps`, `--no-fallback`, `--model` (only the pinned one
-runs). Close PenumbraEditor first on a 16 GB Mac: `generate.py` warns when it is running.
+`--no-seamless` (plain sampling, for comparison), `--blend-steps`, `--no-fallback`, `--only N` (redo variant N of
+a set), `--reprocess` (no model: redo the maps, seam test, previews and sheet from the albedos already in `--out`,
+e.g. after changing `normal_strength`), `--model` (only the pinned one runs). Close PenumbraEditor first on a 16 GB Mac: `generate.py` warns when it is running.
 
 Measured on an M1 Pro with 16 GB, one 1024x1024 image, editor closed:
 
