@@ -194,9 +194,13 @@ class ConfigTests(unittest.TestCase):
 
         config = cfg.load_config()
         saved = os.environ.get("HF_HOME")
+        elsewhere = Path(tempfile.gettempdir()) / "elsewhere"  # a real absolute path on every platform
         try:
-            os.environ["HF_HOME"] = "/tmp/elsewhere"
-            self.assertEqual(cfg.snapshot_dir(config).parts[:3], ("/", "tmp", "elsewhere"))
+            os.environ["HF_HOME"] = str(elsewhere)
+            snapshot = cfg.snapshot_dir(config)
+            self.assertEqual(cfg.hf_home(config), elsewhere)
+            self.assertTrue(snapshot.is_relative_to(elsewhere / "hub"), snapshot)
+            self.assertEqual(snapshot.name, config["model"]["revision"])
         finally:
             if saved is None:
                 os.environ.pop("HF_HOME", None)
