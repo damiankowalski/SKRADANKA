@@ -59,6 +59,8 @@ FetchContent_Declare(JoltPhysics
     GIT_REPOSITORY https://github.com/jrouwe/JoltPhysics.git
     GIT_TAG v5.5.0
     GIT_SHALLOW TRUE
+    # MSVC builds Jolt with /fp:fast; from MSVC 19.52 optimized builds broke ragdoll hinge limits and settling.
+    PATCH_COMMAND ${CMAKE_COMMAND} -DPATCH=${CMAKE_CURRENT_LIST_DIR}/patches/jolt-precise-fp.patch -P ${CMAKE_CURRENT_LIST_DIR}/ApplyPatch.cmake
     SOURCE_SUBDIR Build
     SYSTEM)
 
