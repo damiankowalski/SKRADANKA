@@ -1,8 +1,9 @@
 # AssetGen engine check: one generated material in Penumbra, in a throwaway project (nothing enters DemoProject).
 # Run from the repository root after generating stone_wall into Tools/AssetGen/out/v1 (Tools/AssetGen/README.md):
 #   PenumbraEditor --headless --exec Tools/AssetGen/EngineCheck.jsonl
-# A wall of eight unit cubes, each face one whole tile: if the texture tiles, the pattern runs on across the
-# cubes' joins. A lamp rakes across the wall from the side, so the normal map's relief shows.
+# One box, 4 x 2 m, its material repeating the texture four times across and twice up (Material.UVScale):
+# if the texture tiles, no seam shows where the repeats meet. A lamp rakes across the wall from the side, so
+# the normal map's relief shows.
 {"cmd": "project.new", "path": "build/AssetGenCheck", "name": "AssetGen check"}
 {"cmd": "asset.import", "source": "Tools/AssetGen/out/v1/stone_wall/stone_wall_1000_albedo.png", "destination": "Textures/stone_wall_albedo.png"}
 {"cmd": "asset.import", "source": "Tools/AssetGen/out/v1/stone_wall/stone_wall_1000_normal.png", "destination": "Textures/stone_wall_normal.png"}
@@ -11,12 +12,5 @@
 {"cmd": "entity.create", "name": "Environment", "components": {"Environment": {"AmbientColor": [0.05, 0.05, 0.06], "FogDensity": 0.0}}}
 {"cmd": "entity.create", "name": "Moon", "components": {"Transform": {"Rotation": [-35, 20, 0]}, "DirectionalLight": {"Color": [0.6, 0.7, 1.0], "Intensity": 0.6}}}
 {"cmd": "entity.create", "name": "Lamp", "components": {"Transform": {"Translation": [-2.6, 1.0, 1.2]}, "PointLight": {"Color": [1.0, 0.62, 0.3], "Intensity": 16, "Range": 9}}}
-{"cmd": "entity.create", "name": "Wall_0", "components": {"Transform": {"Translation": [-1.5, 0.5, 0]}, "Mesh": {"Mesh": "builtin:cube"}, "Material": {"AlbedoTexture": "Textures/stone_wall_albedo.png", "NormalTexture": "Textures/stone_wall_normal.png", "MetallicRoughnessTexture": "Textures/stone_wall_mr.png", "Roughness": 1.0}}}
-{"cmd": "entity.create", "name": "Wall_1", "components": {"Transform": {"Translation": [-0.5, 0.5, 0]}, "Mesh": {"Mesh": "builtin:cube"}, "Material": {"AlbedoTexture": "Textures/stone_wall_albedo.png", "NormalTexture": "Textures/stone_wall_normal.png", "MetallicRoughnessTexture": "Textures/stone_wall_mr.png", "Roughness": 1.0}}}
-{"cmd": "entity.create", "name": "Wall_2", "components": {"Transform": {"Translation": [0.5, 0.5, 0]}, "Mesh": {"Mesh": "builtin:cube"}, "Material": {"AlbedoTexture": "Textures/stone_wall_albedo.png", "NormalTexture": "Textures/stone_wall_normal.png", "MetallicRoughnessTexture": "Textures/stone_wall_mr.png", "Roughness": 1.0}}}
-{"cmd": "entity.create", "name": "Wall_3", "components": {"Transform": {"Translation": [1.5, 0.5, 0]}, "Mesh": {"Mesh": "builtin:cube"}, "Material": {"AlbedoTexture": "Textures/stone_wall_albedo.png", "NormalTexture": "Textures/stone_wall_normal.png", "MetallicRoughnessTexture": "Textures/stone_wall_mr.png", "Roughness": 1.0}}}
-{"cmd": "entity.create", "name": "Wall_4", "components": {"Transform": {"Translation": [-1.5, 1.5, 0]}, "Mesh": {"Mesh": "builtin:cube"}, "Material": {"AlbedoTexture": "Textures/stone_wall_albedo.png", "NormalTexture": "Textures/stone_wall_normal.png", "MetallicRoughnessTexture": "Textures/stone_wall_mr.png", "Roughness": 1.0}}}
-{"cmd": "entity.create", "name": "Wall_5", "components": {"Transform": {"Translation": [-0.5, 1.5, 0]}, "Mesh": {"Mesh": "builtin:cube"}, "Material": {"AlbedoTexture": "Textures/stone_wall_albedo.png", "NormalTexture": "Textures/stone_wall_normal.png", "MetallicRoughnessTexture": "Textures/stone_wall_mr.png", "Roughness": 1.0}}}
-{"cmd": "entity.create", "name": "Wall_6", "components": {"Transform": {"Translation": [0.5, 1.5, 0]}, "Mesh": {"Mesh": "builtin:cube"}, "Material": {"AlbedoTexture": "Textures/stone_wall_albedo.png", "NormalTexture": "Textures/stone_wall_normal.png", "MetallicRoughnessTexture": "Textures/stone_wall_mr.png", "Roughness": 1.0}}}
-{"cmd": "entity.create", "name": "Wall_7", "components": {"Transform": {"Translation": [1.5, 1.5, 0]}, "Mesh": {"Mesh": "builtin:cube"}, "Material": {"AlbedoTexture": "Textures/stone_wall_albedo.png", "NormalTexture": "Textures/stone_wall_normal.png", "MetallicRoughnessTexture": "Textures/stone_wall_mr.png", "Roughness": 1.0}}}
+{"cmd": "entity.create", "name": "Wall", "components": {"Transform": {"Translation": [0, 1, 0], "Scale": [4, 2, 0.2]}, "Mesh": {"Mesh": "builtin:cube"}, "Material": {"AlbedoTexture": "Textures/stone_wall_albedo.png", "NormalTexture": "Textures/stone_wall_normal.png", "MetallicRoughnessTexture": "Textures/stone_wall_mr.png", "Roughness": 1.0, "UVScale": [4, 2]}}}
 {"cmd": "render.screenshot", "path": "docs/art/textures/v1/engine_stone_wall.png", "width": 1280, "height": 720, "camera": {"position": [0.6, 1.1, 3.6], "target": [0.0, 1.0, 0.0], "fov": 55}}

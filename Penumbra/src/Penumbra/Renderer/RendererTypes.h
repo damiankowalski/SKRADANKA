@@ -99,9 +99,11 @@ namespace Penumbra::GPU {
 		float Metallic;
 		float Roughness;
 		uint32_t TextureFlags;
-		glm::vec2 Padding;
+		glm::vec2 UVScale{ 1.0f };  // MaterialComponent::UVScale (1 for glTF materials)
+		glm::vec2 UVOffset{ 0.0f };
+		glm::vec2 Padding{ 0.0f };
 	};
-	static_assert(sizeof(DrawConstants) == 96, "DrawConstants must match Common.hlsli");
+	static_assert(sizeof(DrawConstants) == 112, "DrawConstants must match Common.hlsli");
 
 	struct ShadowConstants
 	{

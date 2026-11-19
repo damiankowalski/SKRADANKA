@@ -905,6 +905,8 @@ namespace Penumbra {
 					draw.Constants.BaseColor = overrideMaterial->BaseColor;
 					draw.Constants.Metallic = overrideMaterial->Metallic;
 					draw.Constants.Roughness = overrideMaterial->Roughness;
+					draw.Constants.UVScale = overrideMaterial->UVScale;
+					draw.Constants.UVOffset = overrideMaterial->UVOffset;
 					draw.Constants.Emissive = overrideMaterial->EmissiveEnabled ? overrideMaterial->EmissiveColor * overrideMaterial->EmissiveIntensity : glm::vec3(0.0f);
 					draw.Translucent = overrideMaterial->Translucent;
 					albedo = Cache->GetTexture(AssetManager::GetTexture(overrideMaterial->AlbedoTexture), true, CommandList);

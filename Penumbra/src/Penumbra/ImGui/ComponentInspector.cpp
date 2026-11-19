@@ -129,15 +129,17 @@ namespace Penumbra {
 					}
 				}
 			}
-			else if (value.is_array() && (value.size() == 3 || value.size() == 4) &&
+			else if (value.is_array() && value.size() >= 2 && value.size() <= 4 &&
 					 std::all_of(value.begin(), value.end(), [](const json& element) { return element.is_number(); }))
 			{
 				float v[4] = {};
 				for (size_t i = 0; i < value.size(); i++)
 					v[i] = value[i].get<float>();
 				bool edited;
-				if (IsColorField(key))
+				if (IsColorField(key) && value.size() >= 3)
 					edited = value.size() == 3 ? ImGui::ColorEdit3(label.c_str(), v, ImGuiColorEditFlags_Float) : ImGui::ColorEdit4(label.c_str(), v, ImGuiColorEditFlags_Float);
+				else if (value.size() == 2)
+					edited = ImGui::DragFloat2(label.c_str(), v, 0.02f);
 				else
 					edited = value.size() == 3 ? ImGui::DragFloat3(label.c_str(), v, 0.02f) : ImGui::DragFloat4(label.c_str(), v, 0.02f);
 				if (edited)

@@ -142,6 +142,12 @@ material. `setup.sh` checks, installs and removes it all (`uninstall --dry-run`)
 engine change and no textures in the game yet: UV scale in the engine and the mood lab with textures are
 proposals in the PR. See Tools/AssetGen/README.md.
 
+**Texture tiling** (S, approved after AssetGen): `Material.UVScale` repeats a material's textures across the mesh UVs
+and `Material.UVOffset` shifts them (albedo, normal, metallic/roughness and emissive alike; draw constants grow to 112
+bytes). A 4 x 2 m wall of the built-in cube takes `UVScale` 4, 2 for a texture a metre across. Editable in the
+editor and F4 (two-number fields), from Lua and the command API. Out of scope: world-space or triplanar mapping, so
+the narrow sides of a stretched cube get the same repeats as its face.
+
 ## In progress
 
 Nothing: the next package waits for the owner's choice (leaning on Q/E is the natural follow-up).

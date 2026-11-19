@@ -64,6 +64,12 @@ local function run(self)
     test.check(not e:has("PointLight"), "remove")
     test.check(e:get("SpotLight") == nil, "get missing component")
     test.check(not pcall(function() e:add("NoSuchComponent") end), "unknown component errors")
+    -- A material's texture tiling: two-number fields go in and out as {u, v}.
+    e:add("Material", { UVScale = { 4, 3 }, UVOffset = { 0.5, 0 } })
+    test.near(e:get("Material").UVScale[1], 4, 1e-6, "Material UVScale")
+    test.near(e:get("Material").UVScale[2], 3, 1e-6, "Material UVScale v")
+    test.near(e:get("Material").UVOffset[1], 0.5, 1e-6, "Material UVOffset")
+    e:remove("Material")
 
     local child = scene.create("TempChild")
     child:set_parent(e)

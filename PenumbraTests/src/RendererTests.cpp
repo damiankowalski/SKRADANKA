@@ -2,6 +2,7 @@
 
 #include "Penumbra/AI/FogOfWarSystem.h"
 #include "Penumbra/Asset/AssetManager.h"
+#include "Penumbra/Asset/Importers.h"
 #include "Penumbra/Renderer/RenderDevice.h"
 #include "Penumbra/Renderer/SceneRenderer.h"
 #include "Penumbra/Renderer/VulkanDeviceSelection.h"
@@ -372,6 +373,63 @@ TEST_SUITE("Renderer")
 		CHECK(brightestWarmth() > 0.3f); // orange/red fire on a black background
 		flame.Enabled = false;
 		CHECK(brightestWarmth() < 0.05f);
+		CHECK(fixture.Device->GetErrorCount() == 0);
+	}
+
+	TEST_CASE("A material's UVScale repeats its texture and UVOffset shifts it")
+	{
+		// A texture dark on its left half and bright on its right, on a flat box facing the camera. Brightness
+		// is read at the middle of each quarter of the face: once over it the halves cover two quarters each,
+		// twice over they alternate, and shifted by half a repeat they swap.
+		RendererFixture fixture;
+		Scene& scene = fixture.SceneInstance;
+		std::vector<uint8_t> texels(64 * 8 * 4, 255);
+		for (uint32_t y = 0; y < 8; y++)
+			for (uint32_t x = 0; x < 32; x++)
+				for (uint32_t c = 0; c < 3; c++)
+					texels[(y * 64 + x) * 4 + c] = 0;
+		REQUIRE(TextureImporter::WritePNG(fixture.Project.GetAssetDirectory() / "Textures" / "Halves.png", 64, 8, texels.data(), 64 * 4));
+
+		auto& environment = scene.CreateEntity("Environment").AddComponent<EnvironmentComponent>();
+		environment.AmbientColor = glm::vec3(0.6f);
+		environment.SSAOEnabled = false;
+		environment.BloomIntensity = 0.0f;
+		Entity sun = scene.CreateEntity("Sun");
+		sun.Transform().Rotation = Math::LookRotation(glm::vec3(0.0f, 0.0f, -1.0f));
+		sun.AddComponent<DirectionalLightComponent>().Intensity = 2.0f;
+		Entity panel = Test::CreateBox(scene, "Panel", { 0.0f, 0.0f, 0.0f }, { 2.0f, 1.0f, 0.05f }, glm::vec4(1.0f));
+		auto& material = panel.GetComponent<MaterialComponent>();
+		material.AlbedoTexture = "Textures/Halves.png";
+
+		const RenderCamera camera = RenderCamera::Perspective({ 0.0f, 0.0f, 4.0f }, Math::LookRotation(glm::vec3(0.0f, 0.0f, -1.0f)), 60.0f,
+			static_cast<float>(RendererFixture::Width) / static_cast<float>(RendererFixture::Height), 0.1f, 100.0f);
+		auto quarters = [&]() {
+			const std::vector<uint8_t> pixels = fixture.RenderFrame(camera);
+			std::array<float, 4> brightness{};
+			for (int i = 0; i < 4; i++)
+			{
+				const glm::uvec2 pixel = RendererFixture::ToPixel(camera, { -1.5f + static_cast<float>(i), 0.0f, 0.05f });
+				brightness[static_cast<size_t>(i)] = Math::Luminance(RendererFixture::Pixel(pixels, pixel.x, pixel.y));
+			}
+			return brightness;
+		};
+
+		const std::array<float, 4> once = quarters();
+		CHECK(std::abs(once[0] - once[1]) < 0.05f);
+		CHECK(std::abs(once[2] - once[3]) < 0.05f);
+		CHECK(std::abs(once[0] - once[2]) > 0.2f);
+
+		material.UVScale = { 2.0f, 1.0f };
+		const std::array<float, 4> twice = quarters();
+		CHECK(std::abs(twice[0] - twice[2]) < 0.05f);
+		CHECK(std::abs(twice[1] - twice[3]) < 0.05f);
+		CHECK(std::abs(twice[0] - twice[1]) > 0.2f);
+
+		material.UVScale = { 1.0f, 1.0f };
+		material.UVOffset = { 0.5f, 0.0f };
+		const std::array<float, 4> shifted = quarters();
+		CHECK(shifted[0] == doctest::Approx(once[2]).epsilon(0.1));
+		CHECK(shifted[3] == doctest::Approx(once[0]).epsilon(0.1));
 		CHECK(fixture.Device->GetErrorCount() == 0);
 	}
 
