@@ -41,6 +41,15 @@ precision, about twice the memory), `--out`, `--sheet <png>` (a contact sheet of
 `--no-seamless` (plain sampling, for comparison), `--blend-steps`, `--no-fallback`, `--model` (only the pinned one
 runs). Close PenumbraEditor first on a 16 GB Mac: `generate.py` warns when it is running.
 
+Measured on an M1 Pro with 16 GB, one 1024x1024 image, editor closed:
+
+| | time | MLX peak | process peak | image |
+|---|---|---|---|---|
+| 8-bit (default) | 238 s | 6.5 GB | 8.0 GB | the reference |
+| full precision (`--quantize 0`) | 323 s | 9.9 GB | 11.4 GB | same composition, 1.1% mean pixel difference |
+
+With the editor open, 8-bit took 320-470 s (the editor competes for the GPU and memory).
+
 Per variant, in `out/<material>/`:
 
 * `<name>_albedo.png`: tileable colour (sRGB).

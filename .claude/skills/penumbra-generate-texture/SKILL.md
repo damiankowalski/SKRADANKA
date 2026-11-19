@@ -47,6 +47,7 @@ Tools/AssetGen/.venv/bin/python Tools/AssetGen/generate.py stone_wall --variants
 * Output: `Tools/AssetGen/out/<material>/` (git-ignored). Per variant `_albedo`, `_normal` (glTF: green up),
   `_mr` (G roughness, B metallic), `_preview` (2x2 tiled: look at it), `.json` (provenance, seam numbers).
 * The run fails (exit 1) if a variant fails the seam test even after the masking fallback; look at its preview.
-* About 4 minutes per 1024x1024 image on an M1 Pro (four rolled copies per step). `--blend-steps 1` is about
+* About 4 minutes per 1024x1024 image on an M1 Pro at 8-bit with the editor closed (four rolled copies per
+  step; README.md has the measurements). `--blend-steps 1` is about
   twice as fast but can leave a faint line through the middle; do not use it for textures you hand over.
 * To see a texture in the engine: `Tools/AssetGen/EngineCheck.jsonl` (a throwaway project in `build/`).
