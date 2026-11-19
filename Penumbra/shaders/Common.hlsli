@@ -8,6 +8,13 @@
 	#define PN_PUSH_CONSTANT
 #endif
 
+// Storage image formats: Vulkan needs the format of a written image declared; DXIL warns on the attribute.
+#ifdef __spirv__
+	#define PN_IMAGE_FORMAT_RGBA16F [[vk::image_format("rgba16f")]]
+#else
+	#define PN_IMAGE_FORMAT_RGBA16F
+#endif
+
 // Must match Penumbra/src/Penumbra/Renderer/RendererTypes.h exactly.
 
 static const float PI = 3.14159265359;

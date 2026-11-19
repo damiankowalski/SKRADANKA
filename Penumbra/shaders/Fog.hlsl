@@ -28,7 +28,7 @@ struct GPUFogVolume
 PN_PUSH_CONSTANT ConstantBuffer<FogPush> g_FogPush : register(b0, space1);
 Texture3D<float4> g_FogHistory : register(t0, space1);
 StructuredBuffer<GPUFogVolume> g_FogVolumes : register(t1, space1);
-[[vk::image_format("rgba16f")]] RWTexture3D<float4> g_FogScatter : register(u0, space1);
+PN_IMAGE_FORMAT_RGBA16F RWTexture3D<float4> g_FogScatter : register(u0, space1);
 
 // FogMedium::DensityAt.
 float FogDensityAt(float3 position)

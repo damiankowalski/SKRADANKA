@@ -16,7 +16,7 @@ struct IntegratePush
 
 PN_PUSH_CONSTANT ConstantBuffer<IntegratePush> g_Integrate : register(b0);
 Texture3D<float4> g_Scatter : register(t0);
-[[vk::image_format("rgba16f")]] RWTexture3D<float4> g_Integrated : register(u0);
+PN_IMAGE_FORMAT_RGBA16F RWTexture3D<float4> g_Integrated : register(u0);
 
 [numthreads(8, 8, 1)]
 void CSFogIntegrate(uint3 id : SV_DispatchThreadID)
