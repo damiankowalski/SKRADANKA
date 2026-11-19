@@ -29,6 +29,10 @@ jobs:
           path: build/_deps
           key: deps-${{ runner.os }}-${{ hashFiles('cmake/Dependencies.cmake') }}
 
+      # uv runs AssetGen's post-processing tests (Tools.AssetGen): on Windows they prove they need no Mac.
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
       - name: Build
         shell: cmd
         run: Tools\Build.bat ${{ matrix.preset }}
@@ -102,6 +106,9 @@ jobs:
         with:
           path: build/_deps
           key: deps-${{ runner.os }}-${{ hashFiles('cmake/Dependencies.cmake') }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
 
       - name: Build
         run: Tools/Build.sh ${{ matrix.preset }}

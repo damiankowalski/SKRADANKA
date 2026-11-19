@@ -1,0 +1,13 @@
+{
+	"material": "stone_wall",
+	"description": "Castle and cloister walls: rough stone blocks in courses with dark mortar.",
+	"prompt": "{style} A seamless tileable texture of an old stone wall: {variation}, deep dark mortar joints between the blocks, chipped edges, fine cracks.",
+	"variations": [
+		"rough grey limestone blocks in uneven horizontal courses, a little soot in the joints",
+		"weathered brown-grey sandstone blocks of mixed sizes, faint green moss in the lower joints",
+		"dark cold granite blocks, roughly squared, damp stains running down from the joints"
+	],
+	"roughness": [0.72, 0.95],
+	"metallic": 0.0,
+	"normal_strength": 6.0
+}

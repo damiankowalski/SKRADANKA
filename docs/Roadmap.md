@@ -131,6 +131,17 @@ see through the same fog (`PerceptionSystem::OpticalDepth`). About 0.45 ms of GP
 the mood lab renders v2 with it. See docs/Fog.md. Out of scope: guards seeing the glow (a thief against lit fog),
 lit smoke volumes, more shadow slots for lamps.
 
+**AssetGen: local 2D textures** (M, the owner's brief, Mac only): `Tools/AssetGen` generates tileable PBR
+materials with FLUX.2 klein 4B (Apache-2.0) through mflux on Apple Silicon. The model is pinned to a revision,
+the dependencies to `uv.lock`, in `Tools/AssetGen/.venv`, the weights in `HF_HOME` and never in the repository;
+the 9B model (non-commercial) is refused. It tiles at generation (four rolled copies of the latent blended on
+every step, a wrapped VAE decode), with a masking fallback. A seam test checks the edges, the middle and faint
+lines. Normal map and roughness come from the albedo's brightness, and a provenance `.json` sits beside every
+material. `setup.sh` checks, installs and removes it all (`uninstall --dry-run`); the
+`penumbra-generate-texture` skill tells agents the rules. Demo: three stone walls (`docs/art/textures/v1`). No
+engine change and no textures in the game yet: UV scale in the engine and the mood lab with textures are
+proposals in the PR. See Tools/AssetGen/README.md.
+
 ## In progress
 
 Nothing: the next package waits for the owner's choice (leaning on Q/E is the natural follow-up).

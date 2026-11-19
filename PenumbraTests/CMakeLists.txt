@@ -58,3 +58,16 @@ if(PENUMBRA_BUILD_EDITOR)
     file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/MoodLab/docs/art/mood/v2")
     set_tests_properties(Automation.EditorCLI Automation.McpStdio Editor.Smoke Automation.MoodLab PROPERTIES LABELS gpu TIMEOUT 600)
 endif()
+
+# AssetGen's post-processing (Tools/AssetGen): seams, normal maps, provenance, the model allow-list. Plain
+# Python through uv, no model and no Apple Silicon needed; skipped where uv is not installed.
+find_program(PENUMBRA_UV_EXECUTABLE uv)
+if(PENUMBRA_UV_EXECUTABLE)
+    add_test(NAME Tools.AssetGen
+        COMMAND "${PENUMBRA_UV_EXECUTABLE}" run --project "${PROJECT_SOURCE_DIR}/Tools/AssetGen" --frozen
+                python -m unittest discover -s "${PROJECT_SOURCE_DIR}/Tools/AssetGen/tests"
+        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")
+    set_tests_properties(Tools.AssetGen PROPERTIES TIMEOUT 600)
+else()
+    message(STATUS "uv not found: the Tools.AssetGen test is skipped (Tools/AssetGen/README.md)")
+endif()
