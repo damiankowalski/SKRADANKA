@@ -4,9 +4,10 @@
 --           WASD move, Shift run, C crouch, Space jump, mouse look,
 --           1 = water bolt, 2 = fire bolt, 3 = gas bolt, 4 = moss bolt,
 --           right mouse (held) = aim the crossbow: a dot marks the aim, left mouse shoots,
---           E = use (take loot, pick a pocket from behind, pick up / drop a body, or whatever the
+--           Q / E (held) = lean left / right round a corner, standing or crouching still (a movement key ends it),
+--           F = use (take loot, pick a pocket from behind, pick up / drop a body, or whatever the
 --               object offers: on_use / use_prompt), Tab = objectives,
---           F = blackjack (knocks out an NPC from behind who is not on alert), Esc = release the mouse.
+--           V = blackjack (knocks out an NPC from behind who is not on alert), Esc = release the mouse.
 -- Left mouse means one thing while aiming (aim_action: shoot) and another without (plain_action:
 -- nothing yet), so other tools can claim either.
 -- Noise probe (when the noise_probe property is on): - / = pick a loudness, G makes that noise
@@ -44,14 +45,19 @@ local ARROWS = {
 local CONTROLS = {
     { "W A S D", "move" }, { "Shift", "run" }, { "C", "crouch" }, { "Space", "jump" },
     { "Right mouse", "aim the crossbow" }, { "Left mouse", "shoot (while aiming)" }, { "1 - 4", "water / fire / gas / moss bolt" },
-    { "E", "use, take, open, pick up a body" }, { "F", "blackjack (from behind)" }, { "Tab", "objectives" },
+    { "Q / E", "lean left / right (standing still)" },
+    { "F", "use, take, open, pick up a body" }, { "V", "blackjack (from behind)" }, { "Tab", "objectives" },
     { "Esc", "release the mouse" }, { "F1", "show / hide this" },
 }
 
 local CAMERA_RADIUS = 0.2  -- the camera's clearance from walls: wider than its near plane
 local SHOULDER = 0.5       -- the over-the-shoulder offset to the right
 
-local REACH = 2.2          -- metres: how far E and F reach
+local REACH = 2.2          -- metres: how far use (F) and the blackjack (V) reach
+
+local LEAN = 0.45          -- metres the head leans out standing (less crouched)
+local LEAN_RADIUS = 0.15   -- the head's clearance from walls while leaning
+local LEAN_SPEED = 10      -- how fast the lean eases in and out (per second)
 local CARRY_SLOWDOWN = 0.6 -- speed multiplier with a body on the shoulders
 local CARRY_CENTER = 0.8   -- metres from a fallen body's feet to its middle
 
@@ -59,14 +65,6 @@ local STANDING = {
     vec3(0, 1.70, 0), vec3(-0.22, 1.45, 0), vec3(0.22, 1.45, 0), vec3(0, 1.15, 0),
     vec3(-0.2, 0.9, 0), vec3(0.2, 0.9, 0), vec3(0, 0.45, 0),
 }
-
-local function scaled_silhouette(scale)
-    local points = {}
-    for i, p in ipairs(STANDING) do
-        points[i] = vec3(p.x, p.y * scale, p.z)
-    end
-    return points
-end
 
 function Player:on_create()
     -- Yaw from the facing direction (Euler angles are ambiguous for some rotations).
@@ -93,6 +91,17 @@ function Player:on_create()
     self.camera = scene.find("Camera")
     self.aiming = false
     self.boom = self.camera_distance -- current camera distance (eases back out after a wall)
+    self.lean = 0           -- metres the head leans right of the view (negative: left)
+    self.leaning = false
+    -- The height and lean the silhouette points were last built for: the scene's own points stand until either
+    -- changes.
+    self.silhouette_key = string.format("%.3f %.3f", self.stand_height, 0)
+    -- The model's own yaw under the player (it faces -Z like him): leaning rolls it on top of that. Read from its
+    -- forward, not its Euler angles, which may come back in another but equal form (180, 0, 180).
+    if self.model then
+        local f = self.model:forward()
+        self.model_yaw = math.deg(math.atan(-f.x, -f.z)) - self.yaw
+    end
     self.help_time = self.help_seconds
     input.set_cursor_locked(true)
 end
@@ -109,10 +118,55 @@ function Player:update_stance(dt, want_crouch)
     -- The camera and the silhouette ease towards the capsule height.
     local previous = self.visual_height
     self.visual_height = previous + (height - previous) * math.min(dt * 12, 1)
+end
+
+-- What guards see of him: the silhouette points follow his height (crouched: fewer, lower points, harder
+-- to spot against bright backgrounds) and his lean (the head and shoulders out past the corner, the feet
+-- where they stand). Rebuilt only when either changes.
+function Player:update_silhouette()
+    local key = string.format("%.3f %.3f", self.visual_height, self.lean)
+    if key == self.silhouette_key then return end
+    self.silhouette_key = key
     local scale = self.visual_height / self.stand_height
-    if math.abs(self.visual_height - previous) > 0.001 then
-        -- Fewer, lower silhouette points: harder to spot against bright backgrounds.
-        self.entity:set("PerceptionTarget", { SilhouettePoints = scaled_silhouette(scale) })
+    local top = STANDING[1].y
+    local points = {}
+    for i, p in ipairs(STANDING) do
+        points[i] = vec3(p.x + self.lean * p.y / top, p.y * scale, p.z)
+    end
+    self.entity:set("PerceptionTarget", { SilhouettePoints = points })
+end
+
+-- Leaning (Q left, E right, held) puts his head out past a corner: the eye he sees with (the fog of war),
+-- the camera, the silhouette guards see and the model all move sideways, square to where the camera looks.
+-- Only standing or crouching still, on the ground, hands free; a movement key ends it. A wall at the side
+-- stops the head at once; easing back out is gradual.
+function Player:update_lean(dt, wants_to_move)
+    local want = 0
+    if not wants_to_move and not self.busy and not self.carrying and character.is_grounded(self.entity) then
+        if input.key("Q") then want = want - 1 end
+        if input.key("E") then want = want + 1 end
+    end
+    local target = want * LEAN * self.visual_height / self.stand_height
+    if target ~= 0 then
+        local yaw = math.rad(self.yaw)
+        local side = vec3(math.cos(yaw), 0, -math.sin(yaw)) * (target > 0 and 1 or -1)
+        local eye = self.entity:get_position() + vec3(0, self.visual_height - 0.15, 0)
+        local hit = physics.spherecast(eye, side, LEAN_RADIUS, math.abs(target), self.entity)
+        if hit then target = (target > 0 and 1 or -1) * hit.distance end
+    end
+    if math.abs(target) < math.abs(self.lean) and target * self.lean >= 0 and want ~= 0 then
+        self.lean = target -- a wall: in at once
+    else
+        self.lean = self.lean + (target - self.lean) * math.min(dt * LEAN_SPEED, 1)
+    end
+    if math.abs(self.lean) < 0.005 then self.lean = 0 end
+    self.leaning = self.lean ~= 0
+
+    if self.entity:has("FogOfWar") then self.entity:set("FogOfWar", { Lean = self.lean }) end
+    if self.model and self.model_yaw then
+        -- The body tilts from the feet so the head ends up self.lean to the side.
+        local tilt = math.deg(math.asin(math.max(-0.5, math.min(0.5, self.lean / math.max(self.visual_height, 0.5)))))
+        self.model:set_rotation(vec3(0, self.model_yaw, -tilt))
     end
 end
 
@@ -135,13 +189,15 @@ function Player:update_movement(dt)
     end
 
     self:update_stance(dt, input.key("C"))
+    self:update_lean(dt, move:length() > 0.01)
+    self:update_silhouette()
     local running = input.key("LeftShift") and not self.crouched and not self.carrying
     local speed = self.crouched and self.crouch_speed or (running and self.run_speed or self.walk_speed)
     if self.carrying then speed = speed * CARRY_SLOWDOWN end
 
     local moving = move:length() > 0.01
     if moving then move = move:normalized() end
-    if self.aiming then -- facing the aim, side-stepping
+    if self.aiming or self.leaning then -- facing the aim (side-stepping) or the way he leans out
         self.entity:look_at(self.entity:get_position() + forward, true)
     elseif moving then
         self.entity:look_at(self.entity:get_position() + move, true)
@@ -222,7 +278,7 @@ function Player:update_camera(dt)
     local yaw, pitch = math.rad(self.yaw), math.rad(self.pitch)
     local look = vec3(-math.sin(yaw) * math.cos(pitch), math.sin(pitch), -math.cos(yaw) * math.cos(pitch))
     local right = vec3(math.cos(yaw), 0, -math.sin(yaw))
-    local head = self.entity:get_position() + vec3(0, self.visual_height + 0.15, 0)
+    local head = self.entity:get_position() + vec3(0, self.visual_height + 0.15, 0) + right * self.lean
 
     local shoulder = SHOULDER
     local side = physics.spherecast(head, right, CAMERA_RADIUS, SHOULDER, self.entity)
@@ -298,6 +354,7 @@ function Player:draw_hud(dt)
     local prompt = not self.busy and self:interaction_prompt() or nil
     if prompt then ui.text(w / 2 - #prompt * 7.2, h / 2 + 40, prompt, 2.4, { 1, 1, 1, 0.85 }) end
     if self.crouched then ui.text(w / 2 + 70, h - 58, "crouching", 2, { 0.7, 0.7, 0.7, 1 }) end
+    if self.leaning then ui.text(w / 2 + 70, h - 34, self.lean < 0 and "leaning left" or "leaning right", 2, { 0.7, 0.7, 0.7, 1 }) end
     if self.noise_probe then
         local step = self.last_step
         local floor = Noises.surface_under(self.entity)
@@ -422,14 +479,14 @@ function Player:pick_pocket(pocket)
 end
 
 function Player:interaction_prompt()
-    if self.carrying then return "[E] put the body down" end
+    if self.carrying then return "[F] put the body down" end
     local pocket = self:pocket_in_reach()
-    if pocket then return "[E] " .. pocket.loot.use_prompt end
-    if self:body_in_reach() then return "[E] pick up the body" end
+    if pocket then return "[F] " .. pocket.loot.use_prompt end
+    if self:body_in_reach() then return "[F] pick up the body" end
     local _, usable = self:usable_in_reach()
-    if usable then return "[E] " .. (usable.use_prompt or "use") end
+    if usable then return "[F] " .. (usable.use_prompt or "use") end
     local npc = self:blackjack_target()
-    if npc and from_behind(self.entity, npc) then return "[F] knock out" end
+    if npc and from_behind(self.entity, npc) then return "[V] knock out" end
     return nil
 end
 
@@ -439,7 +496,7 @@ function Player:start_busy(task)
     self.busy = task
 end
 
--- E: drop the body, pick one up, or use what is in front. Returns what happened (for tests).
+-- F: drop the body, pick one up, or use what is in front. Returns what happened (for tests).
 function Player:use()
     if self.carrying then return self:drop_body() end
     local pocket = self:pocket_in_reach()
@@ -487,7 +544,7 @@ function Player:drop_body()
     return "drop"
 end
 
--- F: knock out an NPC from behind if he is not on alert; otherwise he notices the attack.
+-- V: knock out an NPC from behind if he is not on alert; otherwise he notices the attack.
 function Player:blackjack()
     if self.swing_cooldown > 0 or self.carrying then return nil end
     self.swing_cooldown = 0.8
@@ -511,8 +568,8 @@ end
 
 function Player:update_hands(dt)
     self.swing_cooldown = math.max(self.swing_cooldown - dt, 0)
-    if input.key_pressed("E") then self:use() end
-    if input.key_pressed("F") then self:blackjack() end
+    if input.key_pressed("F") then self:use() end
+    if input.key_pressed("V") then self:blackjack() end
 end
 
 return Player

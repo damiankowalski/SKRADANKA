@@ -88,6 +88,8 @@ namespace Penumbra {
 				forward.y = 0.0f;
 			}
 			view.Forward = glm::length(forward) < 1e-3f ? glm::vec3(0.0f, 0.0f, -1.0f) : glm::normalize(forward);
+			// Leaning (Q/E) moves the eye sideways, square to where he looks.
+			view.Eye += glm::cross(view.Forward, glm::vec3(0.0f, 1.0f, 0.0f)) * fog.Lean;
 
 			fog.RuntimeActive = true;
 			fog.RuntimeEye = view.Eye;

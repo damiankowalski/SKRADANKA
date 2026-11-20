@@ -206,6 +206,59 @@ TEST_SUITE("World")
 		CHECK(cloister.SceneInstance.GetScriptEngine()->GetErrors().empty());
 	}
 
+	TEST_CASE("Cloister: Q and E lean the thief out past a corner; a wall stops his head; a movement key ends it")
+	{
+		Level cloister("Scenes/Cloister.pscene");
+		// In the middle of the east wing (walls 1.5 m to either side), looking west down it: his right is north (-Z).
+		cloister.Lua("local p = scene.find('Player'); p:set_position(vec3(18, 0.05, 0)); local s = p:script(); s.yaw, s.pitch = 90, -10");
+		cloister.Run(0.3f);
+		Entity player = cloister.Entity("Player");
+		auto lean = [&]() { return player.GetComponent<FogOfWarComponent>().Lean; };
+		CHECK(lean() == 0.0f);
+
+		Input::SetKeyState(Key::E, true);
+		cloister.Run(0.6f);
+		CHECK(lean() == doctest::Approx(0.45f).epsilon(0.02));
+		const glm::vec3 eye = player.GetComponent<FogOfWarComponent>().RuntimeEye;
+		CHECK(eye.z == doctest::Approx(cloister.Position("Player").z - 0.45f).epsilon(0.02)); // the eye he sees with
+		CHECK(cloister.Lua("return scene.find('Player'):script().leaning") == "true");
+		// Guards see his head and shoulders out to the right, his feet where they stand.
+		const std::vector<glm::vec3>& points = player.GetComponent<PerceptionTargetComponent>().SilhouettePoints;
+		REQUIRE(points.size() == 7);
+		CHECK(points.front().x == doctest::Approx(0.45f).epsilon(0.02));
+		CHECK(std::abs(points.back().x) < 0.15f);
+		// The model tilts the same way: its up leans towards his right.
+		CHECK(cloister.Lua("local p = scene.find('Player'); for _, c in ipairs(p:children()) do if c:get_name() == 'Model' then "
+						   "return c:up():dot(vec3(0, 0, -1)) > 0.15 end end") == "true");
+
+		// A movement key ends the lean, and he walks.
+		const glm::vec3 before = cloister.Position("Player");
+		Input::SetKeyState(Key::W, true);
+		cloister.Run(0.6f);
+		Input::SetKeyState(Key::W, false);
+		CHECK(std::abs(lean()) < 0.01f);
+		CHECK(glm::distance(cloister.Position("Player"), before) > 0.5f);
+
+		// Q leans the other way.
+		Input::SetKeyState(Key::E, false);
+		Input::SetKeyState(Key::Q, true);
+		cloister.Run(0.6f);
+		CHECK(lean() == doctest::Approx(-0.45f).epsilon(0.02));
+		Input::SetKeyState(Key::Q, false);
+
+		// Close to the north wall his head stops short of it, and the eye stays on this side.
+		cloister.Lua("local p = scene.find('Player'); p:set_position(vec3(18, 0.05, -1.1)); p:script().yaw = 90");
+		cloister.Run(0.6f);
+		Input::SetKeyState(Key::E, true);
+		cloister.Run(0.6f);
+		CHECK(lean() > 0.0f);
+		CHECK(lean() < 0.3f);
+		CHECK(cloister.Lua("local p = scene.find('Player'); local eye = p:get('FogOfWar').Eye; local body = p:get_position() + vec3(0, 1.0, 0); "
+						   "return physics.raycast(body, eye - body, (eye - body):length(), p) == nil") == "true");
+		Input::SetKeyState(Key::E, false);
+		CHECK(cloister.SceneInstance.GetScriptEngine()->GetErrors().empty());
+	}
+
 	TEST_CASE("Cloister: the crossbow shoots only while aimed (right mouse); the compass follows the camera")
 	{
 		Level cloister("Scenes/Cloister.pscene");

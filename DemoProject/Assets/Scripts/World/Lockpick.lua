@@ -71,7 +71,7 @@ function Lockpick:abort() self.done = true end
 function Lockpick:update(player, dt)
     if self.done then return false end
     self.slip = math.max(self.slip - dt, 0)
-    if input.key_pressed("E") then
+    if input.key_pressed("F") then
         self:finish(false)
         return false
     end
@@ -79,7 +79,7 @@ function Lockpick:update(player, dt)
         if input.key_pressed(key) then self:press(key) end
     end
     local w, h = ui.width(), ui.height()
-    local hint = "[W A S D] pick the lock   [E] give up"
+    local hint = "[W A S D] pick the lock   [F] give up"
     ui.text(w / 2 - #hint * 6, h - 130, hint, 2, { 1, 1, 1, 0.7 }) -- low: the bar itself hangs near the middle
     return not self.done
 end

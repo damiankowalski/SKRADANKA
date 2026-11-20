@@ -309,6 +309,12 @@ local function run(self)
     test.check(fog.can_see(player), "fog.can_see: himself")
     test.check(not fog.can_see(here - ahead * 5 + vec3(0, 1, 0)), "fog.can_see: not behind his back")
     test.equal(fog.hidden(guard), not fog.can_see(guard), "fog.hidden: out of sight is out of the picture")
+    local upright = player:get("FogOfWar").Eye
+    player:set("FogOfWar", { Lean = 0.5 }) -- leaning (Q/E): the eye moves right of where the camera looks
+    H.wait(0)
+    local right = vec3(-ahead.z, 0, ahead.x)
+    test.near((player:get("FogOfWar").Eye - upright):dot(right), 0.5, 1e-3, "FogOfWar.Lean moves the eye sideways")
+    player:set("FogOfWar", { Lean = 0 })
     player:remove("FogOfWar")
     H.wait(0)
     test.check(not fog.active(), "no fog once the component is gone")

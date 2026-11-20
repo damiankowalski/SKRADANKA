@@ -166,6 +166,33 @@ TEST_SUITE("FogOfWar")
 		CHECK(level.Fog().CanSeeEntity(body));
 	}
 
+	TEST_CASE("Leaning moves the eye sideways from where he looks: he sees round the wall's edge")
+	{
+		FogLevel level;
+		// Behind the wall's right end (it reaches x = 1.5): out of the eye's sight from x = 0.
+		Entity guard = level.AddGuard("PastTheCorner", { 2.5f, 0.0f, -6.0f });
+		level.Start();
+		CHECK(level.Fog().IsHidden(guard));
+
+		level.Component().Lean = 0.8f; // right of where the camera looks (-Z): +X
+		level.Frame();
+		CHECK(level.Component().RuntimeEye.x == doctest::Approx(0.8f));
+		CHECK(level.Component().RuntimeEye.z == doctest::Approx(0.0f).epsilon(1e-4));
+		CHECK_FALSE(level.Fog().IsHidden(guard));
+
+		level.Component().Lean = -0.8f; // the other way: further behind the wall
+		Test::Simulate(level.SceneInstance, 0.5f); // past MemoryTime
+		CHECK(level.Component().RuntimeEye.x == doctest::Approx(-0.8f));
+		CHECK(level.Fog().IsHidden(guard));
+
+		// The lean follows the camera: looking down +Z, leaning right is towards -X.
+		level.Camera.Transform().Translation = { 0.0f, 3.0f, -4.0f };
+		level.Camera.Transform().Rotation = Math::LookRotation(glm::vec3(0.0f, -3.0f, 4.0f));
+		level.Component().Lean = 0.8f;
+		level.Frame();
+		CHECK(level.Component().RuntimeEye.x == doctest::Approx(-0.8f));
+	}
+
 	TEST_CASE("Fog can be switched off: by the component, by the testing switch, or only for characters")
 	{
 		FogLevel level;

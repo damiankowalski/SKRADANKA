@@ -466,6 +466,9 @@ namespace Penumbra {
 	{
 		bool Enabled = true;
 		float EyeHeight = 1.65f;       // metres above the entity origin; a CharacterController lower than this (crouching) lowers it
+		// Metres the eye leans sideways from where the view faces (+ right, - left): peeking round a corner. Set by
+		// the player's script, which keeps it out of walls (the fog itself does not test the lean against them).
+		float Lean = 0.0f;
 		float ViewAngle = 120.0f;      // full cone angle in the ground plane, degrees
 		float EdgeSoftness = 15.0f;    // degrees over which the cone's edge fades out
 		float ViewDistance = 40.0f;    // metres; nothing further is seen

@@ -74,7 +74,7 @@ TEST_SUITE("World")
 		Lab lab("WP_1", "", { -8.9f, 0.05f, 8.0f }, 90.0f);
 		lab.Run(1.0f);
 		REQUIRE(lab.Perception("Guard").RuntimeState == AwarenessState::Unaware);
-		CHECK(lab.Lua("return scene.find('Player'):script():interaction_prompt()") == "\"[F] knock out\"");
+		CHECK(lab.Lua("return scene.find('Player'):script():interaction_prompt()") == "\"[V] knock out\"");
 		CHECK(lab.Lua("return scene.find('Player'):script():blackjack()") == "\"knockout\"");
 		CHECK(lab.Vital("Guard") == "\"Unconscious\"");
 		lab.Run(2.0f);
@@ -84,7 +84,7 @@ TEST_SUITE("World")
 
 		// Pick him up: he goes onto the player's shoulders and is no body anyone can see.
 		lab.Run(0.9f); // the swing cooldown
-		CHECK(lab.Lua("return scene.find('Player'):script():interaction_prompt()") == "\"[E] pick up the body\"");
+		CHECK(lab.Lua("return scene.find('Player'):script():interaction_prompt()") == "\"[F] pick up the body\"");
 		CHECK(lab.Lua("return scene.find('Player'):script():use()") == "\"carry\"");
 		CHECK(lab.Entity("Guard").GetParent() == lab.Entity("Player"));
 		CHECK_FALSE(lab.Entity("Guard").HasComponent<PerceptionTargetComponent>());
