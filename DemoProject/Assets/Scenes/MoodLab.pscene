@@ -139,12 +139,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.22,
-            0.22,
-            0.21,
+            3.0,
+            3.0,
+            3.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -152,7 +152,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/Cobblestone/cobblestone_1001_albedo.png",
+          "NormalTexture": "Textures/Cobblestone/cobblestone_1001_normal.png",
+          "MetallicRoughnessTexture": "Textures/Cobblestone/cobblestone_1001_mr.png",
+          "UVScale": [
+            20.0,
+            40.0
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [

@@ -1,0 +1,13 @@
+{
+	"material": "cobblestone",
+	"description": "Courtyard and corridor floors: old cobblestone paving seen from above.",
+	"prompt": "{style} A seamless tileable texture of an old cobblestone pavement seen from directly above: {variation}, dark gaps between the stones, stones worn smooth on top, no pattern of rows across the whole square.",
+	"variations": [
+		"rounded grey cobblestones of mixed sizes packed tightly in dark earth",
+		"roughly squared dark granite setts in loose curving rows, grit and mud in the gaps",
+		"weathered brownish-grey cobbles, a little moss and dry soil between them"
+	],
+	"roughness": [0.6, 0.95],
+	"metallic": 0.0,
+	"normal_strength": 5.0
+}

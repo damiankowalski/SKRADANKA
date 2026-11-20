@@ -904,9 +904,26 @@ def stone_wall_material(kind, size):
     return mat
 
 
+# Generated cobblestone on the floors (the mood lab): one tile covers COBBLE_TILE_METRES of floor. The built-in
+# cube's top face maps u along Z and v along X. The albedo averages 0.055 linear; COBBLE_TINT lifts it towards
+# the flat 0.22 it replaces.
+COBBLE_TEXTURE = "Textures/Cobblestone/cobblestone_1001"
+COBBLE_TILE_METRES = 1.5
+COBBLE_TINT = 3.0
+
+
+def cobblestone_material(size):
+    """A tiled cobblestone material for the top face of a floor box of the given size."""
+    mat = material((COBBLE_TINT, COBBLE_TINT, COBBLE_TINT), roughness=1.0)
+    mat.update({"AlbedoTexture": f"{COBBLE_TEXTURE}_albedo.png", "NormalTexture": f"{COBBLE_TEXTURE}_normal.png",
+                "MetallicRoughnessTexture": f"{COBBLE_TEXTURE}_mr.png",
+                "UVScale": [round(size[2] / COBBLE_TILE_METRES, 3), round(size[0] / COBBLE_TILE_METRES, 3)]})
+    return mat
+
+
 def cloister_architecture(doc, textured=False):
     """The cloister's stone: ground, garden, the ring of covered corridors with doors, the wings. Textured: the
-    walls wear the generated stone (the mood lab); otherwise flat greys (the playable cloister)."""
+    walls wear the generated stone and the ground cobblestone (the mood lab); otherwise flat greys (the playable cloister)."""
     flat_stone, flat_dark_stone, wall_height = (0.32, 0.31, 0.3), (0.18, 0.18, 0.19), 3.2
 
     def wall(name, position, size, kind):
@@ -914,7 +931,7 @@ def cloister_architecture(doc, textured=False):
         box(doc, name, position, size, colour, mat=stone_wall_material(kind, size) if textured else None)
 
     stone, dark_stone = flat_stone, flat_dark_stone
-    box(doc, "Ground", (0, -0.5, 0), (60, 1, 30), (0.22, 0.22, 0.21))
+    box(doc, "Ground", (0, -0.5, 0), (60, 1, 30), (0.22, 0.22, 0.21), mat=cobblestone_material((60, 1, 30)) if textured else None)
 
     # The garden: grass, a fountain in the middle and hedges for cover.
     floor_patch(doc, "Garden", "Grass", (0, 0), (15.6, 15.6))
