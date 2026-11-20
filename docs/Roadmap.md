@@ -194,7 +194,39 @@ following a body the character collides with.
 
 ## Next
 
-**Later, discussed**: a full-screen map on a key (S as a static picture, M drawn from the level).
+**Perception: guards see the glow** (M, approved 2026-11-20; the next main package, AI first). Today the fog in
+perception only dims contrast (`exp(-optical depth)`); it does not add the light the fog scatters (docs/Fog.md, "What
+it does not do"). A thief against fog lit by a lamp should be a dark, readable silhouette, and bright fog between a
+guard and the thief should hide him. The same math as the renderer's in-scattering (lamps, their falloff, the fog's
+density and anisotropy), in `Scene/FogUtils.h` and the shaders together ("change both or neither"). Areas: AI
+(`PerceptionModel`), Scene (`FogUtils.h`, `LightUtils.h`), shaders (`Fog.hlsli`). Risks: the renderer integrates
+in-scattering on the GPU in a froxel grid, so perception needs a CPU estimate along each sight line that agrees with
+it (tests compare the two); its cost per guard per frame.
+
+**Later, discussed**: a full-screen map on a key (S as a static picture, M drawn from the level; the picture can
+come from AssetGen, see below).
+
+### Later, discussed: art pipeline (AssetGen)
+
+Each item needs the owner's approval before its brief. Generation runs on the Mac (`Tools/AssetGen`); results keep
+their provenance and go to the texture catalog; materials follow `docs/art/World.md`.
+
+* **Materials for the first mission** (S per material): planks, plaster, roof tiles (wooden shingles exist; fired
+  clay and thatch are in the catalog but fail the seam test), rusty metal, mud.
+* **The full-screen map's picture** (S): one generated image for the map item above.
+* **Concept art of locations** before their levels are built (S).
+* **Material variations through img2img** (S): wet, mossy and dirty versions of a material, against the repetition
+  of one tile. Needs mflux's image-to-image path with the pinned model.
+* **Emissive textures** (S), e.g. lit windows; `Material.EmissiveTexture` already exists.
+* **Better height maps with DepthPro through mflux** (S-M): normal maps from depth instead of the albedo's
+  brightness. Check DepthPro's licence first.
+* **Inventory icons with background removal** (S-M): the background-removal model's licence needs assessing.
+* **A decal system in the engine** (M-L): stains, cracks, moss laid on any surface. Renderer (a decal pass or
+  deferred decals in the forward renderer), Scene (a component), editor placement.
+* **KayKit characters replaced by Quaternius Universal Base Characters and the Universal Animation Library** (M,
+  CC0; to be decided): KayKit's chibi proportions do not fit direction B. Areas: `Tools/ImportCharacters.py`, the
+  animation clip names the scripts use, silhouette points and the perception tests tuned to the current models.
+* Rejected for now: generating character textures on their unwrapped UVs (L, poor quality).
 
 ### Later: movement and UI (~12+ sessions)
 
