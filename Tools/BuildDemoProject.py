@@ -849,9 +849,9 @@ def build_audio():
                             * math.exp(-i / (RATE * 0.004))) for i in range(int(RATE * 0.05))])
 
 # The lab's haze is thin (0.01) but its torches are bright: at the default 0.5 the haze they light gave the thief
-# away where the guards could not see him before the fog glow (PR #35's report). 0.15 keeps the glow visible and
-# the old hiding places hidden (LevelTests.cpp checks one).
-PHYSICS_LAB_FOG_SCATTERING = 0.15
+# away within half a second where the guards could not see him before the fog glow (PR #35's report). The owner
+# chose a middle way: at 0.22 the glow still outlines him, after a few seconds (2.4-6.1 s; LevelTests.cpp checks one).
+PHYSICS_LAB_FOG_SCATTERING = 0.22
 
 
 def build_physics_lab():

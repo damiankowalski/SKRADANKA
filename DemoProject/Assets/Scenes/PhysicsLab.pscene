@@ -43,7 +43,7 @@
           ],
           "SSAOEnabled": true,
           "BloomIntensity": 0.05,
-          "FogScattering": 0.15
+          "FogScattering": 0.22
         }
       }
     },
