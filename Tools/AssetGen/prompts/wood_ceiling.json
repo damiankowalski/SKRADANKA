@@ -1,0 +1,13 @@
+{
+	"material": "wood_ceiling",
+	"description": "Ceilings of covered corridors seen from below: dark wooden planks between heavy beams.",
+	"prompt": "{style} A seamless tileable texture of an old wooden ceiling seen straight on from below: {variation}, dark gaps between the boards, soot and age stains, visible wood grain.",
+	"variations": [
+		"long dark oak planks running in one direction, crossed by a heavy square beam",
+		"narrow weathered pine boards, uneven widths, iron nail heads in rows",
+		"rough-hewn brown timber planks, darkened by smoke, a few knots and cracks"
+	],
+	"roughness": [0.6, 0.9],
+	"metallic": 0.0,
+	"normal_strength": 4.0
+}

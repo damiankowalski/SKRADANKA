@@ -172,6 +172,12 @@ change), the camera, the model (tilted from the feet) and the silhouette guards 
 sideways (less crouched); a sphere swept from his head stops it at a wall. The use key moved from E to F and the
 blackjack from F to V (prompts, the lockpick's give-up, the F1 panel, docs).
 
+**Mood lab roofs** (S, approved after leaning): two AssetGen templates, `roof_tiles` (roofs from above) and
+`wood_ceiling` (ceilings from below), three variations each (four tiled, two fail the seam test; all six in the
+catalog with notes). Each roof slab of the mood lab is two layers: dark slate on top (`roof_tiles` 1001), smoke-darkened
+planks with beams below (`wood_ceiling` 1002), the ceiling the thief sees from the corridors. The renders add a roof
+shot under a test lamp. No engine change.
+
 ## In progress
 
 Nothing: the next package waits for the owner's choice.

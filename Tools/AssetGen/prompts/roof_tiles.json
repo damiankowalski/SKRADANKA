@@ -1,0 +1,13 @@
+{
+	"material": "roof_tiles",
+	"description": "Roofs seen from above: old overlapping roof tiles or slates in rows.",
+	"prompt": "{style} A seamless tileable texture of an old roof seen from directly above: {variation}, each row overlapping the one below, dark shadowed gaps under the edges, chipped and weathered.",
+	"variations": [
+		"worn terracotta clay tiles, faded brownish red, lichen spots",
+		"dark grey slate shingles of slightly uneven widths, damp and mossy at the edges",
+		"old wooden shingles weathered silver-grey, some split and curled"
+	],
+	"roughness": [0.65, 0.95],
+	"metallic": 0.0,
+	"normal_strength": 5.0
+}

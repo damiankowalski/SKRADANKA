@@ -1,0 +1,109 @@
+{
+  "tool": "Penumbra AssetGen",
+  "ai_generated": true,
+  "generated_at": "2026-11-20T11:17:59+00:00",
+  "material": "roof_tiles",
+  "template": "prompts/roof_tiles.json",
+  "prompt": "Hand-painted stylised realism for a dark medieval stealth game: painterly brushwork over believable materials, muted earthy colours, worn and lived-in surfaces. An albedo texture: flat even light, no cast shadows, no highlights, no vignette, no perspective, viewed straight on, the material fills the whole square edge to edge. A seamless tileable texture of an old roof seen from directly above: dark grey slate shingles of slightly uneven widths, damp and mossy at the edges, each row overlapping the one below, dark shadowed gaps under the edges, chipped and weathered.",
+  "seed": 1001,
+  "steps": 4,
+  "blend_steps": 4,
+  "size": 1024,
+  "quantize": 8,
+  "model": {
+    "id": "black-forest-labs/FLUX.2-klein-4B",
+    "revision": "e7b7dc27f91deacad38e78976d1f2b499d76a294",
+    "license": "Apache-2.0"
+  },
+  "mflux_version": "0.24.0",
+  "license": "Apache-2.0",
+  "timing": {
+    "model_load_seconds": 0.7,
+    "image_seconds": 235.8,
+    "mlx_peak_gb": 6.64,
+    "process_peak_rss_gb": 1.0
+  },
+  "seamless": {
+    "method": "generation+masking",
+    "seam_limit": 1.6,
+    "detail_limit": 0.55,
+    "x": {
+      "wrap_step": 1.508,
+      "interior_step_p99": 2.698,
+      "weakest_detail": 0.721,
+      "weakest_detail_at": 864,
+      "detail_at_edge": 1.289,
+      "detail_at_centre": 1.289,
+      "line_at_edge": 4.715,
+      "line_at_centre": 4.715,
+      "line_limit": 6.655,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "y": {
+      "wrap_step": 0.622,
+      "interior_step_p99": 4.0,
+      "weakest_detail": 0.723,
+      "weakest_detail_at": 514,
+      "detail_at_edge": 0.729,
+      "detail_at_centre": 0.729,
+      "line_at_edge": 0.354,
+      "line_at_centre": 0.354,
+      "line_limit": 8.402,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "passed": true,
+    "fallback_can_help": false,
+    "before_fallback": {
+      "seam_limit": 1.6,
+      "detail_limit": 0.55,
+      "x": {
+        "wrap_step": 1.122,
+        "interior_step_p99": 2.036,
+        "weakest_detail": 0.814,
+        "weakest_detail_at": 366,
+        "detail_at_edge": 1.148,
+        "detail_at_centre": 1.088,
+        "line_at_edge": 1.711,
+        "line_at_centre": 1.92,
+        "line_limit": 5.405,
+        "steps_ok": true,
+        "lines_ok": true
+      },
+      "y": {
+        "wrap_step": 4.615,
+        "interior_step_p99": 4.036,
+        "weakest_detail": 0.74,
+        "weakest_detail_at": 713,
+        "detail_at_edge": 1.818,
+        "detail_at_centre": 0.755,
+        "line_at_edge": 12.607,
+        "line_at_centre": 0.403,
+        "line_limit": 9.317,
+        "steps_ok": false,
+        "lines_ok": false
+      },
+      "passed": false,
+      "fallback_can_help": true
+    }
+  },
+  "maps": {
+    "height": "albedo luminance (approximation)",
+    "normal_convention": "glTF: +X right, +Y up (green), +Z out",
+    "normal_strength": 5.0,
+    "metallic_roughness": "glTF: G roughness, B metallic",
+    "roughness": [
+      0.65,
+      0.95
+    ],
+    "metallic": 0.0
+  },
+  "files": {
+    "albedo": "roof_tiles_1001_albedo.png",
+    "normal": "roof_tiles_1001_normal.png",
+    "metallic_roughness": "roof_tiles_1001_mr.png",
+    "preview": "roof_tiles_1001_preview.png",
+    "raw_albedo": "roof_tiles_1001_raw.png"
+  }
+}

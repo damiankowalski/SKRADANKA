@@ -1,0 +1,80 @@
+{
+  "tool": "Penumbra AssetGen",
+  "ai_generated": true,
+  "generated_at": "2026-11-20T11:26:02+00:00",
+  "material": "wood_ceiling",
+  "template": "prompts/wood_ceiling.json",
+  "prompt": "Hand-painted stylised realism for a dark medieval stealth game: painterly brushwork over believable materials, muted earthy colours, worn and lived-in surfaces. An albedo texture: flat even light, no cast shadows, no highlights, no vignette, no perspective, viewed straight on, the material fills the whole square edge to edge. A seamless tileable texture of an old wooden ceiling seen straight on from below: long dark oak planks running in one direction, crossed by a heavy square beam, dark gaps between the boards, soot and age stains, visible wood grain.",
+  "seed": 1000,
+  "steps": 4,
+  "blend_steps": 4,
+  "size": 1024,
+  "quantize": 8,
+  "model": {
+    "id": "black-forest-labs/FLUX.2-klein-4B",
+    "revision": "e7b7dc27f91deacad38e78976d1f2b499d76a294",
+    "license": "Apache-2.0"
+  },
+  "mflux_version": "0.24.0",
+  "license": "Apache-2.0",
+  "timing": {
+    "model_load_seconds": 0.7,
+    "image_seconds": 234.8,
+    "mlx_peak_gb": 6.48,
+    "process_peak_rss_gb": 1.58
+  },
+  "seamless": {
+    "method": "generation",
+    "seam_limit": 1.6,
+    "detail_limit": 0.55,
+    "x": {
+      "wrap_step": 2.04,
+      "interior_step_p99": 4.449,
+      "weakest_detail": 0.634,
+      "weakest_detail_at": 950,
+      "detail_at_edge": 1.341,
+      "detail_at_centre": 1.108,
+      "line_at_edge": 6.183,
+      "line_at_centre": 9.805,
+      "line_limit": 7.167,
+      "steps_ok": true,
+      "lines_ok": false
+    },
+    "y": {
+      "wrap_step": 1.243,
+      "interior_step_p99": 3.767,
+      "weakest_detail": 0.704,
+      "weakest_detail_at": 602,
+      "detail_at_edge": 1.215,
+      "detail_at_centre": 0.924,
+      "line_at_edge": 2.798,
+      "line_at_centre": 1.904,
+      "line_limit": 9.016,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "passed": false,
+    "fallback_can_help": false
+  },
+  "maps": {
+    "height": "albedo luminance (approximation)",
+    "normal_convention": "glTF: +X right, +Y up (green), +Z out",
+    "normal_strength": 4.0,
+    "metallic_roughness": "glTF: G roughness, B metallic",
+    "roughness": [
+      0.6,
+      0.9
+    ],
+    "metallic": 0.0
+  },
+  "files": {
+    "albedo": "wood_ceiling_1000_albedo.png",
+    "normal": "wood_ceiling_1000_normal.png",
+    "metallic_roughness": "wood_ceiling_1000_mr.png",
+    "preview": "wood_ceiling_1000_preview.png"
+  },
+  "catalog": {
+    "note": "Dark oak planks in a grid of square beams (coffered): halls, chapels. FAILS the seam test along the beams: fix or regenerate before use.",
+    "preview": "wood_ceiling_1000.png"
+  }
+}

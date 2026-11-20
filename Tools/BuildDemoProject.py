@@ -892,16 +892,20 @@ STONE_TILE_METRES = 2.0
 STONE_TINT = 2.0
 
 
+def tiled_material(texture, tint, repeats):
+    """A generated material (albedo, normal, metallic/roughness under the path stem `texture`), tinted and
+    repeated `repeats` (u, v) times across a face of the built-in cube."""
+    mat = material((tint, tint, tint), roughness=1.0)
+    mat.update({"AlbedoTexture": f"{texture}_albedo.png", "NormalTexture": f"{texture}_normal.png",
+                "MetallicRoughnessTexture": f"{texture}_mr.png", "UVScale": [round(r, 3) for r in repeats]})
+    return mat
+
+
 def stone_wall_material(kind, size):
     """A tiled stone material for a wall box of the given size: the tile keeps its size on the long faces
     (the narrow ends and the top are stretched: the built-in cube has no world-space mapping)."""
     width, height = max(size[0], size[2]), size[1]
-    texture = STONE_TEXTURES[kind]
-    mat = material((STONE_TINT, STONE_TINT, STONE_TINT), roughness=1.0)
-    mat.update({"AlbedoTexture": f"{texture}_albedo.png", "NormalTexture": f"{texture}_normal.png",
-                "MetallicRoughnessTexture": f"{texture}_mr.png",
-                "UVScale": [round(width / STONE_TILE_METRES, 3), round(height / STONE_TILE_METRES, 3)]})
-    return mat
+    return tiled_material(STONE_TEXTURES[kind], STONE_TINT, (width / STONE_TILE_METRES, height / STONE_TILE_METRES))
 
 
 # Generated cobblestone on the floors (the mood lab): one tile covers COBBLE_TILE_METRES of floor. The built-in
@@ -914,16 +918,36 @@ COBBLE_TINT = 3.0
 
 def cobblestone_material(size):
     """A tiled cobblestone material for the top face of a floor box of the given size."""
-    mat = material((COBBLE_TINT, COBBLE_TINT, COBBLE_TINT), roughness=1.0)
-    mat.update({"AlbedoTexture": f"{COBBLE_TEXTURE}_albedo.png", "NormalTexture": f"{COBBLE_TEXTURE}_normal.png",
-                "MetallicRoughnessTexture": f"{COBBLE_TEXTURE}_mr.png",
-                "UVScale": [round(size[2] / COBBLE_TILE_METRES, 3), round(size[0] / COBBLE_TILE_METRES, 3)]})
-    return mat
+    return tiled_material(COBBLE_TEXTURE, COBBLE_TINT, (size[2] / COBBLE_TILE_METRES, size[0] / COBBLE_TILE_METRES))
+
+
+# The corridors' roofs (the mood lab): each slab is two layers, generated roof tiles on top and a wooden ceiling
+# below (what the thief sees from the corridor). The cube's top face maps u along Z and v along X, its bottom face
+# u along X and v along Z.
+ROOF_TEXTURE = "Textures/Roof/roof_tiles_1001"
+ROOF_TILE_METRES = 2.0
+ROOF_TINT = 2.0
+CEILING_TEXTURE = "Textures/Roof/wood_ceiling_1002"
+CEILING_TILE_METRES = 2.0
+CEILING_TINT = 2.0
+
+
+def roof(doc, name, position, size, colour, textured):
+    """A roof slab: flat, or (textured) roof tiles over a wooden ceiling, each half the thickness."""
+    if not textured:
+        box(doc, name, position, size, colour)
+        return
+    x, y, z = position
+    half = (size[0], size[1] / 2, size[2])
+    box(doc, name + "Tiles", (x, y + size[1] / 4, z), half, colour,
+        mat=tiled_material(ROOF_TEXTURE, ROOF_TINT, (size[2] / ROOF_TILE_METRES, size[0] / ROOF_TILE_METRES)))
+    box(doc, name, (x, y - size[1] / 4, z), half, colour,
+        mat=tiled_material(CEILING_TEXTURE, CEILING_TINT, (size[0] / CEILING_TILE_METRES, size[2] / CEILING_TILE_METRES)))
 
 
 def cloister_architecture(doc, textured=False):
     """The cloister's stone: ground, garden, the ring of covered corridors with doors, the wings. Textured: the
-    walls wear the generated stone and the ground cobblestone (the mood lab); otherwise flat greys (the playable cloister)."""
+    walls wear the generated stone, the ground cobblestone, the roofs tiles over wooden ceilings (the mood lab); otherwise flat greys (the playable cloister)."""
     flat_stone, flat_dark_stone, wall_height = (0.32, 0.31, 0.3), (0.18, 0.18, 0.19), 3.2
 
     def wall(name, position, size, kind):
@@ -963,7 +987,7 @@ def cloister_architecture(doc, textured=False):
     # The ring's roof (the garden stays open to the sky).
     for name, position, size in (("RoofNorth", (0, 3.3, -9.6), (22.8, 0.2, 3.6)), ("RoofSouth", (0, 3.3, 9.6), (22.8, 0.2, 3.6)),
                                  ("RoofWest", (-9.6, 3.3, 0), (3.6, 0.2, 15.6)), ("RoofEast", (9.6, 3.3, 0), (3.6, 0.2, 15.6))):
-        box(doc, name, position, size, dark_stone)
+        roof(doc, name, position, size, dark_stone, textured)
 
     # The wings: 3 m wide corridors, 14 m long, roofed, closed at the far end.
     for side, sign in (("West", -1), ("East", 1)):
@@ -971,7 +995,7 @@ def cloister_architecture(doc, textured=False):
         wall(f"{side}WingNorth", (middle, wall_height / 2, -1.7), (14.6, wall_height, 0.4), "dark")
         wall(f"{side}WingSouth", (middle, wall_height / 2, 1.7), (14.6, wall_height, 0.4), "dark")
         wall(f"{side}WingEnd", (26.2 * sign, wall_height / 2, 0), (0.4, wall_height, 3.8), "dark")
-        box(doc, f"{side}WingRoof", (middle, 3.3, 0), (14.6, 0.2, 3.8), dark_stone)
+        roof(doc, f"{side}WingRoof", (middle, 3.3, 0), (14.6, 0.2, 3.8), dark_stone, textured)
 
 
 def build_cloister():
