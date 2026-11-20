@@ -12,6 +12,7 @@ renders, writes the files and exits. Nothing runs in the background. Agents: `.c
 | Pinned dependencies | `pyproject.toml`, `uv.lock`, `.python-version` | small | yes |
 | Python environment (Python 3.12 from uv, mflux 0.24.0, MLX, torch) | `Tools/AssetGen/.venv` | ~1.1 GB | no (ignored) |
 | Exploration output | `Tools/AssetGen/out/` | ~5 MB per material variant | no (ignored) |
+| The catalog: every variant worth keeping, as provenance + 512 px preview | `docs/art/textures/catalog/` | ~0.25 MB per variant | yes |
 | Model weights, pinned revision | `$HF_HOME/hub` (default `~/AI/huggingface`) | ~16 GB | never |
 | Hugging Face token | `$HF_HOME/token` | - | never |
 | uv's Python 3.12 and download cache | `~/.local/share/uv/python`, `~/.cache/uv` | ~70 MB, shared | no |
@@ -39,7 +40,8 @@ Tools/AssetGen/.venv/bin/python Tools/AssetGen/generate.py stone_wall --variants
 Options: `--seed` (variant *i* uses seed + *i*), `--steps` (4), `--size` (1024), `--quantize` (8; 4, or 0 for full
 precision, about twice the memory), `--out`, `--sheet <png>` (a contact sheet of all variants),
 `--no-seamless` (plain sampling, for comparison), `--blend-steps`, `--no-fallback`, `--only N` (redo variant N of
-a set), `--reprocess` (no model: redo the maps, seam test, previews and sheet from the albedos already in `--out`,
+a set), `--from <json>` (regenerate exactly the variant a provenance file describes: see the catalog below),
+`--reprocess` (no model: redo the maps, seam test, previews and sheet from the albedos already in `--out`,
 e.g. after changing `normal_strength`), `--model` (only the pinned one runs). Close PenumbraEditor first on a 16 GB Mac: `generate.py` warns when it is running.
 
 Measured on an M1 Pro with 16 GB, one 1024x1024 image, editor closed:
@@ -67,6 +69,25 @@ one variation per variant, `roughness` [smooth, rough], `metallic` and `normal_s
 Never name games, studios or living artists.
 Templates so far: `stone_wall` (walls, three variations) and `cobblestone` (floors seen from above, three
 variations).
+
+## The catalog
+
+Variants that are not picked today may serve elsewhere tomorrow, so every one worth keeping goes into
+`docs/art/textures/catalog/<material>/`: its provenance `.json` with a note (what it looks like, what it could
+serve) and its 2x2 preview at 512 px. The index, `docs/art/textures/catalog/README.md`, is generated and says which
+variants the game uses (by the albedo's file name under `DemoProject/Assets`).
+
+```sh
+Tools/AssetGen/.venv/bin/python Tools/AssetGen/catalog.py add out/<material>/<name>.json --note "..."
+Tools/AssetGen/.venv/bin/python Tools/AssetGen/catalog.py index    # after adding a texture to the game
+Tools/AssetGen/.venv/bin/python Tools/AssetGen/generate.py --from docs/art/textures/catalog/<material>/<name>.json
+```
+
+The full maps stay out of git (3-4 MB per variant, forever in history). `--from` brings them back: it takes the
+prompt, seed, steps, size, quantisation, blend steps and maps settings from the `.json` and refuses a record made
+with another model revision or mflux version. On the same Mac the result is byte-identical (checked on
+`cobblestone_1001`); another Apple chip or MLX version may differ by a few pixel levels. `catalog.py check` (and
+the tests) fail when a record is broken or the index is stale.
 
 ## How it tiles
 

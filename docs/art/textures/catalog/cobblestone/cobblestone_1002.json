@@ -1,0 +1,80 @@
+{
+  "tool": "Penumbra AssetGen",
+  "ai_generated": true,
+  "generated_at": "2026-11-20T07:24:05+00:00",
+  "material": "cobblestone",
+  "template": "prompts/cobblestone.json",
+  "prompt": "Hand-painted stylised realism for a dark medieval stealth game: painterly brushwork over believable materials, muted earthy colours, worn and lived-in surfaces. An albedo texture: flat even light, no cast shadows, no highlights, no vignette, no perspective, viewed straight on, the material fills the whole square edge to edge. A seamless tileable texture of an old cobblestone pavement seen from directly above: weathered brownish-grey cobbles, a little moss and dry soil between them, dark gaps between the stones, stones worn smooth on top, no pattern of rows across the whole square.",
+  "seed": 1002,
+  "steps": 4,
+  "blend_steps": 4,
+  "size": 1024,
+  "quantize": 8,
+  "model": {
+    "id": "black-forest-labs/FLUX.2-klein-4B",
+    "revision": "e7b7dc27f91deacad38e78976d1f2b499d76a294",
+    "license": "Apache-2.0"
+  },
+  "mflux_version": "0.24.0",
+  "license": "Apache-2.0",
+  "timing": {
+    "model_load_seconds": 0.7,
+    "image_seconds": 242.6,
+    "mlx_peak_gb": 6.57,
+    "process_peak_rss_gb": 0.92
+  },
+  "seamless": {
+    "method": "generation",
+    "seam_limit": 1.6,
+    "detail_limit": 0.55,
+    "x": {
+      "wrap_step": 1.075,
+      "interior_step_p99": 2.466,
+      "weakest_detail": 0.794,
+      "weakest_detail_at": 39,
+      "detail_at_edge": 0.933,
+      "detail_at_centre": 1.409,
+      "line_at_edge": 1.763,
+      "line_at_centre": 3.78,
+      "line_limit": 4.775,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "y": {
+      "wrap_step": 2.182,
+      "interior_step_p99": 3.787,
+      "weakest_detail": 0.78,
+      "weakest_detail_at": 50,
+      "detail_at_edge": 1.56,
+      "detail_at_centre": 1.345,
+      "line_at_edge": 3.144,
+      "line_at_centre": 1.793,
+      "line_limit": 7.483,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "passed": true,
+    "fallback_can_help": false
+  },
+  "maps": {
+    "height": "albedo luminance (approximation)",
+    "normal_convention": "glTF: +X right, +Y up (green), +Z out",
+    "normal_strength": 5.0,
+    "metallic_roughness": "glTF: G roughness, B metallic",
+    "roughness": [
+      0.6,
+      0.95
+    ],
+    "metallic": 0.0
+  },
+  "files": {
+    "albedo": "cobblestone_1002_albedo.png",
+    "normal": "cobblestone_1002_normal.png",
+    "metallic_roughness": "cobblestone_1002_mr.png",
+    "preview": "cobblestone_1002_preview.png"
+  },
+  "catalog": {
+    "note": "Brownish cobbles with moss and soil between them; its big stones repeat visibly, so best on small or broken-up areas: overgrown paths, ruins.",
+    "preview": "cobblestone_1002.png"
+  }
+}

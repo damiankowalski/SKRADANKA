@@ -59,7 +59,7 @@ if(PENUMBRA_BUILD_EDITOR)
     set_tests_properties(Automation.EditorCLI Automation.McpStdio Editor.Smoke Automation.MoodLab PROPERTIES LABELS gpu TIMEOUT 600)
 endif()
 
-# AssetGen's post-processing (Tools/AssetGen): seams, normal maps, provenance, the model allow-list. Plain
+# AssetGen (Tools/AssetGen): seams, normal maps, provenance, the model allow-list, the texture catalog. Plain
 # Python through uv, no model and no Apple Silicon needed; skipped where uv is not installed.
 find_program(PENUMBRA_UV_EXECUTABLE uv)
 if(PENUMBRA_UV_EXECUTABLE)
