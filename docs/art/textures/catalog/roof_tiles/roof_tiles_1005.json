@@ -1,0 +1,113 @@
+{
+  "tool": "Penumbra AssetGen",
+  "ai_generated": true,
+  "generated_at": "2026-11-20T12:19:30+00:00",
+  "material": "roof_tiles",
+  "template": "prompts/roof_tiles.json",
+  "prompt": "Hand-painted stylised realism for a dark medieval stealth game: painterly brushwork over believable materials, muted earthy colours, worn and lived-in surfaces. An albedo texture: flat even light, no cast shadows, no highlights, no vignette, no perspective, viewed straight on, the material fills the whole square edge to edge. A seamless tileable texture of an old roof seen from directly above: fired clay roof tiles in dark brown and ochre, unevenly weathered, lichen spots, each row overlapping the one below, dark shadowed gaps under the edges, chipped and weathered.",
+  "seed": 1005,
+  "steps": 4,
+  "blend_steps": 4,
+  "size": 1024,
+  "quantize": 8,
+  "model": {
+    "id": "black-forest-labs/FLUX.2-klein-4B",
+    "revision": "e7b7dc27f91deacad38e78976d1f2b499d76a294",
+    "license": "Apache-2.0"
+  },
+  "mflux_version": "0.24.0",
+  "license": "Apache-2.0",
+  "timing": {
+    "model_load_seconds": 0.8,
+    "image_seconds": 237.1,
+    "mlx_peak_gb": 6.57,
+    "process_peak_rss_gb": 1.43
+  },
+  "seamless": {
+    "method": "generation+masking",
+    "seam_limit": 1.6,
+    "detail_limit": 0.55,
+    "x": {
+      "wrap_step": 1.259,
+      "interior_step_p99": 2.458,
+      "weakest_detail": 0.425,
+      "weakest_detail_at": 361,
+      "detail_at_edge": 1.423,
+      "detail_at_centre": 1.423,
+      "line_at_edge": 1.418,
+      "line_at_centre": 1.418,
+      "line_limit": 4.741,
+      "steps_ok": false,
+      "lines_ok": true
+    },
+    "y": {
+      "wrap_step": 1.031,
+      "interior_step_p99": 2.075,
+      "weakest_detail": 0.698,
+      "weakest_detail_at": 342,
+      "detail_at_edge": 1.016,
+      "detail_at_centre": 1.016,
+      "line_at_edge": 0.993,
+      "line_at_centre": 0.993,
+      "line_limit": 3.032,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "passed": false,
+    "fallback_can_help": true,
+    "before_fallback": {
+      "seam_limit": 1.6,
+      "detail_limit": 0.55,
+      "x": {
+        "wrap_step": 0.527,
+        "interior_step_p99": 2.635,
+        "weakest_detail": 0.479,
+        "weakest_detail_at": 866,
+        "detail_at_edge": 0.957,
+        "detail_at_centre": 1.331,
+        "line_at_edge": 0.47,
+        "line_at_centre": 1.193,
+        "line_limit": 4.992,
+        "steps_ok": false,
+        "lines_ok": true
+      },
+      "y": {
+        "wrap_step": 0.805,
+        "interior_step_p99": 1.94,
+        "weakest_detail": 0.707,
+        "weakest_detail_at": 403,
+        "detail_at_edge": 0.921,
+        "detail_at_centre": 1.168,
+        "line_at_edge": 0.916,
+        "line_at_centre": 1.088,
+        "line_limit": 2.777,
+        "steps_ok": true,
+        "lines_ok": true
+      },
+      "passed": false,
+      "fallback_can_help": true
+    }
+  },
+  "maps": {
+    "height": "albedo luminance (approximation)",
+    "normal_convention": "glTF: +X right, +Y up (green), +Z out",
+    "normal_strength": 5.0,
+    "metallic_roughness": "glTF: G roughness, B metallic",
+    "roughness": [
+      0.65,
+      0.95
+    ],
+    "metallic": 0.0
+  },
+  "files": {
+    "albedo": "roof_tiles_1005_albedo.png",
+    "normal": "roof_tiles_1005_normal.png",
+    "metallic_roughness": "roof_tiles_1005_mr.png",
+    "preview": "roof_tiles_1005_preview.png",
+    "raw_albedo": "roof_tiles_1005_raw.png"
+  },
+  "catalog": {
+    "note": "Fired clay roof tiles, dark brown and ochre, lichen: richer town houses. FAILS the seam test even after the masking fallback (soft detail at the centre): regenerate before use.",
+    "preview": "roof_tiles_1005.png"
+  }
+}

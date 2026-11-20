@@ -173,10 +173,12 @@ sideways (less crouched); a sphere swept from his head stops it at a wall. The u
 blackjack from F to V (prompts, the lockpick's give-up, the F1 panel, docs).
 
 **Mood lab roofs** (S, approved after leaning): two AssetGen templates, `roof_tiles` (roofs from above) and
-`wood_ceiling` (ceilings from below), three variations each (four tiled, two fail the seam test; all six in the
-catalog with notes). Each roof slab of the mood lab is two layers: dark slate on top (`roof_tiles` 1001), smoke-darkened
-planks with beams below (`wood_ceiling` 1002), the ceiling the thief sees from the corridors. The renders add a roof
-shot under a test lamp. No engine change.
+`wood_ceiling` (ceilings from below); nine variants, all in the catalog with notes (four fail the seam test and say
+so). Each roof slab of the mood lab is two layers: dark wooden shingles on top (`roof_tiles` 1003; a first slate read
+as the walls' stone and was dropped), smoke-darkened planks with beams below (`wood_ceiling` 1002), the ceiling the
+thief sees from the corridors. The renders add a roof shot under a test lamp. `docs/art/World.md` anchors the world
+(medieval, rare practical magic, nature taking back abandoned places, early steam machinery as accents) and what
+each surface is made of (roofs are roofing, never the walls' stone). No engine change.
 
 ## In progress
 

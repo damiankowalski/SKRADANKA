@@ -7,6 +7,8 @@ description: Build a complete game (or level) in the Penumbra engine end to end 
 
 Read `docs/Automation.md` (commands) and `docs/ScriptingAPI.md` (Lua) first. Engine code is not
 changed for game work; if a feature is missing, add it to the engine first (with tests, see AGENTS.md).
+For the demo's own world (Penumbra's stealth game), `docs/art/World.md` says what the world is and what each
+surface is made of (walls, roofs, floors); levels follow it.
 
 1. **Build the tools once**: `Tools\Build.bat debug` (macOS: `Tools/Build.sh debug`). Executables: `build\debug\bin\PenumbraEditor.exe`,
    `PenumbraRuntime.exe` (no `.exe` on macOS).

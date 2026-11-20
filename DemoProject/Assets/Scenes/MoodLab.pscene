@@ -2742,9 +2742,9 @@
             1
           ],
           "Translucent": false,
-          "AlbedoTexture": "Textures/Roof/roof_tiles_1001_albedo.png",
-          "NormalTexture": "Textures/Roof/roof_tiles_1001_normal.png",
-          "MetallicRoughnessTexture": "Textures/Roof/roof_tiles_1001_mr.png",
+          "AlbedoTexture": "Textures/Roof/roof_tiles_1003_albedo.png",
+          "NormalTexture": "Textures/Roof/roof_tiles_1003_normal.png",
+          "MetallicRoughnessTexture": "Textures/Roof/roof_tiles_1003_mr.png",
           "UVScale": [
             1.8,
             11.4
@@ -2860,9 +2860,9 @@
             1
           ],
           "Translucent": false,
-          "AlbedoTexture": "Textures/Roof/roof_tiles_1001_albedo.png",
-          "NormalTexture": "Textures/Roof/roof_tiles_1001_normal.png",
-          "MetallicRoughnessTexture": "Textures/Roof/roof_tiles_1001_mr.png",
+          "AlbedoTexture": "Textures/Roof/roof_tiles_1003_albedo.png",
+          "NormalTexture": "Textures/Roof/roof_tiles_1003_normal.png",
+          "MetallicRoughnessTexture": "Textures/Roof/roof_tiles_1003_mr.png",
           "UVScale": [
             1.8,
             11.4
@@ -2978,9 +2978,9 @@
             1
           ],
           "Translucent": false,
-          "AlbedoTexture": "Textures/Roof/roof_tiles_1001_albedo.png",
-          "NormalTexture": "Textures/Roof/roof_tiles_1001_normal.png",
-          "MetallicRoughnessTexture": "Textures/Roof/roof_tiles_1001_mr.png",
+          "AlbedoTexture": "Textures/Roof/roof_tiles_1003_albedo.png",
+          "NormalTexture": "Textures/Roof/roof_tiles_1003_normal.png",
+          "MetallicRoughnessTexture": "Textures/Roof/roof_tiles_1003_mr.png",
           "UVScale": [
             7.8,
             1.8
@@ -3096,9 +3096,9 @@
             1
           ],
           "Translucent": false,
-          "AlbedoTexture": "Textures/Roof/roof_tiles_1001_albedo.png",
-          "NormalTexture": "Textures/Roof/roof_tiles_1001_normal.png",
-          "MetallicRoughnessTexture": "Textures/Roof/roof_tiles_1001_mr.png",
+          "AlbedoTexture": "Textures/Roof/roof_tiles_1003_albedo.png",
+          "NormalTexture": "Textures/Roof/roof_tiles_1003_normal.png",
+          "MetallicRoughnessTexture": "Textures/Roof/roof_tiles_1003_mr.png",
           "UVScale": [
             7.8,
             1.8
@@ -3391,9 +3391,9 @@
             1
           ],
           "Translucent": false,
-          "AlbedoTexture": "Textures/Roof/roof_tiles_1001_albedo.png",
-          "NormalTexture": "Textures/Roof/roof_tiles_1001_normal.png",
-          "MetallicRoughnessTexture": "Textures/Roof/roof_tiles_1001_mr.png",
+          "AlbedoTexture": "Textures/Roof/roof_tiles_1003_albedo.png",
+          "NormalTexture": "Textures/Roof/roof_tiles_1003_normal.png",
+          "MetallicRoughnessTexture": "Textures/Roof/roof_tiles_1003_mr.png",
           "UVScale": [
             1.9,
             7.3
@@ -3686,9 +3686,9 @@
             1
           ],
           "Translucent": false,
-          "AlbedoTexture": "Textures/Roof/roof_tiles_1001_albedo.png",
-          "NormalTexture": "Textures/Roof/roof_tiles_1001_normal.png",
-          "MetallicRoughnessTexture": "Textures/Roof/roof_tiles_1001_mr.png",
+          "AlbedoTexture": "Textures/Roof/roof_tiles_1003_albedo.png",
+          "NormalTexture": "Textures/Roof/roof_tiles_1003_normal.png",
+          "MetallicRoughnessTexture": "Textures/Roof/roof_tiles_1003_mr.png",
           "UVScale": [
             1.9,
             7.3

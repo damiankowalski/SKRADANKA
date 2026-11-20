@@ -1,0 +1,76 @@
+{
+  "tool": "Penumbra AssetGen",
+  "ai_generated": true,
+  "generated_at": "2026-11-20T12:11:24+00:00",
+  "material": "roof_tiles",
+  "template": "prompts/roof_tiles.json",
+  "prompt": "Hand-painted stylised realism for a dark medieval stealth game: painterly brushwork over believable materials, muted earthy colours, worn and lived-in surfaces. An albedo texture: flat even light, no cast shadows, no highlights, no vignette, no perspective, viewed straight on, the material fills the whole square edge to edge. A seamless tileable texture of an old roof seen from directly above: dark weathered wooden shingles in tight overlapping rows, edges split and curled, moss in the gaps, each row overlapping the one below, dark shadowed gaps under the edges, chipped and weathered.",
+  "seed": 1003,
+  "steps": 4,
+  "blend_steps": 4,
+  "size": 1024,
+  "quantize": 8,
+  "model": {
+    "id": "black-forest-labs/FLUX.2-klein-4B",
+    "revision": "e7b7dc27f91deacad38e78976d1f2b499d76a294",
+    "license": "Apache-2.0"
+  },
+  "mflux_version": "0.24.0",
+  "license": "Apache-2.0",
+  "timing": {
+    "model_load_seconds": 0.8,
+    "image_seconds": 236.4,
+    "mlx_peak_gb": 6.48,
+    "process_peak_rss_gb": 1.43
+  },
+  "seamless": {
+    "method": "generation",
+    "seam_limit": 1.6,
+    "detail_limit": 0.55,
+    "x": {
+      "wrap_step": 0.752,
+      "interior_step_p99": 2.147,
+      "weakest_detail": 0.767,
+      "weakest_detail_at": 450,
+      "detail_at_edge": 1.087,
+      "detail_at_centre": 1.166,
+      "line_at_edge": 0.966,
+      "line_at_centre": 3.427,
+      "line_limit": 3.694,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "y": {
+      "wrap_step": 1.142,
+      "interior_step_p99": 3.862,
+      "weakest_detail": 0.851,
+      "weakest_detail_at": 566,
+      "detail_at_edge": 1.027,
+      "detail_at_centre": 1.521,
+      "line_at_edge": 1.281,
+      "line_at_centre": 7.171,
+      "line_limit": 7.932,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "passed": true,
+    "fallback_can_help": false
+  },
+  "maps": {
+    "height": "albedo luminance (approximation)",
+    "normal_convention": "glTF: +X right, +Y up (green), +Z out",
+    "normal_strength": 5.0,
+    "metallic_roughness": "glTF: G roughness, B metallic",
+    "roughness": [
+      0.65,
+      0.95
+    ],
+    "metallic": 0.0
+  },
+  "files": {
+    "albedo": "roof_tiles_1003_albedo.png",
+    "normal": "roof_tiles_1003_normal.png",
+    "metallic_roughness": "roof_tiles_1003_mr.png",
+    "preview": "roof_tiles_1003_preview.png"
+  }
+}

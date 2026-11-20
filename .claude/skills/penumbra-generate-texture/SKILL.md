@@ -6,6 +6,8 @@ description: Generate a tileable 2D material (albedo, normal map, metallic/rough
 # Generate a texture with AssetGen
 
 The tool, its files and its limits: `Tools/AssetGen/README.md`. Read it first.
+What the world is and what its surfaces are made of (roofs are roofing, never the walls' stone):
+`docs/art/World.md`.
 
 ## When
 

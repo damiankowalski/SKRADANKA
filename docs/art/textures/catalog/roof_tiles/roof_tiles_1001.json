@@ -107,7 +107,7 @@
     "raw_albedo": "roof_tiles_1001_raw.png"
   },
   "catalog": {
-    "note": "Dark grey slate, mossy at the edges: dark roofs, the cloister's (tiles after the masking fallback).",
+    "note": "Dark grey slate, mossy at the edges (tiles after the masking fallback). Reads as the walls' stone, not as roofing (owner, 2026-11-20): not for roofs; maybe flagstones or wall cladding.",
     "preview": "roof_tiles_1001.png"
   }
 }

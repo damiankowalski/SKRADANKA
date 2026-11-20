@@ -921,10 +921,10 @@ def cobblestone_material(size):
     return tiled_material(COBBLE_TEXTURE, COBBLE_TINT, (size[2] / COBBLE_TILE_METRES, size[0] / COBBLE_TILE_METRES))
 
 
-# The corridors' roofs (the mood lab): each slab is two layers, generated roof tiles on top and a wooden ceiling
-# below (what the thief sees from the corridor). The cube's top face maps u along Z and v along X, its bottom face
-# u along X and v along Z.
-ROOF_TEXTURE = "Textures/Roof/roof_tiles_1001"
+# The corridors' roofs (the mood lab): each slab is two layers, generated roofing on top (wooden shingles: roofs
+# are roofing, never the walls' stone, docs/art/World.md) and a wooden ceiling below (what the thief sees from the
+# corridor). The cube's top face maps u along Z and v along X, its bottom face u along X and v along Z.
+ROOF_TEXTURE = "Textures/Roof/roof_tiles_1003"
 ROOF_TILE_METRES = 2.0
 ROOF_TINT = 2.0
 CEILING_TEXTURE = "Textures/Roof/wood_ceiling_1002"
