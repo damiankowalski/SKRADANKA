@@ -1,0 +1,80 @@
+{
+  "tool": "Penumbra AssetGen",
+  "ai_generated": true,
+  "generated_at": "2026-11-20T07:15:55+00:00",
+  "material": "cobblestone",
+  "template": "prompts/cobblestone.json",
+  "prompt": "Hand-painted stylised realism for a dark medieval stealth game: painterly brushwork over believable materials, muted earthy colours, worn and lived-in surfaces. An albedo texture: flat even light, no cast shadows, no highlights, no vignette, no perspective, viewed straight on, the material fills the whole square edge to edge. A seamless tileable texture of an old cobblestone pavement seen from directly above: rounded grey cobblestones of mixed sizes packed tightly in dark earth, dark gaps between the stones, stones worn smooth on top, no pattern of rows across the whole square.",
+  "seed": 1000,
+  "steps": 4,
+  "blend_steps": 4,
+  "size": 1024,
+  "quantize": 8,
+  "model": {
+    "id": "black-forest-labs/FLUX.2-klein-4B",
+    "revision": "e7b7dc27f91deacad38e78976d1f2b499d76a294",
+    "license": "Apache-2.0"
+  },
+  "mflux_version": "0.24.0",
+  "license": "Apache-2.0",
+  "timing": {
+    "model_load_seconds": 0.7,
+    "image_seconds": 248.5,
+    "mlx_peak_gb": 6.48,
+    "process_peak_rss_gb": 0.92
+  },
+  "seamless": {
+    "method": "generation",
+    "seam_limit": 1.6,
+    "detail_limit": 0.55,
+    "x": {
+      "wrap_step": 1.09,
+      "interior_step_p99": 1.547,
+      "weakest_detail": 0.822,
+      "weakest_detail_at": 961,
+      "detail_at_edge": 1.088,
+      "detail_at_centre": 0.956,
+      "line_at_edge": 1.438,
+      "line_at_centre": 0.884,
+      "line_limit": 3.142,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "y": {
+      "wrap_step": 0.989,
+      "interior_step_p99": 2.701,
+      "weakest_detail": 0.761,
+      "weakest_detail_at": 464,
+      "detail_at_edge": 1.034,
+      "detail_at_centre": 1.058,
+      "line_at_edge": 0.714,
+      "line_at_centre": 4.782,
+      "line_limit": 7.126,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "passed": true,
+    "fallback_can_help": false
+  },
+  "maps": {
+    "height": "albedo luminance (approximation)",
+    "normal_convention": "glTF: +X right, +Y up (green), +Z out",
+    "normal_strength": 5.0,
+    "metallic_roughness": "glTF: G roughness, B metallic",
+    "roughness": [
+      0.6,
+      0.95
+    ],
+    "metallic": 0.0
+  },
+  "files": {
+    "albedo": "cobblestone_1000_albedo.png",
+    "normal": "cobblestone_1000_normal.png",
+    "metallic_roughness": "cobblestone_1000_mr.png",
+    "preview": "cobblestone_1000_preview.png"
+  },
+  "catalog": {
+    "note": "Rounded grey cobbles in regular, brick-like rows: a town street or a market square.",
+    "preview": "cobblestone_1000.png"
+  }
+}

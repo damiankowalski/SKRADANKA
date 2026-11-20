@@ -160,6 +160,12 @@ sides now stand upright (u to the right, v down).
 1002 repeats its big stones visibly) paves the mood lab's corridors and wings, one tile per 1.5 m, in
 `DemoProject/Assets/Textures/Cobblestone` with its provenance. Renders v3 redone. No engine change.
 
+**Texture catalog** (S, approved after the cobblestone): `docs/art/textures/catalog/` keeps every generated
+variant worth keeping, chosen or not, as its provenance `.json` with a note and a 512 px 2x2 preview (about
+0.25 MB each); the full maps stay out of git and come back with `generate.py --from <json>` (byte-identical on the
+same Mac; refuses another model revision or mflux version). `Tools/AssetGen/catalog.py` adds variants and writes
+the index, which says which ones the game uses. Six so far: three stone walls, three cobblestones.
+
 ## In progress
 
 Nothing: the next package waits for the owner's choice (leaning on Q/E is the natural follow-up).

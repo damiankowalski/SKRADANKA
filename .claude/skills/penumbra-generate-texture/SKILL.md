@@ -51,3 +51,7 @@ Tools/AssetGen/.venv/bin/python Tools/AssetGen/generate.py stone_wall --variants
   step; README.md has the measurements). `--blend-steps 1` is about
   twice as fast but can leave a faint line through the middle; do not use it for textures you hand over.
 * To see a texture in the engine: `Tools/AssetGen/EngineCheck.jsonl` (a throwaway project in `build/`).
+* Keep every variant worth keeping, chosen or not, in the catalog: `catalog.py add <json> --note "..."` (what
+  it looks like, what it could serve), and `catalog.py index` after a texture enters `DemoProject/Assets`. Before
+  generating something new, look in `docs/art/textures/catalog/README.md`: a variant there comes back with
+  `generate.py --from <json>`.

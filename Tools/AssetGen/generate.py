@@ -1,6 +1,7 @@
 """Generate tileable PBR materials with FLUX.2 klein 4B (Tools/AssetGen/README.md).
 
     uv run --project Tools/AssetGen --extra gen python Tools/AssetGen/generate.py stone_wall --variants 3
+    ... generate.py --from docs/art/textures/catalog/cobblestone/cobblestone_1000.json   (redo one exactly)
 
 Per variant: <name>_albedo.png (tileable), _normal.png (glTF convention), _mr.png (G roughness, B metallic),
 _preview.png (2x2 tiled) and <name>.json (provenance). Output goes to Tools/AssetGen/out/ unless --out says
@@ -31,7 +32,10 @@ PROMPTS = ROOT / "prompts"
 
 def parse_args(argv: list[str], defaults: dict) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Generate tileable PBR materials with FLUX.2 klein 4B.")
-    parser.add_argument("material", help="a template in prompts/ (e.g. stone_wall)")
+    parser.add_argument("material", nargs="?", help="a template in prompts/ (e.g. stone_wall)")
+    parser.add_argument("--from", dest="from_record", type=Path, default=None, metavar="JSON",
+                        help="regenerate exactly the variant a provenance .json describes (its prompt, seed, "
+                             "settings and maps); the pinned model and mflux must match it")
     parser.add_argument("--variants", type=int, default=defaults["variants"], help="how many (seeds seed, seed+1, ...)")
     parser.add_argument("--seed", type=int, default=defaults["seed"])
     parser.add_argument("--only", type=int, default=None, metavar="N",
@@ -67,6 +71,41 @@ def load_template(name: str) -> dict:
 def prompt_for(template: dict, variant: int) -> str:
     variations = template.get("variations") or [""]
     return template["prompt"].format(style=template["style"], variation=variations[variant % len(variations)])
+
+
+class RecordMismatch(Exception):
+    pass
+
+
+def plan_from_record(record: dict, config: dict, name: str) -> dict:
+    """What --from regenerates: everything that decides the pixels, taken from a provenance record. Raises
+    RecordMismatch when the record is incomplete or was made with another model revision or mflux version (the
+    result would not be the same image)."""
+    problems = proc.validate_provenance(record)
+    if problems:
+        raise RecordMismatch(f"incomplete provenance: {', '.join(problems)}")
+    model = record["model"]
+    if model["id"].lower() != config["model"]["id"].lower() or model["revision"] != config["model"]["revision"]:
+        raise RecordMismatch(f"made with {model['id']} @ {model['revision'][:12]}, config.json pins "
+                             f"{config['model']['id']} @ {config['model']['revision'][:12]}")
+    if record["mflux_version"] != config["mflux_version"]:
+        raise RecordMismatch(f"made with mflux {record['mflux_version']}, config.json pins {config['mflux_version']}")
+    maps = record.get("maps") or {}
+    if not all(key in maps for key in ("normal_strength", "roughness", "metallic")):
+        raise RecordMismatch("the record has no maps settings (normal_strength, roughness, metallic)")
+    method = record.get("seamless", {}).get("method", "generation")
+    return {
+        "material": record["material"],
+        "name": name,
+        "prompt": record["prompt"],
+        "seed": record["seed"],
+        "steps": record["steps"],
+        "size": record["size"],
+        "quantize": record["quantize"],
+        "seamless": not method.startswith("plain"),
+        "blend_steps": record.get("blend_steps") or config["defaults"]["blend_steps"],
+        "maps": {"normal_strength": maps["normal_strength"], "roughness": maps["roughness"], "metallic": maps["metallic"]},
+    }
 
 
 def editor_running() -> bool:
@@ -209,12 +248,27 @@ def main(argv: list[str] | None = None) -> int:
     if model_id.lower() != config["model"]["id"].lower():
         print(f"Refusing: {model_id} is allowed but not the pinned model in config.json", file=sys.stderr)
         return 3
-    try:
-        template = load_template(args.material)
-    except (FileNotFoundError, json.JSONDecodeError, KeyError) as error:
-        print(f"Template problem: {error}", file=sys.stderr)
+    plan = None
+    if args.from_record:
+        try:
+            with open(args.from_record, encoding="utf-8") as file:
+                plan = plan_from_record(json.load(file), config, args.from_record.stem)
+        except (OSError, json.JSONDecodeError, RecordMismatch) as error:
+            print(f"Cannot regenerate {args.from_record}: {error}", file=sys.stderr)
+            return 2
+        args.material, args.seed, args.steps, args.size = plan["material"], plan["seed"], plan["steps"], plan["size"]
+        args.quantize, args.no_seamless, args.blend_steps = plan["quantize"] or 0, not plan["seamless"], plan["blend_steps"]
+        template = dict(plan["maps"])
+    elif not args.material:
+        print("Name a template (e.g. stone_wall) or give --from <provenance.json>", file=sys.stderr)
         return 2
-    if args.reprocess:
+    else:
+        try:
+            template = load_template(args.material)
+        except (FileNotFoundError, json.JSONDecodeError, KeyError) as error:
+            print(f"Template problem: {error}", file=sys.stderr)
+            return 2
+    if args.reprocess and plan is None:
         return reprocess(args, template)
     if args.size % 64 != 0 or args.size < 256:
         print("--size must be a multiple of 64, at least 256", file=sys.stderr)
@@ -256,25 +310,28 @@ def main(argv: list[str] | None = None) -> int:
     load_seconds = time.perf_counter() - started
     print(f"Model loaded in {load_seconds:.1f} s ({'full precision' if quantize is None else f'{quantize}-bit'})")
 
-    variants = [args.only] if args.only is not None else list(range(args.variants))
-    prompts = {variant: prompt_for(template, variant) for variant in variants}
-    encoded_prompts = dict(zip(variants, model.encode_prompts([prompts[v] for v in variants])))
+    # One job per image: (name, seed, prompt).
+    if plan is not None:
+        jobs = [(plan["name"], plan["seed"], plan["prompt"])]
+    else:
+        jobs = []
+        for variant in [args.only] if args.only is not None else list(range(args.variants)):
+            name = f"{args.material}_{args.seed + variant}"
+            if args.no_seamless:
+                name += "_plain"
+            elif args.blend_steps != config["defaults"]["blend_steps"]:
+                name += f"_blend{args.blend_steps}"
+            if quantize is None:
+                name += "_full"
+            jobs.append((name, args.seed + variant, prompt_for(template, variant)))
+    encoded_prompts = model.encode_prompts([prompt for _, _, prompt in jobs])
 
     sheet_rows = []
     failures = 0
-    for variant in variants:
-        seed = args.seed + variant
-        prompt = prompts[variant]
-        name = f"{args.material}_{seed}"
-        if args.no_seamless:
-            name += "_plain"
-        elif args.blend_steps != config["defaults"]["blend_steps"]:
-            name += f"_blend{args.blend_steps}"
-        if quantize is None:
-            name += "_full"
+    for (name, seed, prompt), encoded_prompt in zip(jobs, encoded_prompts):
         generator.reset_peak_memory()
         began = time.perf_counter()
-        raw = model.generate(encoded_prompts[variant], seed=seed, steps=args.steps, size=args.size,
+        raw = model.generate(encoded_prompt, seed=seed, steps=args.steps, size=args.size,
                              seamless=not args.no_seamless, blend_steps=args.blend_steps)
         seconds = time.perf_counter() - began
         peak_gb = generator.peak_memory_gb()
