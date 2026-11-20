@@ -26,4 +26,9 @@
 {"cmd": "simulate", "frames": 6}
 {"cmd": "render.screenshot", "path": "docs/art/mood/v3/C_mixed_wide.png", "width": 1280, "height": 720, "camera": {"position": [0.0, 2.0, 7.3], "target": [0.0, 1.0, -8.0], "fov": 75}}
 {"cmd": "render.screenshot", "path": "docs/art/mood/v3/C_mixed_close.png", "width": 1280, "height": 720, "camera": {"position": [1.2, 1.5, -9.1], "target": [6.0, 1.1, -9.7], "fov": 55}}
+# The roofs' top is never in the shots above (and black by night): a test lamp over the north-east corner
+# shows the slate (not one of the variants' lights).
+{"cmd": "script.exec", "code": "local e = scene.create('RoofCheckLamp'); e:set_position(vec3(9, 6, -9)); e:add('PointLight', {Color = {1, 0.9, 0.8}, Intensity = 60, Range = 14}); return true"}
+{"cmd": "simulate", "frames": 4}
+{"cmd": "render.screenshot", "path": "docs/art/mood/v3/roofs_test_lamp.png", "width": 1280, "height": 720, "camera": {"position": [14.0, 6.0, -14.0], "target": [8.0, 3.3, -8.5], "fov": 60}}
 {"cmd": "stop"}

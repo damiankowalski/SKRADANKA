@@ -67,8 +67,8 @@ Prompts are templates in `prompts/`. `style.txt` is the shared art direction (ha
 muted, flat light: `docs/art/mood/README.md`). `<material>.json` holds the prompt with `{style}` and `{variation}`,
 one variation per variant, `roughness` [smooth, rough], `metallic` and `normal_strength`. Describe the material.
 Never name games, studios or living artists.
-Templates so far: `stone_wall` (walls, three variations) and `cobblestone` (floors seen from above, three
-variations).
+Templates so far: `stone_wall` (walls), `cobblestone` (floors seen from above), `roof_tiles` (roofs seen from
+above) and `wood_ceiling` (ceilings seen from below), three variations each.
 
 ## The catalog
 

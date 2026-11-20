@@ -2704,12 +2704,12 @@
       "ID": "1052",
       "Components": {
         "Tag": {
-          "Tag": "RoofNorth"
+          "Tag": "RoofNorthTiles"
         },
         "Transform": {
           "Translation": [
             0,
-            3.3,
+            3.3499999999999996,
             -9.6
           ],
           "Rotation": [
@@ -2719,7 +2719,7 @@
           ],
           "Scale": [
             22.8,
-            0.2,
+            0.1,
             3.6
           ]
         },
@@ -2728,12 +2728,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.18,
-            0.18,
-            0.19,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -2741,7 +2741,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/Roof/roof_tiles_1003_albedo.png",
+          "NormalTexture": "Textures/Roof/roof_tiles_1003_normal.png",
+          "MetallicRoughnessTexture": "Textures/Roof/roof_tiles_1003_mr.png",
+          "UVScale": [
+            1.8,
+            11.4
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -2756,13 +2763,13 @@
       "ID": "1053",
       "Components": {
         "Tag": {
-          "Tag": "RoofSouth"
+          "Tag": "RoofNorth"
         },
         "Transform": {
           "Translation": [
             0,
-            3.3,
-            9.6
+            3.25,
+            -9.6
           ],
           "Rotation": [
             0,
@@ -2771,7 +2778,7 @@
           ],
           "Scale": [
             22.8,
-            0.2,
+            0.1,
             3.6
           ]
         },
@@ -2780,12 +2787,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.18,
-            0.18,
-            0.19,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -2793,7 +2800,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/Roof/wood_ceiling_1002_albedo.png",
+          "NormalTexture": "Textures/Roof/wood_ceiling_1002_normal.png",
+          "MetallicRoughnessTexture": "Textures/Roof/wood_ceiling_1002_mr.png",
+          "UVScale": [
+            11.4,
+            1.8
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -2808,13 +2822,13 @@
       "ID": "1054",
       "Components": {
         "Tag": {
-          "Tag": "RoofWest"
+          "Tag": "RoofSouthTiles"
         },
         "Transform": {
           "Translation": [
-            -9.6,
-            3.3,
-            0
+            0,
+            3.3499999999999996,
+            9.6
           ],
           "Rotation": [
             0,
@@ -2822,9 +2836,9 @@
             0
           ],
           "Scale": [
-            3.6,
-            0.2,
-            15.6
+            22.8,
+            0.1,
+            3.6
           ]
         },
         "Mesh": {
@@ -2832,12 +2846,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.18,
-            0.18,
-            0.19,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -2845,7 +2859,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/Roof/roof_tiles_1003_albedo.png",
+          "NormalTexture": "Textures/Roof/roof_tiles_1003_normal.png",
+          "MetallicRoughnessTexture": "Textures/Roof/roof_tiles_1003_mr.png",
+          "UVScale": [
+            1.8,
+            11.4
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -2860,13 +2881,13 @@
       "ID": "1055",
       "Components": {
         "Tag": {
-          "Tag": "RoofEast"
+          "Tag": "RoofSouth"
         },
         "Transform": {
           "Translation": [
-            9.6,
-            3.3,
-            0
+            0,
+            3.25,
+            9.6
           ],
           "Rotation": [
             0,
@@ -2874,9 +2895,9 @@
             0
           ],
           "Scale": [
-            3.6,
-            0.2,
-            15.6
+            22.8,
+            0.1,
+            3.6
           ]
         },
         "Mesh": {
@@ -2884,12 +2905,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.18,
-            0.18,
-            0.19,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -2897,7 +2918,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/Roof/wood_ceiling_1002_albedo.png",
+          "NormalTexture": "Textures/Roof/wood_ceiling_1002_normal.png",
+          "MetallicRoughnessTexture": "Textures/Roof/wood_ceiling_1002_mr.png",
+          "UVScale": [
+            11.4,
+            1.8
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -2910,6 +2938,242 @@
     },
     {
       "ID": "1056",
+      "Components": {
+        "Tag": {
+          "Tag": "RoofWestTiles"
+        },
+        "Transform": {
+          "Translation": [
+            -9.6,
+            3.3499999999999996,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            3.6,
+            0.1,
+            15.6
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            2.0,
+            2.0,
+            2.0,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false,
+          "AlbedoTexture": "Textures/Roof/roof_tiles_1003_albedo.png",
+          "NormalTexture": "Textures/Roof/roof_tiles_1003_normal.png",
+          "MetallicRoughnessTexture": "Textures/Roof/roof_tiles_1003_mr.png",
+          "UVScale": [
+            7.8,
+            1.8
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1057",
+      "Components": {
+        "Tag": {
+          "Tag": "RoofWest"
+        },
+        "Transform": {
+          "Translation": [
+            -9.6,
+            3.25,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            3.6,
+            0.1,
+            15.6
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            2.0,
+            2.0,
+            2.0,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false,
+          "AlbedoTexture": "Textures/Roof/wood_ceiling_1002_albedo.png",
+          "NormalTexture": "Textures/Roof/wood_ceiling_1002_normal.png",
+          "MetallicRoughnessTexture": "Textures/Roof/wood_ceiling_1002_mr.png",
+          "UVScale": [
+            1.8,
+            7.8
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1058",
+      "Components": {
+        "Tag": {
+          "Tag": "RoofEastTiles"
+        },
+        "Transform": {
+          "Translation": [
+            9.6,
+            3.3499999999999996,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            3.6,
+            0.1,
+            15.6
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            2.0,
+            2.0,
+            2.0,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false,
+          "AlbedoTexture": "Textures/Roof/roof_tiles_1003_albedo.png",
+          "NormalTexture": "Textures/Roof/roof_tiles_1003_normal.png",
+          "MetallicRoughnessTexture": "Textures/Roof/roof_tiles_1003_mr.png",
+          "UVScale": [
+            7.8,
+            1.8
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1059",
+      "Components": {
+        "Tag": {
+          "Tag": "RoofEast"
+        },
+        "Transform": {
+          "Translation": [
+            9.6,
+            3.25,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            3.6,
+            0.1,
+            15.6
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            2.0,
+            2.0,
+            2.0,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false,
+          "AlbedoTexture": "Textures/Roof/wood_ceiling_1002_albedo.png",
+          "NormalTexture": "Textures/Roof/wood_ceiling_1002_normal.png",
+          "MetallicRoughnessTexture": "Textures/Roof/wood_ceiling_1002_mr.png",
+          "UVScale": [
+            1.8,
+            7.8
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1060",
       "Components": {
         "Tag": {
           "Tag": "WestWingNorth"
@@ -2968,7 +3232,7 @@
       }
     },
     {
-      "ID": "1057",
+      "ID": "1061",
       "Components": {
         "Tag": {
           "Tag": "WestWingSouth"
@@ -3027,7 +3291,7 @@
       }
     },
     {
-      "ID": "1058",
+      "ID": "1062",
       "Components": {
         "Tag": {
           "Tag": "WestWingEnd"
@@ -3086,15 +3350,15 @@
       }
     },
     {
-      "ID": "1059",
+      "ID": "1063",
       "Components": {
         "Tag": {
-          "Tag": "WestWingRoof"
+          "Tag": "WestWingRoofTiles"
         },
         "Transform": {
           "Translation": [
             -18.7,
-            3.3,
+            3.3499999999999996,
             0
           ],
           "Rotation": [
@@ -3104,7 +3368,7 @@
           ],
           "Scale": [
             14.6,
-            0.2,
+            0.1,
             3.8
           ]
         },
@@ -3113,12 +3377,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.18,
-            0.18,
-            0.19,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -3126,7 +3390,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/Roof/roof_tiles_1003_albedo.png",
+          "NormalTexture": "Textures/Roof/roof_tiles_1003_normal.png",
+          "MetallicRoughnessTexture": "Textures/Roof/roof_tiles_1003_mr.png",
+          "UVScale": [
+            1.9,
+            7.3
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -3138,7 +3409,66 @@
       }
     },
     {
-      "ID": "1060",
+      "ID": "1064",
+      "Components": {
+        "Tag": {
+          "Tag": "WestWingRoof"
+        },
+        "Transform": {
+          "Translation": [
+            -18.7,
+            3.25,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            14.6,
+            0.1,
+            3.8
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            2.0,
+            2.0,
+            2.0,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false,
+          "AlbedoTexture": "Textures/Roof/wood_ceiling_1002_albedo.png",
+          "NormalTexture": "Textures/Roof/wood_ceiling_1002_normal.png",
+          "MetallicRoughnessTexture": "Textures/Roof/wood_ceiling_1002_mr.png",
+          "UVScale": [
+            7.3,
+            1.9
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1065",
       "Components": {
         "Tag": {
           "Tag": "EastWingNorth"
@@ -3197,7 +3527,7 @@
       }
     },
     {
-      "ID": "1061",
+      "ID": "1066",
       "Components": {
         "Tag": {
           "Tag": "EastWingSouth"
@@ -3256,7 +3586,7 @@
       }
     },
     {
-      "ID": "1062",
+      "ID": "1067",
       "Components": {
         "Tag": {
           "Tag": "EastWingEnd"
@@ -3315,15 +3645,15 @@
       }
     },
     {
-      "ID": "1063",
+      "ID": "1068",
       "Components": {
         "Tag": {
-          "Tag": "EastWingRoof"
+          "Tag": "EastWingRoofTiles"
         },
         "Transform": {
           "Translation": [
             18.7,
-            3.3,
+            3.3499999999999996,
             0
           ],
           "Rotation": [
@@ -3333,7 +3663,7 @@
           ],
           "Scale": [
             14.6,
-            0.2,
+            0.1,
             3.8
           ]
         },
@@ -3342,12 +3672,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.18,
-            0.18,
-            0.19,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -3355,7 +3685,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/Roof/roof_tiles_1003_albedo.png",
+          "NormalTexture": "Textures/Roof/roof_tiles_1003_normal.png",
+          "MetallicRoughnessTexture": "Textures/Roof/roof_tiles_1003_mr.png",
+          "UVScale": [
+            1.9,
+            7.3
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -3367,7 +3704,66 @@
       }
     },
     {
-      "ID": "1064",
+      "ID": "1069",
+      "Components": {
+        "Tag": {
+          "Tag": "EastWingRoof"
+        },
+        "Transform": {
+          "Translation": [
+            18.7,
+            3.25,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            14.6,
+            0.1,
+            3.8
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            2.0,
+            2.0,
+            2.0,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false,
+          "AlbedoTexture": "Textures/Roof/wood_ceiling_1002_albedo.png",
+          "NormalTexture": "Textures/Roof/wood_ceiling_1002_normal.png",
+          "MetallicRoughnessTexture": "Textures/Roof/wood_ceiling_1002_mr.png",
+          "UVScale": [
+            7.3,
+            1.9
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1070",
       "Components": {
         "Tag": {
           "Tag": "Fire_Warm_Torch1"
@@ -3425,7 +3821,7 @@
       }
     },
     {
-      "ID": "1065",
+      "ID": "1071",
       "Components": {
         "Tag": {
           "Tag": "Pole"
@@ -3475,10 +3871,10 @@
           ]
         }
       },
-      "Parent": "1064"
+      "Parent": "1070"
     },
     {
-      "ID": "1066",
+      "ID": "1072",
       "Components": {
         "Tag": {
           "Tag": "Wrap"
@@ -3522,10 +3918,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1064"
+      "Parent": "1070"
     },
     {
-      "ID": "1067",
+      "ID": "1073",
       "Components": {
         "Tag": {
           "Tag": "Flame"
@@ -3577,10 +3973,10 @@
           "IsTrigger": true
         }
       },
-      "Parent": "1064"
+      "Parent": "1070"
     },
     {
-      "ID": "1068",
+      "ID": "1074",
       "Components": {
         "Tag": {
           "Tag": "Fire_Warm_Torch2"
@@ -3638,7 +4034,7 @@
       }
     },
     {
-      "ID": "1069",
+      "ID": "1075",
       "Components": {
         "Tag": {
           "Tag": "Pole"
@@ -3688,10 +4084,10 @@
           ]
         }
       },
-      "Parent": "1068"
+      "Parent": "1074"
     },
     {
-      "ID": "1070",
+      "ID": "1076",
       "Components": {
         "Tag": {
           "Tag": "Wrap"
@@ -3735,10 +4131,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1068"
+      "Parent": "1074"
     },
     {
-      "ID": "1071",
+      "ID": "1077",
       "Components": {
         "Tag": {
           "Tag": "Flame"
@@ -3790,10 +4186,10 @@
           "IsTrigger": true
         }
       },
-      "Parent": "1068"
+      "Parent": "1074"
     },
     {
-      "ID": "1072",
+      "ID": "1078",
       "Components": {
         "Tag": {
           "Tag": "Fire_Warm_Torch3"
@@ -3851,7 +4247,7 @@
       }
     },
     {
-      "ID": "1073",
+      "ID": "1079",
       "Components": {
         "Tag": {
           "Tag": "Pole"
@@ -3901,10 +4297,10 @@
           ]
         }
       },
-      "Parent": "1072"
+      "Parent": "1078"
     },
     {
-      "ID": "1074",
+      "ID": "1080",
       "Components": {
         "Tag": {
           "Tag": "Wrap"
@@ -3948,10 +4344,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1072"
+      "Parent": "1078"
     },
     {
-      "ID": "1075",
+      "ID": "1081",
       "Components": {
         "Tag": {
           "Tag": "Flame"
@@ -4003,10 +4399,10 @@
           "IsTrigger": true
         }
       },
-      "Parent": "1072"
+      "Parent": "1078"
     },
     {
-      "ID": "1076",
+      "ID": "1082",
       "Components": {
         "Tag": {
           "Tag": "Fire_Cold_Torch4"
@@ -4064,7 +4460,7 @@
       }
     },
     {
-      "ID": "1077",
+      "ID": "1083",
       "Components": {
         "Tag": {
           "Tag": "Pole"
@@ -4114,10 +4510,10 @@
           ]
         }
       },
-      "Parent": "1076"
+      "Parent": "1082"
     },
     {
-      "ID": "1078",
+      "ID": "1084",
       "Components": {
         "Tag": {
           "Tag": "Wrap"
@@ -4161,10 +4557,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1076"
+      "Parent": "1082"
     },
     {
-      "ID": "1079",
+      "ID": "1085",
       "Components": {
         "Tag": {
           "Tag": "Flame"
@@ -4216,10 +4612,10 @@
           "IsTrigger": true
         }
       },
-      "Parent": "1076"
+      "Parent": "1082"
     },
     {
-      "ID": "1080",
+      "ID": "1086",
       "Components": {
         "Tag": {
           "Tag": "Fire_Cold_Torch5"
@@ -4277,7 +4673,7 @@
       }
     },
     {
-      "ID": "1081",
+      "ID": "1087",
       "Components": {
         "Tag": {
           "Tag": "Pole"
@@ -4327,10 +4723,10 @@
           ]
         }
       },
-      "Parent": "1080"
+      "Parent": "1086"
     },
     {
-      "ID": "1082",
+      "ID": "1088",
       "Components": {
         "Tag": {
           "Tag": "Wrap"
@@ -4374,10 +4770,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1080"
+      "Parent": "1086"
     },
     {
-      "ID": "1083",
+      "ID": "1089",
       "Components": {
         "Tag": {
           "Tag": "Flame"
@@ -4429,10 +4825,10 @@
           "IsTrigger": true
         }
       },
-      "Parent": "1080"
+      "Parent": "1086"
     },
     {
-      "ID": "1084",
+      "ID": "1090",
       "Components": {
         "Tag": {
           "Tag": "Fire_Cold_Torch6"
@@ -4490,7 +4886,7 @@
       }
     },
     {
-      "ID": "1085",
+      "ID": "1091",
       "Components": {
         "Tag": {
           "Tag": "Pole"
@@ -4540,10 +4936,10 @@
           ]
         }
       },
-      "Parent": "1084"
+      "Parent": "1090"
     },
     {
-      "ID": "1086",
+      "ID": "1092",
       "Components": {
         "Tag": {
           "Tag": "Wrap"
@@ -4587,10 +4983,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1084"
+      "Parent": "1090"
     },
     {
-      "ID": "1087",
+      "ID": "1093",
       "Components": {
         "Tag": {
           "Tag": "Flame"
@@ -4642,10 +5038,10 @@
           "IsTrigger": true
         }
       },
-      "Parent": "1084"
+      "Parent": "1090"
     },
     {
-      "ID": "1088",
+      "ID": "1094",
       "Components": {
         "Tag": {
           "Tag": "Fire_Warm_Brazier1"
@@ -4670,7 +5066,7 @@
       }
     },
     {
-      "ID": "1089",
+      "ID": "1095",
       "Components": {
         "Tag": {
           "Tag": "Leg1"
@@ -4713,10 +5109,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1088"
+      "Parent": "1094"
     },
     {
-      "ID": "1090",
+      "ID": "1096",
       "Components": {
         "Tag": {
           "Tag": "Leg2"
@@ -4759,10 +5155,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1088"
+      "Parent": "1094"
     },
     {
-      "ID": "1091",
+      "ID": "1097",
       "Components": {
         "Tag": {
           "Tag": "Leg3"
@@ -4805,10 +5201,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1088"
+      "Parent": "1094"
     },
     {
-      "ID": "1092",
+      "ID": "1098",
       "Components": {
         "Tag": {
           "Tag": "Bowl"
@@ -4851,10 +5247,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1088"
+      "Parent": "1094"
     },
     {
-      "ID": "1093",
+      "ID": "1099",
       "Components": {
         "Tag": {
           "Tag": "Embers"
@@ -4898,10 +5294,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1088"
+      "Parent": "1094"
     },
     {
-      "ID": "1094",
+      "ID": "1100",
       "Components": {
         "Tag": {
           "Tag": "Flame"
@@ -4940,10 +5336,10 @@
           "CastShadows": true
         }
       },
-      "Parent": "1088"
+      "Parent": "1094"
     },
     {
-      "ID": "1095",
+      "ID": "1101",
       "Components": {
         "Tag": {
           "Tag": "Fire_Warm_Brazier2"
@@ -4968,7 +5364,7 @@
       }
     },
     {
-      "ID": "1096",
+      "ID": "1102",
       "Components": {
         "Tag": {
           "Tag": "Leg1"
@@ -5011,10 +5407,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1095"
+      "Parent": "1101"
     },
     {
-      "ID": "1097",
+      "ID": "1103",
       "Components": {
         "Tag": {
           "Tag": "Leg2"
@@ -5057,10 +5453,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1095"
+      "Parent": "1101"
     },
     {
-      "ID": "1098",
+      "ID": "1104",
       "Components": {
         "Tag": {
           "Tag": "Leg3"
@@ -5103,10 +5499,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1095"
+      "Parent": "1101"
     },
     {
-      "ID": "1099",
+      "ID": "1105",
       "Components": {
         "Tag": {
           "Tag": "Bowl"
@@ -5149,10 +5545,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1095"
+      "Parent": "1101"
     },
     {
-      "ID": "1100",
+      "ID": "1106",
       "Components": {
         "Tag": {
           "Tag": "Embers"
@@ -5196,10 +5592,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1095"
+      "Parent": "1101"
     },
     {
-      "ID": "1101",
+      "ID": "1107",
       "Components": {
         "Tag": {
           "Tag": "Flame"
@@ -5238,10 +5634,10 @@
           "CastShadows": false
         }
       },
-      "Parent": "1095"
+      "Parent": "1101"
     },
     {
-      "ID": "1102",
+      "ID": "1108",
       "Components": {
         "Tag": {
           "Tag": "Fire_Cold_Brazier3"
@@ -5266,7 +5662,7 @@
       }
     },
     {
-      "ID": "1103",
+      "ID": "1109",
       "Components": {
         "Tag": {
           "Tag": "Leg1"
@@ -5309,10 +5705,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1102"
+      "Parent": "1108"
     },
     {
-      "ID": "1104",
+      "ID": "1110",
       "Components": {
         "Tag": {
           "Tag": "Leg2"
@@ -5355,10 +5751,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1102"
+      "Parent": "1108"
     },
     {
-      "ID": "1105",
+      "ID": "1111",
       "Components": {
         "Tag": {
           "Tag": "Leg3"
@@ -5401,10 +5797,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1102"
+      "Parent": "1108"
     },
     {
-      "ID": "1106",
+      "ID": "1112",
       "Components": {
         "Tag": {
           "Tag": "Bowl"
@@ -5447,10 +5843,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1102"
+      "Parent": "1108"
     },
     {
-      "ID": "1107",
+      "ID": "1113",
       "Components": {
         "Tag": {
           "Tag": "Embers"
@@ -5494,10 +5890,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1102"
+      "Parent": "1108"
     },
     {
-      "ID": "1108",
+      "ID": "1114",
       "Components": {
         "Tag": {
           "Tag": "Flame"
@@ -5536,10 +5932,10 @@
           "CastShadows": true
         }
       },
-      "Parent": "1102"
+      "Parent": "1108"
     },
     {
-      "ID": "1109",
+      "ID": "1115",
       "Components": {
         "Tag": {
           "Tag": "Fire_Cold_Brazier4"
@@ -5564,7 +5960,7 @@
       }
     },
     {
-      "ID": "1110",
+      "ID": "1116",
       "Components": {
         "Tag": {
           "Tag": "Leg1"
@@ -5607,10 +6003,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1109"
+      "Parent": "1115"
     },
     {
-      "ID": "1111",
+      "ID": "1117",
       "Components": {
         "Tag": {
           "Tag": "Leg2"
@@ -5653,10 +6049,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1109"
+      "Parent": "1115"
     },
     {
-      "ID": "1112",
+      "ID": "1118",
       "Components": {
         "Tag": {
           "Tag": "Leg3"
@@ -5699,10 +6095,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1109"
+      "Parent": "1115"
     },
     {
-      "ID": "1113",
+      "ID": "1119",
       "Components": {
         "Tag": {
           "Tag": "Bowl"
@@ -5745,10 +6141,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1109"
+      "Parent": "1115"
     },
     {
-      "ID": "1114",
+      "ID": "1120",
       "Components": {
         "Tag": {
           "Tag": "Embers"
@@ -5792,10 +6188,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1109"
+      "Parent": "1115"
     },
     {
-      "ID": "1115",
+      "ID": "1121",
       "Components": {
         "Tag": {
           "Tag": "Flame"
@@ -5834,10 +6230,10 @@
           "CastShadows": false
         }
       },
-      "Parent": "1109"
+      "Parent": "1115"
     },
     {
-      "ID": "1116",
+      "ID": "1122",
       "Components": {
         "Tag": {
           "Tag": "Astral_Warm_Lamp1"
@@ -5862,7 +6258,7 @@
       }
     },
     {
-      "ID": "1117",
+      "ID": "1123",
       "Components": {
         "Tag": {
           "Tag": "Post"
@@ -5905,10 +6301,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1116"
+      "Parent": "1122"
     },
     {
-      "ID": "1118",
+      "ID": "1124",
       "Components": {
         "Tag": {
           "Tag": "Crystal"
@@ -5952,10 +6348,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1116"
+      "Parent": "1122"
     },
     {
-      "ID": "1119",
+      "ID": "1125",
       "Components": {
         "Tag": {
           "Tag": "Glow"
@@ -5989,10 +6385,10 @@
           "CastShadows": true
         }
       },
-      "Parent": "1116"
+      "Parent": "1122"
     },
     {
-      "ID": "1120",
+      "ID": "1126",
       "Components": {
         "Tag": {
           "Tag": "Astral_Warm_Lamp2"
@@ -6017,7 +6413,7 @@
       }
     },
     {
-      "ID": "1121",
+      "ID": "1127",
       "Components": {
         "Tag": {
           "Tag": "Post"
@@ -6060,10 +6456,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1120"
+      "Parent": "1126"
     },
     {
-      "ID": "1122",
+      "ID": "1128",
       "Components": {
         "Tag": {
           "Tag": "Crystal"
@@ -6107,10 +6503,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1120"
+      "Parent": "1126"
     },
     {
-      "ID": "1123",
+      "ID": "1129",
       "Components": {
         "Tag": {
           "Tag": "Glow"
@@ -6144,10 +6540,10 @@
           "CastShadows": false
         }
       },
-      "Parent": "1120"
+      "Parent": "1126"
     },
     {
-      "ID": "1124",
+      "ID": "1130",
       "Components": {
         "Tag": {
           "Tag": "Astral_Warm_Lamp3"
@@ -6172,7 +6568,7 @@
       }
     },
     {
-      "ID": "1125",
+      "ID": "1131",
       "Components": {
         "Tag": {
           "Tag": "Post"
@@ -6215,10 +6611,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1124"
+      "Parent": "1130"
     },
     {
-      "ID": "1126",
+      "ID": "1132",
       "Components": {
         "Tag": {
           "Tag": "Crystal"
@@ -6262,10 +6658,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1124"
+      "Parent": "1130"
     },
     {
-      "ID": "1127",
+      "ID": "1133",
       "Components": {
         "Tag": {
           "Tag": "Glow"
@@ -6299,10 +6695,10 @@
           "CastShadows": false
         }
       },
-      "Parent": "1124"
+      "Parent": "1130"
     },
     {
-      "ID": "1128",
+      "ID": "1134",
       "Components": {
         "Tag": {
           "Tag": "Astral_Warm_Lamp4"
@@ -6327,7 +6723,7 @@
       }
     },
     {
-      "ID": "1129",
+      "ID": "1135",
       "Components": {
         "Tag": {
           "Tag": "Post"
@@ -6370,10 +6766,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1128"
+      "Parent": "1134"
     },
     {
-      "ID": "1130",
+      "ID": "1136",
       "Components": {
         "Tag": {
           "Tag": "Crystal"
@@ -6417,10 +6813,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1128"
+      "Parent": "1134"
     },
     {
-      "ID": "1131",
+      "ID": "1137",
       "Components": {
         "Tag": {
           "Tag": "Glow"
@@ -6454,10 +6850,10 @@
           "CastShadows": false
         }
       },
-      "Parent": "1128"
+      "Parent": "1134"
     },
     {
-      "ID": "1132",
+      "ID": "1138",
       "Components": {
         "Tag": {
           "Tag": "Astral_Cold_Lamp5"
@@ -6482,7 +6878,7 @@
       }
     },
     {
-      "ID": "1133",
+      "ID": "1139",
       "Components": {
         "Tag": {
           "Tag": "Post"
@@ -6525,10 +6921,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1132"
+      "Parent": "1138"
     },
     {
-      "ID": "1134",
+      "ID": "1140",
       "Components": {
         "Tag": {
           "Tag": "Crystal"
@@ -6572,10 +6968,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1132"
+      "Parent": "1138"
     },
     {
-      "ID": "1135",
+      "ID": "1141",
       "Components": {
         "Tag": {
           "Tag": "Glow"
@@ -6609,10 +7005,10 @@
           "CastShadows": true
         }
       },
-      "Parent": "1132"
+      "Parent": "1138"
     },
     {
-      "ID": "1136",
+      "ID": "1142",
       "Components": {
         "Tag": {
           "Tag": "Astral_Cold_Lamp6"
@@ -6637,7 +7033,7 @@
       }
     },
     {
-      "ID": "1137",
+      "ID": "1143",
       "Components": {
         "Tag": {
           "Tag": "Post"
@@ -6680,10 +7076,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1136"
+      "Parent": "1142"
     },
     {
-      "ID": "1138",
+      "ID": "1144",
       "Components": {
         "Tag": {
           "Tag": "Crystal"
@@ -6727,10 +7123,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1136"
+      "Parent": "1142"
     },
     {
-      "ID": "1139",
+      "ID": "1145",
       "Components": {
         "Tag": {
           "Tag": "Glow"
@@ -6764,10 +7160,10 @@
           "CastShadows": false
         }
       },
-      "Parent": "1136"
+      "Parent": "1142"
     },
     {
-      "ID": "1140",
+      "ID": "1146",
       "Components": {
         "Tag": {
           "Tag": "Astral_Cold_Lamp7"
@@ -6792,7 +7188,7 @@
       }
     },
     {
-      "ID": "1141",
+      "ID": "1147",
       "Components": {
         "Tag": {
           "Tag": "Post"
@@ -6835,10 +7231,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1140"
+      "Parent": "1146"
     },
     {
-      "ID": "1142",
+      "ID": "1148",
       "Components": {
         "Tag": {
           "Tag": "Crystal"
@@ -6882,10 +7278,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1140"
+      "Parent": "1146"
     },
     {
-      "ID": "1143",
+      "ID": "1149",
       "Components": {
         "Tag": {
           "Tag": "Glow"
@@ -6919,10 +7315,10 @@
           "CastShadows": false
         }
       },
-      "Parent": "1140"
+      "Parent": "1146"
     },
     {
-      "ID": "1144",
+      "ID": "1150",
       "Components": {
         "Tag": {
           "Tag": "Astral_Cold_Lamp8"
@@ -6947,7 +7343,7 @@
       }
     },
     {
-      "ID": "1145",
+      "ID": "1151",
       "Components": {
         "Tag": {
           "Tag": "Post"
@@ -6990,10 +7386,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1144"
+      "Parent": "1150"
     },
     {
-      "ID": "1146",
+      "ID": "1152",
       "Components": {
         "Tag": {
           "Tag": "Crystal"
@@ -7037,10 +7433,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1144"
+      "Parent": "1150"
     },
     {
-      "ID": "1147",
+      "ID": "1153",
       "Components": {
         "Tag": {
           "Tag": "Glow"
@@ -7074,10 +7470,10 @@
           "CastShadows": false
         }
       },
-      "Parent": "1144"
+      "Parent": "1150"
     },
     {
-      "ID": "1148",
+      "ID": "1154",
       "Components": {
         "Tag": {
           "Tag": "Thief"
@@ -7105,7 +7501,7 @@
       }
     },
     {
-      "ID": "1149",
+      "ID": "1155",
       "Components": {
         "Tag": {
           "Tag": "Model"
@@ -7141,10 +7537,10 @@
           "BlendDuration": 0.2
         }
       },
-      "Parent": "1148"
+      "Parent": "1154"
     },
     {
-      "ID": "1150",
+      "ID": "1156",
       "Components": {
         "Tag": {
           "Tag": "Mist_Garden"
@@ -7179,7 +7575,7 @@
       }
     },
     {
-      "ID": "1151",
+      "ID": "1157",
       "Components": {
         "Tag": {
           "Tag": "MoodLab"

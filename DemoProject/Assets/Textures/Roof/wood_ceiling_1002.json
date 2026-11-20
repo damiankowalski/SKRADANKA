@@ -1,0 +1,76 @@
+{
+  "tool": "Penumbra AssetGen",
+  "ai_generated": true,
+  "generated_at": "2026-11-20T11:34:01+00:00",
+  "material": "wood_ceiling",
+  "template": "prompts/wood_ceiling.json",
+  "prompt": "Hand-painted stylised realism for a dark medieval stealth game: painterly brushwork over believable materials, muted earthy colours, worn and lived-in surfaces. An albedo texture: flat even light, no cast shadows, no highlights, no vignette, no perspective, viewed straight on, the material fills the whole square edge to edge. A seamless tileable texture of an old wooden ceiling seen straight on from below: rough-hewn brown timber planks, darkened by smoke, a few knots and cracks, dark gaps between the boards, soot and age stains, visible wood grain.",
+  "seed": 1002,
+  "steps": 4,
+  "blend_steps": 4,
+  "size": 1024,
+  "quantize": 8,
+  "model": {
+    "id": "black-forest-labs/FLUX.2-klein-4B",
+    "revision": "e7b7dc27f91deacad38e78976d1f2b499d76a294",
+    "license": "Apache-2.0"
+  },
+  "mflux_version": "0.24.0",
+  "license": "Apache-2.0",
+  "timing": {
+    "model_load_seconds": 0.7,
+    "image_seconds": 239.0,
+    "mlx_peak_gb": 6.57,
+    "process_peak_rss_gb": 1.58
+  },
+  "seamless": {
+    "method": "generation",
+    "seam_limit": 1.6,
+    "detail_limit": 0.55,
+    "x": {
+      "wrap_step": 0.738,
+      "interior_step_p99": 3.952,
+      "weakest_detail": 0.783,
+      "weakest_detail_at": 84,
+      "detail_at_edge": 0.958,
+      "detail_at_centre": 1.331,
+      "line_at_edge": 0.46,
+      "line_at_centre": 2.389,
+      "line_limit": 5.726,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "y": {
+      "wrap_step": 0.64,
+      "interior_step_p99": 3.085,
+      "weakest_detail": 0.651,
+      "weakest_detail_at": 115,
+      "detail_at_edge": 1.37,
+      "detail_at_centre": 0.849,
+      "line_at_edge": 1.654,
+      "line_at_centre": 0.683,
+      "line_limit": 7.783,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "passed": true,
+    "fallback_can_help": false
+  },
+  "maps": {
+    "height": "albedo luminance (approximation)",
+    "normal_convention": "glTF: +X right, +Y up (green), +Z out",
+    "normal_strength": 4.0,
+    "metallic_roughness": "glTF: G roughness, B metallic",
+    "roughness": [
+      0.6,
+      0.9
+    ],
+    "metallic": 0.0
+  },
+  "files": {
+    "albedo": "wood_ceiling_1002_albedo.png",
+    "normal": "wood_ceiling_1002_normal.png",
+    "metallic_roughness": "wood_ceiling_1002_mr.png",
+    "preview": "wood_ceiling_1002_preview.png"
+  }
+}

@@ -1,0 +1,16 @@
+{
+	"material": "roof_tiles",
+	"description": "Roofs seen from above: roofing (wooden shingles, thatch, fired clay tiles), never the walls' stone (docs/art/World.md).",
+	"prompt": "{style} A seamless tileable texture of an old roof seen from directly above: {variation}, each row overlapping the one below, dark shadowed gaps under the edges, chipped and weathered.",
+	"variations": [
+		"dark weathered wooden shingles in tight overlapping rows, edges split and curled, moss in the gaps",
+		"old thatch of straw and reeds laid in thick overlapping bundles, darkened and patchy with age",
+		"fired clay roof tiles in dark brown and ochre, unevenly weathered, lichen spots"
+	],
+	"roughness": [
+		0.65,
+		0.95
+	],
+	"metallic": 0.0,
+	"normal_strength": 5.0
+}

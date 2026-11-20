@@ -1,0 +1,113 @@
+{
+  "tool": "Penumbra AssetGen",
+  "ai_generated": true,
+  "generated_at": "2026-11-20T11:14:00+00:00",
+  "material": "roof_tiles",
+  "template": "prompts/roof_tiles.json",
+  "prompt": "Hand-painted stylised realism for a dark medieval stealth game: painterly brushwork over believable materials, muted earthy colours, worn and lived-in surfaces. An albedo texture: flat even light, no cast shadows, no highlights, no vignette, no perspective, viewed straight on, the material fills the whole square edge to edge. A seamless tileable texture of an old roof seen from directly above: worn terracotta clay tiles, faded brownish red, lichen spots, each row overlapping the one below, dark shadowed gaps under the edges, chipped and weathered.",
+  "seed": 1000,
+  "steps": 4,
+  "blend_steps": 4,
+  "size": 1024,
+  "quantize": 8,
+  "model": {
+    "id": "black-forest-labs/FLUX.2-klein-4B",
+    "revision": "e7b7dc27f91deacad38e78976d1f2b499d76a294",
+    "license": "Apache-2.0"
+  },
+  "mflux_version": "0.24.0",
+  "license": "Apache-2.0",
+  "timing": {
+    "model_load_seconds": 0.7,
+    "image_seconds": 235.7,
+    "mlx_peak_gb": 6.55,
+    "process_peak_rss_gb": 1.0
+  },
+  "seamless": {
+    "method": "generation+masking",
+    "seam_limit": 1.6,
+    "detail_limit": 0.55,
+    "x": {
+      "wrap_step": 0.34,
+      "interior_step_p99": 4.443,
+      "weakest_detail": 0.667,
+      "weakest_detail_at": 692,
+      "detail_at_edge": 1.216,
+      "detail_at_centre": 1.216,
+      "line_at_edge": 0.323,
+      "line_at_centre": 0.323,
+      "line_limit": 5.166,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "y": {
+      "wrap_step": 0.886,
+      "interior_step_p99": 2.944,
+      "weakest_detail": 0.725,
+      "weakest_detail_at": 347,
+      "detail_at_edge": 0.984,
+      "detail_at_centre": 0.984,
+      "line_at_edge": 0.494,
+      "line_at_centre": 0.494,
+      "line_limit": 5.235,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "passed": true,
+    "fallback_can_help": false,
+    "before_fallback": {
+      "seam_limit": 1.6,
+      "detail_limit": 0.55,
+      "x": {
+        "wrap_step": 0.301,
+        "interior_step_p99": 3.589,
+        "weakest_detail": 0.652,
+        "weakest_detail_at": 265,
+        "detail_at_edge": 1.032,
+        "detail_at_centre": 1.067,
+        "line_at_edge": 0.453,
+        "line_at_centre": 0.565,
+        "line_limit": 5.536,
+        "steps_ok": true,
+        "lines_ok": true
+      },
+      "y": {
+        "wrap_step": 2.905,
+        "interior_step_p99": 2.677,
+        "weakest_detail": 0.724,
+        "weakest_detail_at": 656,
+        "detail_at_edge": 1.359,
+        "detail_at_centre": 0.833,
+        "line_at_edge": 8.251,
+        "line_at_centre": 0.39,
+        "line_limit": 5.518,
+        "steps_ok": false,
+        "lines_ok": false
+      },
+      "passed": false,
+      "fallback_can_help": true
+    }
+  },
+  "maps": {
+    "height": "albedo luminance (approximation)",
+    "normal_convention": "glTF: +X right, +Y up (green), +Z out",
+    "normal_strength": 5.0,
+    "metallic_roughness": "glTF: G roughness, B metallic",
+    "roughness": [
+      0.65,
+      0.95
+    ],
+    "metallic": 0.0
+  },
+  "files": {
+    "albedo": "roof_tiles_1000_albedo.png",
+    "normal": "roof_tiles_1000_normal.png",
+    "metallic_roughness": "roof_tiles_1000_mr.png",
+    "preview": "roof_tiles_1000_preview.png",
+    "raw_albedo": "roof_tiles_1000_raw.png"
+  },
+  "catalog": {
+    "note": "Faded terracotta clay tiles with lichen: warmer roofs, a town or southern look (tiles after the masking fallback).",
+    "preview": "roof_tiles_1000.png"
+  }
+}
