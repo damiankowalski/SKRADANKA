@@ -588,8 +588,8 @@ TEST_SUITE("Renderer")
 				// The froxel column's ray, as shaders/Fog.hlsl builds it, out to the slice's far end.
 				const uint32_t row = size.y / 2;
 				const glm::vec2 uv = (glm::vec2(column, row) + 0.5f) / glm::vec2(size.x, size.y);
-				const glm::vec4 far = inverseViewProjection * glm::vec4(uv.x * 2.0f - 1.0f, 1.0f - uv.y * 2.0f, 1.0f, 1.0f);
-				const glm::vec3 direction = glm::normalize(glm::vec3(far) / far.w - eye);
+				const glm::vec4 farPlane = inverseViewProjection * glm::vec4(uv.x * 2.0f - 1.0f, 1.0f - uv.y * 2.0f, 1.0f, 1.0f);
+				const glm::vec3 direction = glm::normalize(glm::vec3(farPlane) / farPlane.w - eye);
 				const float w = static_cast<float>(slice + 1) / static_cast<float>(size.z);
 				const float distance = fogDistance * w * w / glm::dot(direction, forward);
 				const FogPath cpu = medium.Integrate(eye, eye + direction * distance, [&](const glm::vec3& point) {

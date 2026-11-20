@@ -500,11 +500,11 @@ namespace Penumbra {
 			const float t2 = std::exp(-fog.OpticalDepth(sample.Point, sample.Point + sample.Direction * sample.BackgroundDistance));
 			const float s1 = share(front, t1);
 			const float s2 = share(behind, t2);
-			const float target = sample.Target * t1 + s1;
-			const float background = (sample.Background * t2 + s2) * t1 + s1;
-			contrastSum += PerceptionModel::WeberContrast(background, target, perception.LuminanceFloor) * sample.Zone;
-			targetLumSum += target;
-			backgroundLumSum += background;
+			const float apparentTarget = sample.Target * t1 + s1;
+			const float apparentBackground = (sample.Background * t2 + s2) * t1 + s1;
+			contrastSum += PerceptionModel::WeberContrast(apparentBackground, apparentTarget, perception.LuminanceFloor) * sample.Zone;
+			targetLumSum += apparentTarget;
+			backgroundLumSum += apparentBackground;
 			transmittanceSum += t1;
 			glowFrontSum += s1;
 			glowBehindSum += s2;
