@@ -155,6 +155,11 @@ tinted x2 towards the flat greys it replaces. Renders v3 in docs/art/mood/README
 its flat greys. Engine fix: the built-in cube's -Z and +X sides mapped textures turned by 90 degrees; all four
 sides now stand upright (u to the right, v down).
 
+**Mood lab cobblestone** (S, approved after the textured mood lab): a second AssetGen template, `cobblestone`
+(floors seen from above, three variations); variant 1001 (dark granite setts; 1000 came out as brick-like rows and
+1002 repeats its big stones visibly) paves the mood lab's corridors and wings, one tile per 1.5 m, in
+`DemoProject/Assets/Textures/Cobblestone` with its provenance. Renders v3 redone. No engine change.
+
 ## In progress
 
 Nothing: the next package waits for the owner's choice (leaning on Q/E is the natural follow-up).
