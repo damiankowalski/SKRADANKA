@@ -263,8 +263,8 @@ TEST_SUITE("World")
 	TEST_CASE("PhysicsLab: the haze its torches light gives a still thief away slowly, not at once")
 	{
 		// 10 m in front of the guard, standing still: hidden before the fog glow; with it, the haze behind him
-		// outlines him after a few seconds (FogScattering 0.22, Tools/BuildDemoProject.py; at the default 0.5
-		// within a second).
+		// outlines him after a few seconds (FogScattering 0.25, Tools/BuildDemoProject.py; at the default 0.5
+		// within one or two).
 		Level lab("Scenes/PhysicsLab.pscene");
 		Entity player = lab.Entity("Player");
 		lab.SceneInstance.OnRuntimeStop(); // restart without the player's controller and the scripts

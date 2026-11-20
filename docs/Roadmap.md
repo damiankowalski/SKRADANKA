@@ -191,11 +191,12 @@ PerceptionLab has two playtest spots. 10 guards cost 0.035 ms a frame on an M1 P
 PhysicsLab's guards now see the thief against its torch-lit haze at four of six spots where they did not before
 (the owner decides whether to tune it). See docs/Perception.md, "Fog".
 
-**PhysicsLab's fog tuned** (S, the owner's decision after the fog glow): `FogScattering` 0.22 (was the default 0.5).
-With the glow, the haze its bright torches lit gave the thief away within half a second at four of five places where
-its guards could not see him before; the owner chose a middle way: at 0.22 they make him out against it after
-2.4-6.1 s (measured 0.5 / 0.25 / 0.22 / 0.2 / 0.15 with the fog glow report; at 0.15 never). A level test checks one
-of the places.
+**PhysicsLab at night, its fog tuned** (S, the owner's decisions after the fog glow): the lab is lit like the other
+levels (ambient 0.006, moon 0.08, sky map 0.12; it was about three times brighter, with no sense of darkness) and its
+`FogScattering` is 0.25 (was the default 0.5). With the glow, the haze its torches lit gave the thief away within a
+second or two at four of five places where its guards could not see him before; the owner chose a middle way: at
+0.25 they make him out against it after 2.9-7.1 s (measured 0.5 / 0.3 / 0.25 / 0.22 / 0.15 with the fog glow
+report). A level test checks one of the places.
 
 ## In progress
 

@@ -848,17 +848,18 @@ def build_audio():
     write_wav("Click.wav", [(0.6 * n() * math.exp(-i / (RATE * 0.002)) + 0.3 * math.sin(2 * math.pi * 2400 * i / RATE)
                             * math.exp(-i / (RATE * 0.004))) for i in range(int(RATE * 0.05))])
 
-# The lab's haze is thin (0.01) but its torches are bright: at the default 0.5 the haze they light gave the thief
-# away within half a second where the guards could not see him before the fog glow (PR #35's report). The owner
-# chose a middle way: at 0.22 the glow still outlines him, after a few seconds (2.4-6.1 s; LevelTests.cpp checks one).
-PHYSICS_LAB_FOG_SCATTERING = 0.22
+# The lab is lit for the night like the other levels. Its haze is thin (0.01); at the default 0.5 the haze its torches
+# light gave the thief away within a second or two where the guards could not see him before the fog glow (PR #35's
+# report). The owner chose a middle way: at 0.25 the glow still outlines him, after a few seconds (2.9-7.1 s;
+# LevelTests.cpp checks one).
+PHYSICS_LAB_FOG_SCATTERING = 0.25
 
 
 def build_physics_lab():
     """Physics sandbox: a ramp up to a stone platform; on top, a table with a copper jug. Push the
     table down the ramp or shoot the jug off it with an arrow; a guard nearby hears the clatter."""
     doc = Document("PenumbraScene")
-    add_environment(doc, ambient=0.02, map_intensity=0.25, moon=0.25, fog_scattering=PHYSICS_LAB_FOG_SCATTERING)
+    add_environment(doc, fog_scattering=PHYSICS_LAB_FOG_SCATTERING)  # night, like the other levels
     doc.add("Camera", Transform=transform((0, 3, 12)), Camera={"VerticalFOV": 65.0, "NearClip": 0.05, "FarClip": 200.0})
     stone, wood = (0.32, 0.31, 0.3), (0.3, 0.2, 0.12)
     box(doc, "Ground", (0, -0.5, 0), (30, 1, 30), (0.22, 0.22, 0.21))
