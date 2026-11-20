@@ -55,7 +55,7 @@ if(PENUMBRA_BUILD_EDITOR)
         COMMAND PenumbraEditor --headless --warp --exec "${PROJECT_SOURCE_DIR}/docs/art/mood/MoodLab.jsonl"
                 --project "${PROJECT_SOURCE_DIR}/DemoProject"
         WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/MoodLab")
-    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/MoodLab/docs/art/mood/v2")
+    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/MoodLab/docs/art/mood/v3")
     set_tests_properties(Automation.EditorCLI Automation.McpStdio Editor.Smoke Automation.MoodLab PROPERTIES LABELS gpu TIMEOUT 600)
 endif()
 

@@ -119,6 +119,34 @@ TEST_SUITE("Assets")
 		CHECK(Primitives::GetBuiltin("builtin:teapot") == nullptr);
 	}
 
+	TEST_CASE("The built-in cube's four sides map textures upright: u to the right, v downwards")
+	{
+		std::shared_ptr<const MeshData> cube = Primitives::GetBuiltin("builtin:cube");
+		REQUIRE(cube);
+		const glm::vec3 up(0.0f, 1.0f, 0.0f);
+		int sides = 0;
+		for (size_t face = 0; face + 3 < cube->Vertices.size(); face += 4)
+		{
+			const glm::vec3 normal = cube->Vertices[face].Normal;
+			if (std::abs(normal.y) > 0.5f)
+				continue;
+			++sides;
+			CAPTURE(face);
+			const glm::vec3 right = glm::cross(up, normal); // to the right, seen from outside
+			for (size_t a = face; a < face + 4; ++a)
+				for (size_t b = face; b < face + 4; ++b)
+				{
+					const Vertex& va = cube->Vertices[a];
+					const Vertex& vb = cube->Vertices[b];
+					if (glm::dot(vb.Position - va.Position, right) > 0.5f)
+						CHECK(vb.TexCoord.x > va.TexCoord.x);
+					if (vb.Position.y - va.Position.y > 0.5f)
+						CHECK(vb.TexCoord.y < va.TexCoord.y);
+				}
+		}
+		CHECK(sides == 4);
+	}
+
 	TEST_CASE("Textures load from PNG and HDR data")
 	{
 		Test::TemporaryProject project;
