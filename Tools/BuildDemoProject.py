@@ -52,11 +52,11 @@ def material(color, roughness=0.8, metallic=0.0, emissive=0.0, emissive_color=(1
 
 
 def box(doc, name, position, size, color, parent=None, emissive=0.0, emissive_color=(1, 1, 1), collider=True, roughness=0.85,
-        surface=None):
+        surface=None, mat=None):
     components = {
         "Transform": transform(position, scale=size),
         "Mesh": {"Mesh": "builtin:cube"},
-        "Material": material(color, roughness=roughness, emissive=emissive, emissive_color=emissive_color),
+        "Material": mat or material(color, roughness=roughness, emissive=emissive, emissive_color=emissive_color),
     }
     if collider:
         components["BoxCollider"] = {"HalfExtents": [0.5, 0.5, 0.5]}
@@ -884,9 +884,36 @@ def add_double_door(doc, name, center, axis, label="garden door"):
         add_door(doc, name + "Right", (x, 0, z - 1.2), -90, label=label)
 
 
-def cloister_architecture(doc):
-    """The cloister's stone: ground, garden, the ring of covered corridors with doors, the wings."""
-    stone, dark_stone, wall_height = (0.32, 0.31, 0.3), (0.18, 0.18, 0.19), 3.2
+# Generated stone walls (Tools/AssetGen, provenance .json beside each; docs/art/mood/README.md, v3). One tile
+# holds about six courses of stone, so it covers STONE_TILE_METRES of wall. The albedos are painted dark (mean
+# linear 0.10 and 0.055); STONE_TINT lifts them towards the flat greys they replace.
+STONE_TEXTURES = {"light": "Textures/StoneWall/stone_wall_1000", "dark": "Textures/StoneWall/stone_wall_1002"}
+STONE_TILE_METRES = 2.0
+STONE_TINT = 2.0
+
+
+def stone_wall_material(kind, size):
+    """A tiled stone material for a wall box of the given size: the tile keeps its size on the long faces
+    (the narrow ends and the top are stretched: the built-in cube has no world-space mapping)."""
+    width, height = max(size[0], size[2]), size[1]
+    texture = STONE_TEXTURES[kind]
+    mat = material((STONE_TINT, STONE_TINT, STONE_TINT), roughness=1.0)
+    mat.update({"AlbedoTexture": f"{texture}_albedo.png", "NormalTexture": f"{texture}_normal.png",
+                "MetallicRoughnessTexture": f"{texture}_mr.png",
+                "UVScale": [round(width / STONE_TILE_METRES, 3), round(height / STONE_TILE_METRES, 3)]})
+    return mat
+
+
+def cloister_architecture(doc, textured=False):
+    """The cloister's stone: ground, garden, the ring of covered corridors with doors, the wings. Textured: the
+    walls wear the generated stone (the mood lab); otherwise flat greys (the playable cloister)."""
+    flat_stone, flat_dark_stone, wall_height = (0.32, 0.31, 0.3), (0.18, 0.18, 0.19), 3.2
+
+    def wall(name, position, size, kind):
+        colour = flat_stone if kind == "light" else flat_dark_stone
+        box(doc, name, position, size, colour, mat=stone_wall_material(kind, size) if textured else None)
+
+    stone, dark_stone = flat_stone, flat_dark_stone
     box(doc, "Ground", (0, -0.5, 0), (60, 1, 30), (0.22, 0.22, 0.21))
 
     # The garden: grass, a fountain in the middle and hedges for cover.
@@ -899,23 +926,23 @@ def cloister_architecture(doc):
     # Garden walls (the inner side of the ring), each with a 2.4 m doorway in the middle.
     for side, sign in (("North", -1), ("South", 1)):
         z = 8 * sign
-        box(doc, f"Inner{side}A", (-4.7, wall_height / 2, z), (7.0, wall_height, 0.4), stone)
-        box(doc, f"Inner{side}B", (4.7, wall_height / 2, z), (7.0, wall_height, 0.4), stone)
-        box(doc, f"Inner{side}Lintel", (0, 2.7, z), (2.4, 1.0, 0.4), stone)
+        wall(f"Inner{side}A", (-4.7, wall_height / 2, z), (7.0, wall_height, 0.4), "light")
+        wall(f"Inner{side}B", (4.7, wall_height / 2, z), (7.0, wall_height, 0.4), "light")
+        wall(f"Inner{side}Lintel", (0, 2.7, z), (2.4, 1.0, 0.4), "light")
         add_double_door(doc, f"Door{side}", (0, z), "x")
     for side, sign in (("West", -1), ("East", 1)):
         x = 8 * sign
-        box(doc, f"Inner{side}A", (x, wall_height / 2, -4.7), (0.4, wall_height, 7.0), stone)
-        box(doc, f"Inner{side}B", (x, wall_height / 2, 4.7), (0.4, wall_height, 7.0), stone)
-        box(doc, f"Inner{side}Lintel", (x, 2.7, 0), (0.4, 1.0, 2.4), stone)
+        wall(f"Inner{side}A", (x, wall_height / 2, -4.7), (0.4, wall_height, 7.0), "light")
+        wall(f"Inner{side}B", (x, wall_height / 2, 4.7), (0.4, wall_height, 7.0), "light")
+        wall(f"Inner{side}Lintel", (x, 2.7, 0), (0.4, 1.0, 2.4), "light")
         add_double_door(doc, f"Door{side}", (x, 0), "z")
 
     # Outer walls of the ring; the east and west ones open onto the wings.
     for side, sign in (("North", -1), ("South", 1)):
-        box(doc, f"Outer{side}", (0, wall_height / 2, 11.2 * sign), (22.8, wall_height, 0.4), dark_stone)
+        wall(f"Outer{side}", (0, wall_height / 2, 11.2 * sign), (22.8, wall_height, 0.4), "dark")
     for side, sign in (("West", -1), ("East", 1)):
-        box(doc, f"Outer{side}A", (11.2 * sign, wall_height / 2, -6.45), (0.4, wall_height, 9.9), dark_stone)
-        box(doc, f"Outer{side}B", (11.2 * sign, wall_height / 2, 6.45), (0.4, wall_height, 9.9), dark_stone)
+        wall(f"Outer{side}A", (11.2 * sign, wall_height / 2, -6.45), (0.4, wall_height, 9.9), "dark")
+        wall(f"Outer{side}B", (11.2 * sign, wall_height / 2, 6.45), (0.4, wall_height, 9.9), "dark")
     # The ring's roof (the garden stays open to the sky).
     for name, position, size in (("RoofNorth", (0, 3.3, -9.6), (22.8, 0.2, 3.6)), ("RoofSouth", (0, 3.3, 9.6), (22.8, 0.2, 3.6)),
                                  ("RoofWest", (-9.6, 3.3, 0), (3.6, 0.2, 15.6)), ("RoofEast", (9.6, 3.3, 0), (3.6, 0.2, 15.6))):
@@ -924,9 +951,9 @@ def cloister_architecture(doc):
     # The wings: 3 m wide corridors, 14 m long, roofed, closed at the far end.
     for side, sign in (("West", -1), ("East", 1)):
         middle = 18.7 * sign
-        box(doc, f"{side}WingNorth", (middle, wall_height / 2, -1.7), (14.6, wall_height, 0.4), dark_stone)
-        box(doc, f"{side}WingSouth", (middle, wall_height / 2, 1.7), (14.6, wall_height, 0.4), dark_stone)
-        box(doc, f"{side}WingEnd", (26.2 * sign, wall_height / 2, 0), (0.4, wall_height, 3.8), dark_stone)
+        wall(f"{side}WingNorth", (middle, wall_height / 2, -1.7), (14.6, wall_height, 0.4), "dark")
+        wall(f"{side}WingSouth", (middle, wall_height / 2, 1.7), (14.6, wall_height, 0.4), "dark")
+        wall(f"{side}WingEnd", (26.2 * sign, wall_height / 2, 0), (0.4, wall_height, 3.8), "dark")
         box(doc, f"{side}WingRoof", (middle, 3.3, 0), (14.6, 0.2, 3.8), dark_stone)
 
 
@@ -1007,7 +1034,7 @@ def build_mood_lab():
     doc = Document("PenumbraScene")
     add_environment(doc)
     doc.add("Camera", Transform=transform((1.5, 1.6, -9.4), (0, -90, 0)), Camera={"VerticalFOV": 65.0, "NearClip": 0.05, "FarClip": 300.0})
-    cloister_architecture(doc)
+    cloister_architecture(doc, textured=True)
     for index, ((x, z), zone, shadows) in enumerate(MOOD_TORCHES):
         torch_prefab_entities(doc, (x, 0, z), shadows=shadows, name=f"Fire_{zone}_Torch{index + 1}")
     for index, ((x, z), zone) in enumerate(MOOD_BRAZIERS):

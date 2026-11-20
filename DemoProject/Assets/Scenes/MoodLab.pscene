@@ -507,12 +507,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.32,
-            0.31,
-            0.3,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -520,7 +520,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/StoneWall/stone_wall_1000_albedo.png",
+          "NormalTexture": "Textures/StoneWall/stone_wall_1000_normal.png",
+          "MetallicRoughnessTexture": "Textures/StoneWall/stone_wall_1000_mr.png",
+          "UVScale": [
+            3.5,
+            1.6
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -559,12 +566,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.32,
-            0.31,
-            0.3,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -572,7 +579,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/StoneWall/stone_wall_1000_albedo.png",
+          "NormalTexture": "Textures/StoneWall/stone_wall_1000_normal.png",
+          "MetallicRoughnessTexture": "Textures/StoneWall/stone_wall_1000_mr.png",
+          "UVScale": [
+            3.5,
+            1.6
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -611,12 +625,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.32,
-            0.31,
-            0.3,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -624,7 +638,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/StoneWall/stone_wall_1000_albedo.png",
+          "NormalTexture": "Textures/StoneWall/stone_wall_1000_normal.png",
+          "MetallicRoughnessTexture": "Textures/StoneWall/stone_wall_1000_mr.png",
+          "UVScale": [
+            1.2,
+            0.5
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -951,12 +972,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.32,
-            0.31,
-            0.3,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -964,7 +985,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/StoneWall/stone_wall_1000_albedo.png",
+          "NormalTexture": "Textures/StoneWall/stone_wall_1000_normal.png",
+          "MetallicRoughnessTexture": "Textures/StoneWall/stone_wall_1000_mr.png",
+          "UVScale": [
+            3.5,
+            1.6
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -1003,12 +1031,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.32,
-            0.31,
-            0.3,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -1016,7 +1044,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/StoneWall/stone_wall_1000_albedo.png",
+          "NormalTexture": "Textures/StoneWall/stone_wall_1000_normal.png",
+          "MetallicRoughnessTexture": "Textures/StoneWall/stone_wall_1000_mr.png",
+          "UVScale": [
+            3.5,
+            1.6
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -1055,12 +1090,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.32,
-            0.31,
-            0.3,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -1068,7 +1103,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/StoneWall/stone_wall_1000_albedo.png",
+          "NormalTexture": "Textures/StoneWall/stone_wall_1000_normal.png",
+          "MetallicRoughnessTexture": "Textures/StoneWall/stone_wall_1000_mr.png",
+          "UVScale": [
+            1.2,
+            0.5
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -1395,12 +1437,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.32,
-            0.31,
-            0.3,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -1408,7 +1450,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/StoneWall/stone_wall_1000_albedo.png",
+          "NormalTexture": "Textures/StoneWall/stone_wall_1000_normal.png",
+          "MetallicRoughnessTexture": "Textures/StoneWall/stone_wall_1000_mr.png",
+          "UVScale": [
+            3.5,
+            1.6
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -1447,12 +1496,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.32,
-            0.31,
-            0.3,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -1460,7 +1509,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/StoneWall/stone_wall_1000_albedo.png",
+          "NormalTexture": "Textures/StoneWall/stone_wall_1000_normal.png",
+          "MetallicRoughnessTexture": "Textures/StoneWall/stone_wall_1000_mr.png",
+          "UVScale": [
+            3.5,
+            1.6
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -1499,12 +1555,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.32,
-            0.31,
-            0.3,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -1512,7 +1568,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/StoneWall/stone_wall_1000_albedo.png",
+          "NormalTexture": "Textures/StoneWall/stone_wall_1000_normal.png",
+          "MetallicRoughnessTexture": "Textures/StoneWall/stone_wall_1000_mr.png",
+          "UVScale": [
+            1.2,
+            0.5
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -1839,12 +1902,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.32,
-            0.31,
-            0.3,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -1852,7 +1915,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/StoneWall/stone_wall_1000_albedo.png",
+          "NormalTexture": "Textures/StoneWall/stone_wall_1000_normal.png",
+          "MetallicRoughnessTexture": "Textures/StoneWall/stone_wall_1000_mr.png",
+          "UVScale": [
+            3.5,
+            1.6
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -1891,12 +1961,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.32,
-            0.31,
-            0.3,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -1904,7 +1974,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/StoneWall/stone_wall_1000_albedo.png",
+          "NormalTexture": "Textures/StoneWall/stone_wall_1000_normal.png",
+          "MetallicRoughnessTexture": "Textures/StoneWall/stone_wall_1000_mr.png",
+          "UVScale": [
+            3.5,
+            1.6
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -1943,12 +2020,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.32,
-            0.31,
-            0.3,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -1956,7 +2033,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/StoneWall/stone_wall_1000_albedo.png",
+          "NormalTexture": "Textures/StoneWall/stone_wall_1000_normal.png",
+          "MetallicRoughnessTexture": "Textures/StoneWall/stone_wall_1000_mr.png",
+          "UVScale": [
+            1.2,
+            0.5
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -2283,12 +2367,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.18,
-            0.18,
-            0.19,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -2296,7 +2380,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/StoneWall/stone_wall_1002_albedo.png",
+          "NormalTexture": "Textures/StoneWall/stone_wall_1002_normal.png",
+          "MetallicRoughnessTexture": "Textures/StoneWall/stone_wall_1002_mr.png",
+          "UVScale": [
+            11.4,
+            1.6
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -2335,12 +2426,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.18,
-            0.18,
-            0.19,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -2348,7 +2439,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/StoneWall/stone_wall_1002_albedo.png",
+          "NormalTexture": "Textures/StoneWall/stone_wall_1002_normal.png",
+          "MetallicRoughnessTexture": "Textures/StoneWall/stone_wall_1002_mr.png",
+          "UVScale": [
+            11.4,
+            1.6
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -2387,12 +2485,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.18,
-            0.18,
-            0.19,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -2400,7 +2498,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/StoneWall/stone_wall_1002_albedo.png",
+          "NormalTexture": "Textures/StoneWall/stone_wall_1002_normal.png",
+          "MetallicRoughnessTexture": "Textures/StoneWall/stone_wall_1002_mr.png",
+          "UVScale": [
+            4.95,
+            1.6
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -2439,12 +2544,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.18,
-            0.18,
-            0.19,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -2452,7 +2557,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/StoneWall/stone_wall_1002_albedo.png",
+          "NormalTexture": "Textures/StoneWall/stone_wall_1002_normal.png",
+          "MetallicRoughnessTexture": "Textures/StoneWall/stone_wall_1002_mr.png",
+          "UVScale": [
+            4.95,
+            1.6
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -2491,12 +2603,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.18,
-            0.18,
-            0.19,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -2504,7 +2616,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/StoneWall/stone_wall_1002_albedo.png",
+          "NormalTexture": "Textures/StoneWall/stone_wall_1002_normal.png",
+          "MetallicRoughnessTexture": "Textures/StoneWall/stone_wall_1002_mr.png",
+          "UVScale": [
+            4.95,
+            1.6
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -2543,12 +2662,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.18,
-            0.18,
-            0.19,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -2556,7 +2675,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/StoneWall/stone_wall_1002_albedo.png",
+          "NormalTexture": "Textures/StoneWall/stone_wall_1002_normal.png",
+          "MetallicRoughnessTexture": "Textures/StoneWall/stone_wall_1002_mr.png",
+          "UVScale": [
+            4.95,
+            1.6
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -2803,12 +2929,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.18,
-            0.18,
-            0.19,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -2816,7 +2942,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/StoneWall/stone_wall_1002_albedo.png",
+          "NormalTexture": "Textures/StoneWall/stone_wall_1002_normal.png",
+          "MetallicRoughnessTexture": "Textures/StoneWall/stone_wall_1002_mr.png",
+          "UVScale": [
+            7.3,
+            1.6
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -2855,12 +2988,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.18,
-            0.18,
-            0.19,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -2868,7 +3001,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/StoneWall/stone_wall_1002_albedo.png",
+          "NormalTexture": "Textures/StoneWall/stone_wall_1002_normal.png",
+          "MetallicRoughnessTexture": "Textures/StoneWall/stone_wall_1002_mr.png",
+          "UVScale": [
+            7.3,
+            1.6
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -2907,12 +3047,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.18,
-            0.18,
-            0.19,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -2920,7 +3060,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/StoneWall/stone_wall_1002_albedo.png",
+          "NormalTexture": "Textures/StoneWall/stone_wall_1002_normal.png",
+          "MetallicRoughnessTexture": "Textures/StoneWall/stone_wall_1002_mr.png",
+          "UVScale": [
+            1.9,
+            1.6
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -3011,12 +3158,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.18,
-            0.18,
-            0.19,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -3024,7 +3171,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/StoneWall/stone_wall_1002_albedo.png",
+          "NormalTexture": "Textures/StoneWall/stone_wall_1002_normal.png",
+          "MetallicRoughnessTexture": "Textures/StoneWall/stone_wall_1002_mr.png",
+          "UVScale": [
+            7.3,
+            1.6
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -3063,12 +3217,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.18,
-            0.18,
-            0.19,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -3076,7 +3230,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/StoneWall/stone_wall_1002_albedo.png",
+          "NormalTexture": "Textures/StoneWall/stone_wall_1002_normal.png",
+          "MetallicRoughnessTexture": "Textures/StoneWall/stone_wall_1002_mr.png",
+          "UVScale": [
+            7.3,
+            1.6
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [
@@ -3115,12 +3276,12 @@
         },
         "Material": {
           "BaseColor": [
-            0.18,
-            0.18,
-            0.19,
+            2.0,
+            2.0,
+            2.0,
             1.0
           ],
-          "Roughness": 0.85,
+          "Roughness": 1.0,
           "Metallic": 0.0,
           "EmissiveIntensity": 0.0,
           "EmissiveColor": [
@@ -3128,7 +3289,14 @@
             1,
             1
           ],
-          "Translucent": false
+          "Translucent": false,
+          "AlbedoTexture": "Textures/StoneWall/stone_wall_1002_albedo.png",
+          "NormalTexture": "Textures/StoneWall/stone_wall_1002_normal.png",
+          "MetallicRoughnessTexture": "Textures/StoneWall/stone_wall_1002_mr.png",
+          "UVScale": [
+            1.9,
+            1.6
+          ]
         },
         "BoxCollider": {
           "HalfExtents": [

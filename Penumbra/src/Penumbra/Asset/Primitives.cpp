@@ -69,12 +69,14 @@ namespace Penumbra::Primitives {
 	{
 		MeshData mesh;
 		const glm::vec2 size(1.0f);
-		AddFace(mesh, { 0.5f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f }, size);
+		// The four sides stand upright in texture space (v down the face, u to the right seen from outside),
+		// so a tiled wall texture keeps its courses horizontal on every side of a box.
+		AddFace(mesh, { 0.5f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, -1.0f }, { 0.0f, 1.0f, 0.0f }, size);
 		AddFace(mesh, { -0.5f, 0.0f, 0.0f }, { -1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f }, size);
 		AddFace(mesh, { 0.0f, 0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f }, size);
 		AddFace(mesh, { 0.0f, -0.5f, 0.0f }, { 0.0f, -1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 1.0f }, size);
 		AddFace(mesh, { 0.0f, 0.0f, 0.5f }, { 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, size);
-		AddFace(mesh, { 0.0f, 0.0f, -0.5f }, { 0.0f, 0.0f, -1.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, size);
+		AddFace(mesh, { 0.0f, 0.0f, -0.5f }, { 0.0f, 0.0f, -1.0f }, { -1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, size);
 		Finalize(mesh, "Cube");
 		return mesh;
 	}

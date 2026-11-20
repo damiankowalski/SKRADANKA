@@ -148,6 +148,13 @@ bytes). A 4 x 2 m wall of the built-in cube takes `UVScale` 4, 2 for a texture a
 editor and F4 (two-number fields), from Lua and the command API. Out of scope: world-space or triplanar mapping, so
 the narrow sides of a stretched cube get the same repeats as its face.
 
+**Mood lab with textures** (S, approved after texture tiling): the mood lab's walls wear two of the generated
+stone walls (AssetGen variants 1000, light, on the garden walls and 1002, dark, on the outer walls and wings), in
+`DemoProject/Assets/Textures/StoneWall` with their provenance `.json`; one tile covers 2 m of wall, the albedo
+tinted x2 towards the flat greys it replaces. Renders v3 in docs/art/mood/README.md. The playable cloister keeps
+its flat greys. Engine fix: the built-in cube's -Z and +X sides mapped textures turned by 90 degrees; all four
+sides now stand upright (u to the right, v down).
+
 ## In progress
 
 Nothing: the next package waits for the owner's choice (leaning on Q/E is the natural follow-up).
