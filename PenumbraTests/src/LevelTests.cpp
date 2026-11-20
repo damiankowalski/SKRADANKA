@@ -5,6 +5,7 @@
 #include "Penumbra/Core/Input.h"
 #include "Penumbra/AI/PerceptionSystem.h"
 #include "Penumbra/Navigation/NavigationSystem.h"
+#include "Penumbra/Physics/PhysicsWorld.h"
 #include "Penumbra/Project/Project.h"
 #include "Penumbra/Scene/SceneSerializer.h"
 #include "Penumbra/Scripting/ScriptEngine.h"
@@ -257,6 +258,164 @@ TEST_SUITE("World")
 						   "return physics.raycast(body, eye - body, (eye - body):length(), p) == nil") == "true");
 		Input::SetKeyState(Key::E, false);
 		CHECK(cloister.SceneInstance.GetScriptEngine()->GetErrors().empty());
+	}
+
+	TEST_CASE("PerceptionLab's fog spots: lit mist behind the thief gives him away, lit mist in front hides him")
+	{
+		// The playtest places of the fog glow (Tools/BuildDemoProject.py, FOG_SPOT_EAST / FOG_SPOT_WEST). The thief
+		// stands still there; seconds until the guard's suspicion reaches 0.3 (-1: not within 10 s).
+		auto timeAt = [](const glm::vec3& spot, bool glow, bool lampBetween) {
+			Level lab("Scenes/PerceptionLab.pscene");
+			Entity player = lab.Entity("Player");
+			lab.SceneInstance.OnRuntimeStop(); // restart without the player's controller and scripts
+			player.RemoveComponent<CharacterControllerComponent>();
+			player.RemoveComponent<ScriptComponent>();
+			lab.Entity("Guard").RemoveComponent<ScriptComponent>();
+			player.GetComponent<PerceptionTargetComponent>().SilhouettePoints = PerceptionTargetComponent().SilhouettePoints;
+			lab.Entity("FogLampBetween").GetComponent<PointLightComponent>().Enabled = lampBetween;
+			player.Transform().Translation = spot;
+			lab.SceneInstance.OnRuntimeStart();
+			lab.SceneInstance.GetPerceptionSystem()->SetFogGlow(glow);
+			PerceptionComponent& guard = lab.Entity("Guard").GetComponent<PerceptionComponent>();
+			const float dt = 1.0f / 60.0f;
+			for (float t = 0.0f; t < 10.0f; t += dt)
+			{
+				lab.SceneInstance.OnUpdateRuntime(Timestep(dt));
+				if (guard.RuntimeSuspicion >= 0.3f)
+					return t + dt;
+			}
+			return -1.0f;
+		};
+		const glm::vec3 east(6.0f, 0.05f, -1.0f), west(-7.0f, 0.05f, 0.4f);
+
+		const float eastBefore = timeAt(east, false, true), eastAfter = timeAt(east, true, true);
+		const float westNoLamp = timeAt(west, true, false), westLamp = timeAt(west, true, true), westBefore = timeAt(west, false, true);
+		MESSAGE("east: fog only dims " << eastBefore << " s, fog glows " << eastAfter << " s; west: no lamp " << westNoLamp
+				<< " s, lamp in the mist " << westLamp << " s (fog only dims: " << westBefore << " s)");
+		REQUIRE(eastAfter > 0.0f);
+		CHECK((eastBefore < 0.0f || eastAfter < eastBefore * 0.5f));
+		REQUIRE(westNoLamp > 0.0f);
+		CHECK((westLamp < 0.0f || westLamp > westNoLamp * 2.0f));
+		CHECK((westLamp < 0.0f || (westBefore > 0.0f && westLamp > westBefore * 2.0f)));
+	}
+
+	TEST_CASE("Fog glow report: detection times in the foggy levels, before and after" * doctest::skip())
+	{
+		// Run: PenumbraTests -tc="Fog glow report*" --no-skip (release). For every guard of the foggy levels, the
+		// thief stands still 6, 10 and 14 m in front of him (and on PerceptionLab's two fog spots); seconds until
+		// the guard's suspicion reaches 0.3, with the fog only dimming contrast (before) and seen lit (after).
+		// Scripts are removed so nobody moves; MoodLab gets a guard where the wide shot stands, in variant C.
+		struct Spot
+		{
+			std::string Guard;
+			glm::vec3 Position;
+		};
+		auto load = [](const std::string& scenePath, Scene& scene) {
+			std::string error;
+			REQUIRE_MESSAGE(SceneSerializer::Deserialize(scene, Project::GetAssetDirectory() / scenePath, error), error);
+			std::vector<entt::entity> scripted;
+			for (auto handle : scene.GetRegistry().view<ScriptComponent>())
+				scripted.push_back(handle);
+			for (auto handle : scripted)
+				scene.GetRegistry().remove<ScriptComponent>(handle);
+		};
+		struct Outcome
+		{
+			float Time = -1.0f;
+			VisibilityResult Seen;
+		};
+		auto timeFor = [&](const std::string& scenePath, const Spot& spot, bool glow) {
+			Scene scene;
+			scene.SetAudioDeviceEnabled(false);
+			load(scenePath, scene);
+			if (scenePath == "Scenes/MoodLab.pscene")
+			{
+				Entity guard = scene.CreateEntity("Guard");
+				guard.Transform().Translation = { 0.0f, 0.05f, 7.3f };
+				guard.AddComponent<PerceptionComponent>();
+			}
+			Entity player = scene.FindEntityByName("Thief") ? scene.FindEntityByName("Thief") : scene.FindEntityByName("Player");
+			REQUIRE(player);
+			if (!player.HasComponent<PerceptionTargetComponent>())
+				player.AddComponent<PerceptionTargetComponent>();
+			// Placed by hand and standing still: no physics character that would put him back.
+			if (player.HasComponent<CharacterControllerComponent>())
+				player.RemoveComponent<CharacterControllerComponent>();
+			scene.OnRuntimeStart();
+			// On the floor under the spot (a guard on a ledge would put him in the air).
+			glm::vec3 position = spot.Position;
+			auto notPlayer = [&](UUID id) { return id != player.GetUUID(); };
+			if (std::optional<RaycastHit> floor = scene.GetPhysicsWorld()->Raycast(position + glm::vec3(0.0f, 0.5f, 0.0f), { 0.0f, -1.0f, 0.0f }, 10.0f, notPlayer))
+				position = floor->Point + glm::vec3(0.0f, 0.05f, 0.0f);
+			player.Transform().Translation = position;
+			if (scenePath == "Scenes/MoodLab.pscene")
+			{
+				std::string output;
+				REQUIRE(scene.GetScriptEngine()->Execute("return require('Scripts/MoodLab/Variants').apply('Mixed')", output));
+			}
+			scene.GetPerceptionSystem()->SetFogGlow(glow);
+			Entity guard = scene.FindEntityByName(spot.Guard);
+			REQUIRE(guard);
+			Outcome outcome;
+			const float dt = 1.0f / 60.0f;
+			for (float t = 0.0f; t < 10.0f; t += dt)
+			{
+				player.Transform().Translation = position; // nothing pushes him away
+				scene.OnUpdateRuntime(Timestep(dt));
+				if (guard.GetComponent<PerceptionComponent>().RuntimeSuspicion >= 0.3f)
+				{
+					outcome.Time = t + dt;
+					break;
+				}
+			}
+			outcome.Seen = scene.GetPerceptionSystem()->ComputeVisibility(guard, player);
+			scene.OnRuntimeStop();
+			return outcome;
+		};
+		auto spotsFor = [&](const std::string& scenePath) {
+			std::vector<Spot> spots;
+			if (scenePath == "Scenes/PerceptionLab.pscene")
+				return std::vector<Spot>{ { "Guard", { 6.0f, 0.05f, -1.0f } }, { "Guard", { -7.0f, 0.05f, 0.4f } } };
+			if (scenePath == "Scenes/MoodLab.pscene")
+			{
+				for (const float d : { 6.0f, 10.0f, 14.0f })
+					spots.push_back({ "Guard", { 0.0f, 0.05f, 7.3f - d } });
+				return spots;
+			}
+			Scene scene;
+			load(scenePath, scene);
+			for (auto [handle, perception] : scene.GetRegistry().view<PerceptionComponent>().each())
+			{
+				Entity guard(handle, &scene);
+				glm::vec3 forward = Math::Forward(guard.Transform().Rotation);
+				forward.y = 0.0f;
+				forward = glm::normalize(forward);
+				for (const float d : { 6.0f, 10.0f, 14.0f })
+					spots.push_back({ guard.GetName(), guard.Transform().Translation + forward * d });
+			}
+			return spots;
+		};
+
+		std::string error;
+		REQUIRE_MESSAGE(Project::Load(std::filesystem::path(PENUMBRA_DEMO_PROJECT_DIR) / "project.json", error), error);
+		Input::Reset();
+		for (const char* scenePath : { "Scenes/Cloister.pscene", "Scenes/Stealth.pscene", "Scenes/PhysicsLab.pscene", "Scenes/MoodLab.pscene",
+				 "Scenes/PerceptionLab.pscene" })
+		{
+			for (const Spot& spot : spotsFor(scenePath))
+			{
+				const Outcome before = timeFor(scenePath, spot, false);
+				const Outcome after = timeFor(scenePath, spot, true);
+				auto text = [](float t) { return t < 0.0f ? std::string("-") : std::format("{:.1f}", t); };
+				const VisibilityResult& seen = after.Seen;
+				MESSAGE(std::format("{} | {} | ({:.1f}, {:.1f}) | {} | {} | B {:.2f} -> {:.2f}, points {}/{}, L thief {:.4f}, bg {:.4f}, "
+									"T {:.2f}, glow front {:.4f}, behind {:.4f}",
+					scenePath, spot.Guard, spot.Position.x, spot.Position.z, text(before.Time), text(after.Time), before.Seen.Stimulus,
+					seen.Stimulus, seen.VisiblePoints, seen.TotalPoints, seen.TargetLuminance, seen.BackgroundLuminance, seen.FogTransmittance,
+					seen.FogGlowFront, seen.FogGlowBehind));
+			}
+		}
+		Project::Unload();
 	}
 
 	TEST_CASE("Cloister: the crossbow shoots only while aimed (right mouse); the compass follows the camera")

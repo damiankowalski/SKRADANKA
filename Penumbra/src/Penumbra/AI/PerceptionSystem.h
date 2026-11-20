@@ -20,14 +20,23 @@ namespace Penumbra {
 	{
 		float Stimulus = 0.0f;          // B
 		float VisibleFraction = 0.0f;   // f
-		float Contrast = 0.0f;          // C_eff after atmosphere
+		float Contrast = 0.0f;          // C_eff after fog and smoke
 		float ContrastThreshold = 0.0f; // C_t
 		float SizeFactor = 0.0f;        // S
 		float Peripheral = 0.0f;        // P(theta)
 		float Motion = 1.0f;            // M
-		float Atmosphere = 1.0f;        // exp(-optical depth)
-		float TargetLuminance = 0.0f;   // mean L_p over visible points
-		float BackgroundLuminance = 0.0f; // mean L_b over visible points
+		// exp(-optical depth) multiplying the contrast: smoke's; also the fog's when it is not seen lit
+		// (no fog in the level, or the fog glow switch off).
+		float Atmosphere = 1.0f;
+		// Mean L_p and L_b over visible points, as the eye gets them through the fog (docs/Perception.md):
+		// L_p' = L_p T1 + S1, L_b' = (L_b T2 + S2) T1 + S1.
+		float TargetLuminance = 0.0f;
+		float BackgroundLuminance = 0.0f;
+		// The fog on the sight line: how much of the thief gets through (T1), the light it adds in front of him
+		// (S1) and behind him, in front of the background (S2, as seen from him). 1, 0, 0 without fog.
+		float FogTransmittance = 1.0f;
+		float FogGlowFront = 0.0f;
+		float FogGlowBehind = 0.0f;
 		float Distance = 0.0f;
 		uint32_t VisiblePoints = 0;
 		uint32_t TotalPoints = 0;
@@ -98,6 +107,13 @@ namespace Penumbra {
 		float SampleLuminance(const glm::vec3& point);
 		// Integrated extinction (fog + smoke) along a segment.
 		float OpticalDepth(const glm::vec3& from, const glm::vec3& to);
+		// Smoke's part of it (SmokeVolume).
+		float SmokeOpticalDepth(const glm::vec3& from, const glm::vec3& to);
+
+		// Guards see the light the fog scatters (on by default). Off: the model before it, where fog only
+		// dims contrast. For comparisons and tuning (tests, the runtime's debug panel).
+		void SetFogGlow(bool enabled) { m_FogGlow = enabled; }
+		bool IsFogGlowEnabled() const { return m_FogGlow; }
 
 		void SetLuminanceProvider(Scope<LuminanceProvider> provider) { m_Provider = std::move(provider); }
 
@@ -141,6 +157,7 @@ namespace Penumbra {
 		std::vector<NoiseEvent> m_PendingNoises;
 		std::vector<NoiseEvent> m_RecentNoises;
 		bool m_IgnoreIntruders = false;
+		bool m_FogGlow = true;
 		std::unordered_set<UUID> m_IgnoringObservers;
 		std::unordered_map<UUID, TargetLighting> m_TargetLighting;
 		std::unordered_map<UUID, float> m_VisionTimers; // per observer, staggered so guards do not all think on one frame

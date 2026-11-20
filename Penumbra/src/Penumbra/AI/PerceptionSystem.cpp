@@ -292,15 +292,18 @@ namespace Penumbra {
 
 	float PerceptionSystem::OpticalDepth(const glm::vec3& from, const glm::vec3& to)
 	{
+		// The fog the player sees (environment, height fog, fog volumes: Scene/FogUtils.h), then smoke.
+		return FogMedium::FromScene(m_Scene).OpticalDepth(from, to) + SmokeOpticalDepth(from, to);
+	}
+
+	float PerceptionSystem::SmokeOpticalDepth(const glm::vec3& from, const glm::vec3& to)
+	{
 		const glm::vec3 delta = to - from;
 		const float length = glm::length(delta);
 		if (length < Math::Epsilon)
 			return 0.0f;
 		const glm::vec3 direction = delta / length;
-
-		// The fog the player sees (environment, height fog, fog volumes: Scene/FogUtils.h), then smoke.
-		float depth = FogMedium::FromScene(m_Scene).OpticalDepth(from, to);
-
+		float depth = 0.0f;
 		for (auto [handle, smoke] : m_Scene.GetRegistry().view<SmokeVolumeComponent>().each())
 		{
 			const glm::vec3 center = m_Scene.GetWorldPosition(Entity(handle, &m_Scene));
@@ -376,7 +379,20 @@ namespace Penumbra {
 		auto sightFilter = [&](UUID entity) { return IsSightBlocker(entity, bothIgnore); };
 		const TargetLighting& lighting = GetTargetLighting(target);
 
-		float contrastSum = 0.0f, targetLumSum = 0.0f, backgroundLumSum = 0.0f, angleSum = 0.0f, distanceSum = 0.0f, opticalSum = 0.0f;
+		// What each visible silhouette point offers the eye before the fog: its luminance, the background's
+		// and how far that background lies behind it.
+		struct PointSample
+		{
+			glm::vec3 Point{ 0.0f };
+			glm::vec3 Direction{ 0.0f };
+			float Target = 0.0f;
+			float Background = 0.0f;
+			float BackgroundDistance = 0.0f;
+			float Zone = 1.0f;
+		};
+		std::vector<PointSample> samples;
+		samples.reserve(targetComponent.SilhouettePoints.size());
+		float angleSum = 0.0f, distanceSum = 0.0f;
 		result.TotalPoints = static_cast<uint32_t>(targetComponent.SilhouettePoints.size());
 
 		for (const glm::vec3& localPoint : targetComponent.SilhouettePoints)
@@ -395,48 +411,116 @@ namespace Penumbra {
 			if (physics->Raycast(eye, toPoint, distance, sightFilter))
 				continue;
 
+			PointSample sample;
+			sample.Point = point;
+			sample.Direction = toPoint;
 			// 2. Target luminance: the body is rounded, so it is lit by everything around it as seen
 			//    from this observer, plus light bounced up from the floor it stands on.
 			const size_t pointIndex = static_cast<size_t>(&localPoint - targetComponent.SilhouettePoints.data());
 			const float illuminance = lighting.Points[pointIndex].Rounded(-toPoint) + lighting.Bounce;
-			const float lp = PerceptionModel::SurfaceLuminance(targetComponent.Reflectance, illuminance, targetComponent.Emissive);
+			sample.Target = PerceptionModel::SurfaceLuminance(targetComponent.Reflectance, illuminance, targetComponent.Emissive);
 
 			// 3. Background luminance: continue the sight line through the target.
-			float lb = m_Provider->SkyLuminance();
-			const float remaining = perception.ViewDistance * BackgroundRangeMultiplier;
-			if (std::optional<RaycastHit> hit = physics->Raycast(point, toPoint, remaining, sightFilter))
+			sample.Background = m_Provider->SkyLuminance();
+			sample.BackgroundDistance = perception.ViewDistance * BackgroundRangeMultiplier;
+			if (std::optional<RaycastHit> hit = physics->Raycast(point, toPoint, sample.BackgroundDistance, sightFilter))
 			{
 				const SurfaceSample surface = m_Provider->GetSurface(hit->Entity);
 				const float backgroundIlluminance = m_Provider->Illuminance(hit->Point + hit->Normal * 0.02f, hit->Normal, { hit->Entity });
-				lb = PerceptionModel::SurfaceLuminance(surface.Albedo, backgroundIlluminance, surface.Emissive);
+				sample.Background = PerceptionModel::SurfaceLuminance(surface.Albedo, backgroundIlluminance, surface.Emissive);
+				sample.BackgroundDistance = hit->Distance;
 			}
-
-			result.VisiblePoints++;
-			contrastSum += PerceptionModel::WeberContrast(lb, lp, perception.LuminanceFloor) *
-				PerceptionModel::ZoneContrastFactor(angle, focusHalfFov, perception.PeripheralContrast);
-			targetLumSum += lp;
-			backgroundLumSum += lb;
+			sample.Zone = PerceptionModel::ZoneContrastFactor(angle, focusHalfFov, perception.PeripheralContrast);
+			samples.push_back(sample);
 			angleSum += angle;
 			distanceSum += distance;
-			opticalSum += OpticalDepth(eye, point);
 		}
 
+		result.VisiblePoints = static_cast<uint32_t>(samples.size());
 		if (result.VisiblePoints == 0 || result.TotalPoints == 0)
 		{
 			result.ContrastThreshold = PerceptionModel::ContrastThreshold(perception.RuntimeAdaptation, 0.0f, perception.ContrastMin,
 				perception.DarkSensitivity, perception.GlareSensitivity);
 			return result;
 		}
-
 		const float visible = static_cast<float>(result.VisiblePoints);
+
+		// 4. The fog on the way (docs/Perception.md, "Fog"). Seen lit, it is what the player sees: the thief's
+		//    light comes through it dimmed (T1) with the fog's glow in front added (S1); the background comes
+		//    through the fog behind him too (T2) with that fog's glow (S2). The glow (light scattered in,
+		//    Scene/FogUtils.h) is integrated once per sight line, along the line to the middle of what is
+		//    seen and on behind it, and shared out by each point's own fog: S_i = S * (1 - T_i) / (1 - T),
+		//    exact for an evenly lit fog. Smoke still only dims the contrast.
+		const FogMedium fog = FogMedium::FromScene(m_Scene);
+		const bool fogGlow = m_FogGlow && !fog.IsEmpty();
+		float contrastSum = 0.0f, targetLumSum = 0.0f, backgroundLumSum = 0.0f, smokeSum = 0.0f, fogSum = 0.0f;
+		float transmittanceSum = 0.0f, glowFrontSum = 0.0f, glowBehindSum = 0.0f;
+		FogPath front, behind;
+		if (fogGlow)
+		{
+			glm::vec3 middle(0.0f);
+			float behindDistance = 0.0f;
+			for (const PointSample& sample : samples)
+			{
+				middle += sample.Point;
+				behindDistance += sample.BackgroundDistance;
+			}
+			middle /= visible;
+			behindDistance /= visible;
+			const glm::vec3 along = glm::normalize(middle - eye);
+			auto lampLight = [&](const glm::vec3& point) {
+				const glm::vec3 towardEye = eye - point;
+				const float length = glm::length(towardEye);
+				return length > Math::Epsilon ? m_Provider->FogLight(point, towardEye / length, fog.Anisotropy) : 0.0f;
+			};
+			front = fog.Integrate(eye, middle, lampLight);
+			behind = fog.Integrate(middle, middle + along * behindDistance, lampLight);
+		}
+		auto share = [](const FogPath& path, float transmittance) {
+			const float fogged = 1.0f - path.Transmittance;
+			return fogged > 1e-4f ? path.InScattered * (1.0f - transmittance) / fogged : path.InScattered;
+		};
+
+		for (const PointSample& sample : samples)
+		{
+			const float smoke = SmokeOpticalDepth(eye, sample.Point);
+			smokeSum += smoke;
+			if (!fogGlow)
+			{
+				// Fog only dims the contrast (no fog, or the glow switched off: the model before it).
+				const float fogDepth = fog.IsEmpty() ? 0.0f : fog.OpticalDepth(eye, sample.Point);
+				fogSum += fogDepth;
+				contrastSum += PerceptionModel::WeberContrast(sample.Background, sample.Target, perception.LuminanceFloor) * sample.Zone;
+				targetLumSum += sample.Target;
+				backgroundLumSum += sample.Background;
+				transmittanceSum += std::exp(-fogDepth);
+				continue;
+			}
+			const float t1 = std::exp(-fog.OpticalDepth(eye, sample.Point));
+			const float t2 = std::exp(-fog.OpticalDepth(sample.Point, sample.Point + sample.Direction * sample.BackgroundDistance));
+			const float s1 = share(front, t1);
+			const float s2 = share(behind, t2);
+			const float target = sample.Target * t1 + s1;
+			const float background = (sample.Background * t2 + s2) * t1 + s1;
+			contrastSum += PerceptionModel::WeberContrast(background, target, perception.LuminanceFloor) * sample.Zone;
+			targetLumSum += target;
+			backgroundLumSum += background;
+			transmittanceSum += t1;
+			glowFrontSum += s1;
+			glowBehindSum += s2;
+		}
+
 		result.VisibleFraction = visible / static_cast<float>(result.TotalPoints);
 		result.TargetLuminance = targetLumSum / visible;
 		result.BackgroundLuminance = backgroundLumSum / visible;
+		result.FogTransmittance = transmittanceSum / visible;
+		result.FogGlowFront = glowFrontSum / visible;
+		result.FogGlowBehind = glowBehindSum / visible;
 		result.ContrastThreshold = PerceptionModel::ContrastThreshold(perception.RuntimeAdaptation,
 			std::max(result.TargetLuminance, result.BackgroundLuminance), perception.ContrastMin, perception.DarkSensitivity,
 			perception.GlareSensitivity);
 		result.Distance = distanceSum / visible;
-		result.Atmosphere = PerceptionModel::AtmosphereFactor(opticalSum / visible);
+		result.Atmosphere = PerceptionModel::AtmosphereFactor((smokeSum + fogSum) / visible);
 		result.Contrast = (contrastSum / visible) * result.Atmosphere;
 		result.SizeFactor = PerceptionModel::SizeFactor(targetComponent.Radius, result.Distance, perception.ReferenceAngularSize);
 

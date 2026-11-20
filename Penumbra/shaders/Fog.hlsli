@@ -43,6 +43,15 @@ float FogBoxWeight(float3 local, float3 halfExtents, float edgeFade)
 	return edgeFade <= 0.0 ? 1.0 : saturate(depth / edgeFade);
 }
 
+// --- Light (FogPhase in FogUtils.h) ------------------------------------------------------------------
+
+// Henyey-Greenstein, scaled so scattering the same way in every direction gives 1.
+float FogPhase(float cosTheta, float g)
+{
+	float g2 = g * g;
+	return (1.0 - g2) / pow(max(1.0 + g2 - 2.0 * g * cosTheta, 1e-4), 1.5);
+}
+
 // --- The froxel grid --------------------------------------------------------------------------------
 // Slices are spaced quadratically in view depth: slice coordinate w in [0, 1] sits at FogDistance * w^2.
 

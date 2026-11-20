@@ -561,11 +561,16 @@ def campfire(doc, position):
     return fire
 
 
+# Where to stand in PerceptionLab to try the fog glow (x, z); PenumbraTests/src/LevelTests.cpp checks them.
+FOG_SPOT_EAST = (6.0, -1.0)
+FOG_SPOT_WEST = (-7.0, 0.4)
+
+
 def build_perception_lab():
     """One guard, one campfire, one player: the place to tune and understand NPC vision.
     A small walled yard so firelight falls on walls as well as the floor; a polished stone
-    patch near the fire, a dark corner, pillars for cover and a lit doorway behind the guard's
-    field of view for silhouette tests."""
+    patch near the fire, a dark corner, pillars for cover, a lit doorway behind the guard's
+    field of view for silhouette tests, and two patches of lit mist for the fog's glow."""
     doc = Document("PenumbraScene")
     add_environment(doc, ambient=0.004, map_intensity=0.08, fog=0.0, moon=0.04)
     doc.add("Camera", Transform=transform((0, 3, 8)), Camera={"VerticalFOV": 65.0})
@@ -586,6 +591,20 @@ def build_perception_lab():
     campfire(doc, (0, 0, 2))
     torch_prefab_entities(doc, (-11.2, 0, -6))
     torch_prefab_entities(doc, (11.2, 0, -6))
+
+    # Fog glow (docs/Perception.md, "Fog"): two places to try it, both in the guard's view (clear of the pillars).
+    # East: a bank of mist with a cold lamp in it, out of reach of the walls. Stand at FOG_SPOT_EAST, in front of
+    # the bank: a dark figure against glowing fog, seen sooner than when fog only dimmed him.
+    doc.add("FogBankEast", Transform=transform((8.6, 1.2, 2.0)),
+            FogVolume={"HalfExtents": [1.4, 1.4, 1.4], "Density": 0.3, "EdgeFade": 0.6})
+    doc.add("FogLampBehind", Transform=transform((8.8, 1.5, 2.2)),
+            PointLight={"Color": [0.55, 0.8, 1.0], "Intensity": 12.0, "Range": 2.2, "Flicker": 0.0, "CastShadows": False})
+    # West: a puff of mist with a warm lamp in it, between the guard and the lit doorway. Stand at FOG_SPOT_WEST,
+    # against the doorway: the glow in between hides what the doorway would give away (switch the lamp off to see).
+    doc.add("FogPuffWest", Transform=transform((-3.5, 1.2, -3.8)),
+            FogVolume={"HalfExtents": [1.2, 1.4, 1.2], "Density": 0.06, "EdgeFade": 0.6})
+    doc.add("FogLampBetween", Transform=transform((-3.5, 1.5, -3.8)),
+            PointLight={"Color": [1.0, 0.6, 0.3], "Intensity": 10.0, "Range": 2.0, "Flicker": 0.0, "CastShadows": False})
 
     guard = doc.add("Guard", Transform=transform((0, 0.05, -8), (0, 180, 0)),  # facing the yard
                     CharacterController={"Radius": 0.3, "Height": 1.8}, Perception={},

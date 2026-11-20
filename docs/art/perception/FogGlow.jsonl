@@ -1,0 +1,22 @@
+# Fog glow in perception: PerceptionLab's two fog spots as the guard sees them (docs/Perception.md, "Fog").
+# Run from the repository root:
+#   PenumbraEditor --headless --exec docs/art/perception/FogGlow.jsonl --project DemoProject
+{"cmd": "scene.open", "path": "Scenes/PerceptionLab.pscene"}
+# Only the scene in the picture: no player HUD, no lab readout (removed before play; the file is not saved).
+{"cmd": "entity.remove_component", "name": "Player", "component": "Script"}
+{"cmd": "entity.destroy", "name": "Debug"}
+{"cmd": "play"}
+{"cmd": "simulate", "seconds": 0.5}
+# East: the thief in front of a bank of mist lit from inside.
+{"cmd": "script.exec", "code": "scene.find('Player'):set_position(vec3(6, 0.05, -1)); return true"}
+{"cmd": "simulate", "frames": 30}
+{"cmd": "render.screenshot", "path": "docs/art/perception/east_lit_mist_behind.png", "width": 1280, "height": 720, "camera": {"position": [0.0, 1.65, -8.0], "target": [6.0, 1.0, -1.0], "fov": 55}}
+# West: the thief against the lit doorway, a lamp in a puff of mist between him and the guard.
+{"cmd": "script.exec", "code": "scene.find('Player'):set_position(vec3(-7, 0.05, 0.4)); return true"}
+{"cmd": "simulate", "frames": 30}
+{"cmd": "render.screenshot", "path": "docs/art/perception/west_lamp_in_between.png", "width": 1280, "height": 720, "camera": {"position": [0.0, 1.65, -8.0], "target": [-7.0, 1.0, 0.4], "fov": 55}}
+# The same with the lamp in the mist off.
+{"cmd": "script.exec", "code": "scene.find('FogLampBetween'):set('PointLight', {Enabled = false}); return true"}
+{"cmd": "simulate", "frames": 30}
+{"cmd": "render.screenshot", "path": "docs/art/perception/west_lamp_off.png", "width": 1280, "height": 720, "camera": {"position": [0.0, 1.65, -8.0], "target": [-7.0, 1.0, 0.4], "fov": 55}}
+{"cmd": "stop"}

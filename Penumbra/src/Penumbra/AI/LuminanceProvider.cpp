@@ -4,6 +4,7 @@
 #include "Penumbra/Asset/AssetManager.h"
 #include "Penumbra/Physics/PhysicsWorld.h"
 #include "Penumbra/Scene/Entity.h"
+#include "Penumbra/Scene/FogUtils.h"
 #include "Penumbra/Scene/LightUtils.h"
 
 #include <glm/gtc/constants.hpp>
@@ -49,6 +50,7 @@ namespace Penumbra {
 			sample.Direction = glm::normalize(Math::Forward(m_Scene.GetWorldRotation(entity)));
 			sample.Intensity = Math::Luminance(light.Color) * light.Intensity;
 			sample.CastsShadows = light.CastShadows;
+			sample.RenderShadows = light.CastShadows;
 			CollectRelated(entity, sample.Related);
 			m_Lights.push_back(std::move(sample));
 		}
@@ -67,6 +69,7 @@ namespace Penumbra {
 			// Point lights cast shadows for perception regardless of the render flag: NPCs must
 			// never see through walls just because a light is not rendering shadow maps.
 			sample.CastsShadows = true;
+			sample.RenderShadows = light.CastShadows;
 			CollectRelated(entity, sample.Related);
 			m_Lights.push_back(std::move(sample));
 		}
@@ -86,6 +89,7 @@ namespace Penumbra {
 			sample.CosOuter = std::cos(glm::radians(light.OuterAngle));
 			sample.CosInner = std::cos(glm::radians(std::min(light.InnerAngle, light.OuterAngle)));
 			sample.CastsShadows = true;
+			sample.RenderShadows = light.CastShadows;
 			CollectRelated(entity, sample.Related);
 			m_Lights.push_back(std::move(sample));
 		}
@@ -192,6 +196,43 @@ namespace Penumbra {
 			lighting.Lights.push_back({ toLight, contribution });
 		}
 		return lighting;
+	}
+
+	// Keep in step with CSFogScatter in shaders/Fog.hlsl: the same lamps, falloff and phase; a lamp with a shadow
+	// map is shadowed (here by a ray), one without lights the fog at FogUnshadowedLight, the sun or moon in full.
+	float AnalyticLuminanceProvider::FogLight(const glm::vec3& point, const glm::vec3& towardEye, float anisotropy) const
+	{
+		float total = 0.0f;
+		const std::vector<UUID> none;
+		for (const LightSample& light : m_Lights)
+		{
+			glm::vec3 toLight;
+			float strength = light.Intensity;
+			if (light.Type == LightSample::Kind::Directional)
+				toLight = -light.Direction;
+			else
+			{
+				toLight = light.Position - point;
+				const float distance = glm::length(toLight);
+				if (distance >= light.Range || distance < Math::Epsilon)
+					continue;
+				toLight /= distance;
+				strength *= LightUtils::DistanceAttenuation(distance, light.Range);
+				if (light.Type == LightSample::Kind::Spot)
+					strength *= LightUtils::SpotAttenuation(-toLight, light.Direction, light.CosOuter, light.CosInner);
+			}
+			if (strength <= 1e-7f)
+				continue;
+			if (light.RenderShadows)
+			{
+				if (IsOccluded(point, light, none))
+					continue;
+			}
+			else if (light.Type != LightSample::Kind::Directional)
+				strength *= FogUnshadowedLight;
+			total += strength * FogPhase(glm::dot(-toLight, towardEye), anisotropy);
+		}
+		return total;
 	}
 
 	float AnalyticLuminanceProvider::Illuminance(const glm::vec3& point, const glm::vec3& normal, const std::vector<UUID>& ignore) const

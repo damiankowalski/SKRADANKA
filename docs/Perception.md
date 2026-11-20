@@ -21,8 +21,8 @@ corners, the AI lab guard end to end).
 3. **Contrast** — Weber `C = |L_b − L_p| / max(L_b, L_p, ε)` with `ε = LuminanceFloor` (eye noise floor:
    two black values give ≈ 0 contrast). Points outside the focus cone (`FocusFieldOfView`, 90°) but inside
    the full cone (`FieldOfView`, 130°: 20° bands on each side) count with `PeripheralContrast` (0.5) of
-   their contrast: the corner of the eye notices the thief, only less readily. Averaged over visible points, then × `exp(−optical depth)` of fog
-   (the fog the player sees: the environment's, thinning with height, and fog volumes, `Scene/FogUtils.h`, `Fog.md`) and
+   their contrast: the corner of the eye notices the thief, only less readily. `L_p` and `L_b` are taken as the
+   eye gets them through the fog (see Fog below). Averaged over visible points, then × `exp(−optical depth)` of
    smoke volumes along the line.
 4. **Threshold** — see the deviation below.
 5. **Factors** — size `S` (angular size vs. `ReferenceAngularSize`), peripheral `P(θ)` (1 → `PeripheralFactor`
@@ -178,11 +178,54 @@ all directions (independent of any guard); `LightGem` maps it to 0..1 on a log s
 the player how lit they are; whether the silhouette stands out against what is behind them is left to the
 player, as in the brief. `Exposure` (max stimulus B over guards) exists for debugging, not for the HUD.
 
+## Fog: seen lit, as the player sees it
+
+Guards see the fog the player sees (`Scene/FogUtils.h`, `Fog.md`): its density (the environment's fog, thinning with
+height, and fog volumes) and the light it scatters towards the eye (lamps, their falloff, `FogScattering`,
+`FogAnisotropy`, the fog's own `FogColor`). Along each sight line, `T1` and `S1` are the transmittance and the glow
+from the eye to the thief's point, `T2` and `S2` from the point on to the background (as seen from the point):
+
+    L_p' = L_p·T1 + S1
+    L_b' = (L_b·T2 + S2)·T1 + S1
+
+Contrast and threshold use `L_p'` and `L_b'`. So a dark thief against fog lit by a lamp behind him stands out (`S2`
+brightens his background, he stays dark); bright fog between guard and thief hides him (`S1` adds the same light to
+both and the contrast falls); dark fog changes little; without fog `T = 1` and `S = 0` and nothing changes. Smoke
+(`SmokeVolume`, drawn unlit) still only multiplies the contrast by `exp(−optical depth)`.
+
+* **The glow** is integrated on the CPU (`FogMedium::Integrate`): steps of at most 0.75 m (at most 64, stopping once
+  almost nothing gets through), each adding `T · source · (1 − e^(−σ·step))` exactly as `shaders/FogIntegrate.hlsl`
+  adds a froxel slice. The source is `FogColor` plus `FogScattering` × the lamps' light at that point
+  (`LuminanceProvider::FogLight`: the renderer's falloff and Henyey-Greenstein phase, `FogPhase`; a lamp with a
+  shadow map is shadowed by a ray, one without lights the fog at `FogUnshadowedLight` (0.5), as on screen). With
+  `VolumetricFog` off only `FogColor` and the environment's fog count, as on screen.
+* **Once per sight line**: `S1` and `S2` are integrated along the line to the middle of the visible points and on
+  behind it, then shared out by each point's own transmittance: `S_i = S · (1 − T_i) / (1 − T)` (exact for an evenly
+  lit fog). `T1` and `T2` are exact per point (`FogMedium::OpticalDepth`).
+* **Agreement with the renderer**: `RendererTests.cpp` compares the CPU glow with the froxel grid read back from
+  the GPU along 30 sight lines through lit, shadowed and misty fog: within 20% (or 0.002) and transmittance within
+  0.03; measured 2-5% where lit, 16% on dim lines in a wall's shadow (the GPU's one-tap shadow map).
+* **Simplified**: no froxels, jitter or temporal smoothing (the CPU is continuous); shadows by ray, not by shadow
+  map, and every lamp with `CastShadows` gets one (the renderer gives shadow maps only to the closest few); the
+  glow does not change the eye's adaptation (the probes sample surfaces); past the renderer's 64 m grid the CPU
+  still lights the fog (lamps do not reach that far).
+* **Without fog** (no environment fog, no fog volumes) the old path runs unchanged, at no extra cost.
+* **Future density changes** (clearing fog indoors, drifting noise, disturbances) go into `FogMedium::DensityAt`
+  and `shaders/Fog.hlsl` together; perception samples `DensityAt` and needs no change.
+* **Debug**: the F4 label shows the thief's and the background's luminance as the eye gets them and the fog's
+  `T`, glow in front and behind; "Guards see the fog's glow" switches the model off to compare
+  (`PerceptionSystem::SetFogGlow`). Lua: `ai.visibility` returns `fog_transmittance`, `fog_glow_front`,
+  `fog_glow_behind`.
+* **Try it**: `Scenes/PerceptionLab.pscene` has a bank of mist lit from inside behind (6, -1) and a lamp in a puff
+  of mist between the guard and the lit doorway, in front of (-7, 0.4) (`docs/art/perception/FogGlow.jsonl` renders
+  both from the guard's eye).
+
 ## Cost
 
-Guards evaluate vision at 10 Hz each, on staggered phases (no frame-time spikes). Benchmark
-(`PenumbraTests -tc="Perception benchmark*" --no-skip`, release, 8 guards, 12 shadowed torches) is part of
-the test sources; physics rays (Jolt) dominate.
+Guards evaluate vision at 10 Hz each, on staggered phases (no frame-time spikes). Benchmarks
+(`PenumbraTests -tc="Perception benchmark*" --no-skip`, release: 8 guards and 12 shadowed torches; 10 guards, 12
+torches and lit fog with the glow on and off) are part of the test sources; physics rays (Jolt) dominate. On an M1
+Pro the 10 guards cost 0.035 ms a frame with the fog's glow, 0.026 ms with fog only dimming, 0.031 ms without fog.
 
 `Scenes/PerceptionLab.pscene` (one guard, a campfire, the player; F1 shows every factor live) is the
 place to tune vision by feel; `Scenes/AILab.pscene` (a patrolling guard, two rooms, floors of every

@@ -44,13 +44,6 @@ float FogDensityAt(float3 position)
 	return density;
 }
 
-// Henyey-Greenstein, scaled so scattering the same way in every direction gives 1.
-float FogPhase(float cosTheta, float g)
-{
-	float g2 = g * g;
-	return (1.0 - g2) / pow(max(1.0 + g2 - 2.0 * g * cosTheta, 1e-4), 1.5);
-}
-
 // One-tap shadow lookups: the jitter and the temporal blend soften them.
 float FogDirectionalShadow(float3 position, float viewDepth)
 {

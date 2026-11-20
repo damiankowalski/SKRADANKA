@@ -106,6 +106,7 @@ namespace Penumbra {
 		bool m_ShowNavMesh = false;
 		bool m_ShowColliders = false;
 		bool m_IgnoreThief = false;
+		bool m_FogGlow = true; // guards see the fog's glow (PerceptionSystem::SetFogGlow)
 		bool m_FogOfWar = true; // off: the whole level is drawn, whatever the thief's FogOfWar component says
 		float m_TimeScale = 1.0f;
 

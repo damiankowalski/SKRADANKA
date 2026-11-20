@@ -129,7 +129,10 @@ namespace Penumbra {
 	void RuntimeDebugPanel::OnSceneLoaded(Scene& scene)
 	{
 		if (PerceptionSystem* perception = scene.GetPerceptionSystem())
+		{
 			perception->SetIgnoreIntruders(m_IgnoreThief);
+			perception->SetFogGlow(m_FogGlow);
+		}
 		if (FogOfWarSystem* fog = scene.GetFogOfWarSystem())
 			fog->SetForcedOff(!m_FogOfWar);
 		m_Noises.clear();
@@ -411,6 +414,13 @@ namespace Penumbra {
 					perception->SetIgnoreIntruders(m_IgnoreThief);
 			}
 			ImGui::SetItemTooltip("They neither see, touch nor hear him (his footsteps); bodies, arrows and thrown things still count.");
+			if (ImGui::Checkbox("Guards see the fog's glow", &m_FogGlow))
+			{
+				if (PerceptionSystem* perception = scene.GetPerceptionSystem())
+					perception->SetFogGlow(m_FogGlow);
+			}
+			ImGui::SetItemTooltip("On: the thief against lamp-lit fog stands out and bright fog in between hides him, as the player "
+								  "sees it. Off: fog only dims the contrast (the model before it), to compare.");
 			if (ImGui::TreeNode("Legend"))
 			{
 				ImGui::TextWrapped("Cone: the whole field of view, cut where a wall or a closed door stops the eye. Bright: the focus "
@@ -586,8 +596,15 @@ namespace Penumbra {
 				{
 					const VisibilityResult seen = perception->ComputeVisibility(npc, *thief);
 					if (seen.VisiblePoints > 0)
+					{
 						text += std::format("\nthief: B {:.2f}, {}/{} points, C {:.2f} vs {:.2f}", seen.Stimulus, seen.VisiblePoints, seen.TotalPoints,
 							seen.Contrast, seen.ContrastThreshold);
+						// As the eye gets them through the fog: the thief, the background, and what the fog adds and lets through.
+						text += std::format("\n  L thief {:.4f}, bg {:.4f}", seen.TargetLuminance, seen.BackgroundLuminance);
+						if (seen.FogTransmittance < 0.999f || seen.FogGlowFront > 0.0f || seen.FogGlowBehind > 0.0f)
+							text += std::format("\n  fog T {:.2f}, glow front {:.4f}, behind {:.4f}", seen.FogTransmittance, seen.FogGlowFront,
+								seen.FogGlowBehind);
+					}
 					else
 						text += "\nthief: not in view";
 				}
