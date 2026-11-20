@@ -29,8 +29,12 @@ him in the hierarchy) goes dark with him, so a lantern does not give a hidden gu
 posts stay lit whether he sees them or not.
 
 What the fog does not do (yet): it does not remember what was explored (everything unseen is shown dimmed,
-explored or not), and darkness in view is only as dark as the lighting makes it. Leaning (Q/E) will move the eye
-and is planned as the next package.
+explored or not), and darkness in view is only as dark as the lighting makes it.
+
+**Leaning** (Q / E held, `Scripts/Player.lua`): `Lean` moves the eye that many metres sideways, square to where
+the view faces (+ right, - left), so the thief sees past a corner without stepping out. The script keeps the eye
+out of walls (a sphere swept from his head), and moves the camera, the model (tilted from the feet) and the
+silhouette points guards see by the same amount: his head and shoulders are out, his feet are not.
 
 ## How it works
 

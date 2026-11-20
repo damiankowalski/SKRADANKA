@@ -317,6 +317,7 @@ namespace Penumbra {
 		{
 			v("Enabled", c.Enabled);
 			v("EyeHeight", c.EyeHeight);
+			v("Lean", c.Lean);
 			v("ViewAngle", c.ViewAngle);
 			v("EdgeSoftness", c.EdgeSoftness);
 			v("ViewDistance", c.ViewDistance);

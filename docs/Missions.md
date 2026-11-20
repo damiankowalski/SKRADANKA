@@ -44,8 +44,8 @@ mission at once.
 `Scripts/Loot.lua` on anything worth stealing, with `label`, `value`, `item` (an id for item
 objectives) and `pickpocket`:
 
-* On a table or a shelf it needs a collider: E takes it when it is under the crosshair.
-* On a belt (`pickpocket = true`, a child of the NPC, no collider) E takes it from **behind** an NPC who is
+* On a table or a shelf it needs a collider: F (use) takes it when it is under the crosshair.
+* On a belt (`pickpocket = true`, a child of the NPC, no collider) F takes it from **behind** an NPC who is
   calm (Unaware or merely Suspicious), or from anyone lying down. A guard who is investigating,
   searching or alarmed feels the hand: a Seen stimulus of strength 9.5 ("Theft") at the thief.
 

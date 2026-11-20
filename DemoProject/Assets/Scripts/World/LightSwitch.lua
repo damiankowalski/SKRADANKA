@@ -9,7 +9,7 @@ local Noises = require("Scripts/AI/Noises")
 local LightSwitch = {
     Properties = {
         lamps = "",            -- comma separated entity names of the lamps it controls
-        label = "lights",      -- shown in the prompt: "[E] put out the hall lights"
+        label = "lights",      -- shown in the prompt: "[F] put out the hall lights"
         lever_angle = 35.0,    -- degrees the lever tips up or down
     }
 }

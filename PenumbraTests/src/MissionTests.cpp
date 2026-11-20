@@ -153,7 +153,7 @@ TEST_SUITE("Mission")
 		demo.Run(1.0f);
 		REQUIRE(demo.Entity("GuardB").GetComponent<PerceptionComponent>().RuntimeState == AwarenessState::Unaware);
 		CHECK(demo.Holds("#M.current.objectives == 4")); // loot 500, the key, spare the servants, escape
-		CHECK(demo.Lua("return scene.find('Player'):script():interaction_prompt()") == "\"[E] pick the purse (100)\"");
+		CHECK(demo.Lua("return scene.find('Player'):script():interaction_prompt()") == "\"[F] pick the purse (100)\"");
 
 		// On alert he feels it and turns on the thief.
 		demo.Lua("ai.notify(scene.find('GuardB'), vec3(20, 0, 20), 7.5, 'Noise')");
@@ -165,7 +165,7 @@ TEST_SUITE("Mission")
 		// Calm again: purse, then key.
 		demo.Lua("ai.calm(scene.find('GuardB'))");
 		CHECK(demo.Lua("return scene.find('Player'):script():use()") == "\"pickpocket\"");
-		CHECK(demo.Lua("return scene.find('Player'):script():interaction_prompt()") == "\"[E] pick the cellar key\"");
+		CHECK(demo.Lua("return scene.find('Player'):script():interaction_prompt()") == "\"[F] pick the cellar key\"");
 		CHECK(demo.Lua("return scene.find('Player'):script():use()") == "\"pickpocket\"");
 		demo.Run(0.1f);
 		CHECK(demo.Holds("M.current.loot == 100 and M.current.stats.pickpocketed == 2 and M.current.items.CellarKey"));

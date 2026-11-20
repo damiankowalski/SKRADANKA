@@ -166,9 +166,15 @@ variant worth keeping, chosen or not, as its provenance `.json` with a note and 
 same Mac; refuses another model revision or mflux version). `Tools/AssetGen/catalog.py` adds variants and writes
 the index, which says which ones the game uses. Six so far: three stone walls, three cobblestones.
 
+**Leaning on Q/E** (S-M, approved after the texture catalog): holding Q or E leans the thief left or right round a
+corner, standing or crouching still (a movement key ends it): the eye he sees with (`FogOfWar.Lean`, the one engine
+change), the camera, the model (tilted from the feet) and the silhouette guards see all move up to 0.45 m
+sideways (less crouched); a sphere swept from his head stops it at a wall. The use key moved from E to F and the
+blackjack from F to V (prompts, the lockpick's give-up, the F1 panel, docs).
+
 ## In progress
 
-Nothing: the next package waits for the owner's choice (leaning on Q/E is the natural follow-up).
+Nothing: the next package waits for the owner's choice.
 
 ## Known bugs
 
@@ -180,10 +186,9 @@ following a body the character collides with.
 
 ## Next
 
-**Later, discussed**: leaning on Q/E (S-M, after the fog of war; the use key moves off E first); a
-full-screen map on a key (S as a static picture, M drawn from the level).
+**Later, discussed**: a full-screen map on a key (S as a static picture, M drawn from the level).
 
 ### Later: movement and UI (~12+ sessions)
 
-Rope arrows (#9), climbing and mantling (#26), swimming (#27), leaning (#25), scouting orb (#28), map,
+Rope arrows (#9), climbing and mantling (#26), swimming (#27), scouting orb (#28), map,
 compass and readables (#30), inventory and shop (#29).
