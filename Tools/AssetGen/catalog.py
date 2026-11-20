@@ -66,7 +66,7 @@ def entries(catalog: Path = CATALOG) -> list[tuple[Path, dict]]:
 
 def used_in(name: str, assets: Path = ASSETS) -> list[str]:
     """Where the game uses the variant: its albedo under DemoProject/Assets, by file name."""
-    return sorted(str(path.parent.relative_to(assets)) for path in assets.rglob(f"{name}_albedo.png"))
+    return sorted(path.parent.relative_to(assets).as_posix() for path in assets.rglob(f"{name}_albedo.png"))
 
 
 def render_index(catalog: Path = CATALOG, assets: Path = ASSETS) -> str:
@@ -108,7 +108,8 @@ def check(catalog: Path = CATALOG, assets: Path = ASSETS) -> list[str]:
         if not (path.parent / f"{path.stem}.png").is_file():
             problems.append(f"{path.name}: no preview {path.stem}.png")
     readme = catalog / "README.md"
-    if not readme.is_file() or readme.read_text(encoding="utf-8") != render_index(catalog, assets):
+    # Compared without line endings: a Windows checkout may turn them into CRLF.
+    if not readme.is_file() or readme.read_text(encoding="utf-8").replace("\r\n", "\n") != render_index(catalog, assets):
         problems.append("README.md is stale: run Tools/AssetGen/catalog.py index")
     return problems
 
