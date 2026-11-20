@@ -600,7 +600,8 @@ namespace Penumbra {
 						text += std::format("\nthief: B {:.2f}, {}/{} points, C {:.2f} vs {:.2f}", seen.Stimulus, seen.VisiblePoints, seen.TotalPoints,
 							seen.Contrast, seen.ContrastThreshold);
 						// As the eye gets them through the fog: the thief, the background, and what the fog adds and lets through.
-						text += std::format("\n  L thief {:.4f}, bg {:.4f}", seen.TargetLuminance, seen.BackgroundLuminance);
+						text += std::format("\n  L thief {:.4f}, bg {:.4f}, own shading {:.2f}", seen.TargetLuminance, seen.BackgroundLuminance,
+							seen.SelfContrast);
 						if (seen.FogTransmittance < 0.999f || seen.FogGlowFront > 0.0f || seen.FogGlowBehind > 0.0f)
 							text += std::format("\n  fog T {:.2f}, glow front {:.4f}, behind {:.4f}", seen.FogTransmittance, seen.FogGlowFront,
 								seen.FogGlowBehind);

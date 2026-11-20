@@ -3,6 +3,8 @@
 
 #include <glm/gtc/constants.hpp>
 
+#include <array>
+
 namespace Penumbra::PerceptionModel {
 
 	float WeberContrast(float backgroundLuminance, float targetLuminance, float floor)
@@ -32,6 +34,75 @@ namespace Penumbra::PerceptionModel {
 			return 1.0f;
 		const float angularSize = 2.0f * std::atan(targetRadius / distance);
 		return std::min(1.0f, angularSize / std::max(referenceAngularSize, Epsilon));
+	}
+
+	namespace {
+
+		// SphereShadingHalves tabulated over cosLightToEye in [-1, 1] from the exact integral over the visible disc
+		// (a fine midpoint grid; built once, deterministic).
+		constexpr int ShadingTableSize = 65;
+
+		std::array<ShadingHalves, ShadingTableSize> BuildShadingTable()
+		{
+			std::array<ShadingHalves, ShadingTableSize> table{};
+			constexpr int Grid = 256;
+			for (int entry = 0; entry < ShadingTableSize; entry++)
+			{
+				const float c = -1.0f + 2.0f * static_cast<float>(entry) / static_cast<float>(ShadingTableSize - 1);
+				const float s = std::sqrt(std::max(1.0f - c * c, 0.0f));
+				// On the disc: x towards the light's projection, z = depth towards the eye; n.l = c z + s x.
+				double lit = 0.0, shade = 0.0;
+				int litCount = 0, shadeCount = 0;
+				for (int i = 0; i < Grid; i++)
+				{
+					const float x = -1.0f + 2.0f * (static_cast<float>(i) + 0.5f) / Grid;
+					for (int j = 0; j < Grid; j++)
+					{
+						const float y = -1.0f + 2.0f * (static_cast<float>(j) + 0.5f) / Grid;
+						const float r2 = x * x + y * y;
+						if (r2 > 1.0f)
+							continue;
+						const float brightness = std::max(c * std::sqrt(1.0f - r2) + s * x, 0.0f);
+						if (x > 0.0f)
+						{
+							lit += brightness;
+							litCount++;
+						}
+						else
+						{
+							shade += brightness;
+							shadeCount++;
+						}
+					}
+				}
+				table[static_cast<size_t>(entry)] = { static_cast<float>(lit / std::max(litCount, 1)), static_cast<float>(shade / std::max(shadeCount, 1)) };
+			}
+			return table;
+		}
+
+	}
+
+	ShadingHalves SphereShadingHalves(float cosLightToEye)
+	{
+		static const std::array<ShadingHalves, ShadingTableSize> table = BuildShadingTable();
+		const float position = (std::clamp(cosLightToEye, -1.0f, 1.0f) + 1.0f) * 0.5f * static_cast<float>(ShadingTableSize - 1);
+		const int index = std::min(static_cast<int>(position), ShadingTableSize - 2);
+		const float t = position - static_cast<float>(index);
+		const ShadingHalves& a = table[static_cast<size_t>(index)];
+		const ShadingHalves& b = table[static_cast<size_t>(index) + 1];
+		return { a.Lit + (b.Lit - a.Lit) * t, a.Shade + (b.Shade - a.Shade) * t };
+	}
+
+	float SelfShadingContrast(float bright, float dark, float floor)
+	{
+		const float hi = std::max(bright, 0.0f);
+		const float lo = std::clamp(dark, 0.0f, hi);
+		return (hi - lo) / std::max({ hi, floor, Epsilon });
+	}
+
+	float DetailFactor(float targetRadius, float distance, float referenceAngularSize)
+	{
+		return SizeFactor(targetRadius, distance, referenceAngularSize * SelfShadingDetail);
 	}
 
 	float AtmosphereFactor(float opticalDepth) { return std::exp(-std::max(opticalDepth, 0.0f)); }

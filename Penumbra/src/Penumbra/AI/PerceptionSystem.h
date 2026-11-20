@@ -37,6 +37,10 @@ namespace Penumbra {
 		float FogTransmittance = 1.0f;
 		float FogGlowFront = 0.0f;
 		float FogGlowBehind = 0.0f;
+		// The target's own shading as it counts (mean over visible points of SelfShading x detail x its lit side
+		// against its shadowed side, through the fog); the contrast per point is the larger of this and the
+		// contrast with the background.
+		float SelfContrast = 0.0f;
 		float Distance = 0.0f;
 		uint32_t VisiblePoints = 0;
 		uint32_t TotalPoints = 0;

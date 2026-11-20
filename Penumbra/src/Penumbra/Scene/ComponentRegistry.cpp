@@ -221,6 +221,7 @@ namespace Penumbra {
 			v("DarkSensitivity", c.DarkSensitivity);
 			v("GlareSensitivity", c.GlareSensitivity);
 			v("LuminanceFloor", c.LuminanceFloor);
+			v("SelfShading", c.SelfShading);
 			v("AdaptBrightTime", c.AdaptBrightTime);
 			v("AdaptDarkTime", c.AdaptDarkTime);
 			v("MotionFactor", c.MotionFactor);

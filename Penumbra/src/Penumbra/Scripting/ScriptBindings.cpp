@@ -667,6 +667,7 @@ namespace Penumbra {
 			table["fog_transmittance"] = result.FogTransmittance;
 			table["fog_glow_front"] = result.FogGlowFront;
 			table["fog_glow_behind"] = result.FogGlowBehind;
+			table["self_contrast"] = result.SelfContrast;
 			table["target_luminance"] = result.TargetLuminance;
 			table["background_luminance"] = result.BackgroundLuminance;
 			table["distance"] = result.Distance;

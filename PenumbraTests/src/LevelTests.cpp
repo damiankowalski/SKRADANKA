@@ -325,12 +325,12 @@ TEST_SUITE("World")
 		CHECK((westLamp < 0.0f || (westBefore > 0.0f && westLamp > westBefore * 2.0f)));
 	}
 
-	TEST_CASE("Fog glow report: detection times in the foggy levels, before and after" * doctest::skip())
+	// Detection times before and after a change to perception: for every guard of the given levels the thief stands
+	// still 6, 10 and 14 m in front of him (and on PerceptionLab's two fog spots); seconds until the guard's suspicion
+	// reaches 0.3. mode(scene, after) switches the change off (after = false) or on, once the scene runs. Scripts are
+	// removed so nobody moves; MoodLab gets a guard where the wide shot stands, in variant C.
+	void DetectionReport(const std::vector<std::string>& scenes, const std::function<void(Scene&, bool)>& mode)
 	{
-		// Run: PenumbraTests -tc="Fog glow report*" --no-skip (release). For every guard of the foggy levels, the
-		// thief stands still 6, 10 and 14 m in front of him (and on PerceptionLab's two fog spots); seconds until
-		// the guard's suspicion reaches 0.3, with the fog only dimming contrast (before) and seen lit (after).
-		// Scripts are removed so nobody moves; MoodLab gets a guard where the wide shot stands, in variant C.
 		struct Spot
 		{
 			std::string Guard;
@@ -350,7 +350,7 @@ TEST_SUITE("World")
 			float Time = -1.0f;
 			VisibilityResult Seen;
 		};
-		auto timeFor = [&](const std::string& scenePath, const Spot& spot, bool glow) {
+		auto timeFor = [&](const std::string& scenePath, const Spot& spot, bool after) {
 			Scene scene;
 			scene.SetAudioDeviceEnabled(false);
 			load(scenePath, scene);
@@ -379,7 +379,7 @@ TEST_SUITE("World")
 				std::string output;
 				REQUIRE(scene.GetScriptEngine()->Execute("return require('Scripts/MoodLab/Variants').apply('Mixed')", output));
 			}
-			scene.GetPerceptionSystem()->SetFogGlow(glow);
+			mode(scene, after);
 			Entity guard = scene.FindEntityByName(spot.Guard);
 			REQUIRE(guard);
 			Outcome outcome;
@@ -418,6 +418,23 @@ TEST_SUITE("World")
 				forward = glm::normalize(forward);
 				for (const float d : { 6.0f, 10.0f, 14.0f })
 					spots.push_back({ guard.GetName(), guard.Transform().Translation + forward * d });
+				// And beside the lamps he looks at (4-20 m away, within 50 degrees of his gaze): 1.2 m to the side of
+				// each, lit from the side as seen from the guard. At most three.
+				int nearLamps = 0;
+				for (auto [lampHandle, lamp] : scene.GetRegistry().view<PointLightComponent>().each())
+				{
+					if (!lamp.Enabled || nearLamps >= 3)
+						continue;
+					const glm::vec3 lampPosition = scene.GetWorldPosition(Entity(lampHandle, &scene));
+					glm::vec3 toLamp = lampPosition - guard.Transform().Translation;
+					toLamp.y = 0.0f;
+					const float distance = glm::length(toLamp);
+					if (distance < 4.0f || distance > 20.0f || glm::dot(toLamp / distance, forward) < std::cos(glm::radians(50.0f)))
+						continue;
+					const glm::vec3 side = glm::normalize(glm::cross(toLamp, glm::vec3(0.0f, 1.0f, 0.0f)));
+					spots.push_back({ guard.GetName(), glm::vec3(lampPosition.x, guard.Transform().Translation.y, lampPosition.z) + side * 1.2f });
+					nearLamps++;
+				}
 			}
 			return spots;
 		};
@@ -425,23 +442,42 @@ TEST_SUITE("World")
 		std::string error;
 		REQUIRE_MESSAGE(Project::Load(std::filesystem::path(PENUMBRA_DEMO_PROJECT_DIR) / "project.json", error), error);
 		Input::Reset();
-		for (const char* scenePath : { "Scenes/Cloister.pscene", "Scenes/Stealth.pscene", "Scenes/PhysicsLab.pscene", "Scenes/MoodLab.pscene",
-				 "Scenes/PerceptionLab.pscene" })
+		for (const std::string& scenePath : scenes)
 		{
 			for (const Spot& spot : spotsFor(scenePath))
 			{
 				const Outcome before = timeFor(scenePath, spot, false);
-				const Outcome after = timeFor(scenePath, spot, true);
+				const Outcome afterOutcome = timeFor(scenePath, spot, true);
 				auto text = [](float t) { return t < 0.0f ? std::string("-") : std::format("{:.1f}", t); };
-				const VisibilityResult& seen = after.Seen;
+				const VisibilityResult& seen = afterOutcome.Seen;
 				MESSAGE(std::format("{} | {} | ({:.1f}, {:.1f}) | {} | {} | B {:.2f} -> {:.2f}, points {}/{}, L thief {:.4f}, bg {:.4f}, "
-									"T {:.2f}, glow front {:.4f}, behind {:.4f}",
-					scenePath, spot.Guard, spot.Position.x, spot.Position.z, text(before.Time), text(after.Time), before.Seen.Stimulus,
+									"T {:.2f}, glow front {:.4f}, behind {:.4f}, self {:.3f}",
+					scenePath, spot.Guard, spot.Position.x, spot.Position.z, text(before.Time), text(afterOutcome.Time), before.Seen.Stimulus,
 					seen.Stimulus, seen.VisiblePoints, seen.TotalPoints, seen.TargetLuminance, seen.BackgroundLuminance, seen.FogTransmittance,
-					seen.FogGlowFront, seen.FogGlowBehind));
+					seen.FogGlowFront, seen.FogGlowBehind, seen.SelfContrast));
 			}
 		}
 		Project::Unload();
+	}
+
+	TEST_CASE("Fog glow report: detection times in the foggy levels, before and after" * doctest::skip())
+	{
+		// PenumbraTests -tc="Fog glow report*" --no-skip (release): the fog only dimming contrast, then seen lit.
+		DetectionReport({ "Scenes/Cloister.pscene", "Scenes/Stealth.pscene", "Scenes/PhysicsLab.pscene", "Scenes/MoodLab.pscene",
+							"Scenes/PerceptionLab.pscene" },
+			[](Scene& scene, bool after) { scene.GetPerceptionSystem()->SetFogGlow(after); });
+	}
+
+	TEST_CASE("Self-shading report: detection times in every level with guards, before and after" * doctest::skip())
+	{
+		// PenumbraTests -tc="Self-shading report*" --no-skip (release): SelfShading 0, then each guard's own value.
+		DetectionReport({ "Scenes/AILab.pscene", "Scenes/Cloister.pscene", "Scenes/Stealth.pscene", "Scenes/PhysicsLab.pscene",
+							"Scenes/MoodLab.pscene", "Scenes/PerceptionLab.pscene" },
+			[](Scene& scene, bool after) {
+				if (!after)
+					for (auto [handle, perception] : scene.GetRegistry().view<PerceptionComponent>().each())
+						perception.SelfShading = 0.0f;
+			});
 	}
 
 	TEST_CASE("Cloister: the crossbow shoots only while aimed (right mouse); the compass follows the camera")

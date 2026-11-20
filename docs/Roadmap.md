@@ -198,6 +198,14 @@ second or two at four of five places where its guards could not see him before; 
 0.25 they make him out against it after 2.9-7.1 s (measured 0.5 / 0.3 / 0.25 / 0.22 / 0.15 with the fog glow
 report). A level test checks one of the places.
 
+**Perception: a lit body's own shading** (M, approved after the PhysicsLab playtest): a figure lit from the side
+shows a bright and a dark side and is made out by it even against a background as bright as he is. Per visible
+point, the body's two visible halves (a Lambert sphere, tabulated once; lights add as vectors, ambient lifts both)
+give an own contrast, weighted by `Perception.SelfShading` (0.5) and a detail factor that fades it with distance;
+each point counts the larger of it and the contrast with the background. Through the fog like everything else. A
+side-lit thief against an equally bright wall: 0.8 s instead of 2.0 s; front-lit or dark: unchanged. In the demo
+levels it changes little (report test). F4 and `ai.visibility` show it. See docs/Perception.md, "Self-shading".
+
 ## In progress
 
 Nothing: the next package waits for the owner's choice.

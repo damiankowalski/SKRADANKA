@@ -22,8 +22,9 @@ corners, the AI lab guard end to end).
    two black values give ≈ 0 contrast). Points outside the focus cone (`FocusFieldOfView`, 90°) but inside
    the full cone (`FieldOfView`, 130°: 20° bands on each side) count with `PeripheralContrast` (0.5) of
    their contrast: the corner of the eye notices the thief, only less readily. `L_p` and `L_b` are taken as the
-   eye gets them through the fog (see Fog below). Averaged over visible points, then × `exp(−optical depth)` of
-   smoke volumes along the line.
+   eye gets them through the fog (see Fog below). Each point counts the larger of this and the body's own shading
+   (see Self-shading below). Averaged over visible points, then × `exp(−optical depth)` of smoke volumes along the
+   line.
 4. **Threshold** — see the deviation below.
 5. **Factors** — size `S` (angular size vs. `ReferenceAngularSize`), peripheral `P(θ)` (1 → `PeripheralFactor`
    at the cone edge), motion `M = 1 + m·speed·(1 + peripherality)`.
@@ -178,6 +179,30 @@ all directions (independent of any guard); `LightGem` maps it to 0..1 on a log s
 the player how lit they are; whether the silhouette stands out against what is behind them is left to the
 player, as in the brief. `Exposure` (max stimulus B over guards) exists for debugging, not for the HUD.
 
+## Self-shading: a lit body is never flat
+
+A figure is not a flat patch: lit from one side it shows a bright side and a dark side, and an eye makes it out by
+that even against a background exactly as bright as he is. For each visible point the light on the body (the
+lights gathered at that point, `PointLighting`) gives the mean brightness of the visible disc's half towards each
+light and the half away (`PerceptionModel::SphereShadingHalves`, a Lambert sphere, tabulated once from the exact
+integral: light from behind the eye 2/3 and 2/3, flat; from the side 4/(3π) and 0; from behind the body 0 and 0).
+The lights' bright sides add as vectors across the view (two lamps on opposite sides cancel), ambient light and the
+floor's bounce lift both halves alike. Then
+
+    C_own = SelfShading · D · (L_bright' − L_dark') / max(L_bright', ε)
+
+with `L'` through the fog like `L_p`, `SelfShading` (0.5) a weight (a body's own shading says less than its outline
+against the background) and `D` the detail factor: the size factor with a reference three times larger
+(`SelfShadingDetail`): shading has to be resolved, it fades with distance before the outline does. Each point
+counts `max(C_background, C_own)`.
+
+* A thief lit from the side in front of a wall as bright as he is: seen in 0.8 s instead of 2.0 s (`Self-shading 1`
+  in PerceptionTests). Lit from the front (flat) or in the dark: as before.
+* In the demo levels it changes little: guards there rarely face a thief lit from the side against an equally
+  bright background (the self-shading report: `PenumbraTests -tc="Self-shading report*" --no-skip`).
+* Simplified: one number per half of a round body; no colours, patterns or the outline of a person.
+* Debug: the F4 label's "own shading"; Lua `ai.visibility(...).self_contrast`; `SelfShading` 0 turns it off.
+
 ## Fog: seen lit, as the player sees it
 
 Guards see the fog the player sees (`Scene/FogUtils.h`, `Fog.md`): its density (the environment's fog, thinning with
@@ -271,6 +296,7 @@ of what it looks at (view probes plus the visible target samples).
 | `BodyAlarm` | strength of the reaction to finding a body | 8 |
 | `ProjectileAlarm` | strength of the reaction to an arrow seen flying by | 8 |
 | `TouchRange` / `TouchAlarm` | gap between capsules that counts as contact (m), strength of the reaction | 0.15 / 10 |
+| `SelfShading` | weight of the target's own shading (lit side against shadowed side) next to its contrast with the background; 0 off | 0.5 |
 | `CloseRange` / `CloseRangeStimulus` | distance (m) within which a figure in view is made out in the dark, minimum sight | 1.2 / 2 |
 | `FieldOfView`, `PeripheralFactor`, `ViewDistance`, `EyeHeight` | cone | 130°, 0.2, 25 m, 1.65 m |
 | `FocusFieldOfView`, `PeripheralContrast` | central cone of full contrast; contrast multiplier in the bands beyond it | 90°, 0.5 |

@@ -320,6 +320,9 @@ namespace Penumbra {
 		float DarkSensitivity = 0.004f; // k_dark: how much darkness of the observed area raises the threshold
 		float GlareSensitivity = 0.5f;  // threshold increase per decade the eye is adapted above the observed area
 		float LuminanceFloor = 0.005f;  // eps in the contrast formula: noise floor of the eye
+		// Weight of the target's own shading (its lit side against its shadowed side) next to its contrast with the
+		// background: a figure lit from the side stands out even against an equally bright wall. 0 turns it off.
+		float SelfShading = 0.5f;
 		float AdaptBrightTime = 0.5f;   // tau_bright, seconds
 		float AdaptDarkTime = 6.0f;     // tau_dark, seconds
 		float MotionFactor = 0.3f;      // m_motion
