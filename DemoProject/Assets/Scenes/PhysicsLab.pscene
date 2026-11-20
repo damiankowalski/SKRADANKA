@@ -27,12 +27,12 @@
         },
         "Environment": {
           "EnvironmentMap": "Environment/NightSky_1k.hdr",
-          "EnvironmentIntensity": 0.25,
+          "EnvironmentIntensity": 0.12,
           "SkyboxIntensity": 0.6,
           "AmbientColor": [
-            0.02,
-            0.02,
-            0.027999999999999997
+            0.006,
+            0.006,
+            0.0084
           ],
           "Exposure": 1.4,
           "FogDensity": 0.01,
@@ -42,7 +42,8 @@
             0.035
           ],
           "SSAOEnabled": true,
-          "BloomIntensity": 0.05
+          "BloomIntensity": 0.05,
+          "FogScattering": 0.25
         }
       }
     },
@@ -75,7 +76,7 @@
             0.65,
             1.0
           ],
-          "Intensity": 0.25,
+          "Intensity": 0.08,
           "CastShadows": true,
           "ShadowSoftness": 1.5
         }
