@@ -94,6 +94,87 @@ TEST_SUITE("Fog")
 		CHECK(medium.DensityAt({ 1.0f, 0.5f, 2.0f }) == doctest::Approx(0.25f));
 	}
 
+	TEST_CASE("The fog's glow: an evenly lit fog adds its colour as it hides what is behind (S = C (1 - T))")
+	{
+		FogMedium medium;
+		medium.Density = 0.1f;
+		medium.ColorLuminance = 0.02f;
+		const glm::vec3 from(0.0f, 1.0f, 0.0f), to(0.0f, 1.0f, -12.0f);
+		const FogPath path = medium.Integrate(from, to, {});
+		const float transmittance = std::exp(-0.1f * 12.0f);
+		CHECK(path.Transmittance == doctest::Approx(transmittance).epsilon(1e-4));
+		CHECK(path.InScattered == doctest::Approx(0.02f * (1.0f - transmittance)).epsilon(1e-4));
+
+		// Lamps add FogScattering of their light where the fog is; nowhere without fog.
+		medium.Scattering = 0.5f;
+		int calls = 0;
+		const FogPath lit = medium.Integrate(from, to, [&](const glm::vec3&) {
+			calls++;
+			return 1.0f;
+		});
+		CHECK(lit.InScattered == doctest::Approx((0.02f + 0.5f) * (1.0f - transmittance)).epsilon(1e-4));
+		CHECK(calls > 0);
+
+		// No fog: nothing on the way, and no lamp is asked.
+		const FogMedium clear;
+		CHECK(clear.IsEmpty());
+		calls = 0;
+		const FogPath none = clear.Integrate(from, to, [&](const glm::vec3&) {
+			calls++;
+			return 1.0f;
+		});
+		CHECK(none.Transmittance == 1.0f);
+		CHECK(none.InScattered == 0.0f);
+		CHECK(calls == 0);
+	}
+
+	TEST_CASE("The phase function scatters evenly at 0, forwards when positive, and keeps the light's total")
+	{
+		CHECK(FogPhase(0.3f, 0.0f) == doctest::Approx(1.0f));
+		CHECK(FogPhase(-0.8f, 0.0f) == doctest::Approx(1.0f));
+		CHECK(FogPhase(1.0f, 0.4f) > 1.0f);  // looking into the lamp: glare
+		CHECK(FogPhase(-1.0f, 0.4f) < 1.0f); // the lamp behind the eye
+		// Averaged over every direction it is 1, whatever the anisotropy.
+		for (const float g : { 0.0f, 0.3f, 0.7f })
+		{
+			const int steps = 4000;
+			float sum = 0.0f;
+			for (int i = 0; i < steps; i++)
+				sum += FogPhase(-1.0f + 2.0f * (static_cast<float>(i) + 0.5f) / static_cast<float>(steps), g);
+			CHECK(sum / static_cast<float>(steps) == doctest::Approx(1.0f).epsilon(0.01));
+		}
+	}
+
+	TEST_CASE("The medium reads how the fog is lit; without volumetric fog only the environment's fog counts, as on screen")
+	{
+		Test::TemporaryProject project;
+		Scene scene;
+		auto& environment = scene.CreateEntity("Environment").AddComponent<EnvironmentComponent>();
+		environment.FogDensity = 0.05f;
+		environment.FogColor = glm::vec3(0.1f, 0.2f, 0.3f);
+		environment.FogScattering = 0.25f;
+		environment.FogAnisotropy = 0.6f;
+		scene.CreateEntity("Mist").AddComponent<FogVolumeComponent>().Density = 0.2f;
+
+		FogMedium medium = FogMedium::FromScene(scene);
+		CHECK(medium.ColorLuminance == doctest::Approx(Math::Luminance(glm::vec3(0.1f, 0.2f, 0.3f))));
+		CHECK(medium.Scattering == doctest::Approx(0.25f));
+		CHECK(medium.Anisotropy == doctest::Approx(0.6f));
+		CHECK(medium.Volumetric);
+		CHECK(medium.Boxes.size() == 1);
+
+		environment.VolumetricFog = false;
+		medium = FogMedium::FromScene(scene);
+		CHECK_FALSE(medium.Volumetric);
+		CHECK(medium.Boxes.empty());
+		int calls = 0;
+		medium.Integrate({ 0.0f, 1.0f, 0.0f }, { 0.0f, 1.0f, -10.0f }, [&](const glm::vec3&) {
+			calls++;
+			return 1.0f;
+		});
+		CHECK(calls == 0); // lamps do not light it
+	}
+
 	TEST_CASE("Guards see through the fog the player sees: a bank of mist hides the thief, height fog does not reach a high one")
 	{
 		// A guard at the origin looking down -Z; the thief 12 m away, lit, in the open.
@@ -129,8 +210,9 @@ TEST_SUITE("Fog")
 			volume.HalfExtents = { 4.0f, 2.0f, 3.0f };
 			volume.Density = 1.0f;
 		});
-		CHECK(clear.Atmosphere > 0.9f);
-		CHECK(mist.Atmosphere < 0.05f);
+		// The fog on the sight line (the glow model: Atmosphere is smoke's alone now).
+		CHECK(clear.FogTransmittance > 0.9f);
+		CHECK(mist.FogTransmittance < 0.05f);
 		CHECK(mist.Stimulus < clear.Stimulus * 0.1f);
 
 		// Ground fog up to 1 m, very thin above: thick between guard and thief on the ground, less so for a thief
@@ -143,6 +225,6 @@ TEST_SUITE("Fog")
 		};
 		const VisibilityResult low = visibility(groundFog);
 		const VisibilityResult high = visibility(groundFog, 3.0f);
-		CHECK(high.Atmosphere > low.Atmosphere * 2.0f);
+		CHECK(high.FogTransmittance > low.FogTransmittance * 2.0f);
 	}
 }

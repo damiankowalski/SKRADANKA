@@ -15,6 +15,7 @@
 #include "Penumbra/UI/Overlay.h"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/packing.hpp>
 
 #include <stb_easy_font.h>
 
@@ -1733,6 +1734,52 @@ namespace Penumbra {
 		pixels.resize(static_cast<size_t>(width) * height * 4);
 		for (uint32_t y = 0; y < height; y++)
 			std::memcpy(pixels.data() + static_cast<size_t>(y) * width * 4, data + y * rowPitch, static_cast<size_t>(width) * 4);
+		impl.Device->unmapStagingTexture(staging);
+		return true;
+	}
+
+	bool SceneRenderer::ReadFogVolume(std::vector<glm::vec4>& texels, glm::uvec3& size)
+	{
+		Impl& impl = *m_Impl;
+		if (!impl.FogIntegrated)
+			return false;
+		nvrhi::TextureDesc desc = impl.FogIntegrated->getDesc();
+		desc.isUAV = false;
+		desc.initialState = nvrhi::ResourceStates::CopyDest;
+		desc.keepInitialState = true;
+		nvrhi::StagingTextureHandle staging = impl.Device->createStagingTexture(desc, nvrhi::CpuAccessMode::Read);
+		if (!staging)
+			return false;
+
+		// One copy of the whole volume: the staging side takes it as one subresource (depth 1 in the slice
+		// description, as NVRHI wants for a staging destination), slices laid one after another.
+		nvrhi::TextureSlice destination;
+		destination.depth = 1;
+		impl.CommandList->open();
+		impl.CommandList->copyTexture(staging, destination, impl.FogIntegrated, nvrhi::TextureSlice());
+		impl.CommandList->close();
+		impl.Device->executeCommandList(impl.CommandList);
+		impl.Device->waitForIdle();
+
+		size_t rowPitch = 0;
+		const uint8_t* data = static_cast<const uint8_t*>(impl.Device->mapStagingTexture(staging, nvrhi::TextureSlice(), nvrhi::CpuAccessMode::Read, &rowPitch));
+		if (!data)
+			return false;
+		size = glm::uvec3(desc.width, desc.height, desc.depth);
+		texels.resize(static_cast<size_t>(size.x) * size.y * size.z);
+		for (uint32_t z = 0; z < size.z; z++)
+		{
+			for (uint32_t y = 0; y < size.y; y++)
+			{
+				const uint16_t* row = reinterpret_cast<const uint16_t*>(data + (static_cast<size_t>(z) * size.y + y) * rowPitch);
+				for (uint32_t x = 0; x < size.x; x++)
+				{
+					glm::vec4& texel = texels[(static_cast<size_t>(z) * size.y + y) * size.x + x];
+					for (int c = 0; c < 4; c++)
+						texel[c] = glm::unpackHalf1x16(row[x * 4 + c]);
+				}
+			}
+		}
 		impl.Device->unmapStagingTexture(staging);
 		return true;
 	}

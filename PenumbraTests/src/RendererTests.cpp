@@ -1,6 +1,7 @@
 #include "TestHelpers.h"
 
 #include "Penumbra/AI/FogOfWarSystem.h"
+#include "Penumbra/AI/LuminanceProvider.h"
 #include "Penumbra/Asset/AssetManager.h"
 #include "Penumbra/Asset/Importers.h"
 #include "Penumbra/Renderer/RenderDevice.h"
@@ -520,6 +521,101 @@ TEST_SUITE("Renderer")
 		fixture.RenderFrame(camera);
 		const std::vector<uint8_t> unshadowed = fixture.RenderFrame(camera);
 		CHECK(brightness(unshadowed, shadedAir) > brightness(unshadowed, litAir) * 0.6f);
+		CHECK(fixture.Device->GetErrorCount() == 0);
+	}
+
+	TEST_CASE("Guards' fog glow agrees with the renderer's: the CPU estimate along sight lines matches the froxels")
+	{
+		// Perception integrates the fog's glow on the CPU (FogMedium::Integrate with the lamps' FogLight); the
+		// renderer in its froxel grid. Lit fog with a lamp shadowed by a wall, a lamp without a shadow map, a
+		// bank of mist and the fog's own glow; sight lines at eye level through all of it, compared at several
+		// depths. The first frame of a scene has no temporal history (jitter 0.5): the grid is deterministic.
+		// Tolerance (docs/Perception.md): glow within 20% or 0.002, transmittance within 0.03. Measured on an M1 Pro:
+		// worst 16% on dim lines in the wall's shadow (the GPU's coarse one-tap shadow), 2-5% elsewhere.
+		RendererFixture fixture;
+		Scene& scene = fixture.SceneInstance;
+		auto& environment = scene.CreateEntity("Environment").AddComponent<EnvironmentComponent>();
+		environment.AmbientColor = glm::vec3(0.0f);
+		environment.FogColor = glm::vec3(0.01f);
+		environment.FogDensity = 0.06f;
+		environment.FogScattering = 0.5f;
+		environment.FogAnisotropy = 0.3f;
+		environment.SSAOEnabled = false;
+		environment.BloomIntensity = 0.0f;
+		Test::CreateBox(scene, "Wall", { 0.6f, 1.5f, -8.0f }, { 0.05f, 3.0f, 3.0f }, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+		auto addLamp = [&](const glm::vec3& position, float intensity, float range, bool shadows) {
+			Entity lamp = scene.CreateEntity("Lamp");
+			lamp.Transform().Translation = position;
+			auto& light = lamp.AddComponent<PointLightComponent>();
+			light.Intensity = intensity;
+			light.Range = range;
+			light.Flicker = 0.0f;
+			light.CastShadows = shadows;
+		};
+		addLamp({ -1.5f, 1.5f, -8.0f }, 20.0f, 8.0f, true);   // the wall at x = 0.6 shades the air beyond it
+		addLamp({ 3.0f, 1.5f, -15.0f }, 15.0f, 6.0f, false);  // no shadow map: FogUnshadowedLight
+		Entity mist = scene.CreateEntity("Mist");
+		mist.Transform().Translation = { -2.0f, 1.5f, -20.0f };
+		auto& bank = mist.AddComponent<FogVolumeComponent>();
+		bank.HalfExtents = { 3.0f, 2.0f, 3.0f };
+		bank.Density = 0.3f;
+		bank.EdgeFade = 1.0f;
+		scene.OnRuntimeStart();
+
+		const glm::vec3 eye(0.0f, 1.5f, 4.0f);
+		const RenderCamera camera = RenderCamera::Perspective(eye, Math::LookRotation(glm::vec3(0.0f, 0.0f, -1.0f)), 60.0f,
+			static_cast<float>(RendererFixture::Width) / static_cast<float>(RendererFixture::Height), 0.1f, 100.0f);
+		fixture.RenderFrame(camera);
+		std::vector<glm::vec4> volume;
+		glm::uvec3 size(0);
+		REQUIRE(fixture.Renderer->ReadFogVolume(volume, size));
+		REQUIRE(size == glm::uvec3(fixture.Renderer->GetSettings().FogGridWidth, fixture.Renderer->GetSettings().FogGridHeight,
+							 fixture.Renderer->GetSettings().FogGridDepth));
+		const float fogDistance = fixture.Renderer->GetSettings().FogDistance;
+
+		AnalyticLuminanceProvider provider(scene);
+		provider.BeginFrame(0.0f);
+		const FogMedium medium = FogMedium::FromScene(scene);
+		const glm::mat4 inverseViewProjection = glm::inverse(camera.Projection * camera.View);
+		const glm::vec3 forward(0.0f, 0.0f, -1.0f);
+
+		int compared = 0, glowing = 0;
+		float worstGlow = 0.0f, worstTransmittance = 0.0f;
+		for (const uint32_t column : { 40u, 60u, 72u, 88u, 100u, 120u })
+		{
+			for (const uint32_t slice : { 20u, 30u, 38u, 44u, 50u })
+			{
+				// The froxel column's ray, as shaders/Fog.hlsl builds it, out to the slice's far end.
+				const uint32_t row = size.y / 2;
+				const glm::vec2 uv = (glm::vec2(column, row) + 0.5f) / glm::vec2(size.x, size.y);
+				const glm::vec4 farPlane = inverseViewProjection * glm::vec4(uv.x * 2.0f - 1.0f, 1.0f - uv.y * 2.0f, 1.0f, 1.0f);
+				const glm::vec3 direction = glm::normalize(glm::vec3(farPlane) / farPlane.w - eye);
+				const float w = static_cast<float>(slice + 1) / static_cast<float>(size.z);
+				const float distance = fogDistance * w * w / glm::dot(direction, forward);
+				const FogPath cpu = medium.Integrate(eye, eye + direction * distance, [&](const glm::vec3& point) {
+					return provider.FogLight(point, glm::normalize(eye - point), medium.Anisotropy);
+				});
+				const glm::vec4 gpu = volume[(static_cast<size_t>(slice) * size.y + row) * size.x + column];
+				const float gpuGlow = Math::Luminance(glm::vec3(gpu));
+				CAPTURE(column);
+				CAPTURE(slice);
+				CAPTURE(cpu.InScattered);
+				CAPTURE(gpuGlow);
+				CAPTURE(cpu.Transmittance);
+				CAPTURE(gpu.a);
+				CHECK(std::abs(cpu.Transmittance - gpu.a) <= 0.03f);
+				CHECK(std::abs(cpu.InScattered - gpuGlow) <= std::max(0.2f * gpuGlow, 0.002f));
+				compared++;
+				glowing += gpuGlow > 0.05f ? 1 : 0;
+				if (gpuGlow > 0.01f)
+					worstGlow = std::max(worstGlow, std::abs(cpu.InScattered - gpuGlow) / gpuGlow);
+				worstTransmittance = std::max(worstTransmittance, std::abs(cpu.Transmittance - gpu.a));
+			}
+		}
+		MESSAGE("worst glow difference ", worstGlow * 100.0f, "% (where it glows), worst transmittance difference ", worstTransmittance);
+		CHECK(compared == 30);
+		CHECK(glowing >= 10); // most lines pass through lamp-lit fog: the comparison is about the glow
+		scene.OnRuntimeStop();
 		CHECK(fixture.Device->GetErrorCount() == 0);
 	}
 

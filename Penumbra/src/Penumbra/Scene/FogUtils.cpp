@@ -1,6 +1,7 @@
 #include "pnpch.h"
 #include "Penumbra/Scene/FogUtils.h"
 
+#include "Penumbra/Math/Math.h"
 #include "Penumbra/Scene/Components.h"
 #include "Penumbra/Scene/Entity.h"
 #include "Penumbra/Scene/Scene.h"
@@ -20,6 +21,13 @@ namespace Penumbra {
 			return height + (1.0f - std::exp(-falloff * (y - height))) / falloff;
 		}
 
+	}
+
+	// Keep in step with FogPhase in shaders/Fog.hlsli.
+	float FogPhase(float cosTheta, float anisotropy)
+	{
+		const float g2 = anisotropy * anisotropy;
+		return (1.0f - g2) / std::pow(std::max(1.0f + g2 - 2.0f * anisotropy * cosTheta, 1e-4f), 1.5f);
 	}
 
 	// Keep in step with FogBoxWeight in shaders/Fog.hlsli.
@@ -42,7 +50,14 @@ namespace Penumbra {
 			medium.Density = std::max(component.FogDensity, 0.0f);
 			medium.Height = component.FogHeight;
 			medium.HeightFalloff = std::max(component.FogHeightFalloff, 0.0f);
+			medium.ColorLuminance = Math::Luminance(glm::max(component.FogColor, glm::vec3(0.0f)));
+			medium.Scattering = std::max(component.FogScattering, 0.0f);
+			medium.Anisotropy = std::clamp(component.FogAnisotropy, -0.9f, 0.9f);
+			medium.Volumetric = component.VolumetricFog;
 		}
+		// Without volumetric fog the renderer applies only the environment's fog: so does everyone else.
+		if (!medium.Volumetric)
+			return medium;
 		for (auto [handle, volume] : scene.GetRegistry().view<FogVolumeComponent>().each())
 		{
 			if (!volume.Enabled || volume.Density <= 0.0f)
@@ -128,6 +143,31 @@ namespace Penumbra {
 			depth += box.Density * weights * step;
 		}
 		return depth;
+	}
+
+	FogPath FogMedium::Integrate(const glm::vec3& from, const glm::vec3& to, const std::function<float(const glm::vec3&)>& lampLight) const
+	{
+		FogPath path;
+		const glm::vec3 delta = to - from;
+		const float length = glm::length(delta);
+		if (length < 1e-6f || IsEmpty())
+			return path;
+		const int steps = std::clamp(static_cast<int>(std::ceil(length / MaxScatterStep)), MinScatterSteps, MaxScatterSteps);
+		const float step = length / static_cast<float>(steps);
+		for (int i = 0; i < steps && path.Transmittance > MinScatterTransmittance; i++)
+		{
+			const glm::vec3 point = from + delta * ((static_cast<float>(i) + 0.5f) / static_cast<float>(steps));
+			const float density = DensityAt(point);
+			if (density <= 0.0f)
+				continue;
+			float source = ColorLuminance;
+			if (Volumetric && Scattering > 0.0f && lampLight)
+				source += Scattering * lampLight(point);
+			const float stepTransmittance = std::exp(-density * step);
+			path.InScattered += path.Transmittance * source * (1.0f - stepTransmittance);
+			path.Transmittance *= stepTransmittance;
+		}
+		return path;
 	}
 
 }

@@ -29,6 +29,10 @@ Tune live in the runtime: F4 panel, "Fog and volumetric light" (`DebugTools.md`)
 * **Density** (`Scene/FogUtils.h`, `FogMedium`): environment fog with its height profile plus the boxes. Perception
   integrates it along every sight line (`PerceptionSystem::OpticalDepth`: closed form for the height fog, 8 samples
   per box) and the renderer samples the same function (`shaders/Fog.hlsli`, `Fog.hlsl`). Change both or neither.
+* **Guards see the glow** (`docs/Perception.md`, "Fog"): perception integrates the same light the froxels hold
+  (`FogMedium::Integrate`, the phase `FogPhase` and `FogUnshadowedLight` shared with the shaders), so a thief against
+  lamp-lit fog stands out to them and bright fog between them hides him. A GPU test reads the froxel grid back and
+  compares.
 * **Froxels** (`shaders/Fog.hlsl`, compute): a grid over the view frustum (160 x 90 columns, 64 slices spaced
   quadratically out to 64 m: `SceneRendererSettings::FogGrid*`, `FogDistance`). Each froxel takes its density and
   the light it sends towards the eye: `FogColor` plus `FogScattering` of every lamp's light reaching it (the same
@@ -45,8 +49,6 @@ Tune live in the runtime: F4 panel, "Fog and volumetric light" (`DebugTools.md`)
 
 ## What it does not do (yet)
 
-* Guards do not see the glow: a thief against a lamp-lit fog bank is as visible to them as against the fog's own
-  colour. (Perception counts how much the fog hides, not the light it adds: a package of its own.)
 * Smoke volumes (`SmokeVolume`) are drawn their own way, unlit by lamps.
 * Flames and the HUD are drawn over the fog, unfogged.
 * Only lamps with a shadow map (`CastShadows`; the closest few get a slot) cut shafts.

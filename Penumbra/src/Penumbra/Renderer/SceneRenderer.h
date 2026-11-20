@@ -4,6 +4,7 @@
 #include "Penumbra/Renderer/DebugDraw.h"
 #include "Penumbra/Renderer/RenderCamera.h"
 #include "Penumbra/Renderer/RendererTypes.h"
+#include "Penumbra/Scene/FogUtils.h"
 
 #include <nvrhi/nvrhi.h>
 
@@ -28,7 +29,7 @@ namespace Penumbra {
 		uint32_t FogGridHeight = 90;
 		uint32_t FogGridDepth = 64;
 		float FogDistance = 64.0f;
-		float FogUnshadowedLight = 0.5f; // share of a lamp without a shadow map that lights the fog (it would shine through walls)
+		float FogUnshadowedLight = Penumbra::FogUnshadowedLight; // share of a lamp without a shadow map that lights the fog (it would shine through walls; perception uses the same, Scene/FogUtils.h)
 		float ShadowDistance = 60.0f;
 		uint32_t CascadeCount = 4;
 		bool DrawOverlay = true;
@@ -74,6 +75,10 @@ namespace Penumbra {
 
 		// Reads the last rendered frame back to the CPU (RGBA8, sRGB encoded).
 		bool ReadOutputPixels(std::vector<uint8_t>& pixels, uint32_t& width, uint32_t& height);
+		// Tests and tools: reads the last frame's integrated volumetric fog back (shaders/FogIntegrate.hlsl), one
+		// texel per froxel, x fastest then y then the depth slice: rgb = light scattered in from the eye to the
+		// slice's far end, a = transmittance over the same stretch. size is the grid (FogGrid* settings).
+		bool ReadFogVolume(std::vector<glm::vec4>& texels, glm::uvec3& size);
 		bool SaveScreenshot(const std::filesystem::path& path);
 
 	private:

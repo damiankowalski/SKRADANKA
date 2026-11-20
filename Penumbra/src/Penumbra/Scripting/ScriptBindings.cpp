@@ -663,7 +663,10 @@ namespace Penumbra {
 			table["size"] = result.SizeFactor;
 			table["peripheral"] = result.Peripheral;
 			table["motion"] = result.Motion;
-			table["atmosphere"] = result.Atmosphere;
+			table["atmosphere"] = result.Atmosphere; // smoke (and fog when it is not seen lit)
+			table["fog_transmittance"] = result.FogTransmittance;
+			table["fog_glow_front"] = result.FogGlowFront;
+			table["fog_glow_behind"] = result.FogGlowBehind;
 			table["target_luminance"] = result.TargetLuminance;
 			table["background_luminance"] = result.BackgroundLuminance;
 			table["distance"] = result.Distance;

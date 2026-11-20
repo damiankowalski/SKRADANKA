@@ -1720,6 +1720,146 @@
       "ID": "1035",
       "Components": {
         "Tag": {
+          "Tag": "FogBankEast"
+        },
+        "Transform": {
+          "Translation": [
+            8.6,
+            1.2,
+            2.0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "FogVolume": {
+          "HalfExtents": [
+            1.4,
+            1.4,
+            1.4
+          ],
+          "Density": 0.3,
+          "EdgeFade": 0.6
+        }
+      }
+    },
+    {
+      "ID": "1036",
+      "Components": {
+        "Tag": {
+          "Tag": "FogLampBehind"
+        },
+        "Transform": {
+          "Translation": [
+            8.8,
+            1.5,
+            2.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            0.55,
+            0.8,
+            1.0
+          ],
+          "Intensity": 12.0,
+          "Range": 2.2,
+          "Flicker": 0.0,
+          "CastShadows": false
+        }
+      }
+    },
+    {
+      "ID": "1037",
+      "Components": {
+        "Tag": {
+          "Tag": "FogPuffWest"
+        },
+        "Transform": {
+          "Translation": [
+            -3.5,
+            1.2,
+            -3.8
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "FogVolume": {
+          "HalfExtents": [
+            1.2,
+            1.4,
+            1.2
+          ],
+          "Density": 0.06,
+          "EdgeFade": 0.6
+        }
+      }
+    },
+    {
+      "ID": "1038",
+      "Components": {
+        "Tag": {
+          "Tag": "FogLampBetween"
+        },
+        "Transform": {
+          "Translation": [
+            -3.5,
+            1.5,
+            -3.8
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.6,
+            0.3
+          ],
+          "Intensity": 10.0,
+          "Range": 2.0,
+          "Flicker": 0.0,
+          "CastShadows": false
+        }
+      }
+    },
+    {
+      "ID": "1039",
+      "Components": {
+        "Tag": {
           "Tag": "Guard"
         },
         "Transform": {
@@ -1750,7 +1890,7 @@
       }
     },
     {
-      "ID": "1036",
+      "ID": "1040",
       "Components": {
         "Tag": {
           "Tag": "Model"
@@ -1788,10 +1928,10 @@
           "BlendDuration": 0.2
         }
       },
-      "Parent": "1035"
+      "Parent": "1039"
     },
     {
-      "ID": "1037",
+      "ID": "1041",
       "Components": {
         "Tag": {
           "Tag": "Player"
@@ -1828,7 +1968,7 @@
       }
     },
     {
-      "ID": "1038",
+      "ID": "1042",
       "Components": {
         "Tag": {
           "Tag": "Model"
@@ -1864,10 +2004,10 @@
           "BlendDuration": 0.2
         }
       },
-      "Parent": "1037"
+      "Parent": "1041"
     },
     {
-      "ID": "1039",
+      "ID": "1043",
       "Components": {
         "Tag": {
           "Tag": "Debug"

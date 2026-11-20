@@ -180,6 +180,17 @@ thief sees from the corridors. The renders add a roof shot under a test lamp. `d
 (medieval, rare practical magic, nature taking back abandoned places, early steam machinery as accents) and what
 each surface is made of (roofs are roofing, never the walls' stone). No engine change.
 
+**Perception: guards see the glow** (M, approved 2026-11-20): guards see the fog the player sees, glow included.
+Contrast and threshold use the luminances the eye gets through the fog (`L_p' = L_p T1 + S1`, `L_b' = (L_b T2 + S2) T1
++ S1`): a thief against lamp-lit fog is a dark, readable silhouette, bright fog between a guard and the thief hides
+him, dark fog changes little, no fog changes nothing (and costs nothing). The glow is integrated on the CPU
+(`FogMedium::Integrate`, the phase and the unshadowed lamps' share shared with the shaders; the shader refactor
+leaves the picture byte-identical) and a GPU test compares it with the froxel grid read back (2-5% where lit). Smoke
+still only dims. F4 shows the new values and switches the model off to compare; `ai.visibility` returns them.
+PerceptionLab has two playtest spots. 10 guards cost 0.035 ms a frame on an M1 Pro. Measured in the foggy levels:
+PhysicsLab's guards now see the thief against its torch-lit haze at four of six spots where they did not before
+(the owner decides whether to tune it). See docs/Perception.md, "Fog".
+
 ## In progress
 
 Nothing: the next package waits for the owner's choice.
@@ -194,17 +205,22 @@ following a body the character collides with.
 
 ## Next
 
-**Perception: guards see the glow** (M, approved 2026-11-20; the next main package, AI first). Today the fog in
-perception only dims contrast (`exp(-optical depth)`); it does not add the light the fog scatters (docs/Fog.md, "What
-it does not do"). A thief against fog lit by a lamp should be a dark, readable silhouette, and bright fog between a
-guard and the thief should hide him. The same math as the renderer's in-scattering (lamps, their falloff, the fog's
-density and anisotropy), in `Scene/FogUtils.h` and the shaders together ("change both or neither"). Areas: AI
-(`PerceptionModel`), Scene (`FogUtils.h`, `LightUtils.h`), shaders (`Fog.hlsli`). Risks: the renderer integrates
-in-scattering on the GPU in a froxel grid, so perception needs a CPU estimate along each sight line that agrees with
-it (tests compare the two); its cost per guard per frame.
-
 **Later, discussed**: a full-screen map on a key (S as a static picture, M drawn from the level; the picture can
 come from AssetGen, see below).
+
+### Later, discussed: fog for interiors, cellars and horror
+
+Each package needs the owner's approval before its brief. All three change `FogMedium::DensityAt` and the shaders
+together, so guards see what the player sees without touching perception.
+
+* **F1 Fog-free interiors** (S-M): a volume that clears the fog (a FogVolume with negative density or a "clear"
+  mode), in `FogMedium` and the shaders; costs about nothing. Today a foggy level's interiors are foggy too.
+* **F2 Drifting ground mist** (S-M): 3D noise and wind in the density (Environment/FogVolume: scale, strength,
+  speed), deterministic from game time, the same on CPU and GPU; about +0.1-0.2 ms.
+* **F3 Mist that reacts** (M): the thief's and NPCs' steps part the mist and leave a fading trail, an opened door
+  gives a gust; a bounded number of disturbances in `FogMedium` (guards see the same); about +0.05-0.15 ms; soft
+  motion (froxel resolution, temporal smoothing).
+* Rejected: a full fluid simulation (L+, beyond the frame budget).
 
 ### Later, discussed: art pipeline (AssetGen)
 

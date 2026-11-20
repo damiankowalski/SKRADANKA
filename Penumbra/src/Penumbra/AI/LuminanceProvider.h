@@ -56,6 +56,10 @@ namespace Penumbra {
 		virtual SurfaceSample GetSurface(UUID entity) const = 0;
 		// Luminance of the sky seen when a sight line escapes the level.
 		virtual float SkyLuminance() const = 0;
+		// The lamps' light a speck of fog at the point sends towards the eye (towardEye: unit, from the point
+		// to the eye), before FogScattering: each lamp's strength and falloff, its Henyey-Greenstein phase
+		// (anisotropy) and its shadow as the renderer casts it (Scene/FogUtils.h, shaders/Fog.hlsl).
+		virtual float FogLight(const glm::vec3& point, const glm::vec3& towardEye, float anisotropy) const = 0;
 	};
 
 	// Approach (1): sums the contributions of the scene's lights with physics shadow rays.
@@ -69,6 +73,7 @@ namespace Penumbra {
 		PointLighting GatherLighting(const glm::vec3& point, const std::vector<UUID>& ignore) const override;
 		SurfaceSample GetSurface(UUID entity) const override;
 		float SkyLuminance() const override { return m_SkyLuminance; }
+		float FogLight(const glm::vec3& point, const glm::vec3& towardEye, float anisotropy) const override;
 
 	private:
 		struct LightSample
@@ -90,6 +95,7 @@ namespace Penumbra {
 			float CosOuter = 0.0f;
 			float CosInner = 1.0f;
 			bool CastsShadows = true;
+			bool RenderShadows = false; // the renderer gives it a shadow map (CastShadows): it shadows the fog
 		};
 
 		bool IsOccluded(const glm::vec3& point, const LightSample& light, const std::vector<UUID>& ignore) const;

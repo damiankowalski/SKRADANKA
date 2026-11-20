@@ -313,6 +313,71 @@ TEST_SUITE("Perception")
 		CHECK(smoky.Contrast < clear.Contrast * 0.1f);
 	}
 
+	// Fog glow (docs/Perception.md, "Fog"): night fog (density 0.08 per metre, a dark FogColor) between and
+	// around guard and thief. Seen lit, the fog behind the thief can outline him, the fog in front can hide him.
+	struct GlowRun
+	{
+		float Time = -1.0f; // seconds to suspicion 0.3, -1 if not within the limit
+		VisibilityResult Seen;
+	};
+
+	GlowRun RunInFog(bool glow, const std::function<void(StealthLab&)>& setup, float wallEmissive = 0.0f)
+	{
+		StealthLab lab(0.02f, 0.08f);
+		auto& env = lab.SceneInstance.GetEnvironmentEntity().GetComponent<EnvironmentComponent>();
+		env.FogColor = glm::vec3(0.004f);
+		env.FogScattering = 0.5f;
+		env.FogAnisotropy = 0.3f;
+		lab.Wall(-16.0f, 0.3f, wallEmissive); // 8 m behind the thief
+		setup(lab);
+		lab.Start();
+		lab.SceneInstance.GetPerceptionSystem()->SetFogGlow(glow);
+		lab.SceneInstance.OnUpdateRuntime(Timestep(1.0f / 60.0f));
+		GlowRun run;
+		run.Seen = lab.Visibility();
+		run.Time = lab.TimeToSuspicion(0.3f, 10.0f);
+		lab.SceneInstance.OnRuntimeStop();
+		return run;
+	}
+
+	TEST_CASE("Fog glow 1: a thief against fog lit by a lamp behind him is seen much sooner (3.2 s before, 0.1 s now)")
+	{
+		// The lamp 4 m behind him (range 3.5 m): it lights the fog behind him, neither him nor the far wall.
+		auto lampBehind = [](StealthLab& lab) { lab.PointLight({ 0.0f, 1.2f, -12.0f }, 20.0f, 3.5f); };
+		const GlowRun today = RunInFog(false, lampBehind);
+		const GlowRun glow = RunInFog(true, lampBehind);
+		MESSAGE("without glow ", today.Time, " s, with glow ", glow.Time, " s");
+		REQUIRE(glow.Time > 0.0f);
+		CHECK((today.Time < 0.0f || glow.Time < today.Time * 0.5f)); // clearly sooner
+		CHECK(glow.Seen.FogGlowBehind > glow.Seen.TargetLuminance * 10.0f); // a dark figure against glowing fog
+		CHECK(glow.Seen.BackgroundLuminance > glow.Seen.TargetLuminance * 10.0f);
+	}
+
+	TEST_CASE("Fog glow 2: against dark fog with no lamp the thief stays hidden as before (not seen in 10 s, before and now)")
+	{
+		const GlowRun today = RunInFog(false, [](StealthLab&) {});
+		const GlowRun glow = RunInFog(true, [](StealthLab&) {});
+		MESSAGE("without glow ", today.Time, " s, with glow ", glow.Time, " s; stimulus ", today.Seen.Stimulus, " -> ", glow.Seen.Stimulus);
+		CHECK(today.Time < 0.0f);
+		CHECK(glow.Time < 0.0f);
+		CHECK(glow.Seen.Stimulus < 1.0f);
+	}
+
+	TEST_CASE("Fog glow 3: bright fog between guard and thief hides him (0.12 s without the lamp, 2.8 s with it; 0.17 s before)")
+	{
+		// Scenario 2's bright doorway behind him (seen within seconds without fog); a lamp half way between
+		// them (range 3.5 m: it lights the fog in between, neither of them).
+		auto lampBetween = [](StealthLab& lab) { lab.PointLight({ 0.0f, 1.2f, -4.0f }, 20.0f, 3.5f); };
+		const GlowRun withoutLamp = RunInFog(true, [](StealthLab&) {}, 0.6f);
+		const GlowRun withLamp = RunInFog(true, lampBetween, 0.6f);
+		const GlowRun today = RunInFog(false, lampBetween, 0.6f);
+		MESSAGE("no lamp ", withoutLamp.Time, " s, lamp between ", withLamp.Time, " s, lamp between without glow ", today.Time, " s");
+		REQUIRE(withoutLamp.Time > 0.0f);
+		CHECK((withLamp.Time < 0.0f || withLamp.Time > withoutLamp.Time * 5.0f)); // the glow in between hides him
+		CHECK((withLamp.Time < 0.0f || withLamp.Time > today.Time * 5.0f));       // where fog used only to dim him
+		CHECK(withLamp.Seen.Contrast < withoutLamp.Seen.Contrast * 0.5f);
+	}
+
 	TEST_CASE("Walls block sight completely and muffle noises by four levels")
 	{
 		StealthLab lab;
@@ -580,6 +645,62 @@ TEST_SUITE("Perception")
 
 TEST_SUITE("Perception")
 {
+	TEST_CASE("Perception benchmark: 10 guards, 12 torches, with and without fog glow" * doctest::skip())
+	{
+		// Run in release: PenumbraTests -tc="Perception benchmark: 10 guards*" --no-skip. Lit night fog and a bank
+		// of mist, the thief walking in front of them all; the same with the glow switched off, and without fog.
+		auto measure = [](float fog, bool glow) {
+			StealthLab lab(0.02f, fog);
+			auto& env = lab.SceneInstance.GetEnvironmentEntity().GetComponent<EnvironmentComponent>();
+			env.FogColor = glm::vec3(0.01f);
+			lab.Wall(-14.0f, 0.3f, 0.5f, 30.0f);
+			for (int i = 0; i < 12; i++)
+			{
+				Entity light = lab.PointLight({ -12.0f + 2.2f * static_cast<float>(i), 1.8f, -10.0f + static_cast<float>(i % 3) * 3.0f }, 12.0f, 9.0f);
+				light.GetComponent<PointLightComponent>().Flicker = 0.1f;
+				light.GetComponent<PointLightComponent>().CastShadows = i % 3 == 0; // some shadow the fog
+			}
+			if (fog > 0.0f)
+			{
+				Entity bank = lab.SceneInstance.CreateEntity("Mist");
+				bank.Transform().Translation = { 0.0f, 1.0f, -11.0f };
+				auto& volume = bank.AddComponent<FogVolumeComponent>();
+				volume.HalfExtents = { 12.0f, 1.5f, 2.0f };
+				volume.Density = 0.2f;
+			}
+			for (int i = 0; i < 9; i++)
+			{
+				Entity guard = lab.SceneInstance.CreateEntity("Guard" + std::to_string(i));
+				guard.Transform().Translation = { -12.0f + 3.0f * static_cast<float>(i), 0.0f, 2.0f };
+				guard.AddComponent<PerceptionComponent>();
+			}
+			lab.Start();
+			PerceptionSystem& perception = *lab.SceneInstance.GetPerceptionSystem();
+			perception.SetFogGlow(glow);
+			const float dt = 1.0f / 60.0f;
+			Test::Simulate(lab.SceneInstance, 0.5f, dt);
+			constexpr int Frames = 600;
+			double total = 0.0, worst = 0.0;
+			for (int frame = 0; frame < Frames; frame++)
+			{
+				lab.Player.Transform().Translation = { std::sin(frame * 0.05f) * 6.0f, 0.0f, -7.0f };
+				const auto start = std::chrono::steady_clock::now();
+				perception.Update(Timestep(dt));
+				const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
+				total += ms;
+				worst = std::max(worst, ms);
+			}
+			lab.SceneInstance.OnRuntimeStop();
+			return std::make_pair(total / Frames, worst);
+		};
+		const auto [clearAverage, clearWorst] = measure(0.0f, true);
+		const auto [oldAverage, oldWorst] = measure(0.06f, false);
+		const auto [glowAverage, glowWorst] = measure(0.06f, true);
+		MESSAGE("10 guards, perception update per frame: no fog " << clearAverage << " ms (worst " << clearWorst << "), fog without glow "
+				<< oldAverage << " ms (worst " << oldWorst << "), fog with glow " << glowAverage << " ms (worst " << glowWorst
+				<< "): glow costs " << glowAverage - oldAverage << " ms a frame");
+	}
+
 	TEST_CASE("Light gem maps body luminance to 0..1 on a log scale")
 	{
 		CHECK(PerceptionModel::LightGem(0.0f) == 0.0f);

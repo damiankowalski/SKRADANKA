@@ -195,11 +195,14 @@ local function run(self)
     ai.calm(guard)
     test.equal(ai.state(guard), "Unaware", "ai.calm")
     -- A bank of fog (FogVolume) between them: the guard sees through the same fog the player sees.
-    local clear_air = ai.visibility(guard, player).atmosphere
+    local clear_air = ai.visibility(guard, player)
     local bank = scene.create("FogBank")
     bank:set_position(vec3(0, 1.2, -3))
     bank:add("FogVolume", { HalfExtents = vec3(2, 2, 1), Density = 2.0, EdgeFade = 0.1 })
-    test.check(ai.visibility(guard, player).atmosphere < clear_air * 0.1, "a fog volume hides the silhouette")
+    local in_fog = ai.visibility(guard, player)
+    test.check(in_fog.fog_transmittance < clear_air.fog_transmittance * 0.1, "a fog volume hides the silhouette")
+    test.check(in_fog.contrast < clear_air.contrast * 0.5, "the fog bank washes out his contrast")
+    test.check(in_fog.fog_glow_front > 0 and in_fog.fog_glow_behind >= 0, "ai.visibility: the fog's glow on the sight line")
     bank:destroy()
     H.wait(0)
     -- Smoke between them hides the silhouette.
