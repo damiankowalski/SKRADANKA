@@ -260,6 +260,32 @@ TEST_SUITE("World")
 		CHECK(cloister.SceneInstance.GetScriptEngine()->GetErrors().empty());
 	}
 
+	TEST_CASE("PhysicsLab: the haze its torches light gives a still thief away slowly, not at once")
+	{
+		// 10 m in front of the guard, standing still: hidden before the fog glow; with it, the haze behind him
+		// outlines him after a few seconds (FogScattering 0.25, Tools/BuildDemoProject.py; at the default 0.5
+		// within one or two).
+		Level lab("Scenes/PhysicsLab.pscene");
+		Entity player = lab.Entity("Player");
+		lab.SceneInstance.OnRuntimeStop(); // restart without the player's controller and the scripts
+		player.RemoveComponent<CharacterControllerComponent>();
+		for (auto handle : std::vector<entt::entity>(lab.SceneInstance.GetRegistry().view<ScriptComponent>().begin(),
+				 lab.SceneInstance.GetRegistry().view<ScriptComponent>().end()))
+			lab.SceneInstance.GetRegistry().remove<ScriptComponent>(handle);
+		player.GetComponent<PerceptionTargetComponent>().SilhouettePoints = PerceptionTargetComponent().SilhouettePoints;
+		player.Transform().Translation = { 9.0f, 0.05f, 2.0f };
+		lab.SceneInstance.OnRuntimeStart();
+		CHECK(lab.SceneInstance.GetPerceptionSystem()->IsFogGlowEnabled());
+		PerceptionComponent& guard = lab.Entity("Guard").GetComponent<PerceptionComponent>();
+		lab.Run(2.0f);
+		const VisibilityResult seen = lab.SceneInstance.GetPerceptionSystem()->ComputeVisibility(lab.Entity("Guard"), player);
+		CHECK(seen.VisiblePoints == seen.TotalPoints); // in plain view
+		CHECK(seen.FogGlowBehind > 0.0f);              // the haze behind him glows
+		CHECK(guard.RuntimeSuspicion < 0.3f);          // not at once
+		lab.Run(8.0f);
+		CHECK(guard.RuntimeSuspicion >= 0.3f);         // but in the end
+	}
+
 	TEST_CASE("PerceptionLab's fog spots: lit mist behind the thief gives him away, lit mist in front hides him")
 	{
 		// The playtest places of the fog glow (Tools/BuildDemoProject.py, FOG_SPOT_EAST / FOG_SPOT_WEST). The thief
