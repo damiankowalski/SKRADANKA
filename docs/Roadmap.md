@@ -249,15 +249,32 @@ their provenance and go to the texture catalog; materials follow `docs/art/World
 * **Material variations through img2img** (S): wet, mossy and dirty versions of a material, against the repetition
   of one tile. Needs mflux's image-to-image path with the pinned model.
 * **Emissive textures** (S), e.g. lit windows; `Material.EmissiveTexture` already exists.
-* **Better height maps with DepthPro through mflux** (S-M): normal maps from depth instead of the albedo's
-  brightness. Check DepthPro's licence first.
-* **Inventory icons with background removal** (S-M): the background-removal model's licence needs assessing.
+* **Better height maps** (S): normal maps from depth instead of the albedo's brightness, with Depth Anything V2 Small
+  (Apache-2.0; it replaces DepthPro here), one of the AssetGen add-ons under "Local AI tools" below.
+* **Inventory icons with background removal** (S-M): background removal with BiRefNet (MIT), one of the AssetGen
+  add-ons under "Local AI tools" below.
 * **A decal system in the engine** (M-L): stains, cracks, moss laid on any surface. Renderer (a decal pass or
   deferred decals in the forward renderer), Scene (a component), editor placement.
 * **KayKit characters replaced by Quaternius Universal Base Characters and the Universal Animation Library** (M,
   CC0; to be decided): KayKit's chibi proportions do not fit direction B. Areas: `Tools/ImportCharacters.py`, the
   animation clip names the scripts use, silhouette points and the perception tests tuned to the current models.
 * Rejected for now: generating character textures on their unwrapped UVs (L, poor quality).
+
+### Later, discussed: local AI tools
+
+Each package needs the owner's approval before its brief. The tools, their licences and the house rules (one model
+at a time, weights in `~/AI/huggingface`, uv per tool, pinned versions, provenance beside every result, approval
+before any install) are in [`research/AITools.md`](research/AITools.md).
+
+* **Agent playtester** (S-M): Claude plays a level many times through the engine's MCP server, with different
+  seeds. Report: detection margin along routes, hiding places, the time windows patrols leave, and the spread
+  between seeds (a measure of the randomness that annoys in methodical stealth).
+* **AudioGen** (M): a tool on the AssetGen model for Stable Audio Open Small (effects, ambience), ACE-Step 1.5
+  (music) and Chatterbox Multilingual (voices).
+* **Kimodo PoC** (M): text to animation, retargeted in Blender onto our skeleton; whether it fits in 16 GB.
+* **Pixal3D PoC** (M): photo to a 3D prop with PBR textures, cleaned in Blender.
+* **AssetGen add-ons** (S each): Depth Anything V2 Small (height maps: the "better height maps" item above),
+  BiRefNet (background removal: for the inventory icons above), Real-ESRGAN (upscaling); Whisper for subtitles.
 
 ### Later: movement and UI (~12+ sessions)
 
