@@ -27,7 +27,7 @@ contract for every human or AI agent changing this repository. Read it fully bef
 | `PenumbraTests` | doctest unit + integration tests |
 | `DemoProject` | Demo stealth level and the `FeatureTest` scene covering every feature |
 | `docs/` | Design documents (`GAME ENGINE SKRADANKA.md` is the original brief), API references, examples |
-| `Tools/` | Build/test scripts, `BuildDemoProject.py` (regenerates demo scenes, prefabs, sounds) |
+| `Tools/` | Build/test scripts, `BuildDemoProject.py` (regenerates demo scenes, prefabs, sounds), `Playtest/` (the agent playtester's runner, `docs/Playtest.md`) |
 | `cmake/patches/` | Patches applied to pinned dependencies (each explains why) |
 
 ## Build and test

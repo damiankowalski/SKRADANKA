@@ -206,9 +206,21 @@ each point counts the larger of it and the contrast with the background. Through
 side-lit thief against an equally bright wall: 0.8 s instead of 2.0 s; front-lit or dark: unchanged. In the demo
 levels it changes little (report test). F4 and `ai.visibility` show it. See docs/Perception.md, "Self-shading".
 
+**Agent playtester, package A: the bot, series and the report** (M, approved 2026-11-22): a deterministic bot plays
+the thief along designed routes (walk, crouch, run, lean, wait, wait for a guard to walk off, take loot, put lamps
+out, open and pick doors, reach the exit) through the same code as the keyboard: `Player.lua` reads every key and
+mouse move through `self.controls`, the keyboard or the bot (a test checks the two give the same frame-by-frame
+trace). `Tools/Playtest/playtest.py` plays many seeds headless in parallel and writes JSONL per run (state changes
+with causes, reaction times at the threshold, footsteps heard, 10 Hz samples with `ai.visibility`, per-step margins)
+and a Markdown report: success rate, who noticed the thief first, where and why, the narrowest margins,
+luck-sensitive routes. The bot's timing jitter (0-2 s start, ±20% waits) has its own generator. `--playtest-out` and
+Lua `playtest.record` are the only engine additions. Routes for PerceptionLab (the tool check: lit before the sentry
+always detected, dark behind him never) and Stealth (baseline, the cellar, the hall dark and lit). 80 Stealth runs in
+25 s on an M1 Pro. See docs/Playtest.md and the `penumbra-playtest` skill.
+
 ## In progress
 
-Nothing: the agent playtester (Next) waits for its brief.
+Nothing.
 
 ## Known bugs
 
@@ -220,16 +232,15 @@ following a body the character collides with.
 
 ## Next
 
-**Agent playtester** (S-M, next; approved 2026-11-22, its brief comes from the owner): Claude plays a level many
-times through the engine's MCP server, with different seeds, and reports the detection margin along routes, hiding
-places, the time windows patrols leave and the spread between seeds (a measure of the randomness that annoys in
-methodical stealth). It is also the measuring tool for every later change to perception.
+**Agent playtester, package B: maps from above** (S-M, the next step of this item; needs its brief): the runs drawn
+on a top-down picture of the level (routes, where guards noticed the thief, their view and lamps), and engine
+screenshots of the key moments. Package A (the bot, series and report) is done.
 
 ### Priority order (approved 2026-11-22)
 
 Each package still needs the owner's approval and its own brief before it starts.
 
-1. **Agent playtester** (above).
+1. **Agent playtester** (package A done; package B above).
 2. **Suspicion tempo near the threshold** (S): from the PhysicsLab playtest, a guard who barely makes the thief out
    (stimulus just above 1) takes seconds to react; how fast suspicion should rise there, measured with the
    playtester.
@@ -293,7 +304,7 @@ Each package needs the owner's approval before its brief. The tools, their licen
 at a time, weights in `~/AI/huggingface`, uv per tool, pinned versions, provenance beside every result, approval
 before any install) are in [`research/AITools.md`](research/AITools.md).
 
-* **Agent playtester** (S-M): next, see "Next" above.
+* **Agent playtester**: package A done (docs/Playtest.md); package B in "Next" above.
 * **AudioGen** (M): a tool on the AssetGen model for Stable Audio Open Small (effects, ambience), ACE-Step 1.5
   (music) and Chatterbox Multilingual (voices).
 * **Kimodo PoC** (M): text to animation, retargeted in Blender onto our skeleton; whether it fits in 16 GB.
