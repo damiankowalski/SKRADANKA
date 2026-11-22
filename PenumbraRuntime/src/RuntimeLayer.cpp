@@ -37,6 +37,20 @@ namespace Penumbra {
 		}
 		m_LastFrame = std::chrono::steady_clock::now();
 
+		if (m_Options.PlaytestOut)
+		{
+			std::error_code ignored;
+			if (m_Options.PlaytestOut->has_parent_path())
+				std::filesystem::create_directories(m_Options.PlaytestOut->parent_path(), ignored);
+			m_PlaytestOut.open(*m_Options.PlaytestOut, std::ios::binary | std::ios::trunc);
+			if (!m_PlaytestOut)
+			{
+				PN_CORE_CRITICAL("Cannot write {}", m_Options.PlaytestOut->string());
+				Finish(1);
+				return;
+			}
+		}
+
 		const std::string scene = m_Options.ScenePath.empty() ? Project::GetConfig().StartScene : m_Options.ScenePath;
 		if (!LoadScene(scene))
 			Finish(1);
@@ -83,6 +97,8 @@ namespace Penumbra {
 			m_Scene->OnViewportResize(m_Renderer->GetViewportWidth(), m_Renderer->GetViewportHeight());
 		else
 			m_Scene->OnViewportResize(m_Options.Width, m_Options.Height);
+		if (m_PlaytestOut.is_open())
+			m_Scene->SetRecordSink([this](const std::string& line) { m_PlaytestOut << line << '\n'; });
 		if (m_Options.Seed)
 			m_Scene->SetRandomSeed(*m_Options.Seed);
 		else if (m_Options.RandomizeSeed)

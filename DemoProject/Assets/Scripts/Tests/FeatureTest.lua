@@ -332,6 +332,10 @@ local function run(self)
     test.check(ui.width() > 0 and ui.height() > 0, "ui size")
     test.check(ui.scale() >= 1, "ui.scale")
 
+    -- The agent playtester's record: without --playtest-out there is no sink and nothing is written.
+    test.equal(playtest.enabled(), false, "playtest.enabled without a sink")
+    test.equal(playtest.record({ type = "check", t = 0.5 }), false, "playtest.record without a sink")
+
     -- ---------------------------------------------------------------- lifecycle, collisions
     test.check(self.created, "on_create ran")
     test.check(self.updates > 10, "on_update runs every frame")

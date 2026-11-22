@@ -33,6 +33,7 @@ namespace {
 			"  --exit-on-test           exit with 0/1 when the scene's scripts call test.complete()\n"
 			"  --test-timeout <s>       fail the test run after s seconds of simulated time\n"
 			"  --screenshot <file.png>  save the last frame before exiting\n"
+			"  --playtest-out <file>    write scripts' playtest.record lines there (JSONL; docs/Playtest.md)\n"
 			"  --width <px> --height <px>  resolution\n"
 			"  --no-vsync               present without waiting for vertical blank\n"
 			"  --debug-layer            enable the D3D12/NVRHI validation layers\n"
@@ -100,6 +101,8 @@ namespace {
 		options.TestTimeout = ParseFloat(args, "test-timeout", 0.0f);
 		if (const std::optional<std::string> screenshot = args.GetValue("screenshot"))
 			options.ScreenshotPath = *screenshot;
+		if (const std::optional<std::string> playtestOut = args.GetValue("playtest-out"))
+			options.PlaytestOut = *playtestOut;
 		options.Width = spec.Width;
 		options.Height = spec.Height;
 		if (const std::optional<int> seed = args.GetInt("seed"))

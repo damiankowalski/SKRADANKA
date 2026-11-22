@@ -83,13 +83,14 @@ return line)";
 	{
 		Scene SceneInstance;
 
-		explicit TraceLevel(const std::string& scenePath, uint64_t seed)
+		explicit TraceLevel(const std::string& scenePath, uint64_t seed, const GameState& values = {})
 		{
 			std::string error;
 			REQUIRE_MESSAGE(Project::Load(std::filesystem::path(PENUMBRA_DEMO_PROJECT_DIR) / "project.json", error), error);
 			SceneInstance.SetAudioDeviceEnabled(false);
 			REQUIRE_MESSAGE(SceneSerializer::Deserialize(SceneInstance, Project::GetAssetDirectory() / scenePath, error), error);
 			SceneInstance.SetRandomSeed(seed);
+			SceneInstance.GetGameState() = values;
 			Input::Reset();
 			SceneInstance.OnRuntimeStart();
 		}
@@ -141,6 +142,85 @@ return line)";
 		return trace;
 	}
 
+	// The same timeline through a Lua controls object (what the playtester's bot is) instead of the keyboard.
+	std::string ControlsTrace()
+	{
+		TraceLevel level("Scenes/Cloister.pscene", 7);
+		std::string steps = "{";
+		for (const InputStep& step : Timeline())
+		{
+			const std::string key = step.Key ? (std::string(step.Key) == "Mouse:Right" ? "MouseRight" : step.Key) : "";
+			steps += std::format("{{ frame = {}, key = {}, down = {}, dx = {}, dy = {} }},", step.Frame,
+				key.empty() ? std::string("nil") : "'" + key + "'", step.Down ? "true" : "false", step.DX, step.DY);
+		}
+		steps += "}";
+		level.Lua(R"(
+local steps = )" + steps + R"(
+local frame, next, down, previous, dx, dy = 0, 1, {}, {}, 0, 0
+local controls = {
+	key = function(k) return down[k] == true end,
+	key_pressed = function(k) return down[k] == true and not previous[k] end,
+	key_released = function(k) return previous[k] == true and not down[k] end,
+	mouse_button = function(b) return down['Mouse' .. b] == true end,
+	mouse_pressed = function(b) return down['Mouse' .. b] == true and not previous['Mouse' .. b] end,
+	mouse_delta = function() return dx, dy end,
+}
+controls.tick = function()
+	previous = {}
+	for k, v in pairs(down) do previous[k] = v end
+	while steps[next] and steps[next].frame == frame do
+		local s = steps[next]
+		if s.key then down[s.key] = s.down else dx, dy = s.dx, s.dy end
+		next = next + 1
+	end
+	frame = frame + 1
+end
+scene.find('Player'):script().controls = controls)");
+		std::string trace;
+		for (int frame = 0; frame < TimelineFrames; frame++)
+		{
+			level.SceneInstance.OnUpdateRuntime(Timestep(1.0f / 60.0f));
+			Input::EndFrame();
+			if (frame % 5 == 4)
+				trace += level.Lua(TraceLua) + "\n";
+		}
+		CHECK(level.SceneInstance.GetScriptEngine()->GetErrors().empty());
+		return trace;
+	}
+
+	// One playtest run in process: the recorded JSONL lines. `setup` runs once before the first frame (e.g. to
+	// shorten a route's time limit).
+	std::vector<std::string> PlaytestRun(const std::string& scenePath, const std::string& route, int seed, float maxSeconds,
+		const std::string& setup = "")
+	{
+		GameState values;
+		values["playtest"] = route;
+		values["playtest_seed"] = static_cast<double>(seed);
+		TraceLevel level(scenePath, static_cast<uint64_t>(seed), values);
+		std::vector<std::string> lines;
+		level.SceneInstance.SetRecordSink([&lines](const std::string& line) { lines.push_back(line); });
+		if (!setup.empty())
+			level.Lua(setup);
+		const int frames = static_cast<int>(maxSeconds * 60.0f);
+		for (int frame = 0; frame < frames && !level.SceneInstance.GetRequestedQuit(); frame++)
+		{
+			level.SceneInstance.OnUpdateRuntime(Timestep(1.0f / 60.0f));
+			Input::EndFrame();
+		}
+		CHECK(level.SceneInstance.GetRequestedQuit().has_value());
+		CHECK(level.SceneInstance.GetScriptEngine()->GetErrors().empty());
+		return lines;
+	}
+
+	std::string Outcome(const std::vector<std::string>& lines)
+	{
+		REQUIRE(!lines.empty());
+		const size_t at = lines.back().find("\"outcome\":\"");
+		REQUIRE(at != std::string::npos);
+		const size_t start = at + 11;
+		return lines.back().substr(start, lines.back().find('"', start) - start);
+	}
+
 	uint64_t Fnv1a(const std::string& text)
 	{
 		uint64_t hash = 0xcbf29ce484222325ull;
@@ -156,6 +236,25 @@ return line)";
 
 TEST_SUITE("Playtest")
 {
+	TEST_CASE("Playtest: playtest.record writes one JSON line to the host's sink, nothing without one")
+	{
+		Scene scene;
+		scene.OnRuntimeStart();
+		std::string output;
+		REQUIRE(scene.GetScriptEngine()->Execute("return tostring(playtest.enabled()) .. ' ' .. tostring(playtest.record({ a = 1 }))", output));
+		CHECK(output == "\"false false\"");
+
+		std::vector<std::string> lines;
+		scene.SetRecordSink([&lines](const std::string& line) { lines.push_back(line); });
+		REQUIRE(scene.GetScriptEngine()->Execute(
+			"playtest.record({ type = 'sample', t = 1.25, guard = 'North', at = { 1.5, 0, -2 }, seen = true }); return playtest.enabled()", output));
+		CHECK(output == "true");
+		REQUIRE(lines.size() == 1);
+		// Keys sorted, integers stay integers: the same record is the same bytes.
+		CHECK(lines[0] == R"({"at":[1.5,0,-2],"guard":"North","seen":true,"t":1.25,"type":"sample"})");
+		scene.OnRuntimeStop();
+	}
+
 	TEST_CASE("Playtest: the keyboard trace of the thief is reproducible")
 	{
 		const std::string first = KeyboardTrace();
@@ -164,5 +263,34 @@ TEST_SUITE("Playtest")
 		CHECK(first == second);
 		CHECK(first.find("step") != std::string::npos); // he made footsteps
 		CHECK(first.find("ctrue") != std::string::npos); // and crouched
+	}
+
+	TEST_CASE("Playtest: the bot's controls drive the thief exactly as the keyboard does")
+	{
+		const std::string keyboard = KeyboardTrace();
+		const std::string controls = ControlsTrace();
+		CHECK(keyboard == controls);
+	}
+
+	TEST_CASE("Playtest: the same level, route and seed record the same lines")
+	{
+		// A short walk past the campfire towards the sentry: footsteps, samples, his reaction.
+		const std::string route = "package.loaded['Playtest/Test/Walk'] = { name = 'Walk', time_limit = 6, survive = true, steps = {"
+								  "{ to = vec3(-3, 0, 3), gait = 'walk' }, { to = vec3(2, 0, 0), gait = 'crouch' }, { wait = 2 } } }";
+		const std::vector<std::string> first = PlaytestRun("Scenes/PerceptionLab.pscene", "Playtest/Test/Walk", 3, 10.0f, route);
+		const std::vector<std::string> second = PlaytestRun("Scenes/PerceptionLab.pscene", "Playtest/Test/Walk", 3, 10.0f, route);
+		CHECK(first.size() > 30);
+		CHECK(first == second);
+		CHECK(first.front().find("\"type\":\"run\"") != std::string::npos);
+		CHECK(Outcome(first) != "stuck");
+		CHECK(Outcome(first) != "error");
+	}
+
+	TEST_CASE("Playtest: in full light before the sentry he is detected, in the dark behind him never")
+	{
+		CHECK(Outcome(PlaytestRun("Scenes/PerceptionLab.pscene", "Playtest/PerceptionLab/LitFront", 1, 5.0f)) == "detected");
+		const std::vector<std::string> dark = PlaytestRun("Scenes/PerceptionLab.pscene", "Playtest/PerceptionLab/DarkBehind", 1, 12.0f,
+			"require('Playtest/PerceptionLab/DarkBehind').time_limit = 10");
+		CHECK(Outcome(dark) == "undetected");
 	}
 }
