@@ -208,7 +208,7 @@ levels it changes little (report test). F4 and `ai.visibility` show it. See docs
 
 ## In progress
 
-Nothing: the next package waits for the owner's choice.
+Nothing: the agent playtester (Next) waits for its brief.
 
 ## Known bugs
 
@@ -219,6 +219,33 @@ to check then: the character controller fighting ragdoll bodies it stands on or 
 following a body the character collides with.
 
 ## Next
+
+**Agent playtester** (S-M, next; approved 2026-11-22, its brief comes from the owner): Claude plays a level many
+times through the engine's MCP server, with different seeds, and reports the detection margin along routes, hiding
+places, the time windows patrols leave and the spread between seeds (a measure of the randomness that annoys in
+methodical stealth). It is also the measuring tool for every later change to perception.
+
+### Priority order (approved 2026-11-22)
+
+Each package still needs the owner's approval and its own brief before it starts.
+
+1. **Agent playtester** (above).
+2. **Suspicion tempo near the threshold** (S): from the PhysicsLab playtest, a guard who barely makes the thief out
+   (stimulus just above 1) takes seconds to react; how fast suspicion should rise there, measured with the
+   playtester.
+3. **F1 Fog-free interiors** (S-M, "fog for interiors" below): needed before the first mission's interiors.
+4. **Materials for the first mission** (S each, art pipeline below), then **the decal system** (M-L): dirt at the
+   foot of walls, moss, soot (`docs/art/World.md`).
+5. **AudioGen** (M, local AI tools below), with Whisper for subtitles.
+6. **The characters' decision** (KayKit → Quaternius, M, art pipeline below), then **Kimodo PoC** (M): Kimodo
+   retargets onto our skeleton, so the skeleton is settled first.
+7. **Pixal3D PoC** (M, props).
+8. The rest of the art pipeline: the full-screen map and its picture, concept art, img2img variations, emissive
+   textures, the other AssetGen add-ons.
+9. **F2 / F3** drifting and reacting mist.
+10. Movement and UI (below): rope arrows, climbing, swimming, the scouting orb, map and compass, inventory.
+
+The player character's jitter (Known bugs) waits for the owner to narrow it down.
 
 **Later, discussed**: a full-screen map on a key (S as a static picture, M drawn from the level; the picture can
 come from AssetGen, see below).
@@ -266,9 +293,7 @@ Each package needs the owner's approval before its brief. The tools, their licen
 at a time, weights in `~/AI/huggingface`, uv per tool, pinned versions, provenance beside every result, approval
 before any install) are in [`research/AITools.md`](research/AITools.md).
 
-* **Agent playtester** (S-M): Claude plays a level many times through the engine's MCP server, with different
-  seeds. Report: detection margin along routes, hiding places, the time windows patrols leave, and the spread
-  between seeds (a measure of the randomness that annoys in methodical stealth).
+* **Agent playtester** (S-M): next, see "Next" above.
 * **AudioGen** (M): a tool on the AssetGen model for Stable Audio Open Small (effects, ambience), ACE-Step 1.5
   (music) and Chatterbox Multilingual (voices).
 * **Kimodo PoC** (M): text to animation, retargeted in Blender onto our skeleton; whether it fits in 16 GB.
