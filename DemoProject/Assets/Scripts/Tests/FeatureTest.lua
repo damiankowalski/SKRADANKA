@@ -203,6 +203,7 @@ local function run(self)
     test.check(in_fog.fog_transmittance < clear_air.fog_transmittance * 0.1, "a fog volume hides the silhouette")
     test.check(in_fog.contrast < clear_air.contrast * 0.5, "the fog bank washes out his contrast")
     test.check(in_fog.fog_glow_front > 0 and in_fog.fog_glow_behind >= 0, "ai.visibility: the fog's glow on the sight line")
+    test.check(clear_air.self_contrast >= 0 and clear_air.self_contrast <= 1, "ai.visibility: the target's own shading")
     bank:destroy()
     H.wait(0)
     -- Smoke between them hides the silhouette.

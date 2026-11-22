@@ -1,6 +1,7 @@
 #include "pnpch.h"
 #include "Penumbra/AI/LuminanceProvider.h"
 
+#include "Penumbra/AI/PerceptionModel.h"
 #include "Penumbra/Asset/AssetManager.h"
 #include "Penumbra/Physics/PhysicsWorld.h"
 #include "Penumbra/Scene/Entity.h"
@@ -165,6 +166,25 @@ namespace Penumbra {
 		for (const IncomingLight& light : Lights)
 			total += light.Illuminance * 0.5f;
 		return total;
+	}
+
+	void PointLighting::Shading(const glm::vec3& viewDirection, float& bright, float& dark) const
+	{
+		float level = Ambient;
+		glm::vec3 across(0.0f);
+		for (const IncomingLight& light : Lights)
+		{
+			const float c = glm::dot(light.Direction, viewDirection);
+			const PerceptionModel::ShadingHalves halves = PerceptionModel::SphereShadingHalves(c);
+			level += light.Illuminance * (halves.Lit + halves.Shade) * 0.5f;
+			const glm::vec3 sideways = light.Direction - viewDirection * c;
+			const float length = glm::length(sideways);
+			if (length > 1e-4f)
+				across += sideways / length * (light.Illuminance * (halves.Lit - halves.Shade) * 0.5f);
+		}
+		const float swing = glm::length(across);
+		bright = level + swing;
+		dark = std::max(level - swing, 0.0f);
 	}
 
 	PointLighting AnalyticLuminanceProvider::GatherLighting(const glm::vec3& point, const std::vector<UUID>& ignore) const

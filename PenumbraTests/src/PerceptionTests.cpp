@@ -1,6 +1,7 @@
 #include "TestHelpers.h"
 
 #include "Penumbra/AI/PerceptionModel.h"
+#include "Penumbra/AI/LuminanceProvider.h"
 #include "Penumbra/AI/PerceptionSystem.h"
 
 using namespace Penumbra;
@@ -376,6 +377,111 @@ TEST_SUITE("Perception")
 		CHECK((withLamp.Time < 0.0f || withLamp.Time > withoutLamp.Time * 5.0f)); // the glow in between hides him
 		CHECK((withLamp.Time < 0.0f || withLamp.Time > today.Time * 5.0f));       // where fog used only to dim him
 		CHECK(withLamp.Seen.Contrast < withoutLamp.Seen.Contrast * 0.5f);
+	}
+
+	TEST_CASE("Self-shading of a rounded body: flat from the front, strong from the side, dark from behind")
+	{
+		using PerceptionModel::SphereShadingHalves;
+		const auto front = SphereShadingHalves(1.0f);
+		CHECK(front.Lit == doctest::Approx(2.0f / 3.0f).epsilon(0.01));
+		CHECK(front.Shade == doctest::Approx(2.0f / 3.0f).epsilon(0.01));
+		const auto side = SphereShadingHalves(0.0f);
+		CHECK(side.Lit == doctest::Approx(4.0f / (3.0f * glm::pi<float>())).epsilon(0.01));
+		CHECK(side.Shade == doctest::Approx(0.0f).epsilon(0.01));
+		const auto behind = SphereShadingHalves(-1.0f);
+		CHECK(behind.Lit == doctest::Approx(0.0f).epsilon(0.01));
+		CHECK(behind.Shade == doctest::Approx(0.0f).epsilon(0.01));
+		// In between it moves smoothly; the lit half is never darker than the other.
+		for (float c = -1.0f; c <= 1.0f; c += 0.05f)
+			CHECK(SphereShadingHalves(c).Lit >= SphereShadingHalves(c).Shade - 1e-4f);
+
+		CHECK(PerceptionModel::SelfShadingContrast(1.0f, 0.0f) == doctest::Approx(1.0f));
+		CHECK(PerceptionModel::SelfShadingContrast(1.0f, 1.0f) == doctest::Approx(0.0f));
+		CHECK(PerceptionModel::SelfShadingContrast(0.001f, 0.0f, 0.005f) == doctest::Approx(0.2f)); // in the dark: the floor
+		CHECK(PerceptionModel::DetailFactor(0.3f, 20.0f, 0.05f) < PerceptionModel::SizeFactor(0.3f, 20.0f, 0.05f));
+
+		// Lamps on opposite sides cancel out; ambient light lifts both halves alike.
+		PointLighting lighting;
+		lighting.Ambient = 0.2f;
+		lighting.Lights.push_back({ { 1.0f, 0.0f, 0.0f }, 1.0f });
+		float bright = 0.0f, dark = 0.0f;
+		lighting.Shading({ 0.0f, 0.0f, 1.0f }, bright, dark);
+		CHECK(bright - dark == doctest::Approx(side.Lit - side.Shade).epsilon(0.01));
+		lighting.Lights.push_back({ { -1.0f, 0.0f, 0.0f }, 1.0f });
+		lighting.Shading({ 0.0f, 0.0f, 1.0f }, bright, dark);
+		CHECK(bright - dark == doctest::Approx(0.0f).epsilon(1e-3));
+		CHECK(dark > 0.2f);
+	}
+
+	// Self-shading scenarios (docs/Perception.md, "Self-shading"): the thief 8 m away in front of a wall that glows
+	// exactly as bright as he looks, so his outline against it is gone; only his own shading can give him away.
+	struct ShadingRun
+	{
+		float Time = -1.0f; // seconds to suspicion 0.3, -1 if not within 10 s
+		VisibilityResult Seen;
+	};
+
+	ShadingRun RunMatchedWall(float selfShading, const std::function<void(StealthLab&)>& lights)
+	{
+		// First measure how bright he looks, then make the wall behind him glow that bright.
+		float match = 0.0f;
+		{
+			StealthLab probe;
+			probe.Wall(-9.5f, 0.0f);
+			lights(probe);
+			probe.Start();
+			probe.SceneInstance.OnUpdateRuntime(Timestep(1.0f / 60.0f));
+			match = probe.Visibility().TargetLuminance;
+			probe.SceneInstance.OnRuntimeStop();
+		}
+		StealthLab lab;
+		lab.Wall(-9.5f, 0.0f, match);
+		lights(lab);
+		lab.Perception().SelfShading = selfShading;
+		lab.Start();
+		lab.SceneInstance.OnUpdateRuntime(Timestep(1.0f / 60.0f));
+		ShadingRun run;
+		run.Seen = lab.Visibility();
+		run.Time = lab.TimeToSuspicion(0.3f, 10.0f);
+		lab.SceneInstance.OnRuntimeStop();
+		return run;
+	}
+
+	TEST_CASE("Self-shading 1: lit from the side, he stands out against an equally bright wall (2.0 s without, 0.8 s with)")
+	{
+		// A lamp 2.5 m to his right (range 3.5 m): his right side lit, his left in shadow.
+		auto side = [](StealthLab& lab) { lab.PointLight({ 2.5f, 1.2f, -8.0f }, 20.0f, 3.5f); };
+		const ShadingRun before = RunMatchedWall(0.0f, side);
+		const ShadingRun now = RunMatchedWall(0.5f, side);
+		MESSAGE("without self-shading ", before.Time, " s, with ", now.Time, " s");
+		REQUIRE(now.Time > 0.0f);
+		CHECK((before.Time < 0.0f || now.Time < before.Time * 0.6f));
+		CHECK(now.Seen.SelfContrast > before.Seen.Contrast); // his own shading counts for more than his faint outline
+		CHECK(before.Seen.SelfContrast == 0.0f);
+	}
+
+	TEST_CASE("Self-shading 2: lit from the front, flat, he still blends in (not seen in 10 s, without and with)")
+	{
+		// The lamp between guard and thief, 2 m in front of him: no side in shadow.
+		auto front = [](StealthLab& lab) { lab.PointLight({ 0.0f, 1.2f, -6.0f }, 20.0f, 3.5f); };
+		const ShadingRun before = RunMatchedWall(0.0f, front);
+		const ShadingRun now = RunMatchedWall(0.5f, front);
+		auto side = [](StealthLab& lab) { lab.PointLight({ 2.5f, 1.2f, -8.0f }, 20.0f, 3.5f); };
+		const ShadingRun sideLit = RunMatchedWall(0.5f, side);
+		CHECK(before.Time < 0.0f);
+		CHECK(now.Time < 0.0f);
+		CHECK(now.Seen.SelfContrast < sideLit.Seen.SelfContrast * 0.25f);
+	}
+
+	TEST_CASE("Self-shading 3: in the dark nothing changes (not seen in 10 s, without and with)")
+	{
+		auto none = [](StealthLab&) {};
+		const ShadingRun before = RunMatchedWall(0.0f, none);
+		const ShadingRun now = RunMatchedWall(0.5f, none);
+		CHECK(before.Time < 0.0f);
+		CHECK(now.Time < 0.0f);
+		CHECK(now.Seen.SelfContrast == doctest::Approx(0.0f).epsilon(1e-4));
+		CHECK(now.Seen.Stimulus == doctest::Approx(before.Seen.Stimulus));
 	}
 
 	TEST_CASE("Walls block sight completely and muffle noises by four levels")

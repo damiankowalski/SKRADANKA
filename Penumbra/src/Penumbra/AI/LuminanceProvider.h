@@ -31,6 +31,11 @@ namespace Penumbra {
 		float Rounded(const glm::vec3& viewDirection) const;
 		// Average over all viewing directions: how much light the body is standing in.
 		float Average() const;
+		// Self-shading of the rounded body seen from viewDirection (unit, from the body towards the viewer): the
+		// light reaching its brighter and darker visible half (PerceptionModel::SphereShadingHalves per light; the
+		// lights' bright sides add as vectors across the view, so two lamps on opposite sides cancel out). The
+		// ambient light lifts both halves alike.
+		void Shading(const glm::vec3& viewDirection, float& bright, float& dark) const;
 	};
 
 	struct SurfaceSample

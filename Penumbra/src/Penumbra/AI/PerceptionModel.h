@@ -33,6 +33,26 @@ namespace Penumbra::PerceptionModel {
 	// 4.4: size factor S = min(1, angularSize / referenceSize).
 	float SizeFactor(float targetRadius, float distance, float referenceAngularSize);
 
+	// Self-shading (docs/Perception.md, "Self-shading"): a lit body is never flat. For a Lambert sphere lit by one
+	// light, seen from the eye, the visible disc splits into the half towards the light and the half away; these are
+	// the mean brightness of each half relative to the light's illuminance (radiance factor 1 / pi left out), as a
+	// function of the cosine between the direction to the light and the direction to the eye. Light from behind
+	// the eye: both halves 2/3 (flat); from the side: 4 / (3 pi) and 0; from behind the body: both 0.
+	struct ShadingHalves
+	{
+		float Lit = 0.0f;
+		float Shade = 0.0f;
+	};
+	ShadingHalves SphereShadingHalves(float cosLightToEye);
+
+	// The contrast between the body's bright and dark side: (bright - dark) / max(bright, floor).
+	float SelfShadingContrast(float bright, float dark, float floor = Epsilon);
+
+	// Internal shading has to be resolved to be seen: like SizeFactor with a reference angular size
+	// SelfShadingDetail times larger (it fades with distance faster than the outline).
+	constexpr float SelfShadingDetail = 3.0f;
+	float DetailFactor(float targetRadius, float distance, float referenceAngularSize);
+
 	// 4.4: atmospheric attenuation of contrast for a given optical depth (beta * distance,
 	// plus the integrated density of smoke volumes along the sight line).
 	float AtmosphereFactor(float opticalDepth);

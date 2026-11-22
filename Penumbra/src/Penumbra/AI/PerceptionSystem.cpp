@@ -386,6 +386,9 @@ namespace Penumbra {
 			glm::vec3 Point{ 0.0f };
 			glm::vec3 Direction{ 0.0f };
 			float Target = 0.0f;
+			float Bright = 0.0f; // the body's lit half and shadowed half, as seen from the eye (self-shading)
+			float Dark = 0.0f;
+			float Detail = 0.0f;
 			float Background = 0.0f;
 			float BackgroundDistance = 0.0f;
 			float Zone = 1.0f;
@@ -419,6 +422,11 @@ namespace Penumbra {
 			const size_t pointIndex = static_cast<size_t>(&localPoint - targetComponent.SilhouettePoints.data());
 			const float illuminance = lighting.Points[pointIndex].Rounded(-toPoint) + lighting.Bounce;
 			sample.Target = PerceptionModel::SurfaceLuminance(targetComponent.Reflectance, illuminance, targetComponent.Emissive);
+			float bright = 0.0f, dark = 0.0f;
+			lighting.Points[pointIndex].Shading(-toPoint, bright, dark);
+			sample.Bright = PerceptionModel::SurfaceLuminance(targetComponent.Reflectance, bright + lighting.Bounce, targetComponent.Emissive);
+			sample.Dark = PerceptionModel::SurfaceLuminance(targetComponent.Reflectance, dark + lighting.Bounce, targetComponent.Emissive);
+			sample.Detail = PerceptionModel::DetailFactor(targetComponent.Radius, distance, perception.ReferenceAngularSize);
 
 			// 3. Background luminance: continue the sight line through the target.
 			sample.Background = m_Provider->SkyLuminance();
@@ -454,7 +462,16 @@ namespace Penumbra {
 		const FogMedium fog = FogMedium::FromScene(m_Scene);
 		const bool fogGlow = m_FogGlow && !fog.IsEmpty();
 		float contrastSum = 0.0f, targetLumSum = 0.0f, backgroundLumSum = 0.0f, smokeSum = 0.0f, fogSum = 0.0f;
-		float transmittanceSum = 0.0f, glowFrontSum = 0.0f, glowBehindSum = 0.0f;
+		float transmittanceSum = 0.0f, glowFrontSum = 0.0f, glowBehindSum = 0.0f, selfSum = 0.0f;
+		// 5. Self-shading: a lit body shows a bright and a dark side (docs/Perception.md); each point counts the larger
+		//    of its contrast with the background and its own, weighted by SelfShading and how well it is resolved.
+		const float selfWeight = std::max(perception.SelfShading, 0.0f);
+		auto selfContrast = [&](const PointSample& sample, float t1, float s1) {
+			if (selfWeight <= 0.0f)
+				return 0.0f;
+			return selfWeight * sample.Detail *
+				   PerceptionModel::SelfShadingContrast(sample.Bright * t1 + s1, sample.Dark * t1 + s1, perception.LuminanceFloor);
+		};
 		FogPath front, behind;
 		if (fogGlow)
 		{
@@ -490,7 +507,9 @@ namespace Penumbra {
 				// Fog only dims the contrast (no fog, or the glow switched off: the model before it).
 				const float fogDepth = fog.IsEmpty() ? 0.0f : fog.OpticalDepth(eye, sample.Point);
 				fogSum += fogDepth;
-				contrastSum += PerceptionModel::WeberContrast(sample.Background, sample.Target, perception.LuminanceFloor) * sample.Zone;
+				const float own = selfContrast(sample, 1.0f, 0.0f);
+				selfSum += own;
+				contrastSum += std::max(PerceptionModel::WeberContrast(sample.Background, sample.Target, perception.LuminanceFloor), own) * sample.Zone;
 				targetLumSum += sample.Target;
 				backgroundLumSum += sample.Background;
 				transmittanceSum += std::exp(-fogDepth);
@@ -502,7 +521,9 @@ namespace Penumbra {
 			const float s2 = share(behind, t2);
 			const float apparentTarget = sample.Target * t1 + s1;
 			const float apparentBackground = (sample.Background * t2 + s2) * t1 + s1;
-			contrastSum += PerceptionModel::WeberContrast(apparentBackground, apparentTarget, perception.LuminanceFloor) * sample.Zone;
+			const float own = selfContrast(sample, t1, s1);
+			selfSum += own;
+			contrastSum += std::max(PerceptionModel::WeberContrast(apparentBackground, apparentTarget, perception.LuminanceFloor), own) * sample.Zone;
 			targetLumSum += apparentTarget;
 			backgroundLumSum += apparentBackground;
 			transmittanceSum += t1;
@@ -516,6 +537,7 @@ namespace Penumbra {
 		result.FogTransmittance = transmittanceSum / visible;
 		result.FogGlowFront = glowFrontSum / visible;
 		result.FogGlowBehind = glowBehindSum / visible;
+		result.SelfContrast = selfSum / visible;
 		result.ContrastThreshold = PerceptionModel::ContrastThreshold(perception.RuntimeAdaptation,
 			std::max(result.TargetLuminance, result.BackgroundLuminance), perception.ContrastMin, perception.DarkSensitivity,
 			perception.GlareSensitivity);
