@@ -233,7 +233,7 @@ both and the contrast falls); dark fog changes little; without fog `T = 1` and `
   the GPU along 30 sight lines through lit, shadowed and misty fog: within 20% (or 0.002) and transmittance within
   0.03; measured 2-5% where lit, 16% on dim lines in a wall's shadow (the GPU's one-tap shadow map).
 * **Simplified**: no froxels, jitter or temporal smoothing (the CPU is continuous); shadows by ray, not by shadow
-  map, and every lamp with `CastShadows` gets one (the renderer gives shadow maps only to the closest few); the
+  map, and every lamp with `CastShadows` gets one (the renderer gives maps to the nearest lamps reaching the view); the
   glow does not change the eye's adaptation (the probes sample surfaces); past the renderer's 64 m grid the CPU
   still lights the fog (lamps do not reach that far).
 * **Without fog** (no environment fog, no fog volumes) the old path runs unchanged, at no extra cost.

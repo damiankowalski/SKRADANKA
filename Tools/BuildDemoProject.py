@@ -429,7 +429,7 @@ def build_stealth_level():
     box(doc, "HallRoof", (10, 6.2, -12), (12, 0.4, 8.6), dark_stone)
     for i, x in enumerate((7, 10, 13)):
         lamp = doc.add(f"HallLight{i}", Transform=transform((x, 4.5, -12)),
-                       PointLight={"Color": [1.0, 0.85, 0.65], "Intensity": 60.0, "Range": 12.0, "CastShadows": i == 1})
+                       PointLight={"Color": [1.0, 0.85, 0.65], "Intensity": 60.0, "Range": 12.0, "CastShadows": True})
         doc.add("Lantern", lamp, Transform=transform((0, 0.3, 0), scale=(0.3, 0.4, 0.3)),
                 Mesh={"Mesh": "builtin:cube", "CastShadows": False},
                 Material=material((1.0, 0.9, 0.7), emissive=6.0, emissive_color=(1.0, 0.85, 0.6)))
@@ -446,9 +446,10 @@ def build_stealth_level():
         box(doc, f"Crate{i}", (x, 0.5, z), (1, 1, 1), wood, roughness=0.9)
     box(doc, "Cart", (-2, 0.6, -6), (3, 1.2, 1.6), wood)
 
-    # Torches along the walls (two cast shadows).
-    for i, (x, z, shadows) in enumerate(((-18.8, 6, True), (-6, -18.8, False), (18.8, 10, True), (0, 18.8, False), (8, -7.2, False))):
-        torch_prefab_entities(doc, (x, 0, z), shadows=shadows)
+    # Torches along the walls. Every lamp that can reach past a wall casts shadows, or it would light the rooms
+    # behind it (the renderer gives the shadow maps to the lamps reaching the view; the guards always see walls).
+    for x, z in ((-18.8, 6), (-6, -18.8), (18.8, 10), (0, 18.8), (8, -7.2)):
+        torch_prefab_entities(doc, (x, 0, z), shadows=True)
 
     # Powder kegs stacked by the gate guardhouse.
     for i, (x, z) in enumerate(((15, 15), (16, 15.6), (15.4, 16.6))):

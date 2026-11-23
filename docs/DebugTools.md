@@ -29,7 +29,8 @@ Top left, refreshed twice a second over the frames since the last refresh:
   few frames later; "no timer" until the first arrives) and video memory: used of budget on D3D12 (DXGI) and on
   Vulkan with `VK_EXT_memory_budget` (MoltenVK has it); otherwise only the size of the GPU's memory.
 * **RAM**: the process's resident memory (working set), its peak, and the machine's installed memory.
-* Draw calls, triangles, lights, shadow views and culled objects of the last frame; entity and body counts.
+* Draw calls, triangles, lights, shadow views and culled objects of the last frame; entity and body counts; "left out" when lamps in view with
+  `CastShadows` found no free shadow map and were left out of the picture (more than 8 point or 8 spot lamps reach it).
 
 ## Debug panel (F4)
 

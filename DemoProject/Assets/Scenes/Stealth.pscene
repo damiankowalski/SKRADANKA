@@ -766,7 +766,7 @@
           ],
           "Intensity": 60.0,
           "Range": 12.0,
-          "CastShadows": false
+          "CastShadows": true
         }
       }
     },
@@ -930,7 +930,7 @@
           ],
           "Intensity": 60.0,
           "Range": 12.0,
-          "CastShadows": false
+          "CastShadows": true
         }
       }
     },
@@ -2105,7 +2105,7 @@
           "Intensity": 11.0,
           "Range": 10.0,
           "Flicker": 0.18,
-          "CastShadows": false
+          "CastShadows": true
         },
         "StimSource": {
           "Stim": "Fire",
@@ -2531,7 +2531,7 @@
           "Intensity": 11.0,
           "Range": 10.0,
           "Flicker": 0.18,
-          "CastShadows": false
+          "CastShadows": true
         },
         "StimSource": {
           "Stim": "Fire",
@@ -2744,7 +2744,7 @@
           "Intensity": 11.0,
           "Range": 10.0,
           "Flicker": 0.18,
-          "CastShadows": false
+          "CastShadows": true
         },
         "StimSource": {
           "Stim": "Fire",

@@ -237,6 +237,14 @@ in perception alike: a flash lights the yard and what it reaches through doorway
 storms, and holds a flash up to 5 s (`WorldEvents.flash_hold`). The flash's white air outdoors is the volumetric
 fog it lights (intensity 3 against the moon's 0.08), not light through walls.
 
+**Lamps never light through walls** (M, approved 2026-11-23 after playing the lightning build: the room by the
+Stealth spawn glowed from a torch behind its wall). Guards always saw walls block lamps (a ray per light) but the
+renderer drew a lamp without a shadow map straight through walls: lamps with `CastShadows` off, and every lamp past
+the 4 closest to the camera. Now the shadow maps (8 point, up from 4, and 8 spot) go to the lamps whose range
+reaches the view, nearest first (`Renderer/ShadowSlots.h`); a lamp in view with no map left is left out of the
+picture instead of shining through walls (F3 counts them). Every torch and hall lamp in Stealth casts shadows. A
+GPU test puts a torch behind a room's wall with more nearer lamps than maps (the old code lit the floor to 0.76).
+
 ## In progress
 
 Nothing.

@@ -51,4 +51,5 @@ Tune live in the runtime: F4 panel, "Fog and volumetric light" (`DebugTools.md`)
 
 * Smoke volumes (`SmokeVolume`) are drawn their own way, unlit by lamps.
 * Flames and the HUD are drawn over the fog, unfogged.
-* Only lamps with a shadow map (`CastShadows`; the closest few get a slot) cut shafts.
+* Only lamps with a shadow map cut shafts (`CastShadows`; lamps without it are meant for small lights that cannot
+  reach past a wall). A lamp with `CastShadows` that finds no free map is left out of the picture, fog included.
