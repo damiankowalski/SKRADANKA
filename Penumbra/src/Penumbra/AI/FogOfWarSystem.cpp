@@ -29,6 +29,7 @@ namespace Penumbra {
 		view.EdgeSoftness = std::max(component.EdgeSoftness, 0.0f);
 		view.ViewDistance = std::max(component.ViewDistance, 0.0f);
 		view.AwarenessRadius = std::max(component.AwarenessRadius, 0.0f);
+		view.SeeOverHeight = std::max(component.SeeOverHeight, 0.0f);
 		view.Brightness = std::clamp(component.Brightness, 0.0f, 1.0f);
 		view.Saturation = std::clamp(component.Saturation, 0.0f, 1.0f);
 		return view;
@@ -38,10 +39,12 @@ namespace Penumbra {
 	float FogOfWarView::Coverage(const glm::vec3& point) const
 	{
 		const glm::vec3 offset = point - Eye;
-		const glm::vec2 flat(offset.x, offset.z);
+		const float eyeDistance = glm::length(glm::vec2(offset.x, offset.z));
+		const glm::vec3 fromCone = point - ConeOrigin.value_or(Eye);
+		const glm::vec2 flat(fromCone.x, fromCone.z);
 		const float flatDistance = glm::length(flat);
 
-		const float circle = 1.0f - SmoothStep(AwarenessRadius * 0.7f, AwarenessRadius, flatDistance);
+		const float circle = 1.0f - SmoothStep(AwarenessRadius * 0.7f, AwarenessRadius, eyeDistance);
 		float cone = 1.0f;
 		if (flatDistance > 1e-4f)
 		{
@@ -58,7 +61,7 @@ namespace Penumbra {
 	{
 	}
 
-	std::optional<FogOfWarView> FogOfWarSystem::ComputeView()
+	std::optional<FogOfWarView> FogOfWarSystem::ComputeView(float dt)
 	{
 		if (m_ForcedOff)
 			return std::nullopt;
@@ -71,16 +74,33 @@ namespace Penumbra {
 			FogOfWarView view = FogOfWarView::FromComponent(fog);
 			view.Viewer = viewer.GetUUID();
 
-			// A crouching character's eye sinks with his capsule.
+			// A crouching character's eye sinks with his capsule, easing like the player's camera (the capsule changes in a
+			// frame, the crouch takes a moment: the view darkens behind a crate as he gets down, not before).
 			float eyeHeight = fog.EyeHeight;
 			if (const auto* controller = viewer.TryGetComponent<CharacterControllerComponent>())
 				eyeHeight = std::min(eyeHeight, std::max(controller->Height - 0.15f, 0.2f));
+			if (fog.RuntimeEyeHeight >= 0.0f && fog.EyeSpeed > 0.0f)
+				eyeHeight = fog.RuntimeEyeHeight + (eyeHeight - fog.RuntimeEyeHeight) * std::min(std::max(dt, 0.0f) * fog.EyeSpeed, 1.0f);
+			fog.RuntimeEyeHeight = eyeHeight;
 			view.Eye = m_Scene.GetWorldPosition(viewer) + glm::vec3(0.0f, eyeHeight, 0.0f);
 
 			// He faces where the camera looks (the player aims the camera); without one, where his body faces.
 			glm::vec3 forward(0.0f);
 			if (Entity camera = m_Scene.GetPrimaryCameraEntity())
+			{
 				forward = Math::Forward(m_Scene.GetWorldRotation(camera));
+				// The whole frame is looked at: the cone starts at the camera and is as wide as the picture, its fading
+				// edge just outside it.
+				if (fog.ConeFromCamera && camera.HasComponent<CameraComponent>())
+				{
+					const float aspect = static_cast<float>(std::max(m_Scene.GetViewportWidth(), 1u)) /
+										 static_cast<float>(std::max(m_Scene.GetViewportHeight(), 1u));
+					const float vertical = glm::radians(std::clamp(camera.GetComponent<CameraComponent>().VerticalFOV, 1.0f, 179.0f));
+					const float frameHalf = glm::degrees(std::atan(std::tan(vertical * 0.5f) * aspect));
+					view.HalfAngle = std::min(frameHalf + view.EdgeSoftness * 0.5f, 180.0f);
+					view.ConeOrigin = m_Scene.GetWorldPosition(camera);
+				}
+			}
 			forward.y = 0.0f;
 			if (glm::length(forward) < 1e-3f)
 			{
@@ -140,7 +160,13 @@ namespace Penumbra {
 	{
 		if (!m_View)
 			return true;
-		return m_View->Coverage(point) > 0.5f && IsLineClear(m_View->Eye, point, UUID::Invalid);
+		if (m_View->Coverage(point) <= 0.5f)
+			return false;
+		if (IsLineClear(m_View->Eye, point, UUID::Invalid))
+			return true;
+		// Like the renderer: the space above the point, up to the eye, seen over something low counts too.
+		const float lifted = std::min(point.y + m_View->SeeOverHeight, m_View->Eye.y);
+		return lifted > point.y + 0.05f && IsLineClear(m_View->Eye, glm::vec3(point.x, lifted, point.z), UUID::Invalid);
 	}
 
 	bool FogOfWarSystem::CanSeeEntity(Entity entity)
@@ -176,9 +202,9 @@ namespace Penumbra {
 		return false;
 	}
 
-	void FogOfWarSystem::Update(Timestep)
+	void FogOfWarSystem::Update(Timestep ts)
 	{
-		m_View = ComputeView();
+		m_View = ComputeView(ts.GetSeconds());
 		m_Hidden.clear();
 		if (!m_View)
 			return;

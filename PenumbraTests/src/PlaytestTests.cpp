@@ -29,10 +29,12 @@ namespace {
 			{ 0, "W", true },
 			{ 60, nullptr, false, -2.0f, 0.0f },
 			{ 120, "C", true },
+			{ 125, "C", false },
 			{ 200, "W", false },
 			{ 260, "E", true },
 			{ 320, "E", false },
-			{ 320, "C", false },
+			{ 320, "C", true },
+			{ 325, "C", false },
 			{ 360, "W", true },
 			{ 360, "LeftShift", true },
 			{ 420, "Space", true },
@@ -263,6 +265,54 @@ TEST_SUITE("Playtest")
 		CHECK(first == second);
 		CHECK(first.find("step") != std::string::npos); // he made footsteps
 		CHECK(first.find("ctrue") != std::string::npos); // and crouched
+	}
+
+	TEST_CASE("Player: C toggles crouching (setting off at a run stands him up); held when crouch_toggle is off")
+	{
+		TraceLevel level("Scenes/Cloister.pscene", 7);
+		auto frames = [&](int count) {
+			for (int i = 0; i < count; i++)
+			{
+				level.SceneInstance.OnUpdateRuntime(Timestep(1.0f / 60.0f));
+				Input::EndFrame();
+			}
+		};
+		auto crouched = [&]() { return level.Lua("return scene.find('Player'):script().crouched") == "true"; };
+		frames(10);
+		Input::SetKeyState(Key::C, true);
+		frames(3);
+		Input::SetKeyState(Key::C, false);
+		frames(30);
+		CHECK(crouched()); // stays down with the key up
+		Input::SetKeyState(Key::C, true);
+		frames(3);
+		Input::SetKeyState(Key::C, false);
+		frames(30);
+		CHECK_FALSE(crouched());
+
+		// Down again, then a run stands him up.
+		Input::SetKeyState(Key::C, true);
+		frames(3);
+		Input::SetKeyState(Key::C, false);
+		frames(30);
+		CHECK(crouched());
+		Input::SetKeyState(Key::LeftShift, true);
+		Input::SetKeyState(Key::W, true);
+		frames(30);
+		Input::SetKeyState(Key::LeftShift, false);
+		Input::SetKeyState(Key::W, false);
+		frames(10);
+		CHECK_FALSE(crouched());
+
+		// Held, as before.
+		level.Lua("scene.find('Player'):script().crouch_toggle = false");
+		Input::SetKeyState(Key::C, true);
+		frames(30);
+		CHECK(crouched());
+		Input::SetKeyState(Key::C, false);
+		frames(30);
+		CHECK_FALSE(crouched());
+		CHECK(level.SceneInstance.GetScriptEngine()->GetErrors().empty());
 	}
 
 	TEST_CASE("Playtest: the bot's controls drive the thief exactly as the keyboard does")

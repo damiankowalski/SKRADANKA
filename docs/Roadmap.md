@@ -218,6 +218,15 @@ Lua `playtest.record` are the only engine additions. Routes for PerceptionLab (t
 always detected, dark behind him never) and Stealth (baseline, the cellar, the hall dark and lit). 80 Stealth runs in
 25 s on an M1 Pro. See docs/Playtest.md and the `penumbra-playtest` skill.
 
+**Controls and the player's view** (S-M, approved 2026-11-23 after the owner's playtest of the playtester PR): a
+small crosshair always at the screen centre (warm when F would do something); C toggles crouching (again to stand,
+setting off at a run stands him up; `crouch_toggle` brings the held key back). The fog of war takes the camera's
+frame as the view (`FogOfWar.ConeFromCamera`: no dark edges at the screen's sides; walls and corners still hide),
+its eye follows a crouch at the camera's pace instead of in one frame (`EyeSpeed`), and the floor beyond something
+lower than his eyes counts as seen (`SeeOverHeight`, up to the eye; crouched behind a crate it still is not). The
+playtester's Stealth series is byte-identical before and after: guards and the thief behave as before. See
+docs/FogOfWar.md.
+
 ## In progress
 
 Nothing.
@@ -232,13 +241,25 @@ following a body the character collides with.
 
 ## Next
 
+**Lightning that lights only what it reaches** (S, approved 2026-11-23): the renderer gives only one directional
+light a shadow map and the moon takes it, so a lightning flash lights interiors and the far side of walls in the
+picture, while guards (perception) see it only where it falls. The flash gets the shadow map while it lasts, so it
+comes in through windows, doorways and openings for the player as for the guards; a trigger in the F4 panel and a
+longer flash for testing; measured with the playtester.
+
+**Developer tools' UI** (M-L, approved 2026-11-23; a survey with engine screenshots and a brief first): the runtime's
+debug panel and the editor take a lot of space. Sharp, scaled fonts on Retina, context menus (right click on an
+entity or field), panels that collapse, dock and remember their layout, in the spirit of other engines.
+
 **Agent playtester, package B: maps from above** (S-M, the next step of this item; needs its brief): the runs drawn
 on a top-down picture of the level (routes, where guards noticed the thief, their view and lamps), and engine
 screenshots of the key moments. Package A (the bot, series and report) is done.
 
-### Priority order (approved 2026-11-22)
+### Priority order (approved 2026-11-22, updated 2026-11-23)
 
-Each package still needs the owner's approval and its own brief before it starts.
+Each package still needs the owner's approval and its own brief before it starts. The owner's playtest of the
+playtester added three packages in front (2026-11-23): controls and the player's view (done), then the lightning,
+then the developer tools' UI (above).
 
 1. **Agent playtester** (package A done; package B above).
 2. **Suspicion tempo near the threshold** (S): from the PhysicsLab playtest, a guard who barely makes the thief out

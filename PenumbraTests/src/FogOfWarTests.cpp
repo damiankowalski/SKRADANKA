@@ -166,6 +166,73 @@ TEST_SUITE("FogOfWar")
 		CHECK(level.Fog().CanSeeEntity(body));
 	}
 
+	TEST_CASE("The cone is the camera's frame: beside him on screen is seen, behind the camera is not")
+	{
+		FogLevel level;
+		// Right beside the thief (83 degrees off his facing from the eye), well inside the picture.
+		Entity beside = level.AddGuard("Beside", { 2.5f, 0.0f, -0.3f });
+		Entity behindCamera = level.AddGuard("BehindCamera", { 0.0f, 0.0f, 6.0f });
+		level.Start();
+		REQUIRE(level.Fog().GetView());
+		const FogOfWarView& view = *level.Fog().GetView();
+		REQUIRE(view.ConeOrigin);
+		CHECK(Test::Near(*view.ConeOrigin, { 0.0f, 3.0f, 4.0f }, 1e-3f));
+		// 60 degrees vertical at 1280 x 720: 45.8 degrees either side, the fading edge (15) just outside it.
+		CHECK(view.HalfAngle == doctest::Approx(45.75f + 7.5f).epsilon(0.01));
+		CHECK_FALSE(level.Fog().IsHidden(beside));
+		CHECK(level.Fog().IsHidden(behindCamera));
+
+		// The old cone around the eye, ViewAngle wide, leaves him out.
+		level.Component().ConeFromCamera = false;
+		Test::Simulate(level.SceneInstance, 0.5f); // past MemoryTime
+		CHECK_FALSE(level.Fog().GetView()->ConeOrigin);
+		CHECK(level.Fog().IsHidden(beside));
+	}
+
+	TEST_CASE("The eye follows a crouch at the camera's pace, not in one frame")
+	{
+		FogLevel level;
+		level.Start();
+		const float floor = level.SceneInstance.GetWorldPosition(level.Thief).y;
+		CHECK(level.Component().RuntimeEye.y - floor == doctest::Approx(1.65f).epsilon(0.01));
+
+		level.Thief.GetComponent<CharacterControllerComponent>().Height = 1.1f; // crouch: the capsule changes at once
+		level.Frame();
+		const float first = level.Component().RuntimeEye.y - level.SceneInstance.GetWorldPosition(level.Thief).y;
+		CHECK(first < 1.6f);
+		CHECK(first > 1.2f); // a fifth of the way after one frame (12 per second)
+		Test::Simulate(level.SceneInstance, 0.5f);
+		CHECK(level.Component().RuntimeEye.y - level.SceneInstance.GetWorldPosition(level.Thief).y == doctest::Approx(0.95f).epsilon(0.02));
+
+		level.Component().EyeSpeed = 0.0f; // 0: at once
+		level.Thief.GetComponent<CharacterControllerComponent>().Height = 1.8f;
+		Test::Simulate(level.SceneInstance, 0.1f);
+		CHECK(level.Component().RuntimeEye.y - level.SceneInstance.GetWorldPosition(level.Thief).y == doctest::Approx(1.65f).epsilon(0.02));
+	}
+
+	TEST_CASE("The floor behind a crate lower than his eyes is seen; crouched behind it, or behind a tall one, it is not")
+	{
+		FogLevel level;
+		// A 1 m crate between his eye and a spot on the floor 5.8 m away (on screen, right of the wall).
+		Test::CreateBox(level.SceneInstance, "Crate", { 2.5f, 0.5f, -1.5f }, { 0.4f, 0.5f, 0.4f });
+		Test::CreateBox(level.SceneInstance, "Tall", { -2.5f, 1.5f, -1.5f }, { 0.4f, 1.5f, 0.4f });
+		level.Start();
+		const glm::vec3 behindCrate(5.0f, 0.02f, -3.0f);
+		const glm::vec3 behindTall(-5.0f, 0.02f, -3.0f);
+		CHECK(level.Fog().CanSee(behindCrate));
+		CHECK_FALSE(level.Fog().CanSee(behindTall));
+
+		level.Component().SeeOverHeight = 0.0f; // only the floor itself: the crate hides it
+		level.Frame();
+		CHECK_FALSE(level.Fog().CanSee(behindCrate));
+
+		level.Component().SeeOverHeight = 1.0f;
+		level.Component().EyeSpeed = 0.0f;
+		level.Thief.GetComponent<CharacterControllerComponent>().Height = 1.0f; // crouched: the eye at 0.85, below the crate
+		Test::Simulate(level.SceneInstance, 0.1f);
+		CHECK_FALSE(level.Fog().CanSee(behindCrate));
+	}
+
 	TEST_CASE("Leaning moves the eye sideways from where he looks: he sees round the wall's edge")
 	{
 		FogLevel level;

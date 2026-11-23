@@ -1,7 +1,7 @@
 -- Third-person thief: movement, over-the-shoulder camera, footstep noise, arrows and HUD.
 --
 -- Controls (CONTROLS below; F1 shows them in the game):
---           WASD move, Shift run, C crouch, Space jump, mouse look,
+--           WASD move, Shift run, C crouch (press to crouch, again to stand: crouch_toggle), Space jump, mouse look,
 --           1 = water bolt, 2 = fire bolt, 3 = gas bolt, 4 = moss bolt,
 --           right mouse (held) = aim the crossbow: a dot marks the aim, left mouse shoots,
 --           Q / E (held) = lean left / right round a corner, standing or crouching still (a movement key ends it),
@@ -36,6 +36,8 @@ local Player = {
         noise_probe = true,
         north_yaw = 0.0,   -- the compass: yaw (degrees) of the direction this level calls north
         help_seconds = 15, -- how long the controls stay up when the level starts (F1 toggles them)
+        crouch_toggle = true, -- C crouches and C again stands up (running stands up too); false: crouch while C is held
+        crosshair = true,     -- a small dot at the screen centre, where F (use) and the crossbow aim
     }
 }
 
@@ -48,7 +50,7 @@ local ARROWS = {
 
 -- The controls panel (F1).
 local CONTROLS = {
-    { "W A S D", "move" }, { "Shift", "run" }, { "C", "crouch" }, { "Space", "jump" },
+    { "W A S D", "move" }, { "Shift", "run" }, { "C", "crouch / stand up" }, { "Space", "jump" },
     { "Right mouse", "aim the crossbow" }, { "Left mouse", "shoot (while aiming)" }, { "1 - 4", "water / fire / gas / moss bolt" },
     { "Q / E", "lean left / right (standing still)" },
     { "F", "use, take, open, pick up a body" }, { "V", "blackjack (from behind)" }, { "Tab", "objectives" },
@@ -80,6 +82,7 @@ function Player:on_create()
     self.step_timer = 0
     self.cooldown = 0
     self.crouched = false
+    self.want_crouch = false -- what the player asked for (the capsule follows when there is room)
     self.gem = LightGem.new()
     self.visual_height = self.stand_height
     self.shoot_timer = 0
@@ -196,7 +199,14 @@ function Player:update_movement(dt)
         if self.controls.key("A") then move = move - right end
     end
 
-    self:update_stance(dt, self.controls.key("C"))
+    -- Crouching: a toggle by default (C down, C again up; setting off at a run stands him up), or held.
+    if self.crouch_toggle then
+        if self.controls.key_pressed("C") then self.want_crouch = not self.want_crouch end
+        if self.controls.key("LeftShift") and move:length() > 0.01 and not self.carrying then self.want_crouch = false end
+    else
+        self.want_crouch = self.controls.key("C")
+    end
+    self:update_stance(dt, self.want_crouch)
     self:update_lean(dt, move:length() > 0.01)
     self:update_silhouette()
     local running = self.controls.key("LeftShift") and not self.crouched and not self.carrying
@@ -355,11 +365,16 @@ function Player:draw_hud(dt)
 
     local arrow = ARROWS[self.arrow]
     ui.text(20, h - 44, arrow.name .. " bolt  [1-4]", 2.4, arrow.color)
-    if self.aiming then -- the dot: the bolt flies from the camera's line through the screen centre
-        ui.rect(w / 2 - 3, h / 2 - 3, 6, 6, { 0, 0, 0, 0.6 })
-        ui.rect(w / 2 - 2, h / 2 - 2, 4, 4, { 1, 1, 1, 0.9 })
-    end
     local prompt = not self.busy and self:interaction_prompt() or nil
+    if self.aiming then -- the dot: the bolt flies from the camera's line through the screen centre
+        ui.rect(w / 2 - 4, h / 2 - 4, 8, 8, { 0, 0, 0, 0.6 })
+        ui.rect(w / 2 - 3, h / 2 - 3, 6, 6, { 1, 1, 1, 0.9 })
+    elseif self.crosshair and not self.busy then
+        -- Always there, small and faint; brighter and warm when F would do something.
+        local color = prompt and { 1.0, 0.85, 0.4, 0.95 } or { 1, 1, 1, 0.55 }
+        ui.rect(w / 2 - 3, h / 2 - 3, 6, 6, { 0, 0, 0, 0.4 })
+        ui.rect(w / 2 - 2, h / 2 - 2, 4, 4, color)
+    end
     if prompt then ui.text(w / 2 - #prompt * 7.2, h / 2 + 40, prompt, 2.4, { 1, 1, 1, 0.85 }) end
     if self.crouched then ui.text(w / 2 + 70, h - 58, "crouching", 2, { 0.7, 0.7, 0.7, 1 }) end
     if self.leaning then ui.text(w / 2 + 70, h - 34, self.lean < 0 and "leaning left" or "leaning right", 2, { 0.7, 0.7, 0.7, 1 }) end

@@ -309,9 +309,12 @@ local function run(self)
     local ahead = vec3(look.x, 0, look.z):normalized()
     test.near(fog.coverage(here + vec3(0, 0, 0.5)), 1, 1e-3, "fog.coverage: the circle around him")
     test.near(fog.coverage(here + ahead * 5), 1, 1e-3, "fog.coverage: ahead, where the camera looks")
-    test.near(fog.coverage(here - ahead * 5), 0, 1e-3, "fog.coverage: behind his back")
+    -- The view is the camera's frame (FogOfWar.ConeFromCamera): behind the camera is out of it.
+    local camera_at = scene.find("Camera"):get_position()
+    local behind = vec3(camera_at.x, here.y, camera_at.z) - ahead * 5
+    test.near(fog.coverage(behind), 0, 1e-3, "fog.coverage: behind the camera")
     test.check(fog.can_see(player), "fog.can_see: himself")
-    test.check(not fog.can_see(here - ahead * 5 + vec3(0, 1, 0)), "fog.can_see: not behind his back")
+    test.check(not fog.can_see(behind + vec3(0, 1, 0)), "fog.can_see: not behind the camera")
     test.equal(fog.hidden(guard), not fog.can_see(guard), "fog.hidden: out of sight is out of the picture")
     local upright = player:get("FogOfWar").Eye
     player:set("FogOfWar", { Lean = 0.5 }) -- leaning (Q/E): the eye moves right of where the camera looks

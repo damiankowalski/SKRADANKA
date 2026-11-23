@@ -4,14 +4,17 @@
 // Fog of war: what the player's eye covers. Mirrors FogOfWarView::Coverage in
 // Penumbra/src/Penumbra/AI/FogOfWarSystem.cpp: change both or neither (the CPU decides which
 // characters are drawn, the GPU which pixels are darkened; they must agree).
-//   eye, forward (horizontal, normalised xz), halfAngle and edgeSoftness in degrees.
-float FogCoverage(float3 eye, float2 forward, float halfAngle, float edgeSoftness, float viewDistance, float awarenessRadius, float3 p)
+//   eye, coneOrigin (the camera, or the eye), forward (horizontal, normalised xz), halfAngle and edgeSoftness in
+//   degrees.
+float FogCoverage(float3 eye, float3 coneOrigin, float2 forward, float halfAngle, float edgeSoftness, float viewDistance, float awarenessRadius,
+	float3 p)
 {
 	float3 offset = p - eye;
-	float2 flat = offset.xz;
+	float eyeDistance = length(offset.xz);
+	float2 flat = (p - coneOrigin).xz;
 	float flatDistance = length(flat);
 
-	float circle = 1.0 - smoothstep(awarenessRadius * 0.7, max(awarenessRadius, 1e-4), flatDistance);
+	float circle = 1.0 - smoothstep(awarenessRadius * 0.7, max(awarenessRadius, 1e-4), eyeDistance);
 	float cone = 1.0;
 	if (flatDistance > 1e-4)
 	{

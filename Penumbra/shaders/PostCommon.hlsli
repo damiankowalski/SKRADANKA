@@ -10,6 +10,7 @@ struct PostConstants
 	float4 Params0;
 	float4 Params1;
 	float4 Params2;
+	float4 Params3;
 };
 
 ConstantBuffer<ViewConstants> g_View : register(b0);

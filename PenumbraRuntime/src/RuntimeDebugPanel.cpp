@@ -530,10 +530,17 @@ namespace Penumbra {
 		ImGui::Checkbox("Enabled on the thief", &component.Enabled);
 		ImGui::SameLine();
 		ImGui::Checkbox("Hide guards out of sight", &component.HideActors);
+		ImGui::Checkbox("The cone is the camera's frame", &component.ConeFromCamera);
+		if (component.ConeFromCamera)
+			ImGui::BeginDisabled();
 		ImGui::SliderFloat("View cone", &component.ViewAngle, 30.0f, 360.0f, "%.0f deg");
+		if (component.ConeFromCamera)
+			ImGui::EndDisabled();
 		ImGui::SliderFloat("Cone edge", &component.EdgeSoftness, 0.0f, 60.0f, "%.0f deg");
 		ImGui::SliderFloat("Awareness circle", &component.AwarenessRadius, 0.0f, 6.0f, "%.1f m");
 		ImGui::SliderFloat("View distance", &component.ViewDistance, 5.0f, 100.0f, "%.0f m");
+		ImGui::SliderFloat("See over low things", &component.SeeOverHeight, 0.0f, 2.0f, "%.2f m");
+		ImGui::SliderFloat("Eye follows crouch", &component.EyeSpeed, 0.0f, 30.0f, "%.0f /s");
 		ImGui::SliderFloat("Unseen brightness", &component.Brightness, 0.0f, 1.0f, "%.2f");
 		ImGui::SliderFloat("Unseen colour", &component.Saturation, 0.0f, 1.0f, "%.2f");
 		if (fog && fog->GetView())

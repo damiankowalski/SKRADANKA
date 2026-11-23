@@ -9,16 +9,25 @@ out there. Darkwood is the reference (a top-down 2D game). Penumbra's fog keeps 
 
 `FogOfWarComponent` on the player (`Components.md`; the demo levels' thief has the defaults):
 
-* a **view cone** in the ground plane, `ViewAngle` wide (120 degrees), centred on where the primary camera
-  looks. The player aims the camera, so turning the camera turns the cone. Its edge fades over `EdgeSoftness`
-  degrees. Only the horizontal angle counts: what is above or below him in the cone is seen.
+* the **camera's frame** (`ConeFromCamera`, on by default): everything the picture shows counts as looked at.
+  The cone starts at the primary camera and is as wide as the picture (from its vertical field of view and the
+  screen's aspect), its edge fading out over `EdgeSoftness` degrees just outside it, so the screen has no dark
+  edges; what is behind the camera is not seen. Turning the camera turns the view, as turning the head would. Only
+  the horizontal angle counts: what is above or below him in the frame is seen. With `ConeFromCamera` off: a cone
+  `ViewAngle` wide (120 degrees) around the eye, centred on where the camera looks.
 * a **circle of awareness**, `AwarenessRadius` (1.8 m) around him in every direction: you sense what is right
   behind your back.
 * out to `ViewDistance` (40 m);
-* **never through walls**. The eye is `EyeHeight` (1.65 m) above the character's origin and lower when his
-  CharacterController crouches. Floors, walls, closed doors and furniture block it. Characters, bodies,
-  loose (dynamic) objects, triggers and bodies marked `TransparentToSight` (grates, glass) do not, and
-  neither does the thief himself.
+* **never through walls**, which is what the fog is for: what a wall, a corner or a closed door hides from his eyes
+  stays dark however it is framed. The eye is `EyeHeight` (1.65 m) above the character's origin and lower when his
+  CharacterController crouches, following the crouch at `EyeSpeed` (12 per second, the pace of the player's
+  camera) rather than in the frame the capsule changes: the view behind a crate darkens as he gets down. Floors,
+  walls, closed doors and furniture block it. Characters, bodies, loose (dynamic) objects, triggers and bodies
+  marked `TransparentToSight` (grates, glass) do not, and neither does the thief himself.
+* **over low things**: a surface counts as seen when the space above it is, up to `SeeOverHeight` (1 m) and never
+  above the eye. Standing behind a crate lower than his eyes he sees the floor beyond it (he would see anyone
+  standing there); crouched below its top, or behind a wall taller than his eyes, he does not. Characters are
+  tested at their own points, never lifted: a guard crouching behind the crate stays hidden.
 
 Everything else is drawn **darkened** (`Brightness`, 0.22 of its light) and **drained of colour**
 (`Saturation`, 0.1). The level stays readable as a memory of the place. **Characters** there (NPCs, bodies:
@@ -40,7 +49,8 @@ silhouette points guards see by the same amount: his head and shoulders are out,
 
 * **CPU (`AI/FogOfWarSystem`)**, after animation each frame (`Scene::RunRuntimeFrame`):
   - finds the viewer, the first entity with an enabled FogOfWar;
-  - places the eye and the facing (the camera's forward, flattened; without a camera, the body's);
+  - places the eye (eased towards the crouching capsule) and the facing (the camera's forward, flattened; without
+    a camera, the body's), and the cone's apex and width (the camera's frame, `ConeFromCamera`);
   - for every character, tests its silhouette points (or three points up its height) against the cone and
     circle (`FogOfWarView::Coverage`) and casts a physics ray from the eye;
   - characters with no point in sight go into the hidden set the renderer skips.
@@ -48,7 +58,8 @@ silhouette points guards see by the same amount: his head and shoulders are out,
   - an **eye depth cube** (`EyeMapResolution`, 1024 per face) is rendered from the eye like a point light's
     shadow map, from sight blockers only (the same kinds of things as above);
   - a full-screen pass (`shaders/FogOfWar.hlsl`) rebuilds every pixel's world position, takes its coverage and
-    compares its distance from the eye with the cube (5 taps), then blurs the result with the depth-aware SSAO
+    compares its distance from the eye with the cube (5 taps; where that fails, the point `SeeOverHeight` above it,
+    up to the eye, the same as `FogOfWarSystem::CanSee`), then blurs the result with the depth-aware SSAO
     blur so the edge of sight is a soft gradient;
   - the tonemap darkens and desaturates by that mask once bloom and exposure are applied, before the tone curve.
 * `FogCoverage` in `shaders/FogOfWar.hlsli` mirrors `FogOfWarView::Coverage`: change both or neither, or the
@@ -67,3 +78,7 @@ performance overlay (F3) lists the CPU side as "fog of war".
   a script can also change the component (`entity:set("FogOfWar", { ViewAngle = 90 })`, a potion of night sight).
 * Tests: `PenumbraTests/src/FogOfWarTests.cpp` (suite `FogOfWar`) and the GPU test "Fog of war darkens and
   greys..." in `RendererTests.cpp`.
+
+Pictures (`docs/art/fogofwar/`, Stealth, the same spot with `ConeFromCamera` and `SeeOverHeight` off and on):
+`old_edges.png` / `new_edges.png` (the dark wedges at the screen's sides), `old_crate.png` / `new_crate.png` (the floor
+beyond low crates), `new_crouch.png` (crouched behind a crate: still hidden).

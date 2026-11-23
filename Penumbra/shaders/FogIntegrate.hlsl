@@ -12,6 +12,7 @@ struct IntegratePush
 	float4 Params0; // x fog distance (the grid's far end, view depth), y tan(half fov x), z tan(half fov y)
 	float4 Params1;
 	float4 Params2;
+	float4 Params3; // GPU::PostConstants is 64 bytes
 };
 
 PN_PUSH_CONSTANT ConstantBuffer<IntegratePush> g_Integrate : register(b0);

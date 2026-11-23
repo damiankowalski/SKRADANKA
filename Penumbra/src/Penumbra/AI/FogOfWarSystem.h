@@ -22,10 +22,13 @@ namespace Penumbra {
 	{
 		glm::vec3 Eye{ 0.0f };
 		glm::vec3 Forward{ 0.0f, 0.0f, -1.0f }; // horizontal, normalised
+		// Where the cone starts: the camera (FogOfWarComponent::ConeFromCamera) or, without one, the eye.
+		std::optional<glm::vec3> ConeOrigin;
 		float HalfAngle = 60.0f;                // degrees
 		float EdgeSoftness = 15.0f;             // degrees
 		float ViewDistance = 40.0f;
 		float AwarenessRadius = 1.8f;
+		float SeeOverHeight = 0.0f;             // metres above a point also tested against the eye (up to eye level)
 		float Brightness = 0.22f;
 		float Saturation = 0.1f;
 		UUID Viewer = UUID::Invalid;
@@ -61,7 +64,7 @@ namespace Penumbra {
 		bool CanSeeEntity(Entity entity);
 
 	private:
-		std::optional<FogOfWarView> ComputeView();
+		std::optional<FogOfWarView> ComputeView(float dt);
 		bool IsLineClear(const glm::vec3& eye, const glm::vec3& point, UUID target);
 		bool IsActor(Entity entity) const;
 

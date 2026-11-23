@@ -127,8 +127,9 @@ namespace Penumbra::GPU {
 		glm::vec4 Params0{ 0.0f };
 		glm::vec4 Params1{ 0.0f };
 		glm::vec4 Params2{ 0.0f };
+		glm::vec4 Params3{ 0.0f };
 	};
-	static_assert(sizeof(PostConstants) == 48, "PostConstants must match PostCommon.hlsli");
+	static_assert(sizeof(PostConstants) == 64, "PostConstants must match PostCommon.hlsli");
 
 	struct IBLConstants
 	{
