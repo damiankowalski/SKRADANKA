@@ -97,6 +97,12 @@ namespace Penumbra {
 
 		Entity GetPrimaryCameraEntity();
 		Entity GetEnvironmentEntity();
+		// The directional light that gets the renderer's one directional shadow map: the brightest enabled one with
+		// CastShadows (intensity times the colour's luminance; ties go to the lower UUID), whatever the order of the
+		// entities. The other directional lights with CastShadows are left out of the picture and of perception
+		// meanwhile: drawn unshadowed they would shine through roofs and walls. A lightning flash takes the map from
+		// the moon while it lasts. Invalid entity: none.
+		Entity GetShadowedDirectionalLight();
 
 		// Runtime
 		void OnRuntimeStart();

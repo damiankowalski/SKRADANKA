@@ -1084,17 +1084,22 @@ namespace Penumbra {
 		const bool fogActive = fog && fog->GetView().has_value();
 		View.DirectionalShadowIndex = -1.0f;
 
+		// One directional shadow map: the brightest shadow-casting light gets it (Scene::GetShadowedDirectionalLight);
+		// the other shadow casters are left out meanwhile (as perception does), not drawn through walls.
+		const Entity shadowed = scene.GetShadowedDirectionalLight();
 		for (auto [handle, light] : registry.view<DirectionalLightComponent>().each())
 		{
 			if (!light.Enabled || Lights.size() >= GPU::MaxLights)
 				continue;
 			Entity entity(handle, &scene);
+			if (light.CastShadows && entity != shadowed)
+				continue;
 			GPU::Light gpu{};
 			gpu.Type = GPU::LightDirectional;
 			gpu.Color = light.Color * light.Intensity;
 			gpu.Direction = glm::normalize(Math::Forward(scene.GetWorldRotation(entity)));
 			gpu.ShadowIndex = -1;
-			if (light.CastShadows && View.DirectionalShadowIndex < 0.0f)
+			if (light.CastShadows)
 			{
 				gpu.ShadowIndex = 0;
 				View.DirectionalShadowIndex = 0.0f;

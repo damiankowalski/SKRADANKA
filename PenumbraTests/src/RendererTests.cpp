@@ -524,6 +524,59 @@ TEST_SUITE("Renderer")
 		CHECK(fixture.Device->GetErrorCount() == 0);
 	}
 
+	TEST_CASE("A lightning flash takes the shadow map: it lights the yard, not a roofed room, whatever the order of entities")
+	{
+		for (const bool flashFirst : { true, false })
+		{
+			RendererFixture fixture;
+			Scene& scene = fixture.SceneInstance;
+			auto& environment = scene.CreateEntity("Environment").AddComponent<EnvironmentComponent>();
+			environment.AmbientColor = glm::vec3(0.0f);
+			environment.SSAOEnabled = false;
+			environment.BloomIntensity = 0.0f;
+			Test::CreateBox(scene, "Ground", { 0.0f, -0.5f, 0.0f }, { 30.0f, 0.5f, 30.0f }, glm::vec4(0.8f, 0.8f, 0.8f, 1.0f));
+			// A closed room with a roof; the camera stands inside it.
+			Test::CreateBox(scene, "North", { 0.0f, 1.5f, -2.1f }, { 2.2f, 1.5f, 0.1f });
+			Test::CreateBox(scene, "South", { 0.0f, 1.5f, 2.1f }, { 2.2f, 1.5f, 0.1f });
+			Test::CreateBox(scene, "East", { 2.1f, 1.5f, 0.0f }, { 0.1f, 1.5f, 2.2f });
+			Test::CreateBox(scene, "West", { -2.1f, 1.5f, 0.0f }, { 0.1f, 1.5f, 2.2f });
+			Test::CreateBox(scene, "Roof", { 0.0f, 3.1f, 0.0f }, { 2.3f, 0.1f, 2.3f });
+			auto add = [&](const char* name, float intensity, const glm::vec3& direction) {
+				Entity entity = scene.CreateEntity(name);
+				entity.Transform().Rotation = Math::LookRotation(direction);
+				auto& light = entity.AddComponent<DirectionalLightComponent>();
+				light.Intensity = intensity;
+				light.CastShadows = true;
+				return entity;
+			};
+			Entity flash = flashFirst ? add("Lightning", 3.0f, { 0.4f, -1.0f, 0.2f }) : Entity();
+			add("Moon", 0.08f, { -0.5f, -1.0f, 0.3f });
+			if (!flashFirst)
+				flash = add("Lightning", 3.0f, { 0.4f, -1.0f, 0.2f });
+
+			const float aspect = static_cast<float>(RendererFixture::Width) / static_cast<float>(RendererFixture::Height);
+			const RenderCamera inside = RenderCamera::Perspective({ 0.0f, 1.5f, 1.5f }, Math::LookRotation(glm::vec3(0.0f, -1.5f, -2.5f)), 60.0f,
+				aspect, 0.05f, 100.0f);
+			const RenderCamera yard = RenderCamera::Perspective({ 0.0f, 4.0f, 14.0f }, Math::LookRotation(glm::vec3(0.0f, -4.0f, -6.0f)), 60.0f,
+				aspect, 0.1f, 100.0f);
+			const glm::uvec2 floorInside = RendererFixture::ToPixel(inside, { 0.0f, 0.0f, -1.0f });
+			const glm::uvec2 groundOutside = RendererFixture::ToPixel(yard, { 0.0f, 0.0f, 8.0f });
+			auto brightness = [](const std::vector<uint8_t>& pixels, const glm::uvec2& pixel) {
+				return Math::Luminance(RendererFixture::Pixel(pixels, pixel.x, pixel.y));
+			};
+
+			flash.GetComponent<DirectionalLightComponent>().Enabled = false;
+			const float insideDark = brightness(fixture.RenderFrame(inside), floorInside);
+			const float yardDark = brightness(fixture.RenderFrame(yard), groundOutside);
+			flash.GetComponent<DirectionalLightComponent>().Enabled = true;
+			const float insideFlash = brightness(fixture.RenderFrame(inside), floorInside);
+			const float yardFlash = brightness(fixture.RenderFrame(yard), groundOutside);
+			CHECK(yardFlash > yardDark + 0.3f); // the yard lights up
+			CHECK(insideFlash < insideDark + 0.02f); // the room does not
+			CHECK(fixture.Device->GetErrorCount() == 0);
+		}
+	}
+
 	TEST_CASE("Guards' fog glow agrees with the renderer's: the CPU estimate along sight lines matches the froxels")
 	{
 		// Perception integrates the fog's glow on the CPU (FogMedium::Integrate with the lamps' FogLight); the

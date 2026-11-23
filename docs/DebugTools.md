@@ -39,6 +39,11 @@ it is on for him and hides guards, the cone, its soft edge, the awareness circle
 dark and grey the unseen part is. Values tuned here are not saved: copy them into the level. The count shows the
 guards and bodies hidden right now.
 
+**Weather: lightning and storms**: which directional light has the shadow map now (the brightest with
+`CastShadows`; a flash takes it from the moon), and, in a level with a weather script (`WorldEvents.lua`),
+"Lightning strike" (a flash now, thunder after it), "Start storm" / "End storm", and "Flash length", which holds
+each flash up to 5 s to look at what it lights (0: the level's own, 0.15 s).
+
 **Guards: sight and hearing** draws, for every awake NPC with `Perception`:
 
 * the **view fan**: its whole field of view (130 degrees by default) at eye height, every ray cut where a wall,
