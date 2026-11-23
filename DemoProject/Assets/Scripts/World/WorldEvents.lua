@@ -20,6 +20,7 @@ local WorldEvents = {
         windows = "",               -- comma separated emissive entities that glow with each flash
         dogs_position = vec3(0, 1, 30), -- where the howls come from (outside the walls)
         show_status = true,         -- "storm" note on the HUD
+        flash_hold = 0.0,           -- seconds a flash lasts, for testing (0: Events.lua's lightning.time; F4 panel)
     }
 }
 
@@ -84,7 +85,7 @@ end
 function WorldEvents:strike()
     self.strikes = self.strikes + 1
     self:set_flash(true)
-    self.flash_time = self.storm.lightning.time
+    self.flash_time = self.flash_hold > 0 and self.flash_hold or self.storm.lightning.time
     self.thunder_delay = between(self.storm.thunder.delay)
 end
 

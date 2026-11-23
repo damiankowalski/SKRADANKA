@@ -80,6 +80,72 @@ namespace {
 
 TEST_SUITE("Perception")
 {
+	TEST_CASE("The brightest shadow-casting directional light gets the shadow map, whatever the order of entities")
+	{
+		for (const bool flashFirst : { true, false })
+		{
+			Scene scene;
+			auto add = [&](const char* name, float intensity) {
+				Entity entity = scene.CreateEntity(name);
+				auto& light = entity.AddComponent<DirectionalLightComponent>();
+				light.Intensity = intensity;
+				light.CastShadows = true;
+				return entity;
+			};
+			Entity flash = flashFirst ? add("Flash", 3.0f) : Entity();
+			Entity moon = add("Moon", 0.08f);
+			if (!flashFirst)
+				flash = add("Flash", 3.0f);
+			CHECK(scene.GetShadowedDirectionalLight() == flash);
+			flash.GetComponent<DirectionalLightComponent>().Enabled = false; // the flash is over
+			CHECK(scene.GetShadowedDirectionalLight() == moon);
+			moon.GetComponent<DirectionalLightComponent>().CastShadows = false;
+			CHECK_FALSE(scene.GetShadowedDirectionalLight());
+		}
+	}
+
+	TEST_CASE("A lightning flash lights the yard, never a roofed room (guards see what is drawn)")
+	{
+		for (const bool flashFirst : { true, false })
+		{
+			Test::TemporaryProject project;
+			Scene scene;
+			scene.SetAudioDeviceEnabled(false);
+			Test::CreateBox(scene, "Ground", { 0.0f, -0.5f, 0.0f }, { 30.0f, 0.5f, 30.0f });
+			// A closed room 4 x 4 m with a roof, west of the origin.
+			const glm::vec3 room(-8.0f, 0.0f, 0.0f);
+			Test::CreateBox(scene, "North", room + glm::vec3(0.0f, 1.5f, -2.1f), { 2.2f, 1.5f, 0.1f });
+			Test::CreateBox(scene, "South", room + glm::vec3(0.0f, 1.5f, 2.1f), { 2.2f, 1.5f, 0.1f });
+			Test::CreateBox(scene, "East", room + glm::vec3(2.1f, 1.5f, 0.0f), { 0.1f, 1.5f, 2.2f });
+			Test::CreateBox(scene, "West", room + glm::vec3(-2.1f, 1.5f, 0.0f), { 0.1f, 1.5f, 2.2f });
+			Test::CreateBox(scene, "Roof", room + glm::vec3(0.0f, 3.1f, 0.0f), { 2.3f, 0.1f, 2.3f });
+			auto add = [&](const char* name, float intensity, const glm::vec3& direction) {
+				Entity entity = scene.CreateEntity(name);
+				entity.Transform().Rotation = Math::LookRotation(direction);
+				auto& light = entity.AddComponent<DirectionalLightComponent>();
+				light.Intensity = intensity;
+				light.CastShadows = true;
+				return entity;
+			};
+			Entity flash = flashFirst ? add("Lightning", 3.0f, { 0.4f, -1.0f, 0.2f }) : Entity();
+			add("Moon", 0.08f, { -0.5f, -1.0f, 0.3f });
+			if (!flashFirst)
+				flash = add("Lightning", 3.0f, { 0.4f, -1.0f, 0.2f });
+			scene.OnRuntimeStart();
+			PerceptionSystem& perception = *scene.GetPerceptionSystem();
+			const glm::vec3 yard(4.0f, 1.0f, 0.0f), inside = room + glm::vec3(0.0f, 1.0f, 0.0f);
+
+			flash.GetComponent<DirectionalLightComponent>().Enabled = false;
+			Test::Simulate(scene, 0.1f);
+			const float yardDark = perception.SampleLuminance(yard), insideDark = perception.SampleLuminance(inside);
+			flash.GetComponent<DirectionalLightComponent>().Enabled = true;
+			Test::Simulate(scene, 0.1f);
+			CHECK(perception.SampleLuminance(yard) > yardDark * 10.0f);
+			CHECK(perception.SampleLuminance(inside) == doctest::Approx(insideDark).epsilon(0.05));
+			scene.OnRuntimeStop();
+		}
+	}
+
 	TEST_CASE("Weber contrast")
 	{
 		CHECK(Test::Near(PerceptionModel::WeberContrast(1.0f, 0.0f), 1.0f));

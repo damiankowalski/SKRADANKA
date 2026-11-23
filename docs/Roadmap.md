@@ -227,6 +227,16 @@ lower than his eyes counts as seen (`SeeOverHeight`, up to the eye; crouched beh
 playtester's Stealth series is byte-identical before and after: guards and the thief behave as before. See
 docs/FogOfWar.md.
 
+**Lightning that lights only what it reaches** (S, approved 2026-11-23): the renderer has one directional shadow
+map, and which light got it depended on the order of the level's entities. In Stealth the flash happened to get
+it (the moon then shone through the roofs during each flash, faintly); in the other order the flash itself would
+light every interior. Now the brightest directional light with `CastShadows` gets it
+(`Scene::GetShadowedDirectionalLight`) and the other shadow casters are left out meanwhile, in the picture and
+in perception alike: a flash lights the yard and what it reaches through doorways and windows, never a roofed room
+(a GPU test in both orders, a perception test). The F4 panel's weather section strikes lightning, starts and ends
+storms, and holds a flash up to 5 s (`WorldEvents.flash_hold`). The flash's white air outdoors is the volumetric
+fog it lights (intensity 3 against the moon's 0.08), not light through walls.
+
 ## In progress
 
 Nothing.
@@ -241,12 +251,6 @@ following a body the character collides with.
 
 ## Next
 
-**Lightning that lights only what it reaches** (S, approved 2026-11-23): the renderer gives only one directional
-light a shadow map and the moon takes it, so a lightning flash lights interiors and the far side of walls in the
-picture, while guards (perception) see it only where it falls. The flash gets the shadow map while it lasts, so it
-comes in through windows, doorways and openings for the player as for the guards; a trigger in the F4 panel and a
-longer flash for testing; measured with the playtester.
-
 **Developer tools' UI** (M-L, approved 2026-11-23; a survey with engine screenshots and a brief first): the runtime's
 debug panel and the editor take a lot of space. Sharp, scaled fonts on Retina, context menus (right click on an
 entity or field), panels that collapse, dock and remember their layout, in the spirit of other engines.
@@ -258,8 +262,8 @@ screenshots of the key moments. Package A (the bot, series and report) is done.
 ### Priority order (approved 2026-11-22, updated 2026-11-23)
 
 Each package still needs the owner's approval and its own brief before it starts. The owner's playtest of the
-playtester added three packages in front (2026-11-23): controls and the player's view (done), then the lightning,
-then the developer tools' UI (above).
+playtester added three packages in front (2026-11-23): controls and the player's view (done), the lightning
+(done), then the developer tools' UI (above).
 
 1. **Agent playtester** (package A done; package B above).
 2. **Suspicion tempo near the threshold** (S): from the PhysicsLab playtest, a guard who barely makes the thief out

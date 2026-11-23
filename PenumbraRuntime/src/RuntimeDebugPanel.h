@@ -71,6 +71,7 @@ namespace Penumbra {
 		void DrawPanel(Scene& scene);
 		void DrawFogOfWar(Scene& scene);
 		void DrawFog(Scene& scene);
+		void DrawWeather(Scene& scene);
 		void DrawGuardLabels(Scene& scene, const RenderCamera& camera);
 		void HandleWorldClick(Scene& scene, const RenderCamera& camera);
 		std::optional<glm::vec3> WorldPointUnderMouse(Scene& scene, const RenderCamera& camera);
@@ -139,6 +140,7 @@ namespace Penumbra {
 		static constexpr float NoiseLifetime = 3.0f;
 
 		// Freelook
+		float m_FlashHold = 0.0f; // the weather section's flash length (0: the level's own)
 		bool m_FreeLook = false;
 		bool m_FreeLookStarted = false;
 		bool m_Looking = false; // right mouse button held: the cursor is captured for looking

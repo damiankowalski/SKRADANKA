@@ -14,6 +14,7 @@
 #include "Penumbra/Scene/Entity.h"
 #include "Penumbra/Scene/JsonSerialization.h"
 #include "Penumbra/Scene/Scene.h"
+#include "Penumbra/Scripting/ScriptEngine.h"
 #include "Penumbra/UI/Overlay.h"
 
 #include <chrono>
@@ -397,6 +398,9 @@ namespace Penumbra {
 		if (ImGui::CollapsingHeader("Fog and volumetric light"))
 			DrawFog(scene);
 
+		if (ImGui::CollapsingHeader("Weather: lightning and storms"))
+			DrawWeather(scene);
+
 		if (ImGui::CollapsingHeader("Guards: sight and hearing", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			ImGui::Checkbox("View cones (cut by walls)", &m_ShowVision);
@@ -547,6 +551,44 @@ namespace Penumbra {
 			ImGui::Text("Guards and bodies hidden now: %u", component.RuntimeHiddenActors);
 		else
 			ImGui::TextDisabled("Fog is off.");
+	}
+
+	void RuntimeDebugPanel::DrawWeather(Scene& scene)
+	{
+		if (Entity shadowed = scene.GetShadowedDirectionalLight())
+			ImGui::Text("Directional shadow map: %s", shadowed.GetName().c_str());
+		else
+			ImGui::TextDisabled("No directional light casts shadows.");
+		ImGui::SetItemTooltip("The brightest directional light with CastShadows gets it; the others casting shadows are left out\n"
+							  "meanwhile (a flash takes it from the moon), in the picture and for the guards alike.");
+
+		// The level's weather script (Scripts/World/WorldEvents.lua: anything whose script has strike()).
+		ScriptEngine* scripts = scene.GetScriptEngine();
+		constexpr const char* Find = "local function weather() for _, e in ipairs(scene.entities_with('Script')) do local s = e:script() "
+									 "if s and type(s.strike) == 'function' then return s end end end ";
+		std::string output;
+		if (!scripts || !scripts->Execute(std::string(Find) + "return weather() ~= nil", output) || output != "true")
+		{
+			ImGui::TextDisabled("No weather script in this level (WorldEvents).");
+			return;
+		}
+		auto run = [&](const std::string& code) {
+			std::string result;
+			if (!scripts->Execute(std::string(Find) + "local w = weather() " + code, result))
+				PN_CORE_WARN("Weather panel: {}", result);
+		};
+		if (ImGui::Button("Lightning strike"))
+			run("w:strike()");
+		ImGui::SetItemTooltip("A flash now (thunder follows, as in a storm).");
+		ImGui::SameLine();
+		if (ImGui::Button("Start storm"))
+			run("w:start_storm()");
+		ImGui::SameLine();
+		if (ImGui::Button("End storm"))
+			run("w:end_storm()");
+		if (ImGui::SliderFloat("Flash length", &m_FlashHold, 0.0f, 5.0f, m_FlashHold > 0.0f ? "%.2f s" : "level's own"))
+			run(std::format("w.flash_hold = {}", m_FlashHold));
+		ImGui::SetItemTooltip("Hold each flash longer to look at what it lights (0: the level's own, 0.15 s).");
 	}
 
 	void RuntimeDebugPanel::DrawFog(Scene& scene)

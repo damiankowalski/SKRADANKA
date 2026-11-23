@@ -2,6 +2,7 @@
 #include "Penumbra/Scene/Scene.h"
 
 #include "Penumbra/AI/PerceptionModel.h"
+#include "Penumbra/Math/Math.h"
 #include "Penumbra/AI/FogOfWarSystem.h"
 #include "Penumbra/AI/PerceptionSystem.h"
 #include "Penumbra/Animation/AnimationSystem.h"
@@ -320,6 +321,25 @@ namespace Penumbra {
 		if (view.empty())
 			return {};
 		return Entity(view.front(), this);
+	}
+
+	Entity Scene::GetShadowedDirectionalLight()
+	{
+		Entity best;
+		float bestStrength = -1.0f;
+		for (auto [handle, light] : m_Registry.view<DirectionalLightComponent>().each())
+		{
+			if (!light.Enabled || !light.CastShadows)
+				continue;
+			Entity entity(handle, this);
+			const float strength = Math::Luminance(light.Color) * light.Intensity;
+			if (strength > bestStrength || (strength == bestStrength && entity.GetUUID() < best.GetUUID()))
+			{
+				best = entity;
+				bestStrength = strength;
+			}
+		}
+		return best;
 	}
 
 	std::optional<bool> Scene::ConsumeCursorLockRequest()

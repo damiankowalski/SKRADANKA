@@ -156,7 +156,9 @@ and strengths in `Scripts/World/Events.lua`).
   cracks something (3). They are ordinary noises, so a guard reacts exactly as he would to the player.
 * **World events** (`WorldEvents.lua`): a storm (the placeholder for any weather) rains
   (`Environment.AmbientNoise` 2: the quietest steps vanish), and each strike flashes the `Lightning` light
-  and the windows — the player is lit up for a moment and the guards' eyes adapt upwards (dazzled) — then
+  and the windows — the player is lit up for a moment and the guards' eyes adapt upwards (dazzled); the flash
+  has the shadow map while it lasts, so it lights only what it reaches through windows, doorways and open
+  ground, for the player and the guards alike — then
   thunders: `AmbientNoise` 7 for 3 s masks almost every sound. Dogs howl beyond the walls.
 * **Competition** — thunder and dogs also offer an innocent explanation: `ai.explain_away(strength, cause)`.
   For every guard reacting to something *heard or reported* (never *seen*) the distraction wins when

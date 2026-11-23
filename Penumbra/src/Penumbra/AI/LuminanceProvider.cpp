@@ -40,11 +40,15 @@ namespace Penumbra {
 		m_Lights.clear();
 		auto& registry = m_Scene.GetRegistry();
 
+		// As the renderer: of the shadow-casting directional lights only the one with the shadow map lights anything.
+		const Entity shadowed = m_Scene.GetShadowedDirectionalLight();
 		for (auto [handle, light] : registry.view<DirectionalLightComponent>().each())
 		{
 			if (!light.Enabled)
 				continue;
 			Entity entity(handle, &m_Scene);
+			if (light.CastShadows && entity != shadowed)
+				continue;
 			LightSample sample;
 			sample.Type = LightSample::Kind::Directional;
 			sample.Owner = entity.GetUUID();
