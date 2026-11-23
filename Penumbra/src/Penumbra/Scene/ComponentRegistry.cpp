@@ -323,6 +323,9 @@ namespace Penumbra {
 			v("EdgeSoftness", c.EdgeSoftness);
 			v("ViewDistance", c.ViewDistance);
 			v("AwarenessRadius", c.AwarenessRadius);
+			v("ConeFromCamera", c.ConeFromCamera);
+			v("SeeOverHeight", c.SeeOverHeight);
+			v("EyeSpeed", c.EyeSpeed);
 			v("Brightness", c.Brightness);
 			v("Saturation", c.Saturation);
 			v("HideActors", c.HideActors);
@@ -330,6 +333,7 @@ namespace Penumbra {
 			v("Active", c.RuntimeActive, FieldKind::Runtime);
 			v("Eye", c.RuntimeEye, FieldKind::Runtime);
 			v("Forward", c.RuntimeForward, FieldKind::Runtime);
+			v("EyeHeightNow", c.RuntimeEyeHeight, FieldKind::Runtime);
 			v("HiddenActors", c.RuntimeHiddenActors, FieldKind::Runtime);
 		}
 

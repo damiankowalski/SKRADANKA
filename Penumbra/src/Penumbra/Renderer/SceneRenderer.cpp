@@ -1524,6 +1524,7 @@ namespace Penumbra {
 			constants.Params0 = glm::vec4(fogView->Eye, fogView->HalfAngle);
 			constants.Params1 = glm::vec4(fogView->Forward.x, fogView->Forward.z, fogView->EdgeSoftness, fogView->ViewDistance);
 			constants.Params2 = glm::vec4(fogView->AwarenessRadius, eyeNear, eyeFar, 0.0f);
+			constants.Params3 = glm::vec4(fogView->ConeOrigin.value_or(fogView->Eye), fogView->SeeOverHeight);
 			impl.DrawFullscreen(impl.FogMaskPipeline, impl.FogMaskFramebuffer,
 				impl.GetPostSet({ impl.Depth }, { impl.EyeDepth, -1, nvrhi::TextureDimension::TextureCube }), constants, m_Width, m_Height);
 			// Depth-aware blur (the SSAO one), with wide steps: the edge of sight is a soft gradient.

@@ -14,6 +14,7 @@ struct FogPush
 	float4 Params0; // x history weight (0 = no history), y unshadowed lamps' share, zw unused
 	float4 Params1;
 	float4 Params2;
+	float4 Params3; // GPU::PostConstants is 64 bytes
 };
 
 struct GPUFogVolume

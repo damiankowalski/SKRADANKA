@@ -476,6 +476,14 @@ namespace Penumbra {
 		float EdgeSoftness = 15.0f;    // degrees over which the cone's edge fades out
 		float ViewDistance = 40.0f;    // metres; nothing further is seen
 		float AwarenessRadius = 1.8f;  // metres around the character seen in every direction (still not through walls)
+		// The cone is the camera's frame: its apex at the primary camera, as wide as the picture (the edge fades out
+		// just outside it), so the whole frame counts as looked at and only walls hide anything in it. Off: a cone
+		// ViewAngle wide around the eye.
+		bool ConeFromCamera = true;
+		// Metres above a surface also tested against the eye (never above the eye): the floor behind a crate lower than
+		// the eye counts as seen, as the space above it is. 0: only the surface itself. Characters are not lifted.
+		float SeeOverHeight = 1.0f;
+		float EyeSpeed = 12.0f;        // per second: how fast the eye follows a crouching capsule (the player's camera eases alike)
 		float Brightness = 0.22f;      // brightness left in what is not seen (0 black)
 		float Saturation = 0.1f;       // colour left in what is not seen (0 grey)
 		bool HideActors = true;        // characters (NPCs, bodies) out of sight are not drawn
@@ -485,6 +493,7 @@ namespace Penumbra {
 		bool RuntimeActive = false;    // the eye and facing below are valid this frame
 		glm::vec3 RuntimeEye{ 0.0f };
 		glm::vec3 RuntimeForward{ 0.0f, 0.0f, -1.0f }; // horizontal, normalised
+		float RuntimeEyeHeight = -1.0f; // the eased eye height (below 0: not placed yet)
 		uint32_t RuntimeHiddenActors = 0;
 	};
 

@@ -606,6 +606,16 @@ end
 
 -- ------------------------------------------------------------------ the frame
 
+-- Crouch or stand as the player would: press C when the toggle is the other way (Player.crouch_toggle), or hold it.
+function Bot:crouch(want)
+    local player = self.player
+    if player.crouch_toggle then
+        if player.want_crouch ~= want then self.pressed.C = true end
+    elseif want then
+        self.down.C = true
+    end
+end
+
 function Bot:outcome()
     local mission = Mission.current
     if mission and mission.state == "complete" then return "escaped" end
@@ -656,14 +666,15 @@ function Bot:tick(dt)
 
     if self.delay > 0 then
         self.delay = self.delay - dt
-        if self.gait == "crouch" then self.down.C = true end
+        self:crouch(self.gait == "crouch")
         return
     end
     if not self.step then
         if self.route.survive then self:finish("undetected") else self:finish("incomplete", "route ended") end
         return
     end
-    if self.gait == "crouch" then self.down.C = true elseif self.gait == "run" then self.down.LeftShift = true end
+    self:crouch(self.gait == "crouch")
+    if self.gait == "run" then self.down.LeftShift = true end
     if self:run_step(dt) and not self.finished then
         if self.saved then -- back from a door to the step it interrupted
             self.step, self.saved = self.saved.step, nil
