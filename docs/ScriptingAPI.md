@@ -49,6 +49,7 @@ return Door
 | `game` | `get(key, default?)`, `set(key, value)` (boolean, number, string, vec3; `nil` erases), `clear()` — values kept across `scene.load` (the chosen difficulty, a score); a new play session starts empty, `PenumbraRuntime --set difficulty=Hard,score=0` seeds them |
 | `log` | `trace/info/warn/error(...)`, `print(...)` |
 | `test` | `check(cond, msg?)`, `equal(a, b, msg?)`, `near(a, b, eps?, msg?)`, `complete()`, `failures()` |
+| `playtest` | `enabled()`, `record(table)`: one JSON line (keys sorted) to the host's sink, `PenumbraRuntime --playtest-out <file>`; without one `enabled()` is false and `record` does nothing (the agent playtester, [Playtest.md](Playtest.md)) |
 
 Freshly spawned entities get physics bodies in the same frame's physics step: set velocities on the next frame
 (see `Player.lua`, `pending_arrow`).

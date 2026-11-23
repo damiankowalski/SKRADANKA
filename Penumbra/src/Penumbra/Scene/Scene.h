@@ -9,6 +9,7 @@
 #include <entt/entt.hpp>
 
 #include <filesystem>
+#include <functional>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -147,6 +148,17 @@ namespace Penumbra {
 
 		TestReport& GetTestReport() { return m_TestReport; }
 
+		// Lines scripts record for the host (Lua playtest.record: the agent playtester's JSONL, docs/Playtest.md).
+		// Without a sink nothing is recorded: game scripts still have no way to write files.
+		using RecordSink = std::function<void(const std::string&)>;
+		void SetRecordSink(RecordSink sink) { m_RecordSink = std::move(sink); }
+		bool HasRecordSink() const { return static_cast<bool>(m_RecordSink); }
+		void Record(const std::string& line)
+		{
+			if (m_RecordSink)
+				m_RecordSink(line);
+		}
+
 		PhysicsWorld* GetPhysicsWorld() const { return m_PhysicsWorld.get(); }
 		ScriptEngine* GetScriptEngine() const { return m_ScriptEngine.get(); }
 		AudioScene* GetAudioScene() const { return m_AudioScene.get(); }
@@ -209,6 +221,7 @@ namespace Penumbra {
 		std::optional<bool> m_RequestedCursorLock;
 		Ref<GameState> m_GameState = CreateRef<GameState>();
 		TestReport m_TestReport;
+		RecordSink m_RecordSink;
 		SceneFrameProfile m_FrameProfile;
 		std::filesystem::path m_FilePath;
 

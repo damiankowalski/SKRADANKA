@@ -6,6 +6,7 @@
 
 #include <chrono>
 #include <filesystem>
+#include <fstream>
 #include <optional>
 #include <string>
 
@@ -29,6 +30,8 @@ namespace Penumbra {
 		// development builds, with --dev in shipping (Dist) builds. Need a window.
 		bool DebugTools = true;
 		std::string DebugToolsOpen; // tools up from the start (--debug-ui performance,panel,freelook)
+		// Where scripts' playtest.record lines go (the agent playtester, docs/Playtest.md); none: not recorded.
+		std::optional<std::filesystem::path> PlaytestOut;
 	};
 
 	// Plays a project's scene: runtime simulation, rendering to the window (or offscreen when
@@ -63,6 +66,7 @@ namespace Penumbra {
 		bool m_GameCursorLocked = false; // what the game's scripts asked for
 		std::chrono::steady_clock::time_point m_LastFrame;
 		bool m_Finished = false;
+		std::ofstream m_PlaytestOut;
 	};
 
 }

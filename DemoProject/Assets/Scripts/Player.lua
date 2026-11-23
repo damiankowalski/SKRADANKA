@@ -12,6 +12,11 @@
 -- nothing yet), so other tools can claim either.
 -- Noise probe (when the noise_probe property is on): - / = pick a loudness, G makes that noise
 -- where you aim. The HUD shows the floor under you and how loud your last step was.
+--
+-- Every key and mouse read goes through self.controls: the keyboard (the input table itself) or, when the game
+-- value playtest names a route (--set playtest=...), the agent playtester's virtual keyboard
+-- (Scripts/Playtest/Bot.lua, docs/Playtest.md). Either way the thief moves, sounds and shows himself through the
+-- same code.
 
 local Compass = require("Scripts/Compass")
 local LightGem = require("Scripts/LightGem")
@@ -103,6 +108,9 @@ function Player:on_create()
         self.model_yaw = math.deg(math.atan(-f.x, -f.z)) - self.yaw
     end
     self.help_time = self.help_seconds
+    self.controls = input
+    local route = game.get("playtest", nil)
+    if route then self.controls = require("Scripts/Playtest/Bot").attach(self, route) end
     input.set_cursor_locked(true)
 end
 
@@ -143,8 +151,8 @@ end
 function Player:update_lean(dt, wants_to_move)
     local want = 0
     if not wants_to_move and not self.busy and not self.carrying and character.is_grounded(self.entity) then
-        if input.key("Q") then want = want - 1 end
-        if input.key("E") then want = want + 1 end
+        if self.controls.key("Q") then want = want - 1 end
+        if self.controls.key("E") then want = want + 1 end
     end
     local target = want * LEAN * self.visual_height / self.stand_height
     if target ~= 0 then
@@ -171,7 +179,7 @@ function Player:update_lean(dt, wants_to_move)
 end
 
 function Player:update_look()
-    local dx, dy = input.mouse_delta()
+    local dx, dy = self.controls.mouse_delta()
     self.yaw = self.yaw - dx * self.mouse_sensitivity
     self.pitch = math.max(-70, math.min(45, self.pitch - dy * self.mouse_sensitivity))
 end
@@ -182,16 +190,16 @@ function Player:update_movement(dt)
     local right = vec3(math.cos(yaw), 0, -math.sin(yaw))
     local move = vec3(0, 0, 0)
     if not self.busy then -- busy hands (picking a lock): W A S D mean something else
-        if input.key("W") then move = move + forward end
-        if input.key("S") then move = move - forward end
-        if input.key("D") then move = move + right end
-        if input.key("A") then move = move - right end
+        if self.controls.key("W") then move = move + forward end
+        if self.controls.key("S") then move = move - forward end
+        if self.controls.key("D") then move = move + right end
+        if self.controls.key("A") then move = move - right end
     end
 
-    self:update_stance(dt, input.key("C"))
+    self:update_stance(dt, self.controls.key("C"))
     self:update_lean(dt, move:length() > 0.01)
     self:update_silhouette()
-    local running = input.key("LeftShift") and not self.crouched and not self.carrying
+    local running = self.controls.key("LeftShift") and not self.crouched and not self.carrying
     local speed = self.crouched and self.crouch_speed or (running and self.run_speed or self.walk_speed)
     if self.carrying then speed = speed * CARRY_SLOWDOWN end
 
@@ -203,7 +211,7 @@ function Player:update_movement(dt)
         self.entity:look_at(self.entity:get_position() + move, true)
     end
     character.move(self.entity, move * speed)
-    if input.key_pressed("Space") and character.is_grounded(self.entity) then
+    if self.controls.key_pressed("Space") and character.is_grounded(self.entity) then
         character.jump(self.entity, 4.5)
     end
 
@@ -238,9 +246,9 @@ end
 -- Debug tool for tuning guards: make a noise of a chosen loudness where the camera aims.
 function Player:update_noise_probe()
     if not self.noise_probe then return end
-    if input.key_pressed("Minus") then self.probe_loudness = math.max(self.probe_loudness - 1, 1) end
-    if input.key_pressed("Equal") then self.probe_loudness = math.min(self.probe_loudness + 1, 10) end
-    if input.key_pressed("G") and self.aim_origin then
+    if self.controls.key_pressed("Minus") then self.probe_loudness = math.max(self.probe_loudness - 1, 1) end
+    if self.controls.key_pressed("Equal") then self.probe_loudness = math.min(self.probe_loudness + 1, 10) end
+    if self.controls.key_pressed("G") and self.aim_origin then
         local hit = physics.raycast(self.aim_origin, self.aim_direction, 40, self.entity)
         local point = hit and hit.point or (self.aim_origin + self.aim_direction * 10)
         ai.emit_noise(point, self.probe_loudness, self.entity, "Probe")
@@ -309,13 +317,13 @@ function Player:update_arrows(dt)
         self.pending_arrow = nil
     end
 
-    if input.key_pressed("1") then self.arrow = 1 end
-    if input.key_pressed("2") then self.arrow = 2 end
-    if input.key_pressed("3") then self.arrow = 3 end
-    if input.key_pressed("4") then self.arrow = 4 end
+    if self.controls.key_pressed("1") then self.arrow = 1 end
+    if self.controls.key_pressed("2") then self.arrow = 2 end
+    if self.controls.key_pressed("3") then self.arrow = 3 end
+    if self.controls.key_pressed("4") then self.arrow = 4 end
     if self.carrying then return end -- hands full
     self.cooldown = math.max(self.cooldown - dt, 0)
-    if input.mouse_pressed("Left") then
+    if self.controls.mouse_pressed("Left") then
         if self.aiming then self:aim_action() else self:plain_action() end
     end
 end
@@ -368,7 +376,7 @@ end
 
 -- The controls panel: up for a while when the level starts, F1 toggles it.
 function Player:draw_controls(dt)
-    if input.key_pressed("F1") then self.help_time = self.help_time > 0 and 0 or math.huge end
+    if self.controls.key_pressed("F1") then self.help_time = self.help_time > 0 and 0 or math.huge end
     self.help_time = math.max(self.help_time - dt, 0)
     local h = ui.height()
     if self.help_time <= 0 then
@@ -384,14 +392,15 @@ function Player:draw_controls(dt)
 end
 
 function Player:on_update(dt)
+    if self.controls.tick then self.controls.tick(dt) end -- the playtester decides what to press this frame
     if Mission.over() then -- escaped or failed: the summary is up
         character.move(self.entity, vec3(0, 0, 0))
         return
     end
-    if input.key_pressed("Escape") then input.set_cursor_locked(false) end
-    if input.mouse_pressed("Left") then input.set_cursor_locked(true) end
+    if self.controls.key_pressed("Escape") then input.set_cursor_locked(false) end
+    if self.controls.mouse_pressed("Left") then input.set_cursor_locked(true) end
     self:update_look()
-    self.aiming = input.mouse_button("Right") and not self.busy and not self.carrying
+    self.aiming = self.controls.mouse_button("Right") and not self.busy and not self.carrying
     self:update_movement(dt)
     self:update_camera(dt)
     if self.busy then
@@ -568,8 +577,8 @@ end
 
 function Player:update_hands(dt)
     self.swing_cooldown = math.max(self.swing_cooldown - dt, 0)
-    if input.key_pressed("F") then self:use() end
-    if input.key_pressed("V") then self:blackjack() end
+    if self.controls.key_pressed("F") then self:use() end
+    if self.controls.key_pressed("V") then self:blackjack() end
 end
 
 return Player

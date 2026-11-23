@@ -886,6 +886,18 @@ namespace Penumbra {
 		});
 		test.set_function("failures", [scene]() { return scene->GetTestReport().Failures; });
 
+		// --- playtest ---------------------------------------------------------------------
+		// The agent playtester's record (docs/Playtest.md): one JSON line per call, to the host's sink
+		// (PenumbraRuntime --playtest-out). Without a sink, enabled() is false and record() does nothing.
+		sol::table playtest = lua.create_named_table("playtest");
+		playtest.set_function("enabled", [scene]() { return scene->HasRecordSink(); });
+		playtest.set_function("record", [scene](const sol::object& data) {
+			if (!scene->HasRecordSink())
+				return false;
+			scene->Record(LuaToJson(data).dump());
+			return true;
+		});
+
 		// Registry table mapping entity id -> script instance (for Entity:script()).
 		lua.registry()["penumbra_instances"] = lua.create_table();
 	}

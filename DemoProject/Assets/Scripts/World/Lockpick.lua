@@ -71,12 +71,12 @@ function Lockpick:abort() self.done = true end
 function Lockpick:update(player, dt)
     if self.done then return false end
     self.slip = math.max(self.slip - dt, 0)
-    if input.key_pressed("F") then
+    if player.controls.key_pressed("F") then
         self:finish(false)
         return false
     end
     for _, key in ipairs(Lockpick.letters) do
-        if input.key_pressed(key) then self:press(key) end
+        if player.controls.key_pressed(key) then self:press(key) end
     end
     local w, h = ui.width(), ui.height()
     local hint = "[W A S D] pick the lock   [F] give up"
