@@ -41,6 +41,7 @@ namespace Penumbra {
 		uint32_t Triangles = 0;
 		uint32_t Lights = 0;
 		uint32_t ShadowViews = 0;
+		uint32_t LeftOutLamps = 0; // lamps in view with CastShadows but no shadow map left: left out, not lit through walls
 		uint32_t CulledObjects = 0;
 	};
 

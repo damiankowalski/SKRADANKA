@@ -933,6 +933,8 @@ namespace Penumbra {
 		ImGui::Text("GPU: %s", Application::Get().GetRenderDevice().GetAdapterName().c_str());
 		ImGui::Text("Draw calls: %u  Triangles: %u", stats.DrawCalls, stats.Triangles);
 		ImGui::Text("Lights: %u  Shadow views: %u  Culled: %u", stats.Lights, stats.ShadowViews, stats.CulledObjects);
+		if (stats.LeftOutLamps > 0)
+			ImGui::Text("Left out: %u lamps in view without a free shadow map", stats.LeftOutLamps);
 		if (m_PlayScene)
 		{
 			ImGui::Separator();

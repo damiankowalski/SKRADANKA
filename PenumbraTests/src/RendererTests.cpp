@@ -6,6 +6,7 @@
 #include "Penumbra/Asset/Importers.h"
 #include "Penumbra/Renderer/RenderDevice.h"
 #include "Penumbra/Renderer/SceneRenderer.h"
+#include "Penumbra/Renderer/ShadowSlots.h"
 #include "Penumbra/Renderer/VulkanDeviceSelection.h"
 #include "Penumbra/UI/Overlay.h"
 
@@ -266,6 +267,31 @@ TEST_SUITE("Renderer")
 			if (memory.HasUsage)
 				CHECK(memory.UsedBytes <= memory.BudgetBytes * 2);
 		}
+	}
+
+	TEST_CASE("Shadow maps go to the lamps whose light reaches the view, nearest first; the rest are left out")
+	{
+		const RenderCamera camera = RenderCamera::Perspective(glm::vec3(0.0f), glm::quat(1, 0, 0, 0), 60.0f, 1.0f, 0.1f, 100.0f);
+		const Frustum frustum(camera.Projection * camera.View);
+		const std::vector<ShadowCandidate> candidates = {
+			{ 0, { 0.0f, 0.0f, -9.0f }, 4.0f },  // ahead, 9 m
+			{ 1, { 0.0f, 0.0f, 12.0f }, 4.0f },  // behind, its light never reaches the view
+			{ 2, { 0.0f, 0.0f, 2.0f }, 4.0f },   // behind the eye but its light does (2 m)
+			{ 3, { 30.0f, 0.0f, -5.0f }, 4.0f }, // far to the side
+			{ 4, { 0.0f, 0.0f, -5.0f }, 4.0f },  // ahead, 5 m
+			{ 5, { 3.0f, 0.0f, -4.0f }, 4.0f },  // ahead to the right, 5 m: ties with 4 and goes after it
+		};
+		const ShadowSlotAssignment two = AssignShadowSlots(candidates, frustum, glm::vec3(0.0f), 2);
+		CHECK(two.Shadowed == std::vector<size_t>{ 2, 4 });
+		CHECK(two.Overflow == 2); // 5 and 0 are in view but find no map
+		std::vector<size_t> leftOut = two.LeftOut;
+		std::sort(leftOut.begin(), leftOut.end());
+		CHECK(leftOut == std::vector<size_t>{ 0, 1, 3, 5 });
+
+		const ShadowSlotAssignment eight = AssignShadowSlots(candidates, frustum, glm::vec3(0.0f), 8);
+		CHECK(eight.Shadowed == std::vector<size_t>{ 2, 4, 5, 0 });
+		CHECK(eight.Overflow == 0);
+		CHECK(eight.LeftOut.size() == 2);
 	}
 
 	TEST_CASE("Frustum culling")
@@ -573,6 +599,64 @@ TEST_SUITE("Renderer")
 			const float yardFlash = brightness(fixture.RenderFrame(yard), groundOutside);
 			CHECK(yardFlash > yardDark + 0.3f); // the yard lights up
 			CHECK(insideFlash < insideDark + 0.02f); // the room does not
+			CHECK(fixture.Device->GetErrorCount() == 0);
+		}
+	}
+
+	TEST_CASE("A lamp never lights a room through its wall, even when nearer lamps take every shadow map")
+	{
+		// A closed room with the camera inside; a shadow-casting lamp stands just outside its north wall. Little lamps
+		// inside, nearer to the eye, take the shadow maps first when there are more of them than maps.
+		for (const int innerLamps : { 0, 12 })
+		{
+			RendererFixture fixture;
+			Scene& scene = fixture.SceneInstance;
+			auto& environment = scene.CreateEntity("Environment").AddComponent<EnvironmentComponent>();
+			environment.AmbientColor = glm::vec3(0.0f);
+			environment.SSAOEnabled = false;
+			environment.BloomIntensity = 0.0f;
+			environment.VolumetricFog = false;
+			Test::CreateBox(scene, "Ground", { 0.0f, -0.5f, 0.0f }, { 30.0f, 0.5f, 30.0f }, glm::vec4(0.8f, 0.8f, 0.8f, 1.0f));
+			Test::CreateBox(scene, "North", { 0.0f, 1.5f, -2.1f }, { 2.2f, 1.5f, 0.1f });
+			Test::CreateBox(scene, "South", { 0.0f, 1.5f, 2.1f }, { 2.2f, 1.5f, 0.1f });
+			Test::CreateBox(scene, "East", { 2.1f, 1.5f, 0.0f }, { 0.1f, 1.5f, 2.2f });
+			Test::CreateBox(scene, "West", { -2.1f, 1.5f, 0.0f }, { 0.1f, 1.5f, 2.2f });
+			Test::CreateBox(scene, "Roof", { 0.0f, 3.1f, 0.0f }, { 2.3f, 0.1f, 2.3f });
+			auto addLamp = [&](const char* name, const glm::vec3& position, float intensity, float range) {
+				Entity entity = scene.CreateEntity(name);
+				entity.Transform().Translation = position;
+				auto& light = entity.AddComponent<PointLightComponent>();
+				light.Intensity = intensity;
+				light.Range = range;
+				light.Flicker = 0.0f;
+				light.CastShadows = true;
+				return entity;
+			};
+			Entity outside = addLamp("Torch outside", { 0.0f, 1.5f, -3.0f }, 40.0f, 8.0f);
+			for (int i = 0; i < innerLamps; i++)
+				addLamp("Candle", { -1.8f + 0.3f * static_cast<float>(i), 0.3f, 0.3f }, 0.5f, 0.3f);
+
+			const RenderCamera inside = RenderCamera::Perspective({ 0.0f, 1.5f, 1.5f }, Math::LookRotation(glm::vec3(0.0f, -1.5f, -2.5f)), 60.0f,
+				static_cast<float>(RendererFixture::Width) / static_cast<float>(RendererFixture::Height), 0.05f, 100.0f);
+			const glm::uvec2 floor = RendererFixture::ToPixel(inside, { 0.0f, 0.0f, -1.0f });
+			auto brightness = [&](const std::vector<uint8_t>& pixels) { return Math::Luminance(RendererFixture::Pixel(pixels, floor.x, floor.y)); };
+
+			outside.GetComponent<PointLightComponent>().Enabled = false;
+			const float dark = brightness(fixture.RenderFrame(inside));
+			outside.GetComponent<PointLightComponent>().Enabled = true;
+			const float withTorch = brightness(fixture.RenderFrame(inside));
+			CAPTURE(innerLamps);
+			CHECK(withTorch < dark + 0.02f);
+			if (innerLamps > 0)
+				CHECK(fixture.Renderer->GetStatistics().LeftOutLamps > 0);
+
+			// The same torch inside the room lights the floor (the test sees light where there is some), as long as
+			// it finds a shadow map: with the candles taking all eight it is the ninth and is left out.
+			if (innerLamps == 0)
+			{
+				outside.Transform().Translation = { 0.0f, 1.5f, -1.5f };
+				CHECK(brightness(fixture.RenderFrame(inside)) > dark + 0.1f);
+			}
 			CHECK(fixture.Device->GetErrorCount() == 0);
 		}
 	}

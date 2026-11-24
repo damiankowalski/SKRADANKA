@@ -8,6 +8,7 @@
 #include "Penumbra/Core/Timer.h"
 #include "Penumbra/Renderer/GpuResourceCache.h"
 #include "Penumbra/Renderer/RenderDevice.h"
+#include "Penumbra/Renderer/ShadowSlots.h"
 #include "Penumbra/Renderer/ShaderLibrary.h"
 #include "Penumbra/Scene/Entity.h"
 #include "Penumbra/Scene/FogUtils.h"
@@ -254,6 +255,7 @@ namespace Penumbra {
 		std::vector<SkinJob> SkinJobs;
 		uint64_t FrameIndex = 0;
 		std::vector<GPU::Light> Lights;
+		uint32_t LeftOutLamps = 0; // lamps in view with CastShadows that found no shadow map (left out)
 		GPU::ViewConstants View{};
 		Timer Clock; // animates effects in the editor, where scene time stands still
 
@@ -1113,12 +1115,7 @@ namespace Penumbra {
 		if (View.DirectionalShadowIndex < 0.0f)
 			View.ShadowSoftness = 1.0f;
 
-		struct Candidate
-		{
-			size_t LightIndex;
-			float Distance;
-		};
-		std::vector<Candidate> spotCandidates, pointCandidates;
+		std::vector<ShadowCandidate> spotCandidates, pointCandidates;
 
 		for (auto [handle, light] : registry.view<SpotLightComponent>().each())
 		{
@@ -1137,7 +1134,7 @@ namespace Penumbra {
 			gpu.CosInner = std::cos(glm::radians(std::min(light.InnerAngle, light.OuterAngle)));
 			gpu.ShadowIndex = -1;
 			if (light.CastShadows)
-				spotCandidates.push_back({ Lights.size(), glm::distance(gpu.Position, camera.Position) });
+				spotCandidates.push_back({ Lights.size(), gpu.Position, gpu.Range });
 			Lights.push_back(gpu);
 		}
 
@@ -1155,18 +1152,20 @@ namespace Penumbra {
 			gpu.Color = light.Color * light.Intensity * LightUtils::Flicker(time, entity.GetUUID(), light.Flicker);
 			gpu.ShadowIndex = -1;
 			if (light.CastShadows)
-				pointCandidates.push_back({ Lights.size(), glm::distance(gpu.Position, camera.Position) });
+				pointCandidates.push_back({ Lights.size(), gpu.Position, gpu.Range });
 			Lights.push_back(gpu);
 		}
 
-		// The closest shadowed lights get the limited shadow slots.
-		auto byDistance = [](const Candidate& a, const Candidate& b) { return a.Distance < b.Distance; };
-		std::sort(spotCandidates.begin(), spotCandidates.end(), byDistance);
-		std::sort(pointCandidates.begin(), pointCandidates.end(), byDistance);
+		// Lamps with CastShadows never light through walls: the ones whose light reaches the view get the shadow
+		// maps, nearest first; the rest are left out of the picture (ShadowSlots.h).
+		const Frustum frustum(camera.Projection * camera.View);
+		const ShadowSlotAssignment spots = AssignShadowSlots(spotCandidates, frustum, camera.Position, GPU::MaxSpotShadows);
+		const ShadowSlotAssignment points = AssignShadowSlots(pointCandidates, frustum, camera.Position, GPU::MaxPointShadows);
+		LeftOutLamps = spots.Overflow + points.Overflow;
 
-		for (uint32_t slot = 0; slot < std::min<size_t>(spotCandidates.size(), GPU::MaxSpotShadows); slot++)
+		for (uint32_t slot = 0; slot < spots.Shadowed.size(); slot++)
 		{
-			GPU::Light& light = Lights[spotCandidates[slot].LightIndex];
+			GPU::Light& light = Lights[spots.Shadowed[slot]];
 			const glm::vec3 up = std::abs(light.Direction.y) > 0.99f ? glm::vec3(0, 0, 1) : glm::vec3(0, 1, 0);
 			const float fov = std::min(2.0f * std::acos(std::clamp(light.CosOuter, -1.0f, 1.0f)) + glm::radians(4.0f), glm::radians(170.0f));
 			light.ShadowViewProj = glm::perspectiveRH_ZO(fov, 1.0f, ShadowNearPlane, std::max(light.Range, ShadowNearPlane * 2.0f)) *
@@ -1175,9 +1174,9 @@ namespace Penumbra {
 			shadowViews.push_back({ light.ShadowViewProj, SpotFramebuffers[slot], SpotShadows, slot, settings.SpotShadowResolution });
 		}
 
-		for (uint32_t slot = 0; slot < std::min<size_t>(pointCandidates.size(), GPU::MaxPointShadows); slot++)
+		for (uint32_t slot = 0; slot < points.Shadowed.size(); slot++)
 		{
-			GPU::Light& light = Lights[pointCandidates[slot].LightIndex];
+			GPU::Light& light = Lights[points.Shadowed[slot]];
 			light.ShadowIndex = static_cast<int32_t>(slot);
 			light.ShadowNear = ShadowNearPlane;
 			light.ShadowFar = std::max(light.Range, ShadowNearPlane * 2.0f);
@@ -1188,6 +1187,20 @@ namespace Penumbra {
 					PointShadows, layer, settings.PointShadowResolution });
 			}
 		}
+
+		// Drop the left-out lamps (the shadowed ones keep their slots; ShadowIndex travels with the light).
+		std::vector<bool> leftOut(Lights.size(), false);
+		for (size_t index : spots.LeftOut)
+			leftOut[index] = true;
+		for (size_t index : points.LeftOut)
+			leftOut[index] = true;
+		size_t kept = 0;
+		for (size_t i = 0; i < Lights.size(); i++)
+		{
+			if (!leftOut[i])
+				Lights[kept++] = Lights[i];
+		}
+		Lights.resize(kept);
 	}
 
 	void SceneRenderer::Impl::DrawFullscreen(nvrhi::IGraphicsPipeline* pipeline, nvrhi::IFramebuffer* framebuffer, nvrhi::IBindingSet* set,
@@ -1280,6 +1293,7 @@ namespace Penumbra {
 		impl.CollectLights(scene, camera, m_Settings, shadowViews);
 		m_Statistics.Lights = static_cast<uint32_t>(impl.Lights.size());
 		m_Statistics.ShadowViews = static_cast<uint32_t>(shadowViews.size());
+		m_Statistics.LeftOutLamps = impl.LeftOutLamps;
 
 		// View constants
 		GPU::ViewConstants& view = impl.View;
