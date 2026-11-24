@@ -38,6 +38,23 @@ Statistics as tabs under it. Play, the gizmo modes and the frame time run along 
 on the frame time shows Statistics). Panels can be dragged to dock elsewhere, tabbed or torn off, and the
 layout is remembered; **View → Reset layout** brings the default back.
 
+The editor's panels:
+
+* **Properties** shows each component's fields in the order the registry lists them, labels on the left, with their
+  units in the values ("1.650 m"), groups for long components (Perception: Sight, Adaptation to light, Suspicion,
+  Hearing, Reactions, Touch and close range) and coloured X/Y/Z for vectors. Hovering a label shows its key (the
+  name scene files, Lua and the automation API use); right-click it to reset the field or copy its value.
+  Right-click a component's header to reset it, copy or paste its values (JSON, so they also paste between the
+  runtime's inspector and the editor) or remove it. The runtime's F4 inspector uses the same widgets.
+* **Hierarchy**: a coloured letter says what each entity is (G guard, T thief, L light, C camera, E environment,
+  S scripted, P prefab instance, A sound, B physics body, M mesh, - group; hover it for the word). Search filters
+  by name at any depth. F2 or a double click renames. Right-click on empty space creates things, prefabs
+  included.
+* **Content**: right-click a file to open it, place a prefab, copy its path or show it in Finder/Explorer; a
+  folder to create a Lua script in it.
+* **Console**: Info / Warnings / Errors toggles and a text filter; right-click a line to copy it, empty space to
+  copy everything shown.
+
 `--window-screenshot <file.png>` with `--frames N` saves the window's last frame as it is shown, the tools and
 the editor's panels included (`--screenshot` saves only the 3D picture). It works in the editor and the runtime,
 in windowed runs.

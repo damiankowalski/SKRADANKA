@@ -71,6 +71,17 @@ namespace Penumbra::Platform {
 #endif
 	}
 
+	const char* RevealInFileManagerLabel()
+	{
+#if defined(_WIN32)
+		return "Show in Explorer";
+#elif defined(__APPLE__)
+		return "Show in Finder";
+#else
+		return "Show in folder";
+#endif
+	}
+
 	ProcessUsage GetProcessUsage()
 	{
 		ProcessUsage usage;

@@ -58,6 +58,10 @@ namespace Penumbra {
 		void DrawMenuBar();
 		// The default docked layout on the first start (no saved one) and after View > Reset layout.
 		void DockPanels();
+		// What Create offers (the menu bar and the right-click menu on empty Hierarchy space).
+		void DrawCreateMenuItems();
+		void InstantiatePrefab(const std::string& path);
+		void CreateScriptFile(const std::filesystem::path& folder);
 		// Play controls, gizmo modes and the frame time along the top of the viewport; returns its height.
 		float DrawViewportToolbar(const ImVec2& origin, const ImVec2& size);
 		void DrawViewport();
@@ -135,6 +139,15 @@ namespace Penumbra {
 		std::deque<ConsoleLine> m_Console;
 		Log::SinkHandle m_ConsoleSink = 0;
 		char m_ConsoleInput[1024] = {};
+		char m_ConsoleFilter[128] = {};
+		bool m_ConsoleShowInfo = true;
+		bool m_ConsoleShowWarnings = true;
+		bool m_ConsoleShowErrors = true;
+
+		char m_HierarchyFilter[128] = {};
+		UUID m_Renaming = UUID::Invalid; // the entity whose name is being edited in Hierarchy
+		char m_RenameBuffer[256] = {};
+		bool m_RenameFocus = false;
 
 		std::string m_PathPopupTitle;
 		char m_PathBuffer[512] = {};

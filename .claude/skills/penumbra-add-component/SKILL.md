@@ -10,7 +10,9 @@ description: Add a new ECS component to Penumbra so it is serializable, editable
    - Runtime-only state goes last, prefixed `Runtime` (never saved, read-only in generic APIs).
 2. **Register** it in `Penumbra/src/Penumbra/Scene/ComponentRegistry.cpp`:
    - add a `VisitFields` overload listing every field: `v("Name", c.Name);` and for runtime fields
-     `v("Name", c.RuntimeName, FieldKind::Runtime);`
+     `v("Name", c.RuntimeName, FieldKind::Runtime);`. A unit for the editor goes third: `v("Range", c.Range, "m");`
+     ("m", "deg", "s", "0-10"...). Long components group their fields for the editor with `v("Sight", Group);`
+     before the first field of each group. The order of the list is the order the editor shows.
    - add `registry.push_back(MakeInfo<YourComponent>("YourName"));` in `BuildRegistry()`.
    - Enums need an `EnumNames<>` specialization in `Scene/JsonSerialization.h`.
 3. **Copy support**: append the type to `AllComponents` at the bottom of `Components.h`

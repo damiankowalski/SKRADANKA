@@ -250,10 +250,11 @@ GPU test puts a torch behind a room's wall with more nearer lamps than maps (the
 **Developer tools' UI** (M-L, approved 2026-11-23; brief `docs/research/DevToolsUI.md` approved 2026-11-24): four
 PRs. **A. Sharpness and foundations** (done, #43): Retina framebuffer and per-monitor DPI, Roboto + Cousine
 fonts, a render scale for the 3D picture, one UI size for the editor and runtime, layouts saved per user;
-`--window-screenshot` saves the window with its UI. **B. The editor's layout** (in progress): a default docked
+`--window-screenshot` saves the window with its UI. **B. The editor's layout** (done, #44): a default docked
 layout on the first start and View → Reset layout (`ImGui/DockLayout.h`), the toolbar and frame time along the
-top of the viewport, Console and Statistics as tabs. Then **C** the
-editor's panels (Properties, right-click menus, Hierarchy search, Console), **D** the runtime's F3-F7 tools
+top of the viewport, Console and Statistics as tabs. **C. The editor's panels** (in progress): Properties in
+registry order with labels, units and groups (declared in `VisitFields`), right-click menus (fields, components,
+Hierarchy, Content, Console), Hierarchy badges, search and rename, Console filters. Then **D** the runtime's F3-F7 tools
 (F4 in tabs, no overlaps, remembered layout).
 
 ## Known bugs

@@ -10,6 +10,7 @@
 #include "Penumbra/Core/Platform.h"
 #include "Penumbra/Debug/DebugOverlays.h"
 #include "Penumbra/ImGui/DockLayout.h"
+#include "Penumbra/ImGui/EntityBadge.h"
 #include "Penumbra/Navigation/NavigationSystem.h"
 #include "Penumbra/Project/Project.h"
 #include "Penumbra/Project/ProjectExporter.h"
@@ -638,42 +639,7 @@ namespace Penumbra {
 		}
 		if (ImGui::BeginMenu("Create"))
 		{
-			if (ImGui::MenuItem("Empty"))
-			{
-				MarkChanged();
-				m_Selection = GetActiveSceneForView()->CreateEntity("Entity").GetUUID();
-			}
-			for (const char* primitive : { "Cube", "Sphere", "Plane", "Capsule", "Cylinder" })
-			{
-				if (ImGui::MenuItem(primitive))
-				{
-					std::string mesh = std::string("builtin:") + primitive;
-					std::transform(mesh.begin(), mesh.end(), mesh.begin(), [](char c) { return static_cast<char>(std::tolower(c)); });
-					CreatePrimitive(primitive, mesh);
-				}
-			}
-			ImGui::Separator();
-			for (const char* light : { "Directional Light", "Point Light", "Spot Light" })
-			{
-				if (ImGui::MenuItem(light))
-					CreateLight(light);
-			}
-			if (ImGui::MenuItem("Camera"))
-			{
-				MarkChanged();
-				Entity camera = GetActiveSceneForView()->CreateEntity("Camera");
-				camera.Transform().Translation = m_Camera.GetPosition();
-				camera.Transform().Rotation = m_Camera.GetRotation();
-				camera.AddComponent<CameraComponent>();
-				m_Selection = camera.GetUUID();
-			}
-			if (ImGui::MenuItem("Environment"))
-			{
-				MarkChanged();
-				Entity environment = GetActiveSceneForView()->CreateEntity("Environment");
-				environment.AddComponent<EnvironmentComponent>();
-				m_Selection = environment.GetUUID();
-			}
+			DrawCreateMenuItems();
 			ImGui::EndMenu();
 		}
 		if (ImGui::BeginMenu("View"))
@@ -792,6 +758,112 @@ namespace Penumbra {
 		return height;
 	}
 
+	void EditorLayer::DrawCreateMenuItems()
+	{
+		if (ImGui::MenuItem("Empty"))
+		{
+			MarkChanged();
+			m_Selection = GetActiveSceneForView()->CreateEntity("Entity").GetUUID();
+		}
+		for (const char* primitive : { "Cube", "Sphere", "Plane", "Capsule", "Cylinder" })
+		{
+			if (ImGui::MenuItem(primitive))
+			{
+				std::string mesh = std::string("builtin:") + primitive;
+				std::transform(mesh.begin(), mesh.end(), mesh.begin(), [](char c) { return static_cast<char>(std::tolower(c)); });
+				CreatePrimitive(primitive, mesh);
+			}
+		}
+		ImGui::Separator();
+		for (const char* light : { "Directional Light", "Point Light", "Spot Light" })
+		{
+			if (ImGui::MenuItem(light))
+				CreateLight(light);
+		}
+		if (ImGui::MenuItem("Camera"))
+		{
+			MarkChanged();
+			Entity camera = GetActiveSceneForView()->CreateEntity("Camera");
+			camera.Transform().Translation = m_Camera.GetPosition();
+			camera.Transform().Rotation = m_Camera.GetRotation();
+			camera.AddComponent<CameraComponent>();
+			m_Selection = camera.GetUUID();
+		}
+		if (ImGui::MenuItem("Environment"))
+		{
+			MarkChanged();
+			Entity environment = GetActiveSceneForView()->CreateEntity("Environment");
+			environment.AddComponent<EnvironmentComponent>();
+			m_Selection = environment.GetUUID();
+		}
+		if (Project::IsLoaded() && ImGui::BeginMenu("From prefab"))
+		{
+			std::error_code error;
+			const std::filesystem::path root = Project::GetAssetDirectory();
+			bool any = false;
+			for (auto it = std::filesystem::recursive_directory_iterator(root, error); !error && it != std::filesystem::recursive_directory_iterator();
+				 it.increment(error))
+			{
+				if (it->path().extension() != ".pprefab")
+					continue;
+				any = true;
+				const std::string relative = Project::MakeAssetRelative(it->path());
+				if (ImGui::MenuItem(relative.c_str()))
+					InstantiatePrefab(relative);
+			}
+			if (!any)
+				ImGui::TextDisabled("No prefabs in the project");
+			ImGui::EndMenu();
+		}
+	}
+
+	void EditorLayer::InstantiatePrefab(const std::string& path)
+	{
+		const glm::vec3 spawn = m_Camera.GetPosition() + Math::Forward(m_Camera.GetRotation()) * 6.0f;
+		MarkChanged();
+		if (Entity root = Prefab::Instantiate(*GetActiveSceneForView(), path, spawn))
+			m_Selection = root.GetUUID();
+	}
+
+	void EditorLayer::CreateScriptFile(const std::filesystem::path& folder)
+	{
+		m_PathPopupTitle = "New Lua script";
+		const std::string relativeFolder = Project::MakeAssetRelative(folder);
+		std::snprintf(m_PathBuffer, sizeof(m_PathBuffer), "%s/NewScript.lua", relativeFolder.c_str());
+		m_PathPopupAction = [](const std::string& path) {
+			const std::filesystem::path file = Project::ResolveAssetPath(path);
+			std::error_code exists;
+			if (std::filesystem::exists(file, exists))
+			{
+				PN_CORE_ERROR("{} already exists", path);
+				return;
+			}
+			// A Lua identifier from the file name: "door-small.lua" -> DoorSmall.
+			std::string name;
+			bool upper = true;
+			for (const char c : file.stem().string())
+			{
+				if (!std::isalnum(static_cast<unsigned char>(c)))
+				{
+					upper = true;
+					continue;
+				}
+				name += upper ? static_cast<char>(std::toupper(static_cast<unsigned char>(c))) : c;
+				upper = false;
+			}
+			if (name.empty() || std::isdigit(static_cast<unsigned char>(name[0])))
+				name = "Script" + name;
+			const std::string text = std::format("-- {0}: what it does.\n\nlocal {0} = {{ Properties = {{}} }}\n\n"
+												 "function {0}:on_create() end\n\nfunction {0}:on_update(dt) end\n\nreturn {0}\n",
+				name);
+			if (FileSystem::WriteTextFile(file, text))
+				PN_CORE_INFO("Created {}", path);
+			else
+				PN_CORE_ERROR("Cannot write {}", path);
+		};
+		m_OpenPathPopup = true;
+	}
+
 	void EditorLayer::DrawHierarchyNode(Entity entity)
 	{
 		const std::vector<Entity> children = entity.GetChildren();
@@ -801,10 +873,18 @@ namespace Penumbra {
 		if (entity.GetUUID() == m_Selection)
 			flags |= ImGuiTreeNodeFlags_Selected;
 
-		const bool open = ImGui::TreeNodeEx(reinterpret_cast<void*>(static_cast<uintptr_t>(static_cast<uint64_t>(entity.GetUUID()))), flags, "%s",
-			entity.GetName().c_str());
+		// The label is drawn after the node (badge, then the name or its rename field), so the node's own label is empty.
+		const void* nodeId = reinterpret_cast<void*>(static_cast<uintptr_t>(static_cast<uint64_t>(entity.GetUUID())));
+		const bool open = ImGui::TreeNodeEx(nodeId, flags, "%s", "");
+		const ImVec2 labelStart = ImVec2(ImGui::GetItemRectMin().x + ImGui::GetTreeNodeToLabelSpacing(), ImGui::GetItemRectMin().y);
 		if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
 			m_Selection = entity.GetUUID();
+		if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && !ImGui::IsItemToggledOpen())
+		{
+			m_Renaming = entity.GetUUID();
+			std::snprintf(m_RenameBuffer, sizeof(m_RenameBuffer), "%s", entity.GetName().c_str());
+			m_RenameFocus = true;
+		}
 
 		if (ImGui::BeginDragDropSource())
 		{
@@ -857,6 +937,39 @@ namespace Penumbra {
 			ImGui::EndPopup();
 		}
 
+		// Badge and name (or the rename field) on the node's line.
+		const ImVec2 afterNode = ImGui::GetCursorScreenPos();
+		ImGui::SetCursorScreenPos(ImVec2(labelStart.x, labelStart.y));
+		const EntityBadge badge = GetEntityBadge(entity);
+		ImGui::PushStyleColor(ImGuiCol_Text, badge.Color);
+		ImGui::Text("%c", badge.Letter);
+		ImGui::PopStyleColor();
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("%s", badge.Kind);
+		ImGui::SameLine();
+		if (m_Renaming == entity.GetUUID())
+		{
+			if (m_RenameFocus)
+				ImGui::SetKeyboardFocusHere();
+			m_RenameFocus = false;
+			ImGui::SetNextItemWidth(-FLT_MIN);
+			const ImGuiInputTextFlags renameFlags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll;
+			if (ImGui::InputText("##Rename", m_RenameBuffer, sizeof(m_RenameBuffer), renameFlags))
+			{
+				if (m_RenameBuffer[0] != '\0' && entity.GetName() != m_RenameBuffer)
+				{
+					MarkChanged();
+					entity.GetComponent<TagComponent>().Tag = m_RenameBuffer;
+				}
+				m_Renaming = UUID::Invalid;
+			}
+			else if (ImGui::IsItemDeactivated() || ImGui::IsKeyPressed(ImGuiKey_Escape))
+				m_Renaming = UUID::Invalid; // clicked away or Escape: unchanged
+		}
+		else
+			ImGui::TextUnformatted(entity.GetName().c_str());
+		ImGui::SetCursorScreenPos(afterNode);
+
 		if (open)
 		{
 			for (Entity child : children)
@@ -881,10 +994,75 @@ namespace Penumbra {
 		ImGui::Begin("Hierarchy");
 		Ref<Scene> scene = GetActiveSceneForView();
 		ImGui::TextDisabled("%s (%zu entities)", m_PlayScene ? "PLAYING" : "Edit scene", scene->GetEntityCount());
-		for (Entity root : scene->GetRootEntities())
+		ImGui::SetNextItemWidth(-FLT_MIN);
+		ImGui::InputTextWithHint("##Search", "Search names", m_HierarchyFilter, sizeof(m_HierarchyFilter));
+
+		// F2 renames the selection.
+		if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && ImGui::IsKeyPressed(ImGuiKey_F2) && m_Renaming == UUID::Invalid)
 		{
-			if (root.IsValid())
-				DrawHierarchyNode(root);
+			if (Entity selected = GetSelectedEntity())
+			{
+				m_Renaming = selected.GetUUID();
+				std::snprintf(m_RenameBuffer, sizeof(m_RenameBuffer), "%s", selected.GetName().c_str());
+				m_RenameFocus = true;
+			}
+		}
+
+		if (m_HierarchyFilter[0] == '\0')
+		{
+			for (Entity root : scene->GetRootEntities())
+			{
+				if (root.IsValid())
+					DrawHierarchyNode(root);
+			}
+		}
+		else
+		{
+			// A flat list of the matches (any depth), case-insensitive.
+			auto lower = [](std::string text) {
+				std::transform(text.begin(), text.end(), text.begin(),
+					[](char c) { return static_cast<char>(std::tolower(static_cast<unsigned char>(c))); });
+				return text;
+			};
+			const std::string filter = lower(m_HierarchyFilter);
+			std::vector<Entity> matches;
+			std::function<void(Entity)> collect = [&](Entity entity) {
+				if (!entity.IsValid())
+					return;
+				if (lower(entity.GetName()).find(filter) != std::string::npos)
+					matches.push_back(entity);
+				for (Entity child : entity.GetChildren())
+					collect(child);
+			};
+			for (Entity root : scene->GetRootEntities())
+				collect(root);
+			if (matches.empty())
+				ImGui::TextDisabled("No entity matches");
+			for (Entity match : matches)
+			{
+				const bool selected = match.GetUUID() == m_Selection;
+				ImGui::PushID(static_cast<int>(static_cast<uint64_t>(match.GetUUID())));
+				const EntityBadge badge = GetEntityBadge(match);
+				ImGui::PushStyleColor(ImGuiCol_Text, badge.Color);
+				ImGui::Text("%c", badge.Letter);
+				ImGui::PopStyleColor();
+				ImGui::SameLine();
+				if (ImGui::Selectable(match.GetName().c_str(), selected))
+					m_Selection = match.GetUUID();
+				if (Entity parent = match.GetParent(); parent.IsValid())
+				{
+					ImGui::SameLine();
+					ImGui::TextDisabled("in %s", parent.GetName().c_str());
+				}
+				ImGui::PopID();
+			}
+		}
+
+		// Right-click on empty space: create.
+		if (ImGui::BeginPopupContextWindow("HierarchyMenu", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
+		{
+			DrawCreateMenuItems();
+			ImGui::EndPopup();
 		}
 		// Dropping on empty space un-parents.
 		ImGui::Dummy(ImVec2(ImGui::GetContentRegionAvail().x, std::max(ImGui::GetContentRegionAvail().y, 20.0f)));
@@ -916,6 +1094,7 @@ namespace Penumbra {
 		}
 
 		const std::filesystem::path root = Project::GetAssetDirectory();
+		const char* RevealLabel = Platform::RevealInFileManagerLabel();
 		std::function<void(const std::filesystem::path&)> drawDirectory = [&](const std::filesystem::path& directory) {
 			std::vector<std::filesystem::directory_entry> entries;
 			std::error_code error;
@@ -931,7 +1110,16 @@ namespace Penumbra {
 				const std::string name = entry.path().filename().string();
 				if (entry.is_directory())
 				{
-					if (ImGui::TreeNodeEx(name.c_str(), ImGuiTreeNodeFlags_SpanAvailWidth))
+					const bool open = ImGui::TreeNodeEx(name.c_str(), ImGuiTreeNodeFlags_SpanAvailWidth);
+					if (ImGui::BeginPopupContextItem())
+					{
+						if (ImGui::MenuItem("New Lua script..."))
+							CreateScriptFile(entry.path());
+						if (ImGui::MenuItem(RevealLabel))
+							Platform::OpenWithDefaultApplication(entry.path());
+						ImGui::EndPopup();
+					}
+					if (open)
 					{
 						drawDirectory(entry.path());
 						ImGui::TreePop();
@@ -946,17 +1134,37 @@ namespace Penumbra {
 					ImGui::TextUnformatted(relative.c_str());
 					ImGui::EndDragDropSource();
 				}
-				if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-				{
-					const std::string extension = entry.path().extension().string();
-					if (extension == ".pscene")
+				auto open = [&] {
+					if (entry.path().extension() == ".pscene")
 						OpenScene(relative);
 					else
 						Platform::OpenWithDefaultApplication(entry.path());
+				};
+				if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+					open();
+				if (ImGui::BeginPopupContextItem())
+				{
+					if (ImGui::MenuItem(entry.path().extension() == ".pscene" ? "Open scene" : "Open"))
+						open();
+					if (entry.path().extension() == ".pprefab" && ImGui::MenuItem("Place in the scene"))
+						InstantiatePrefab(relative);
+					if (ImGui::MenuItem("Copy path"))
+						ImGui::SetClipboardText(relative.c_str());
+					if (ImGui::MenuItem(RevealLabel))
+						Platform::OpenWithDefaultApplication(entry.path().parent_path());
+					ImGui::EndPopup();
 				}
 			}
 		};
 		drawDirectory(root);
+		if (ImGui::BeginPopupContextWindow("ContentMenu", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
+		{
+			if (ImGui::MenuItem("New Lua script..."))
+				CreateScriptFile(root / "Scripts");
+			if (ImGui::MenuItem(RevealLabel))
+				Platform::OpenWithDefaultApplication(root);
+			ImGui::EndPopup();
+		}
 		ImGui::End();
 	}
 
@@ -969,21 +1177,55 @@ namespace Penumbra {
 			m_Console.clear();
 		}
 		ImGui::SameLine();
-		ImGui::TextDisabled(m_PlayScene ? "Input runs Lua in the playing scene" : "Input runs an automation command (JSON)");
+		ImGui::Checkbox("Info", &m_ConsoleShowInfo);
+		ImGui::SameLine();
+		ImGui::Checkbox("Warnings", &m_ConsoleShowWarnings);
+		ImGui::SameLine();
+		ImGui::Checkbox("Errors", &m_ConsoleShowErrors);
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(std::max(ImGui::GetContentRegionAvail().x, 80.0f));
+		ImGui::InputTextWithHint("##ConsoleFilter", "Filter", m_ConsoleFilter, sizeof(m_ConsoleFilter));
 		ImGui::BeginChild("ConsoleScroll", ImVec2(0.0f, -ImGui::GetFrameHeightWithSpacing()));
 		ImGui::PushFont(ImGuiFonts::Monospace(), 0.0f);
 		{
 			std::scoped_lock lock(m_ConsoleMutex);
+			const std::string_view filter = m_ConsoleFilter;
+			std::string visible; // for "Copy all shown"
+			int index = 0;
 			for (const ConsoleLine& line : m_Console)
 			{
+				const bool error = line.Level >= LogLevel::Error;
+				const bool warning = line.Level == LogLevel::Warn;
+				if ((error && !m_ConsoleShowErrors) || (warning && !m_ConsoleShowWarnings) || (!error && !warning && !m_ConsoleShowInfo))
+					continue;
+				if (!filter.empty() && line.Text.find(filter) == std::string::npos)
+					continue;
 				ImVec4 color(0.85f, 0.85f, 0.85f, 1.0f);
-				if (line.Level == LogLevel::Warn)
+				if (warning)
 					color = ImVec4(1.0f, 0.85f, 0.3f, 1.0f);
-				else if (line.Level >= LogLevel::Error)
+				else if (error)
 					color = ImVec4(1.0f, 0.4f, 0.4f, 1.0f);
 				else if (line.Level == LogLevel::Trace)
 					color = ImVec4(0.55f, 0.55f, 0.55f, 1.0f);
-				ImGui::TextColored(color, "%s", line.Text.c_str());
+				ImGui::PushID(index++);
+				ImGui::PushStyleColor(ImGuiCol_Text, color);
+				ImGui::Selectable(line.Text.c_str(), false, ImGuiSelectableFlags_AllowOverlap);
+				ImGui::PopStyleColor();
+				if (ImGui::BeginPopupContextItem("LineMenu"))
+				{
+					if (ImGui::MenuItem("Copy line"))
+						ImGui::SetClipboardText(line.Text.c_str());
+					ImGui::EndPopup();
+				}
+				ImGui::PopID();
+				visible += line.Text;
+				visible += '\n';
+			}
+			if (ImGui::BeginPopupContextWindow("ConsoleMenu", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
+			{
+				if (ImGui::MenuItem("Copy all shown"))
+					ImGui::SetClipboardText(visible.c_str());
+				ImGui::EndPopup();
 			}
 		}
 		if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY())

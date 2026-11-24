@@ -26,25 +26,17 @@ namespace Penumbra {
 				continue;
 			ImGui::PushID(info.Name.c_str());
 			const bool open = ImGui::CollapsingHeader(info.Name.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowOverlap);
-			bool removeRequested = false;
-			if (info.Removable && ImGui::BeginPopupContextItem("ComponentMenu"))
-			{
-				if (ImGui::MenuItem("Remove component"))
-					removeRequested = true;
-				ImGui::EndPopup();
-			}
-			if (open)
+			if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+				ImGui::SetTooltip("Right-click: reset, copy, paste%s", info.Removable ? ", remove" : "");
+			bool removed = false;
+			changed |= ComponentInspector::DrawComponentMenu(entity, info, removed);
+			if (open && !removed)
 			{
 				changed |= ComponentInspector::DrawFields(entity, info);
 				if (showRuntimeState)
 					ComponentInspector::DrawRuntimeState(entity, info);
 			}
 			ImGui::PopID();
-			if (removeRequested)
-			{
-				info.Remove(entity);
-				changed = true;
-			}
 		}
 
 		ImGui::Separator();
