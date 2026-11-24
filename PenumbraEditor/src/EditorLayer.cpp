@@ -9,6 +9,7 @@
 #include "Penumbra/Core/Input.h"
 #include "Penumbra/Core/Platform.h"
 #include "Penumbra/Debug/DebugOverlays.h"
+#include "Penumbra/ImGui/DockLayout.h"
 #include "Penumbra/Navigation/NavigationSystem.h"
 #include "Penumbra/Project/Project.h"
 #include "Penumbra/Project/ProjectExporter.h"
@@ -495,9 +496,8 @@ namespace Penumbra {
 		m_ImGui->SetScale(Application::Get().GetWindow()->GetDpiScale() * m_Settings.UiScale);
 		m_ImGui->BeginFrame();
 		ImGuizmo::BeginFrame();
-		ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
+		DockPanels();
 		DrawMenuBar();
-		DrawToolbar();
 		DrawHierarchy();
 		const bool propertiesChanged = [&] {
 			// Snapshot before the first modification of an interaction.
@@ -684,6 +684,8 @@ namespace Penumbra {
 			ImGui::MenuItem("Navmesh (play mode)", nullptr, &m_ShowNavMesh);
 			ImGui::MenuItem("Game camera", nullptr, &m_UseSceneCamera);
 			ImGui::Separator();
+			if (ImGui::MenuItem("Reset layout"))
+				m_ResetLayout = true;
 			// Shared with the runtime's F4 panel (UserSettings); saved when the slider is let go.
 			ImGui::SetNextItemWidth(ImGui::GetFontSize() * 8.0f);
 			ImGui::SliderFloat("UI size", &m_Settings.UiScale, UserSettings::MinUiScale, UserSettings::MaxUiScale, "%.2fx");
@@ -710,9 +712,51 @@ namespace Penumbra {
 		ImGui::EndMainMenuBar();
 	}
 
-	void EditorLayer::DrawToolbar()
+	void EditorLayer::DockPanels()
 	{
-		ImGui::Begin("Toolbar", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoTitleBar);
+		const ImGuiViewport* viewport = ImGui::GetMainViewport();
+		const ImGuiID dockSpace = ImGui::GetID("EditorDockSpace");
+		if (m_ResetLayout || (!m_LayoutChecked && DockLayout::IsEmpty(dockSpace)))
+		{
+			static constexpr DockedWindow Panels[] = {
+				{ "Viewport", DockArea::Center },
+				{ "Hierarchy", DockArea::Left },
+				{ "Content", DockArea::LeftBottom },
+				{ "Properties", DockArea::Right },
+				{ "Console", DockArea::Bottom },
+				{ "Statistics", DockArea::Bottom },
+			};
+			DockLayout::Build(dockSpace, viewport->WorkPos, viewport->WorkSize, Panels);
+		}
+		m_LayoutChecked = true;
+		m_ResetLayout = false;
+		ImGui::DockSpaceOverViewport(dockSpace, viewport);
+	}
+
+	float EditorLayer::DrawViewportToolbar(const ImVec2& origin, const ImVec2& size)
+	{
+		const ImGuiStyle& style = ImGui::GetStyle();
+		const float height = ImGui::GetFrameHeight() + style.FramePadding.y * 2.0f;
+		const float top = origin.y + style.FramePadding.y;
+		ImGui::GetWindowDrawList()->AddRectFilled(origin, ImVec2(origin.x + size.x, origin.y + height), IM_COL32(10, 11, 13, 170));
+
+		// Left: gizmo modes.
+		ImGui::SetCursorScreenPos(ImVec2(origin.x + style.ItemSpacing.x, top));
+		ImGui::RadioButton("Move (W)", &m_GizmoOperation, ImGuizmo::TRANSLATE);
+		ImGui::SameLine();
+		ImGui::RadioButton("Rotate (E)", &m_GizmoOperation, ImGuizmo::ROTATE);
+		ImGui::SameLine();
+		ImGui::RadioButton("Scale (R)", &m_GizmoOperation, ImGuizmo::SCALE);
+		ImGui::SameLine();
+		ImGui::Checkbox("Local", &m_GizmoLocal);
+		const float leftEnd = ImGui::GetItemRectMax().x;
+
+		// Middle: play controls.
+		auto buttonWidth = [&](const char* label) { return ImGui::CalcTextSize(label).x + style.FramePadding.x * 2.0f; };
+		const float playWidth = m_PlayScene ? buttonWidth("Stop (F5)") + ImGui::GetFrameHeight() + style.ItemInnerSpacing.x +
+												  ImGui::CalcTextSize("Pause").x + buttonWidth("Step") + style.ItemSpacing.x * 2.0f
+											: buttonWidth("Play (F5)");
+		ImGui::SetCursorScreenPos(ImVec2(std::max(origin.x + (size.x - playWidth) * 0.5f, leftEnd + style.ItemSpacing.x), top));
 		if (!m_PlayScene)
 		{
 			if (ImGui::Button("Play (F5)"))
@@ -730,17 +774,22 @@ namespace Penumbra {
 			if (ImGui::Button("Step") && m_PlayScene)
 				m_PlayScene->Step(1);
 		}
-		ImGui::SameLine();
-		ImGui::TextDisabled("|");
-		ImGui::SameLine();
-		ImGui::RadioButton("Move (W)", &m_GizmoOperation, ImGuizmo::TRANSLATE);
-		ImGui::SameLine();
-		ImGui::RadioButton("Rotate (E)", &m_GizmoOperation, ImGuizmo::ROTATE);
-		ImGui::SameLine();
-		ImGui::RadioButton("Scale (R)", &m_GizmoOperation, ImGuizmo::SCALE);
-		ImGui::SameLine();
-		ImGui::Checkbox("Local", &m_GizmoLocal);
-		ImGui::End();
+		const float middleEnd = ImGui::GetItemRectMax().x;
+
+		// Right: the frame time; a click shows the Statistics panel.
+		const std::string frame = std::format("{:.1f} ms  {:.0f} FPS", m_FrameTime * 1000.0f, m_FrameTime > 0.0f ? 1.0f / m_FrameTime : 0.0f);
+		const float frameWidth = ImGui::CalcTextSize(frame.c_str()).x;
+		const float frameX = origin.x + size.x - frameWidth - style.ItemSpacing.x;
+		if (frameX > middleEnd + style.ItemSpacing.x)
+		{
+			ImGui::SetCursorScreenPos(ImVec2(frameX, top + style.FramePadding.y));
+			ImGui::TextDisabled("%s", frame.c_str());
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip("Click for the Statistics panel");
+			if (ImGui::IsItemClicked())
+				ImGui::SetWindowFocus("Statistics");
+		}
+		return height;
 	}
 
 	void EditorLayer::DrawHierarchyNode(Entity entity)
@@ -1068,9 +1117,12 @@ namespace Penumbra {
 			}
 		}
 
-		// Click to select (not while using the gizmo or flying).
+		const float toolbarHeight = DrawViewportToolbar(origin, available);
+		const bool overToolbar = ImGui::GetMousePos().y < origin.y + toolbarHeight || ImGui::IsAnyItemHovered();
+
+		// Click to select (not while using the gizmo or flying, nor on the toolbar).
 		if (m_ViewportHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGuizmo::IsOver() && !Input::IsKeyDown(Key::LeftAlt) &&
-			!m_UseSceneCamera)
+			!m_UseSceneCamera && !overToolbar)
 		{
 			const ImVec2 mouse = ImGui::GetMousePos();
 			PickEntity(glm::vec2(mouse.x - origin.x, mouse.y - origin.y));

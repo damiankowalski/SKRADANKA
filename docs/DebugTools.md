@@ -32,6 +32,12 @@ Windows, `~/Library/Application Support/Penumbra` on macOS, `~/.config/Penumbra`
 moves the folder (agents and tests use it so they never change the owner's settings). Headless runs never read or
 write it.
 
+The editor starts with a docked layout when it has none saved (the first start, or a new user folder): Hierarchy
+with Content under it on the left, Properties on the right, the viewport in the middle with Console and
+Statistics as tabs under it. Play, the gizmo modes and the frame time run along the top of the viewport (a click
+on the frame time shows Statistics). Panels can be dragged to dock elsewhere, tabbed or torn off, and the
+layout is remembered; **View → Reset layout** brings the default back.
+
 `--window-screenshot <file.png>` with `--frames N` saves the window's last frame as it is shown, the tools and
 the editor's panels included (`--screenshot` saves only the 3D picture). It works in the editor and the runtime,
 in windowed runs.

@@ -7,7 +7,11 @@
 #include "Penumbra/Debug/FreeCamera.h"
 #include "Penumbra/Debug/NoiseProbe.h"
 #include "Penumbra/Debug/PerformanceMonitor.h"
+#include "Penumbra/ImGui/DockLayout.h"
 #include "Penumbra/Renderer/DebugDraw.h"
+
+#include <imgui.h>
+#include <imgui_internal.h>
 
 #include <algorithm>
 
@@ -337,5 +341,72 @@ TEST_SUITE("Debug")
 		CHECK(profile.Total() == doctest::Approx(profile.Scripts + profile.Navigation + profile.Physics + profile.Contacts + profile.Stims +
 												 profile.Perception + profile.Smoke + profile.Audio + profile.Ragdolls + profile.Animation + profile.FogOfWar +
 												 profile.Destruction));
+	}
+}
+
+TEST_SUITE("Debug")
+{
+	TEST_CASE("The editor's default layout docks every panel in its place, Console as the selected tab under the viewport")
+	{
+		ImGui::CreateContext();
+		ImGuiIO& io = ImGui::GetIO();
+		io.IniFilename = nullptr;
+		io.DisplaySize = ImVec2(1600.0f, 900.0f);
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		io.BackendFlags |= ImGuiBackendFlags_RendererHasTextures; // the atlas is never uploaded: no renderer here
+
+		static constexpr DockedWindow Panels[] = {
+			{ "Viewport", DockArea::Center }, { "Hierarchy", DockArea::Left }, { "Content", DockArea::LeftBottom },
+			{ "Properties", DockArea::Right }, { "Console", DockArea::Bottom }, { "Statistics", DockArea::Bottom },
+		};
+		bool wasEmpty = false;
+		ImGuiID dockSpace = 0;
+		for (int frame = 0; frame < 3; frame++)
+		{
+			ImGui::NewFrame();
+			dockSpace = ImGui::GetID("TestDockSpace");
+			const ImGuiViewport* viewport = ImGui::GetMainViewport();
+			if (frame == 0)
+			{
+				wasEmpty = DockLayout::IsEmpty(dockSpace);
+				DockLayout::Build(dockSpace, viewport->WorkPos, viewport->WorkSize, Panels);
+			}
+			ImGui::DockSpaceOverViewport(dockSpace, viewport);
+			// The editor submits them in another order than the layout lists them.
+			for (const char* name : { "Hierarchy", "Properties", "Content", "Console", "Statistics", "Viewport" })
+			{
+				ImGui::Begin(name);
+				ImGui::End();
+			}
+			ImGui::EndFrame();
+		}
+		CHECK(wasEmpty);
+		CHECK_FALSE(DockLayout::IsEmpty(dockSpace));
+
+		auto window = [](const char* name) {
+			ImGuiWindow* found = ImGui::FindWindowByName(name);
+			REQUIRE(found);
+			REQUIRE(found->DockNode);
+			return found;
+		};
+		ImGuiWindow* viewport = window("Viewport");
+		ImGuiWindow* hierarchy = window("Hierarchy");
+		ImGuiWindow* content = window("Content");
+		ImGuiWindow* properties = window("Properties");
+		ImGuiWindow* console = window("Console");
+		ImGuiWindow* statistics = window("Statistics");
+
+		CHECK(hierarchy->Pos.x < viewport->Pos.x);
+		CHECK(properties->Pos.x > viewport->Pos.x + viewport->Size.x - 1.0f);
+		CHECK(content->Pos.y > hierarchy->Pos.y + hierarchy->Size.y - 1.0f);
+		CHECK(content->Pos.x == hierarchy->Pos.x);
+		CHECK(console->DockNode == statistics->DockNode); // tabs
+		CHECK(console->Pos.y > viewport->Pos.y + viewport->Size.y - 1.0f);
+		CHECK(console->Pos.x == viewport->Pos.x);
+		CHECK(console->DockNode->VisibleWindow == console);
+		CHECK(viewport->DockNode->IsHiddenTabBar());
+		CHECK(viewport->Size.x > 1600.0f * 0.5f); // the viewport keeps most of the screen
+		CHECK(hierarchy->Size.x == doctest::Approx(1600.0f * DockLayout::LeftShare).epsilon(0.05));
+		ImGui::DestroyContext();
 	}
 }

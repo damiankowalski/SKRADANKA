@@ -11,6 +11,8 @@
 #include "Penumbra/Renderer/SceneRenderer.h"
 #include "Penumbra/Scene/Scene.h"
 
+#include <imgui.h>
+
 #include <deque>
 #include <unordered_set>
 #include <nlohmann/json.hpp>
@@ -54,7 +56,10 @@ namespace Penumbra {
 
 		// UI
 		void DrawMenuBar();
-		void DrawToolbar();
+		// The default docked layout on the first start (no saved one) and after View > Reset layout.
+		void DockPanels();
+		// Play controls, gizmo modes and the frame time along the top of the viewport; returns its height.
+		float DrawViewportToolbar(const ImVec2& origin, const ImVec2& size);
 		void DrawViewport();
 		// The 3D picture's size in pixels: the viewport panel times the framebuffer and render scales.
 		glm::uvec2 GetViewportPixels() const;
@@ -108,6 +113,8 @@ namespace Penumbra {
 		int m_GizmoOperation = 0; // ImGuizmo::OPERATION
 		bool m_GizmoLocal = false;
 		bool m_ShowGrid = true;
+		bool m_LayoutChecked = false;
+		bool m_ResetLayout = false;
 		bool m_ShowColliders = false;
 		bool m_ShowPerception = true;
 		bool m_ShowNavMesh = false;
