@@ -100,6 +100,31 @@ namespace Penumbra {
 #endif
 	}
 
+	std::filesystem::path FileSystem::GetUserDataDirectory()
+	{
+		auto environment = [](const char* name) -> std::optional<std::filesystem::path> {
+			const char* value = std::getenv(name);
+			if (!value || !*value)
+				return std::nullopt;
+			return std::filesystem::path(value);
+		};
+		if (std::optional<std::filesystem::path> overridden = environment("PENUMBRA_USER_DIR"))
+			return *overridden;
+#if defined(_WIN32)
+		if (std::optional<std::filesystem::path> appData = environment("APPDATA"))
+			return *appData / "Penumbra";
+#elif defined(__APPLE__)
+		if (std::optional<std::filesystem::path> home = environment("HOME"))
+			return *home / "Library" / "Application Support" / "Penumbra";
+#else
+		if (std::optional<std::filesystem::path> config = environment("XDG_CONFIG_HOME"))
+			return *config / "Penumbra";
+		if (std::optional<std::filesystem::path> home = environment("HOME"))
+			return *home / ".config" / "Penumbra";
+#endif
+		return GetExecutableDirectory() / "UserData";
+	}
+
 	std::string FileSystem::MakeRelativeGeneric(const std::filesystem::path& path, const std::filesystem::path& base)
 	{
 		std::error_code error;

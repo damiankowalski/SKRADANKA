@@ -4,6 +4,11 @@
 
 #include <nvrhi/nvrhi.h>
 
+#include <imgui.h>
+
+#include <filesystem>
+#include <string>
+
 struct GLFWwindow;
 
 namespace Penumbra {
@@ -14,8 +19,8 @@ namespace Penumbra {
 	class ImGuiHost
 	{
 	public:
-		// iniFile keeps window layouts between runs (null: not saved). The string must outlive the host.
-		ImGuiHost(GLFWwindow* window, nvrhi::IDevice* device, const char* iniFile);
+		// layoutFile keeps window layouts between runs (empty: not saved); its folder is created when needed.
+		ImGuiHost(GLFWwindow* window, nvrhi::IDevice* device, const std::filesystem::path& layoutFile);
 		~ImGuiHost();
 
 		ImGuiHost(const ImGuiHost&) = delete;
@@ -28,11 +33,18 @@ namespace Penumbra {
 		bool WantsKeyboard() const;
 		bool WantsMouse() const;
 
+		// Sizes, spacing and fonts times `scale` (window units). Cheap when the scale does not change.
+		void SetScale(float scale);
+		float GetScale() const { return m_Scale; }
+
 	private:
 		void ApplyStyle();
 
 	private:
 		Scope<ImGuiRenderer> m_Renderer;
+		std::string m_LayoutFile;
+		ImGuiStyle m_BaseStyle;
+		float m_Scale = 1.0f;
 	};
 
 }

@@ -1,6 +1,7 @@
 #include "pnpch.h"
 #include "Penumbra/ImGui/ImGuiHost.h"
 
+#include "Penumbra/ImGui/ImGuiFonts.h"
 #include "Penumbra/ImGui/ImGuiRenderer.h"
 
 #include <imgui.h>
@@ -8,14 +9,24 @@
 
 namespace Penumbra {
 
-	ImGuiHost::ImGuiHost(GLFWwindow* window, nvrhi::IDevice* device, const char* iniFile)
+	ImGuiHost::ImGuiHost(GLFWwindow* window, nvrhi::IDevice* device, const std::filesystem::path& layoutFile)
+		: m_LayoutFile(layoutFile.string())
 	{
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_NavEnableKeyboard;
-		io.IniFilename = iniFile;
+		if (!layoutFile.empty() && layoutFile.has_parent_path())
+		{
+			std::error_code error;
+			std::filesystem::create_directories(layoutFile.parent_path(), error);
+			if (error)
+				PN_CORE_WARN("Panel layouts will not be saved: cannot create {} ({})", layoutFile.parent_path().string(), error.message());
+		}
+		io.IniFilename = m_LayoutFile.empty() ? nullptr : m_LayoutFile.c_str();
+		ImGuiFonts::Load(io);
 		ApplyStyle();
+		m_BaseStyle = ImGui::GetStyle();
 		ImGui_ImplGlfw_InitForOther(window, true);
 		m_Renderer = CreateScope<ImGuiRenderer>(device);
 	}
@@ -43,10 +54,22 @@ namespace Penumbra {
 	bool ImGuiHost::WantsKeyboard() const { return ImGui::GetIO().WantCaptureKeyboard; }
 	bool ImGuiHost::WantsMouse() const { return ImGui::GetIO().WantCaptureMouse; }
 
+	void ImGuiHost::SetScale(float scale)
+	{
+		if (scale == m_Scale)
+			return;
+		m_Scale = scale;
+		ImGuiStyle& style = ImGui::GetStyle();
+		style = m_BaseStyle;
+		style.ScaleAllSizes(scale);
+		style.FontScaleMain = scale;
+	}
+
 	void ImGuiHost::ApplyStyle()
 	{
 		ImGui::StyleColorsDark();
 		ImGuiStyle& style = ImGui::GetStyle();
+		style.FontSizeBase = ImGuiFonts::BaseSize;
 		style.WindowRounding = 2.0f;
 		style.FrameRounding = 2.0f;
 		style.TabRounding = 2.0f;

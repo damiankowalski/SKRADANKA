@@ -35,6 +35,9 @@ namespace {
 			"  --screenshot <file.png>  save the last frame before exiting\n"
 			"  --playtest-out <file>    write scripts' playtest.record lines there (JSONL; docs/Playtest.md)\n"
 			"  --width <px> --height <px>  resolution\n"
+			"  --render-scale <0.25-1>  the 3D picture's resolution as a part of the window's pixels (default:\n"
+			"                           the user's setting; automatic = one 3D pixel per window unit)\n"
+			"  --window-screenshot <file.png>  with --frames: save the window's last frame, UI included\n"
 			"  --no-vsync               present without waiting for vertical blank\n"
 			"  --debug-layer            enable the D3D12/NVRHI validation layers\n"
 			"  --dev                    testing tools in a shipping build (F3 performance, F4 debug panel,\n"
@@ -112,6 +115,8 @@ namespace {
 		options.DebugTools = args.HasFlag("dev");
 #endif
 		options.DebugToolsOpen = args.GetValue("debug-ui").value_or("");
+		if (args.GetValue("render-scale"))
+			options.RenderScale = std::clamp(ParseFloat(args, "render-scale", 1.0f), UserSettings::MinRenderScale, UserSettings::MaxRenderScale);
 		if (const std::optional<std::string> values = args.GetValue("set"))
 		{
 			if (!ParseGameValues(*values, options.GameValues, error))

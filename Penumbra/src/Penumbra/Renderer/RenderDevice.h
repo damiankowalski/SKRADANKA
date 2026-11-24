@@ -89,6 +89,9 @@ namespace Penumbra {
 		uint32_t GetBackBufferWidth() const;
 		uint32_t GetBackBufferHeight() const;
 		void ResizeSwapChain(uint32_t width, uint32_t height);
+		// Copies the current back buffer (the window's whole picture, UI included) into tightly packed RGBA8.
+		// Call after every layer has rendered and before EndFrame. False when there is no swap chain.
+		bool ReadBackBuffer(std::vector<uint8_t>& pixels, uint32_t& width, uint32_t& height);
 		void SetVSync(bool enabled);
 
 		void WaitForIdle();

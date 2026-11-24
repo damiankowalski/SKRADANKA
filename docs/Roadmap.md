@@ -247,7 +247,12 @@ GPU test puts a torch behind a room's wall with more nearer lamps than maps (the
 
 ## In progress
 
-Nothing.
+**Developer tools' UI** (M-L, approved 2026-11-23; brief `docs/research/DevToolsUI.md` approved 2026-11-24): four
+PRs. **A. Sharpness and foundations** (in progress): Retina framebuffer and per-monitor DPI, Roboto + Cousine
+fonts, a render scale for the 3D picture, one UI size for the editor and runtime, layouts saved per user;
+`--window-screenshot` saves the window with its UI. Then **B** the editor's default docked layout, **C** the
+editor's panels (Properties, right-click menus, Hierarchy search, Console), **D** the runtime's F3-F7 tools
+(F4 in tabs, no overlaps, remembered layout).
 
 ## Known bugs
 
@@ -258,10 +263,6 @@ to check then: the character controller fighting ragdoll bodies it stands on or 
 following a body the character collides with.
 
 ## Next
-
-**Developer tools' UI** (M-L, approved 2026-11-23; a survey with engine screenshots and a brief first): the runtime's
-debug panel and the editor take a lot of space. Sharp, scaled fonts on Retina, context menus (right click on an
-entity or field), panels that collapse, dock and remember their layout, in the spirit of other engines.
 
 **Agent playtester, package B: maps from above** (S-M, the next step of this item; needs its brief): the runs drawn
 on a top-down picture of the level (routes, where guards noticed the thief, their view and lamps), and engine

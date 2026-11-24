@@ -7,6 +7,7 @@
 #include "Penumbra/Automation/CommandProcessor.h"
 #include "Penumbra/Automation/CommandServer.h"
 #include "Penumbra/Core/Layer.h"
+#include "Penumbra/Core/UserSettings.h"
 #include "Penumbra/Renderer/SceneRenderer.h"
 #include "Penumbra/Scene/Scene.h"
 
@@ -55,6 +56,8 @@ namespace Penumbra {
 		void DrawMenuBar();
 		void DrawToolbar();
 		void DrawViewport();
+		// The 3D picture's size in pixels: the viewport panel times the framebuffer and render scales.
+		glm::uvec2 GetViewportPixels() const;
 		void DrawHierarchy();
 		void DrawHierarchyNode(Entity entity);
 		void DrawContentBrowser();
@@ -87,6 +90,7 @@ namespace Penumbra {
 	private:
 		EditorOptions m_Options;
 		Scope<ImGuiHost> m_ImGui;
+		UserSettings m_Settings;
 		Scope<SceneRenderer> m_Renderer;
 		Scope<CommandProcessor> m_Commands;
 		CommandServer m_Server;
@@ -97,7 +101,7 @@ namespace Penumbra {
 		Ref<Scene> m_PlayScene;
 		UUID m_Selection = UUID::Invalid;
 
-		glm::vec2 m_ViewportSize{ 1280.0f, 720.0f };
+		glm::vec2 m_ViewportSize{ 1280.0f, 720.0f }; // window units (ImGui)
 		glm::vec2 m_ViewportOrigin{ 0.0f };
 		bool m_ViewportHovered = false;
 		bool m_ViewportFocused = false;

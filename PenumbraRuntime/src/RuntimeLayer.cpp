@@ -25,13 +25,16 @@ namespace Penumbra {
 		if (m_Options.Render)
 		{
 			m_Renderer = CreateScope<SceneRenderer>(app.GetRenderDevice());
-			if (Window* window = app.GetWindow())
-				m_Renderer->SetViewportSize(window->GetWidth(), window->GetHeight());
+			if (app.GetWindow())
+			{
+				m_Settings = UserSettings::LoadDefault();
+				UpdateViewportSize();
+			}
 			else
 				m_Renderer->SetViewportSize(m_Options.Width, m_Options.Height);
 			if (Window* window = app.GetWindow(); window && m_Options.DebugTools)
 			{
-				m_DebugPanel = CreateScope<RuntimeDebugPanel>(window->GetNativeWindow(), app.GetRenderDevice().GetDevice());
+				m_DebugPanel = CreateScope<RuntimeDebugPanel>(window->GetNativeWindow(), app.GetRenderDevice().GetDevice(), m_Settings);
 				m_DebugPanel->Open(m_Options.DebugToolsOpen);
 			}
 		}
@@ -172,6 +175,7 @@ namespace Penumbra {
 	{
 		if (!m_Renderer || !m_Scene)
 			return;
+		UpdateViewportSize();
 		const float aspect = static_cast<float>(m_Renderer->GetViewportWidth()) / static_cast<float>(m_Renderer->GetViewportHeight());
 		RenderDevice& device = Application::Get().GetRenderDevice();
 		if (!m_DebugPanel || !device.HasSwapChain())
@@ -191,6 +195,23 @@ namespace Penumbra {
 		m_DebugPanel->EndFrame(*m_Scene, *m_Renderer, device, camera, device.GetBackBufferFramebuffer(), renderMs);
 	}
 
+	void RuntimeLayer::UpdateViewportSize()
+	{
+		const Window* window = Application::Get().GetWindow();
+		if (!m_Renderer || !window || window->IsMinimized())
+			return;
+		UserSettings settings = m_Settings;
+		if (m_Options.RenderScale)
+			settings.RenderScale = *m_Options.RenderScale;
+		const float scale = settings.ResolveRenderScale(window->GetFramebufferScale());
+		const uint32_t width = std::max(static_cast<uint32_t>(static_cast<float>(window->GetWidth()) * scale), 1u);
+		const uint32_t height = std::max(static_cast<uint32_t>(static_cast<float>(window->GetHeight()) * scale), 1u);
+		if (width != m_Renderer->GetViewportWidth() || height != m_Renderer->GetViewportHeight())
+			m_Renderer->SetViewportSize(width, height);
+		if (m_Scene)
+			m_Scene->OnViewportResize(width, height);
+	}
+
 	void RuntimeLayer::ApplyCursorLock()
 	{
 		Window* window = Application::Get().GetWindow();
@@ -203,12 +224,8 @@ namespace Penumbra {
 
 	void RuntimeLayer::OnEvent(Event& event)
 	{
-		if (event.Type == EventType::WindowResize && m_Renderer && event.Width > 0 && event.Height > 0)
-		{
-			m_Renderer->SetViewportSize(event.Width, event.Height);
-			if (m_Scene)
-				m_Scene->OnViewportResize(event.Width, event.Height);
-		}
+		if (event.Type == EventType::WindowResize && event.Width > 0 && event.Height > 0)
+			UpdateViewportSize();
 		if (event.Type == EventType::KeyPressed && m_DebugPanel && m_DebugPanel->OnKeyPressed(event.Key, m_Scene.get()))
 		{
 			ApplyCursorLock();

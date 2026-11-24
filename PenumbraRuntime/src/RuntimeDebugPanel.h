@@ -3,6 +3,7 @@
 #include "Penumbra/Core/Base.h"
 #include "Penumbra/Core/KeyCodes.h"
 #include "Penumbra/Core/Timestep.h"
+#include "Penumbra/Core/UserSettings.h"
 #include "Penumbra/Debug/DebugOverlays.h"
 #include "Penumbra/Debug/FreeCamera.h"
 #include "Penumbra/Debug/NoiseProbe.h"
@@ -37,7 +38,8 @@ namespace Penumbra {
 	class RuntimeDebugPanel
 	{
 	public:
-		RuntimeDebugPanel(GLFWwindow* window, nvrhi::IDevice* device);
+		// `settings` (UI size, 3D resolution) is the runtime's; the panel edits and saves it.
+		RuntimeDebugPanel(GLFWwindow* window, nvrhi::IDevice* device, UserSettings& settings);
 		~RuntimeDebugPanel();
 
 		RuntimeDebugPanel(const RuntimeDebugPanel&) = delete;
@@ -66,7 +68,8 @@ namespace Penumbra {
 			nvrhi::IFramebuffer* target, float renderMs);
 
 	private:
-		void UpdateStyle(float viewportHeight);
+		void UpdateStyle();
+		float UiScale() const;
 		void DrawPerformance(Scene& scene, SceneRenderer& renderer, RenderDevice& device);
 		void DrawPanel(Scene& scene);
 		void DrawFogOfWar(Scene& scene);
@@ -85,9 +88,8 @@ namespace Penumbra {
 
 	private:
 		Scope<ImGuiHost> m_ImGui;
-		ImGuiStyle m_BaseStyle;
-		float m_AppliedScale = 0.0f;
-		float m_UserScale = 0.75f;
+		GLFWwindow* m_Window = nullptr;
+		UserSettings& m_Settings;
 
 		// Performance
 		bool m_ShowPerformance = false;

@@ -13,8 +13,28 @@ window (nothing is drawn headless).
 | F7 | fog of war on / off (what the thief sees, or the whole level) |
 
 `--debug-ui performance,panel,freelook` opens any of them at start. F1 (the game's controls panel) and F12
-(screenshot) stay with the game. The panel's text follows the HUD's scale (1080 lines = 1, twice as large on a
-Retina Mac), and its "UI size" slider scales it further (0.75 by default, 0.5 to 2).
+(screenshot) stay with the game.
+
+## Size, sharpness and the user's settings
+
+The tools draw with Roboto (UI, Apache License 2.0) and Cousine (numbers, F3, the editor's console; SIL Open Font
+License 1.1), both shipped with Dear ImGui and compiled into the executables
+and rasterized at the size and pixel density they are drawn at, so they are sharp on Retina and at any size. The
+panel's size follows the window's height (1080 lines = 1, in window units, so Retina and display scaling change
+sharpness, not size) times **UI size** (F4 → Camera and time, 0.5 to 2). **3D resolution** sets how many pixels the
+3D picture has: *Automatic* is one per window unit (all of them on a normal screen, half on Retina, the frame
+rate of a normal screen), or 50%, 75% or 100% of the window's pixels. `--render-scale 0.25-1` overrides it for
+one run.
+
+Both choices are shared with the editor (View → UI size, 3D resolution) and kept per user, outside projects, in
+`Settings.json`, next to the panels' layouts (`EditorLayout.ini`, `RuntimeLayout.ini`): `%APPDATA%/Penumbra` on
+Windows, `~/Library/Application Support/Penumbra` on macOS, `~/.config/Penumbra` elsewhere. `PENUMBRA_USER_DIR`
+moves the folder (agents and tests use it so they never change the owner's settings). Headless runs never read or
+write it.
+
+`--window-screenshot <file.png>` with `--frames N` saves the window's last frame as it is shown, the tools and
+the editor's panels included (`--screenshot` saves only the 3D picture). It works in the editor and the runtime,
+in windowed runs.
 
 ## Performance overlay (F3)
 
