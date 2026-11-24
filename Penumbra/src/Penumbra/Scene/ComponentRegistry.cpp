@@ -15,6 +15,25 @@ namespace Penumbra {
 			Runtime
 		};
 
+		// What a field's third argument may say: runtime-only, and/or its unit for the editor ("m", "deg", "s").
+		struct FieldMeta
+		{
+			FieldKind Kind = FieldKind::Persistent;
+			const char* Unit = nullptr;
+
+			constexpr FieldMeta() = default;
+			constexpr FieldMeta(FieldKind kind) : Kind(kind) {}
+			constexpr FieldMeta(const char* unit) : Unit(unit) {}
+		};
+
+		// v("Sight", Group) starts a group of the fields that follow, for the editor; not a field.
+		struct FieldGroup
+		{
+		};
+		constexpr FieldGroup Group;
+
+		template<typename F> constexpr bool IsGroup = std::is_same_v<std::remove_cvref_t<F>, FieldGroup>;
+
 		// ------------------------------------------------------------------------
 		// Field lists - one place per component describing its serializable fields.
 		// ------------------------------------------------------------------------
@@ -24,17 +43,17 @@ namespace Penumbra {
 		template<typename V>
 		void VisitFields(TransformComponent& c, V&& v)
 		{
-			v("Translation", c.Translation);
-			v("Rotation", c.Rotation);
+			v("Translation", c.Translation, "m");
+			v("Rotation", c.Rotation, "deg");
 			v("Scale", c.Scale);
 		}
 
 		template<typename V>
 		void VisitFields(CameraComponent& c, V&& v)
 		{
-			v("VerticalFOV", c.VerticalFOV);
-			v("NearClip", c.NearClip);
-			v("FarClip", c.FarClip);
+			v("VerticalFOV", c.VerticalFOV, "deg");
+			v("NearClip", c.NearClip, "m");
+			v("FarClip", c.FarClip, "m");
 			v("Primary", c.Primary);
 		}
 
@@ -64,18 +83,22 @@ namespace Penumbra {
 		template<typename V>
 		void VisitFields(MaterialComponent& c, V&& v)
 		{
+			v("Surface", Group);
 			v("BaseColor", c.BaseColor);
 			v("Metallic", c.Metallic);
 			v("Roughness", c.Roughness);
+			v("Glow", Group);
 			v("EmissiveColor", c.EmissiveColor);
 			v("EmissiveIntensity", c.EmissiveIntensity);
 			v("EmissiveEnabled", c.EmissiveEnabled);
+			v("Textures", Group);
 			v("AlbedoTexture", c.AlbedoTexture);
 			v("NormalTexture", c.NormalTexture);
 			v("MetallicRoughnessTexture", c.MetallicRoughnessTexture);
 			v("EmissiveTexture", c.EmissiveTexture);
 			v("UVScale", c.UVScale);
 			v("UVOffset", c.UVOffset);
+			v("Blending", Group);
 			v("Translucent", c.Translucent);
 		}
 
@@ -94,7 +117,7 @@ namespace Penumbra {
 		{
 			v("Color", c.Color);
 			v("Intensity", c.Intensity);
-			v("Range", c.Range);
+			v("Range", c.Range, "m");
 			v("Enabled", c.Enabled);
 			v("CastShadows", c.CastShadows);
 			v("Flicker", c.Flicker);
@@ -105,9 +128,9 @@ namespace Penumbra {
 		{
 			v("Color", c.Color);
 			v("Intensity", c.Intensity);
-			v("Range", c.Range);
-			v("InnerAngle", c.InnerAngle);
-			v("OuterAngle", c.OuterAngle);
+			v("Range", c.Range, "m");
+			v("InnerAngle", c.InnerAngle, "deg");
+			v("OuterAngle", c.OuterAngle, "deg");
 			v("Enabled", c.Enabled);
 			v("CastShadows", c.CastShadows);
 		}
@@ -115,22 +138,26 @@ namespace Penumbra {
 		template<typename V>
 		void VisitFields(EnvironmentComponent& c, V&& v)
 		{
+			v("Sky and light", Group);
 			v("EnvironmentMap", c.EnvironmentMap);
 			v("EnvironmentIntensity", c.EnvironmentIntensity);
 			v("SkyboxIntensity", c.SkyboxIntensity);
 			v("AmbientColor", c.AmbientColor);
 			v("Exposure", c.Exposure);
+			v("Fog", Group);
 			v("FogDensity", c.FogDensity);
 			v("FogColor", c.FogColor);
-			v("FogHeight", c.FogHeight);
+			v("FogHeight", c.FogHeight, "m");
 			v("FogHeightFalloff", c.FogHeightFalloff);
 			v("VolumetricFog", c.VolumetricFog);
 			v("FogScattering", c.FogScattering);
 			v("FogAnisotropy", c.FogAnisotropy);
+			v("Post-processing", Group);
 			v("SSAOEnabled", c.SSAOEnabled);
 			v("SSAORadius", c.SSAORadius);
 			v("SSAOIntensity", c.SSAOIntensity);
 			v("BloomIntensity", c.BloomIntensity);
+			v("Sound", Group);
 			v("AmbientNoise", c.AmbientNoise);
 		}
 
@@ -138,7 +165,7 @@ namespace Penumbra {
 		void VisitFields(RigidBodyComponent& c, V&& v)
 		{
 			v("Type", c.Type);
-			v("Mass", c.Mass);
+			v("Mass", c.Mass, "kg");
 			v("LinearDamping", c.LinearDamping);
 			v("AngularDamping", c.AngularDamping);
 			v("Friction", c.Friction);
@@ -152,23 +179,23 @@ namespace Penumbra {
 		template<typename V>
 		void VisitFields(BoxColliderComponent& c, V&& v)
 		{
-			v("HalfExtents", c.HalfExtents);
-			v("Offset", c.Offset);
+			v("HalfExtents", c.HalfExtents, "m");
+			v("Offset", c.Offset, "m");
 		}
 
 		template<typename V>
 		void VisitFields(SphereColliderComponent& c, V&& v)
 		{
-			v("Radius", c.Radius);
-			v("Offset", c.Offset);
+			v("Radius", c.Radius, "m");
+			v("Offset", c.Offset, "m");
 		}
 
 		template<typename V>
 		void VisitFields(CapsuleColliderComponent& c, V&& v)
 		{
-			v("Radius", c.Radius);
-			v("HalfHeight", c.HalfHeight);
-			v("Offset", c.Offset);
+			v("Radius", c.Radius, "m");
+			v("HalfHeight", c.HalfHeight, "m");
+			v("Offset", c.Offset, "m");
 		}
 
 		template<typename V> void VisitFields(MeshColliderComponent& c, V&& v) { v("UseMeshComponent", c.UseMeshComponent); }
@@ -176,10 +203,10 @@ namespace Penumbra {
 		template<typename V>
 		void VisitFields(CharacterControllerComponent& c, V&& v)
 		{
-			v("Radius", c.Radius);
-			v("Height", c.Height);
-			v("MaxSlopeDegrees", c.MaxSlopeDegrees);
-			v("StepHeight", c.StepHeight);
+			v("Radius", c.Radius, "m");
+			v("Height", c.Height, "m");
+			v("MaxSlopeDegrees", c.MaxSlopeDegrees, "deg");
+			v("StepHeight", c.StepHeight, "m");
 			v("GravityFactor", c.GravityFactor);
 			v("Velocity", c.RuntimeVelocity, FieldKind::Runtime);
 			v("Grounded", c.RuntimeGrounded, FieldKind::Runtime);
@@ -195,15 +222,18 @@ namespace Penumbra {
 		template<typename V>
 		void VisitFields(AudioSourceComponent& c, V&& v)
 		{
+			v("Playback", Group);
 			v("Clip", c.Clip);
 			v("Volume", c.Volume);
 			v("Pitch", c.Pitch);
 			v("Loop", c.Loop);
 			v("PlayOnStart", c.PlayOnStart);
+			v("Distance", Group);
 			v("Spatial", c.Spatial);
-			v("MinDistance", c.MinDistance);
-			v("MaxDistance", c.MaxDistance);
-			v("NoiseLoudness", c.NoiseLoudness);
+			v("MinDistance", c.MinDistance, "m");
+			v("MaxDistance", c.MaxDistance, "m");
+			v("Guards", Group);
+			v("NoiseLoudness", c.NoiseLoudness, "0-10");
 		}
 
 		template<typename V> void VisitFields(AudioListenerComponent& c, V&& v) { v("Active", c.Active); }
@@ -211,10 +241,11 @@ namespace Penumbra {
 		template<typename V>
 		void VisitFields(PerceptionComponent& c, V&& v)
 		{
-			v("EyeHeight", c.EyeHeight);
-			v("ViewDistance", c.ViewDistance);
-			v("FieldOfView", c.FieldOfView);
-			v("FocusFieldOfView", c.FocusFieldOfView);
+			v("Sight", Group);
+			v("EyeHeight", c.EyeHeight, "m");
+			v("ViewDistance", c.ViewDistance, "m");
+			v("FieldOfView", c.FieldOfView, "deg");
+			v("FocusFieldOfView", c.FocusFieldOfView, "deg");
 			v("PeripheralContrast", c.PeripheralContrast);
 			v("PeripheralFactor", c.PeripheralFactor);
 			v("ContrastMin", c.ContrastMin);
@@ -222,26 +253,31 @@ namespace Penumbra {
 			v("GlareSensitivity", c.GlareSensitivity);
 			v("LuminanceFloor", c.LuminanceFloor);
 			v("SelfShading", c.SelfShading);
-			v("AdaptBrightTime", c.AdaptBrightTime);
-			v("AdaptDarkTime", c.AdaptDarkTime);
 			v("MotionFactor", c.MotionFactor);
-			v("ReferenceAngularSize", c.ReferenceAngularSize);
+			v("ReferenceAngularSize", c.ReferenceAngularSize, "rad");
+			v("Adaptation to light", Group);
+			v("AdaptBrightTime", c.AdaptBrightTime, "s");
+			v("AdaptDarkTime", c.AdaptDarkTime, "s");
+			v("Suspicion", Group);
 			v("SuspicionRise", c.SuspicionRise);
 			v("SuspicionDecay", c.SuspicionDecay);
 			v("SuspiciousThreshold", c.SuspiciousThreshold);
+			v("Hearing", Group);
 			v("HearingSensitivity", c.HearingSensitivity);
-			v("ReactionDuration", c.ReactionDuration);
-			v("InvestigateLevel", c.InvestigateLevel);
-			v("SearchLevel", c.SearchLevel);
-			v("AlarmLevel", c.AlarmLevel);
-			v("AlertMemoryTime", c.AlertMemoryTime);
+			v("Reactions", Group);
+			v("ReactionDuration", c.ReactionDuration, "s");
+			v("InvestigateLevel", c.InvestigateLevel, "0-10");
+			v("SearchLevel", c.SearchLevel, "0-10");
+			v("AlarmLevel", c.AlarmLevel, "0-10");
+			v("AlertMemoryTime", c.AlertMemoryTime, "s");
 			v("Diligence", c.Diligence);
-			v("BodyAlarm", c.BodyAlarm);
-			v("ProjectileAlarm", c.ProjectileAlarm);
-			v("TouchRange", c.TouchRange);
-			v("TouchAlarm", c.TouchAlarm);
-			v("CloseRange", c.CloseRange);
-			v("CloseRangeStimulus", c.CloseRangeStimulus);
+			v("BodyAlarm", c.BodyAlarm, "0-10");
+			v("ProjectileAlarm", c.ProjectileAlarm, "0-10");
+			v("Touch and close range", Group);
+			v("TouchRange", c.TouchRange, "m");
+			v("TouchAlarm", c.TouchAlarm, "0-10");
+			v("CloseRange", c.CloseRange, "m");
+			v("CloseRangeStimulus", c.CloseRangeStimulus, "0-10");
 			v("Adaptation", c.RuntimeAdaptation, FieldKind::Runtime);
 			v("Suspicion", c.RuntimeSuspicion, FieldKind::Runtime);
 			v("Stimulus", c.RuntimeStimulus, FieldKind::Runtime);
@@ -263,7 +299,7 @@ namespace Penumbra {
 			v("Kind", c.Kind);
 			v("SilhouettePoints", c.SilhouettePoints);
 			v("Reflectance", c.Reflectance);
-			v("Radius", c.Radius);
+			v("Radius", c.Radius, "m");
 			v("Emissive", c.Emissive);
 			v("LightLevel", c.RuntimeLightLevel, FieldKind::Runtime);
 			v("LightGem", c.RuntimeLightGem, FieldKind::Runtime);
@@ -274,8 +310,8 @@ namespace Penumbra {
 		void VisitFields(SurfaceComponent& c, V&& v)
 		{
 			v("Material", c.Material);
-			v("NoiseModifier", c.NoiseModifier);
-			v("ImpactLoudness", c.ImpactLoudness);
+			v("NoiseModifier", c.NoiseModifier, "levels");
+			v("ImpactLoudness", c.ImpactLoudness, "0-10");
 			v("ImpactSound", c.ImpactSound);
 			v("SoundLoss", c.SoundLoss);
 		}
@@ -283,12 +319,12 @@ namespace Penumbra {
 		template<typename V>
 		void VisitFields(NavMeshComponent& c, V&& v)
 		{
-			v("CellSize", c.CellSize);
-			v("CellHeight", c.CellHeight);
-			v("AgentRadius", c.AgentRadius);
-			v("AgentHeight", c.AgentHeight);
-			v("AgentMaxClimb", c.AgentMaxClimb);
-			v("AgentMaxSlope", c.AgentMaxSlope);
+			v("CellSize", c.CellSize, "m");
+			v("CellHeight", c.CellHeight, "m");
+			v("AgentRadius", c.AgentRadius, "m");
+			v("AgentHeight", c.AgentHeight, "m");
+			v("AgentMaxClimb", c.AgentMaxClimb, "m");
+			v("AgentMaxSlope", c.AgentMaxSlope, "deg");
 			v("Polygons", c.RuntimePolygons, FieldKind::Runtime);
 			v("BuildMilliseconds", c.RuntimeBuildMilliseconds, FieldKind::Runtime);
 		}
@@ -296,9 +332,9 @@ namespace Penumbra {
 		template<typename V>
 		void VisitFields(NavAgentComponent& c, V&& v)
 		{
-			v("Speed", c.Speed);
-			v("TurnSpeed", c.TurnSpeed);
-			v("StoppingDistance", c.StoppingDistance);
+			v("Speed", c.Speed, "m/s");
+			v("TurnSpeed", c.TurnSpeed, "deg/s");
+			v("StoppingDistance", c.StoppingDistance, "m");
 			v("FaceMovement", c.FaceMovement);
 			v("Status", c.RuntimeStatus, FieldKind::Runtime);
 			v("Destination", c.RuntimeDestination, FieldKind::Runtime);
@@ -316,20 +352,22 @@ namespace Penumbra {
 		template<typename V>
 		void VisitFields(FogOfWarComponent& c, V&& v)
 		{
+			v("View", Group);
 			v("Enabled", c.Enabled);
-			v("EyeHeight", c.EyeHeight);
+			v("EyeHeight", c.EyeHeight, "m");
 			v("Lean", c.Lean);
-			v("ViewAngle", c.ViewAngle);
-			v("EdgeSoftness", c.EdgeSoftness);
-			v("ViewDistance", c.ViewDistance);
-			v("AwarenessRadius", c.AwarenessRadius);
+			v("ViewAngle", c.ViewAngle, "deg");
+			v("EdgeSoftness", c.EdgeSoftness, "deg");
+			v("ViewDistance", c.ViewDistance, "m");
+			v("AwarenessRadius", c.AwarenessRadius, "m");
 			v("ConeFromCamera", c.ConeFromCamera);
-			v("SeeOverHeight", c.SeeOverHeight);
-			v("EyeSpeed", c.EyeSpeed);
+			v("SeeOverHeight", c.SeeOverHeight, "m");
+			v("EyeSpeed", c.EyeSpeed, "/s");
+			v("What the thief does not see", Group);
 			v("Brightness", c.Brightness);
 			v("Saturation", c.Saturation);
 			v("HideActors", c.HideActors);
-			v("MemoryTime", c.MemoryTime);
+			v("MemoryTime", c.MemoryTime, "s");
 			v("Active", c.RuntimeActive, FieldKind::Runtime);
 			v("Eye", c.RuntimeEye, FieldKind::Runtime);
 			v("Forward", c.RuntimeForward, FieldKind::Runtime);
@@ -341,7 +379,7 @@ namespace Penumbra {
 		void VisitFields(RagdollComponent& c, V&& v)
 		{
 			v("Enabled", c.Enabled);
-			v("Mass", c.Mass);
+			v("Mass", c.Mass, "kg");
 			v("RadiusScale", c.RadiusScale);
 			v("Friction", c.Friction);
 			v("Active", c.RuntimeActive, FieldKind::Runtime);
@@ -351,26 +389,26 @@ namespace Penumbra {
 		template<typename V>
 		void VisitFields(FogVolumeComponent& c, V&& v)
 		{
-			v("HalfExtents", c.HalfExtents);
+			v("HalfExtents", c.HalfExtents, "m");
 			v("Density", c.Density);
-			v("EdgeFade", c.EdgeFade);
+			v("EdgeFade", c.EdgeFade, "m");
 			v("Enabled", c.Enabled);
 		}
 
 		template<typename V>
 		void VisitFields(SmokeVolumeComponent& c, V&& v)
 		{
-			v("Radius", c.Radius);
+			v("Radius", c.Radius, "m");
 			v("Density", c.Density);
-			v("Lifetime", c.Lifetime);
+			v("Lifetime", c.Lifetime, "s");
 			v("Age", c.RuntimeAge, FieldKind::Runtime);
 		}
 
 		template<typename V>
 		void VisitFields(FlameComponent& c, V&& v)
 		{
-			v("Height", c.Height);
-			v("Radius", c.Radius);
+			v("Height", c.Height, "m");
+			v("Radius", c.Radius, "m");
 			v("Intensity", c.Intensity);
 			v("Speed", c.Speed);
 			v("Color", c.Color);
@@ -383,7 +421,7 @@ namespace Penumbra {
 			v("Stim", c.Stim);
 			v("Intensity", c.Intensity);
 			v("Delivery", c.Delivery);
-			v("Radius", c.Radius);
+			v("Radius", c.Radius, "m");
 			v("Enabled", c.Enabled);
 			v("DestroyOnContact", c.DestroyOnContact);
 			v("RequireLineOfSight", c.RequireLineOfSight);
@@ -441,10 +479,13 @@ namespace Penumbra {
 		json SerializeComponent(const T& component, const ComponentSerializeOptions& options)
 		{
 			json out = json::object();
-			VisitFields(const_cast<T&>(component), [&](const char* name, auto& field, FieldKind kind = FieldKind::Persistent) {
-				if (kind == FieldKind::Runtime && !options.IncludeRuntimeState)
-					return;
-				ToJson(out[name], field);
+			VisitFields(const_cast<T&>(component), [&](const char* name, auto& field, FieldMeta meta = {}) {
+				if constexpr (!IsGroup<decltype(field)>)
+				{
+					if (meta.Kind == FieldKind::Runtime && !options.IncludeRuntimeState)
+						return;
+					ToJson(out[name], field);
+				}
 			});
 			return out;
 		}
@@ -462,18 +503,21 @@ namespace Penumbra {
 			T updated = component;
 			std::vector<std::string> known;
 			bool ok = true;
-			VisitFields(updated, [&](const char* name, auto& field, FieldKind kind = FieldKind::Persistent) {
-				known.emplace_back(name);
-				if (!ok || kind == FieldKind::Runtime)
-					return;
-				const auto it = in.find(name);
-				if (it == in.end())
-					return;
-				std::string fieldError;
-				if (!FromJson(*it, field, fieldError))
+			VisitFields(updated, [&](const char* name, auto& field, FieldMeta meta = {}) {
+				if constexpr (!IsGroup<decltype(field)>)
 				{
-					error = std::format("field '{}': {}", name, fieldError);
-					ok = false;
+					known.emplace_back(name);
+					if (!ok || meta.Kind == FieldKind::Runtime)
+						return;
+					const auto it = in.find(name);
+					if (it == in.end())
+						return;
+					std::string fieldError;
+					if (!FromJson(*it, field, fieldError))
+					{
+						error = std::format("field '{}': {}", name, fieldError);
+						ok = false;
+					}
 				}
 			});
 			if (!ok)
@@ -510,6 +554,14 @@ namespace Penumbra {
 				return DeserializeComponent(entity.GetComponent<T>(), in, error);
 			};
 			info.Defaults = []() { return SerializeComponent(T{}, ComponentSerializeOptions{}); };
+			T component{};
+			std::string group;
+			VisitFields(component, [&](const char* fieldName, auto& field, FieldMeta meta = {}) {
+				if constexpr (IsGroup<decltype(field)>)
+					group = fieldName;
+				else
+					info.Fields.push_back({ fieldName, group, meta.Unit ? meta.Unit : "", meta.Kind == FieldKind::Runtime });
+			});
 			return info;
 		}
 

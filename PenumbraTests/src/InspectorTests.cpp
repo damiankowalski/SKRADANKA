@@ -2,7 +2,13 @@
 
 #include "Penumbra/AI/FogOfWarSystem.h"
 #include "Penumbra/AI/PerceptionSystem.h"
+#include "Penumbra/Core/Platform.h"
 #include "Penumbra/Debug/ObjectInspector.h"
+#include "Penumbra/ImGui/ComponentInspector.h"
+#include "Penumbra/ImGui/EntityBadge.h"
+#include "Penumbra/Scene/ComponentRegistry.h"
+
+#include <set>
 
 using namespace Penumbra;
 
@@ -207,5 +213,119 @@ TEST_SUITE("Debug")
 		perception.SetIgnoresIntruders(deaf, false);
 		CHECK_FALSE(perception.IgnoresIntruders(deaf));
 		scene.OnRuntimeStop();
+	}
+}
+
+TEST_SUITE("Debug")
+{
+	TEST_CASE("The registry lists each component's fields in declaration order, with the editor's groups and units")
+	{
+		const ComponentInfo* transform = ComponentRegistry::Find("Transform");
+		REQUIRE(transform);
+		REQUIRE(transform->Fields.size() == 3);
+		CHECK(transform->Fields[0].Name == "Translation");
+		CHECK(transform->Fields[0].Unit == "m");
+		CHECK(transform->Fields[1].Name == "Rotation");
+		CHECK(transform->Fields[1].Unit == "deg");
+		CHECK(transform->Fields[2].Name == "Scale");
+		CHECK(transform->Fields[2].Unit.empty());
+
+		const ComponentInfo* perception = ComponentRegistry::Find("Perception");
+		REQUIRE(perception);
+		std::vector<std::string> groups;
+		for (const FieldInfo& field : perception->Fields)
+		{
+			if (!field.Runtime && (groups.empty() || groups.back() != field.Group))
+				groups.push_back(field.Group);
+		}
+		CHECK(groups == std::vector<std::string>{ "Sight", "Adaptation to light", "Suspicion", "Hearing", "Reactions", "Touch and close range" });
+
+		// For every component the editable fields are exactly the keys a scene file holds: groups are no fields.
+		for (const ComponentInfo& info : ComponentRegistry::GetAll())
+		{
+			std::set<std::string> fields;
+			for (const FieldInfo& field : info.Fields)
+			{
+				if (!field.Runtime)
+					fields.insert(field.Name);
+			}
+			std::set<std::string> keys;
+			const nlohmann::json defaults = info.Defaults(); // items() must not outlive the object it walks
+			for (const auto& [key, value] : defaults.items())
+				keys.insert(key);
+			CHECK_MESSAGE(fields == keys, info.Name);
+		}
+	}
+
+	TEST_CASE("Field labels read as words; Transform's Translation reads Position")
+	{
+		using ComponentInspector::DisplayName;
+		CHECK(DisplayName("CharacterController", "MaxSlopeDegrees") == "Max slope degrees");
+		CHECK(DisplayName("Environment", "SSAOEnabled") == "SSAO enabled");
+		CHECK(DisplayName("Camera", "VerticalFOV") == "Vertical FOV");
+		CHECK(DisplayName("Material", "UVScale") == "UV scale");
+		CHECK(DisplayName("Perception", "EyeHeight") == "Eye height");
+		CHECK(DisplayName("Tag", "Tag") == "Tag");
+		CHECK(DisplayName("Transform", "Translation") == "Position");
+		CHECK(DisplayName("Mesh", "Translation") == "Translation");
+	}
+
+	TEST_CASE("Component menu actions: reset a field or the component, copy and paste values, bad pastes change nothing")
+	{
+		Scene scene;
+		Entity lamp = scene.CreateEntity("Lamp");
+		Entity other = scene.CreateEntity("Other");
+		const ComponentInfo* light = ComponentRegistry::Find("PointLight");
+		REQUIRE(light);
+		light->Add(lamp);
+		light->Add(other);
+		const PointLightComponent defaults;
+		lamp.GetComponent<PointLightComponent>().Range = 42.0f;
+		lamp.GetComponent<PointLightComponent>().Intensity = 7.0f;
+
+		const std::string copied = ComponentInspector::CopyComponent(lamp, *light);
+		std::string error;
+		REQUIRE(ComponentInspector::PasteComponent(other, *light, copied, error));
+		CHECK(other.GetComponent<PointLightComponent>().Range == 42.0f);
+		CHECK(other.GetComponent<PointLightComponent>().Intensity == 7.0f);
+
+		REQUIRE(ComponentInspector::ResetField(lamp, *light, "Range", error));
+		CHECK(lamp.GetComponent<PointLightComponent>().Range == defaults.Range);
+		CHECK(lamp.GetComponent<PointLightComponent>().Intensity == 7.0f); // only that field
+		CHECK_FALSE(ComponentInspector::ResetField(lamp, *light, "Colour", error));
+		CHECK(error.find("Colour") != std::string::npos);
+
+		REQUIRE(ComponentInspector::ResetComponent(other, *light, error));
+		CHECK(other.GetComponent<PointLightComponent>().Range == defaults.Range);
+		CHECK(other.GetComponent<PointLightComponent>().Intensity == defaults.Intensity);
+
+		CHECK_FALSE(ComponentInspector::PasteComponent(other, *light, "not json", error));
+		CHECK_FALSE(ComponentInspector::PasteComponent(other, *light, R"({ "Range": 3, "Wings": 2 })", error));
+		CHECK(error.find("Wings") != std::string::npos);
+		CHECK(other.GetComponent<PointLightComponent>().Range == defaults.Range); // all or nothing
+	}
+
+	TEST_CASE("Hierarchy badges tell guards, thieves, lights, meshes and groups apart")
+	{
+		Scene scene;
+		Entity guard = scene.CreateEntity("Guard");
+		guard.AddComponent<PerceptionComponent>();
+		guard.AddComponent<MeshComponent>();
+		Entity thief = scene.CreateEntity("Thief");
+		thief.AddComponent<PerceptionTargetComponent>().Kind = TargetKind::Intruder;
+		Entity lamp = scene.CreateEntity("Lamp");
+		lamp.AddComponent<PointLightComponent>();
+		lamp.AddComponent<MeshComponent>();
+		Entity crate = scene.CreateEntity("Crate");
+		crate.AddComponent<MeshComponent>();
+		Entity group = scene.CreateEntity("Group");
+
+		CHECK(GetEntityBadge(guard).Letter == 'G');
+		CHECK(GetEntityBadge(thief).Letter == 'T');
+		CHECK(GetEntityBadge(lamp).Letter == 'L');
+		CHECK(GetEntityBadge(crate).Letter == 'M');
+		CHECK(GetEntityBadge(group).Letter == '-');
+		CHECK(GetEntityBadge(guard).Color != GetEntityBadge(lamp).Color);
+		CHECK(std::string_view(Platform::RevealInFileManagerLabel()).starts_with("Show in"));
 	}
 }

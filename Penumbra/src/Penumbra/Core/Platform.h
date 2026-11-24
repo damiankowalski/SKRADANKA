@@ -21,6 +21,8 @@ namespace Penumbra::Platform {
 
 	// Opens a file with the application the operating system associates with it (Explorer / Finder).
 	bool OpenWithDefaultApplication(const std::filesystem::path& path);
+	// The menu label for showing a file's folder: "Show in Finder", "Show in Explorer", "Show in folder".
+	const char* RevealInFileManagerLabel();
 
 	// What the process costs the machine (the runtime's performance monitor).
 	struct ProcessUsage

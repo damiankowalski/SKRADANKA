@@ -15,6 +15,11 @@ order A → B → C → D, F4 as tabs, today's palette stays. The Roadmap's "Dev
 
 ![](ui/after_b_editor_first_start.png)
 
+**Part C after**: GuardA selected; Properties in registry order with units and groups, Hierarchy badges and search,
+Console filters.
+
+![](ui/after_c_editor.png)
+
 ## How the pictures were taken
 
 `--screenshot` saves only the scene renderer's output, so it never showed the UI. A new switch,

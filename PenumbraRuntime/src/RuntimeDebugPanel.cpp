@@ -904,7 +904,10 @@ namespace Penumbra {
 		// The components that matter for this kind of thing first, open; then the rest, folded.
 		auto drawComponent = [&](const ComponentInfo& info, bool open) {
 			ImGui::PushID(info.Name.c_str());
-			if (ImGui::CollapsingHeader(info.Name.c_str(), open ? ImGuiTreeNodeFlags_DefaultOpen : 0))
+			const bool expanded = ImGui::CollapsingHeader(info.Name.c_str(), open ? ImGuiTreeNodeFlags_DefaultOpen : 0);
+			bool removed = false;
+			ComponentInspector::DrawComponentMenu(entity, info, removed);
+			if (expanded && !removed)
 			{
 				ComponentInspector::DrawFields(entity, info);
 				ComponentInspector::DrawRuntimeState(entity, info);
