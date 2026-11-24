@@ -11,6 +11,10 @@ order A → B → C → D, F4 as tabs, today's palette stays. The Roadmap's "Dev
 |---|---|
 | ![](ui/after_a_runtime.png) | ![](ui/after_a_editor.png) |
 
+**Part B after**: the editor's first start, nothing saved (compare "First start, no saved layout" below).
+
+![](ui/after_b_editor_first_start.png)
+
 ## How the pictures were taken
 
 `--screenshot` saves only the scene renderer's output, so it never showed the UI. A new switch,
