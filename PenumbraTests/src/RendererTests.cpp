@@ -4,12 +4,15 @@
 #include "Penumbra/AI/LuminanceProvider.h"
 #include "Penumbra/Asset/AssetManager.h"
 #include "Penumbra/Asset/Importers.h"
+#include "Penumbra/ImGui/ImGuiFonts.h"
+#include "Penumbra/ImGui/ImGuiRenderer.h"
 #include "Penumbra/Renderer/RenderDevice.h"
 #include "Penumbra/Renderer/SceneRenderer.h"
 #include "Penumbra/Renderer/ShadowSlots.h"
 #include "Penumbra/Renderer/VulkanDeviceSelection.h"
 #include "Penumbra/UI/Overlay.h"
 
+#include <imgui.h>
 #include <stb_image_write.h>
 
 using namespace Penumbra;
@@ -244,6 +247,83 @@ TEST_SUITE("Renderer")
 
 		fixture.Renderer->SetViewportSize(64, 64);
 		CHECK(fixture.Renderer->GetViewportWidth() == 64);
+	}
+
+	TEST_CASE("The UI draws at the framebuffer's density: on Retina (2x) a clip rectangle in window units covers twice the pixels")
+	{
+		RendererFixture fixture;
+		nvrhi::IDevice* device = fixture.Device->GetDevice();
+		constexpr uint32_t width = 200, height = 100; // a 100x50 window at 2x
+		nvrhi::TextureHandle target = device->createTexture(nvrhi::TextureDesc()
+				.setDimension(nvrhi::TextureDimension::Texture2D)
+				.setWidth(width)
+				.setHeight(height)
+				.setFormat(nvrhi::Format::RGBA8_UNORM)
+				.setIsRenderTarget(true)
+				.setClearValue(nvrhi::Color(0.0f))
+				.setInitialState(nvrhi::ResourceStates::RenderTarget)
+				.setKeepInitialState(true)
+				.setDebugName("UiTarget"));
+		nvrhi::FramebufferHandle framebuffer = device->createFramebuffer(nvrhi::FramebufferDesc().addColorAttachment(target));
+		nvrhi::CommandListHandle commandList = device->createCommandList();
+		commandList->open();
+		commandList->clearTextureFloat(target, nvrhi::AllSubresources, nvrhi::Color(0.0f, 0.0f, 0.0f, 1.0f));
+		commandList->close();
+		device->executeCommandList(commandList);
+
+		ImGui::CreateContext();
+		ImGuiIO& io = ImGui::GetIO();
+		io.IniFilename = nullptr;
+		io.DisplaySize = ImVec2(100.0f, 50.0f);
+		io.DisplayFramebufferScale = ImVec2(2.0f, 2.0f);
+		CHECK(ImGuiFonts::Load(io));
+		CHECK(ImGuiFonts::Monospace() != nullptr);
+		{
+			ImGuiRenderer renderer(device);
+			ImGui::NewFrame();
+			ImDrawList* draw = ImGui::GetForegroundDrawList();
+			draw->PushClipRect(ImVec2(10.0f, 10.0f), ImVec2(20.0f, 20.0f));
+			draw->AddRectFilled(ImVec2(0.0f, 0.0f), ImVec2(100.0f, 50.0f), IM_COL32_WHITE);
+			draw->PopClipRect();
+			ImGui::TextUnformatted("Sharp"); // the fonts bake into the atlas texture the renderer uploads
+			ImGui::Render();
+			renderer.Render(ImGui::GetDrawData(), framebuffer);
+			device->waitForIdle();
+			renderer.Shutdown();
+		}
+		ImGui::DestroyContext();
+
+		nvrhi::TextureDesc stagingDesc = target->getDesc();
+		stagingDesc.isRenderTarget = false;
+		stagingDesc.initialState = nvrhi::ResourceStates::CopyDest;
+		nvrhi::StagingTextureHandle staging = device->createStagingTexture(stagingDesc, nvrhi::CpuAccessMode::Read);
+		commandList->open();
+		commandList->copyTexture(staging, nvrhi::TextureSlice(), target, nvrhi::TextureSlice());
+		commandList->close();
+		device->executeCommandList(commandList);
+		device->waitForIdle();
+		size_t rowPitch = 0;
+		const auto* data = static_cast<const uint8_t*>(device->mapStagingTexture(staging, nvrhi::TextureSlice(), nvrhi::CpuAccessMode::Read, &rowPitch));
+		REQUIRE(data);
+		auto red = [&](uint32_t x, uint32_t y) { return data[y * rowPitch + x * 4]; };
+		// Window units 10..20 are pixels 20..40.
+		CHECK(red(30, 30) > 200);
+		CHECK(red(21, 21) > 200);
+		CHECK(red(39, 39) > 200);
+		CHECK(red(15, 15) < 50); // inside the unscaled rectangle: drawn there before the fix
+		CHECK(red(45, 30) < 50);
+		CHECK(red(30, 45) < 50);
+		device->unmapStagingTexture(staging);
+		CHECK(fixture.Device->GetErrorCount() == 0);
+	}
+
+	TEST_CASE("A window screenshot fails cleanly when there is no window")
+	{
+		RendererFixture fixture;
+		std::vector<uint8_t> pixels;
+		uint32_t width = 0, height = 0;
+		CHECK_FALSE(fixture.Device->ReadBackBuffer(pixels, width, height));
+		CHECK(pixels.empty());
 	}
 
 	TEST_CASE("The GPU time of a frame and the video memory in use are measured for the performance overlay")

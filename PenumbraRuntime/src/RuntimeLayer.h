@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Penumbra/Core/Layer.h"
+#include "Penumbra/Core/UserSettings.h"
 #include "Penumbra/Renderer/SceneRenderer.h"
 #include "Penumbra/Scene/Scene.h"
 
@@ -32,6 +33,8 @@ namespace Penumbra {
 		std::string DebugToolsOpen; // tools up from the start (--debug-ui performance,panel,freelook)
 		// Where scripts' playtest.record lines go (the agent playtester, docs/Playtest.md); none: not recorded.
 		std::optional<std::filesystem::path> PlaytestOut;
+		// The 3D picture's resolution for this run (--render-scale 0.25-1), overriding the user's setting.
+		std::optional<float> RenderScale;
 	};
 
 	// Plays a project's scene: runtime simulation, rendering to the window (or offscreen when
@@ -57,12 +60,15 @@ namespace Penumbra {
 		bool LoadScene(const std::string& path);
 		void Finish(int exitCode);
 		void ApplyCursorLock();
+		// Windowed: the renderer follows the window's pixels times the render scale.
+		void UpdateViewportSize();
 
 	private:
 		RuntimeOptions m_Options;
 		Ref<Scene> m_Scene;
 		Scope<SceneRenderer> m_Renderer;
 		Scope<RuntimeDebugPanel> m_DebugPanel;
+		UserSettings m_Settings; // windowed runs only; headless runs never read or write the user's settings
 		bool m_GameCursorLocked = false; // what the game's scripts asked for
 		std::chrono::steady_clock::time_point m_LastFrame;
 		bool m_Finished = false;

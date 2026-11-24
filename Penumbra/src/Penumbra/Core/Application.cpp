@@ -1,6 +1,7 @@
 #include "pnpch.h"
 #include "Penumbra/Core/Application.h"
 
+#include "Penumbra/Asset/Importers.h"
 #include "Penumbra/Core/Input.h"
 #include "Penumbra/Core/Timer.h"
 #include "Penumbra/Renderer/RenderDevice.h"
@@ -101,6 +102,24 @@ namespace Penumbra {
 			(*it)->OnEvent(event);
 	}
 
+	void Application::SaveWindowScreenshot()
+	{
+		const std::optional<std::string> path = m_Specification.Arguments.GetValue("window-screenshot");
+		if (!path)
+			return;
+		std::vector<uint8_t> pixels;
+		uint32_t width = 0, height = 0;
+		if (!m_RenderDevice->ReadBackBuffer(pixels, width, height))
+		{
+			PN_CORE_ERROR("Cannot save the window screenshot {}: there is no window to read", *path);
+			return;
+		}
+		if (TextureImporter::WritePNG(*path, width, height, pixels.data(), width * 4))
+			PN_CORE_INFO("Saved window screenshot {}", *path);
+		else
+			PN_CORE_ERROR("Cannot write the window screenshot {}", *path);
+	}
+
 	void Application::Run()
 	{
 		Timer frameTimer;
@@ -129,6 +148,8 @@ namespace Penumbra {
 			{
 				for (Layer* layer : m_Layers)
 					layer->OnRender();
+				if (m_Specification.MaxFrames > 0 && m_FrameIndex + 1 >= m_Specification.MaxFrames)
+					SaveWindowScreenshot();
 				m_RenderDevice->EndFrame();
 			}
 			if (m_RenderDevice->IsDeviceLost())

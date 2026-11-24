@@ -34,8 +34,14 @@ namespace Penumbra {
 		void PollEvents();
 		void SetEventCallback(EventCallback callback) { m_EventCallback = std::move(callback); }
 
+		// The framebuffer in pixels. Mouse positions and ImGui use window units, which are bigger on Retina.
 		uint32_t GetWidth() const { return m_Width; }
 		uint32_t GetHeight() const { return m_Height; }
+		// Framebuffer pixels per window unit: 2 on Retina, 1 on Windows (where window units are pixels).
+		float GetFramebufferScale() const;
+		// How much bigger UI drawn in window units must be to look its size on this monitor: Windows display
+		// scaling (1.5 at 150%); 1 on macOS, where the framebuffer scale already covers Retina.
+		float GetDpiScale() const;
 		bool IsMinimized() const { return m_Width == 0 || m_Height == 0; }
 
 		void SetTitle(const std::string& title);

@@ -5,6 +5,7 @@
 #include "Penumbra/Core/KeyCodes.h"
 #include "Penumbra/Core/Log.h"
 #include "Penumbra/Core/Platform.h"
+#include "Penumbra/Core/UserSettings.h"
 #include "Penumbra/Math/Math.h"
 #include "Penumbra/Project/Project.h"
 #include "Penumbra/Renderer/RenderDevice.h"
@@ -180,5 +181,72 @@ TEST_SUITE("Core")
 		CHECK(RenderDevice::IsGraphicsApiAvailable(GetDefaultGraphicsApi()));
 		const char* argv[] = { "app", "--vulkan" };
 		CHECK(RenderDevice::ChooseGraphicsApi(CommandLine(2, const_cast<char**>(argv))) == GraphicsApi::Vulkan);
+	}
+}
+
+TEST_SUITE("Core")
+{
+	TEST_CASE("User settings: defaults without a file, a round trip, clamped values, a bad file reported")
+	{
+		const std::filesystem::path root = std::filesystem::temp_directory_path() / "PenumbraTests" / std::to_string(static_cast<uint64_t>(UUID()));
+		const std::filesystem::path path = root / "Nested" / "Settings.json";
+		std::string error;
+		UserSettings settings;
+		settings.UiScale = 1.7f;
+		REQUIRE(UserSettings::Load(path, settings, error)); // missing: the defaults
+		CHECK(settings.UiScale == 1.0f);
+		CHECK(settings.RenderScale == 0.0f);
+
+		settings.UiScale = 1.25f;
+		settings.RenderScale = 0.75f;
+		REQUIRE(settings.Save(path, error)); // creates the folder
+		UserSettings loaded;
+		REQUIRE(UserSettings::Load(path, loaded, error));
+		CHECK(loaded.UiScale == 1.25f);
+		CHECK(loaded.RenderScale == 0.75f);
+
+		REQUIRE(FileSystem::WriteTextFile(path, R"({ "UiScale": 9, "RenderScale": 0.01 })"));
+		REQUIRE(UserSettings::Load(path, loaded, error));
+		CHECK(loaded.UiScale == UserSettings::MaxUiScale);
+		CHECK(loaded.RenderScale == UserSettings::MinRenderScale);
+
+		REQUIRE(FileSystem::WriteTextFile(path, R"({ "UiScale": "big" })"));
+		CHECK_FALSE(UserSettings::Load(path, loaded, error));
+		CHECK(error.find("UiScale") != std::string::npos);
+		CHECK(loaded.UiScale == 1.0f); // defaults, never half-read values
+		REQUIRE(FileSystem::WriteTextFile(path, "not json"));
+		CHECK_FALSE(UserSettings::Load(path, loaded, error));
+		std::filesystem::remove_all(root);
+	}
+
+	TEST_CASE("The render scale: automatic is one 3D pixel per window unit, a chosen value wins")
+	{
+		UserSettings settings;
+		CHECK(settings.ResolveRenderScale(1.0f) == 1.0f); // a normal screen: full resolution
+		CHECK(settings.ResolveRenderScale(2.0f) == 0.5f); // Retina: today's pixel count
+		CHECK(settings.ResolveRenderScale(0.0f) == 1.0f);
+		settings.RenderScale = 1.0f;
+		CHECK(settings.ResolveRenderScale(2.0f) == 1.0f); // every Retina pixel
+		settings.RenderScale = 0.75f;
+		CHECK(settings.ResolveRenderScale(1.0f) == 0.75f);
+	}
+
+	TEST_CASE("The user's settings folder can be moved with PENUMBRA_USER_DIR")
+	{
+		const std::filesystem::path folder = std::filesystem::temp_directory_path() / "PenumbraUserDir";
+#ifdef _WIN32
+		_putenv_s("PENUMBRA_USER_DIR", folder.string().c_str());
+#else
+		setenv("PENUMBRA_USER_DIR", folder.string().c_str(), 1);
+#endif
+		CHECK(FileSystem::GetUserDataDirectory() == folder);
+		CHECK(UserSettings::GetDefaultPath() == folder / "Settings.json");
+#ifdef _WIN32
+		_putenv_s("PENUMBRA_USER_DIR", "");
+#else
+		unsetenv("PENUMBRA_USER_DIR");
+#endif
+		CHECK(FileSystem::GetUserDataDirectory() != folder);
+		CHECK_FALSE(FileSystem::GetUserDataDirectory().empty());
 	}
 }

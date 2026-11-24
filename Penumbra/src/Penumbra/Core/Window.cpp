@@ -32,9 +32,11 @@ namespace Penumbra {
 		glfwWindowHint(GLFW_RESIZABLE, specification.Resizable ? GLFW_TRUE : GLFW_FALSE);
 		glfwWindowHint(GLFW_MAXIMIZED, specification.Maximized ? GLFW_TRUE : GLFW_FALSE);
 		glfwWindowHint(GLFW_VISIBLE, specification.Visible ? GLFW_TRUE : GLFW_FALSE);
-		// One pixel per window unit on Retina displays too: input, ImGui and the renderer then agree on
-		// coordinates as they do on Windows (macOS scales the image up).
-		glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
+		// Full-resolution framebuffers on Retina. Mouse positions stay in window units (points), so code that
+		// maps the mouse to the picture uses ratios (position / ImGui's DisplaySize), never framebuffer pixels.
+		glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
+		// Windows: the requested size is scaled by the monitor's display scaling, like on macOS.
+		glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
 
 		m_Window = glfwCreateWindow(static_cast<int>(m_Width), static_cast<int>(m_Height), specification.Title.c_str(), nullptr, nullptr);
 		PN_CORE_VERIFY(m_Window != nullptr, "Failed to create window");
@@ -106,6 +108,20 @@ namespace Penumbra {
 	}
 
 	void Window::PollEvents() { glfwPollEvents(); }
+
+	float Window::GetFramebufferScale() const
+	{
+		int windowWidth = 0, windowHeight = 0;
+		glfwGetWindowSize(m_Window, &windowWidth, &windowHeight);
+		return windowWidth > 0 && m_Width > 0 ? static_cast<float>(m_Width) / static_cast<float>(windowWidth) : 1.0f;
+	}
+
+	float Window::GetDpiScale() const
+	{
+		float contentScale = 1.0f, ignored = 1.0f;
+		glfwGetWindowContentScale(m_Window, &contentScale, &ignored);
+		return std::max(contentScale / GetFramebufferScale(), 0.5f);
+	}
 
 	void Window::SetTitle(const std::string& title) { glfwSetWindowTitle(m_Window, title.c_str()); }
 

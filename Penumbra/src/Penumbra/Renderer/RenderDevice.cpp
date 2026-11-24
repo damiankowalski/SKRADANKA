@@ -224,6 +224,48 @@ namespace Penumbra {
 		return m_Impl->BackBuffers.empty() ? nullptr : m_Impl->BackBuffers[m_Impl->BackBufferIndex].Get();
 	}
 
+	bool RenderDevice::ReadBackBuffer(std::vector<uint8_t>& pixels, uint32_t& width, uint32_t& height)
+	{
+		nvrhi::ITexture* backBuffer = GetBackBuffer();
+		if (!HasSwapChain() || !backBuffer)
+			return false;
+		Impl& impl = *m_Impl;
+		nvrhi::TextureDesc desc = backBuffer->getDesc();
+		desc.isRenderTarget = false;
+		desc.initialState = nvrhi::ResourceStates::CopyDest;
+		desc.keepInitialState = true;
+		nvrhi::StagingTextureHandle staging = impl.Device->createStagingTexture(desc, nvrhi::CpuAccessMode::Read);
+		nvrhi::CommandListHandle commandList = impl.Device->createCommandList();
+		if (!staging || !commandList)
+			return false;
+
+		commandList->open();
+		commandList->copyTexture(staging, nvrhi::TextureSlice(), backBuffer, nvrhi::TextureSlice());
+		commandList->close();
+		impl.Device->executeCommandList(commandList);
+		impl.Device->waitForIdle();
+
+		size_t rowPitch = 0;
+		const uint8_t* data = static_cast<const uint8_t*>(impl.Device->mapStagingTexture(staging, nvrhi::TextureSlice(), nvrhi::CpuAccessMode::Read, &rowPitch));
+		if (!data)
+			return false;
+		width = desc.width;
+		height = desc.height;
+		const bool bgra = desc.format == nvrhi::Format::BGRA8_UNORM || desc.format == nvrhi::Format::SBGRA8_UNORM;
+		pixels.resize(static_cast<size_t>(width) * height * 4);
+		for (uint32_t y = 0; y < height; y++)
+		{
+			uint8_t* row = pixels.data() + static_cast<size_t>(y) * width * 4;
+			std::memcpy(row, data + y * rowPitch, static_cast<size_t>(width) * 4);
+			for (uint32_t x = 0; bgra && x < width; x++)
+				std::swap(row[x * 4], row[x * 4 + 2]);
+			for (uint32_t x = 0; x < width; x++)
+				row[x * 4 + 3] = 255; // the window is opaque whatever the UI wrote into alpha
+		}
+		impl.Device->unmapStagingTexture(staging);
+		return true;
+	}
+
 	nvrhi::IFramebuffer* RenderDevice::GetBackBufferFramebuffer() const
 	{
 		return m_Impl->Framebuffers.empty() ? nullptr : m_Impl->Framebuffers[m_Impl->BackBufferIndex].Get();

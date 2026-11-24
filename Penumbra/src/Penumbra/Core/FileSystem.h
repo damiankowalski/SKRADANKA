@@ -19,6 +19,10 @@ namespace Penumbra {
 		static bool WriteBinaryFile(const std::filesystem::path& path, const void* data, size_t size);
 
 		static std::filesystem::path GetExecutableDirectory();
+		// Where the editor and runtime keep the user's own settings and panel layouts: PENUMBRA_USER_DIR when
+		// set (tests, agents), else %APPDATA%/Penumbra on Windows, ~/Library/Application Support/Penumbra on
+		// macOS, $XDG_CONFIG_HOME/Penumbra or ~/.config/Penumbra elsewhere. Not created here.
+		static std::filesystem::path GetUserDataDirectory();
 
 		// Normalizes a path to forward slashes, relative to base when possible.
 		static std::string MakeRelativeGeneric(const std::filesystem::path& path, const std::filesystem::path& base);

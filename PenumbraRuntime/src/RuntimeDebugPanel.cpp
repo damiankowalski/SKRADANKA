@@ -2,11 +2,13 @@
 
 #include "Penumbra/AI/FogOfWarSystem.h"
 #include "Penumbra/AI/PerceptionSystem.h"
+#include "Penumbra/Core/FileSystem.h"
 #include "Penumbra/Core/Input.h"
 #include "Penumbra/Core/Log.h"
 #include "Penumbra/Core/Platform.h"
 #include "Penumbra/Debug/ObjectInspector.h"
 #include "Penumbra/ImGui/ComponentInspector.h"
+#include "Penumbra/ImGui/ImGuiFonts.h"
 #include "Penumbra/ImGui/ImGuiHost.h"
 #include "Penumbra/Physics/PhysicsWorld.h"
 #include "Penumbra/Renderer/SceneRenderer.h"
@@ -16,6 +18,8 @@
 #include "Penumbra/Scene/Scene.h"
 #include "Penumbra/Scripting/ScriptEngine.h"
 #include "Penumbra/UI/Overlay.h"
+
+#include <GLFW/glfw3.h>
 
 #include <chrono>
 #include <format>
@@ -63,12 +67,12 @@ namespace Penumbra {
 		}
 	}
 
-	RuntimeDebugPanel::RuntimeDebugPanel(GLFWwindow* window, nvrhi::IDevice* device)
+	RuntimeDebugPanel::RuntimeDebugPanel(GLFWwindow* window, nvrhi::IDevice* device, UserSettings& settings)
+		: m_Window(window), m_Settings(settings)
 	{
-		m_ImGui = CreateScope<ImGuiHost>(window, device, nullptr);
+		m_ImGui = CreateScope<ImGuiHost>(window, device, FileSystem::GetUserDataDirectory() / "RuntimeLayout.ini");
 		// Arrow keys and Space belong to the game, not to ImGui's keyboard navigation.
 		ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
-		m_BaseStyle = ImGui::GetStyle();
 		m_PhysicalMemory = Platform::GetPhysicalMemoryBytes();
 	}
 
@@ -182,22 +186,20 @@ namespace Penumbra {
 		}
 	}
 
-	void RuntimeDebugPanel::UpdateStyle(float viewportHeight)
+	void RuntimeDebugPanel::UpdateStyle()
 	{
-		// The same rule as the game's HUD (1080 lines = 1), times the user's choice.
-		const float scale = OverlayScaleFor(static_cast<uint32_t>(viewportHeight)) * m_UserScale;
-		if (scale == m_AppliedScale)
-			return;
-		m_AppliedScale = scale;
-		ImGuiStyle& style = ImGui::GetStyle();
-		style = m_BaseStyle;
-		style.ScaleAllSizes(scale);
-		style.FontScaleMain = scale;
+		// The same rule as the game's HUD (1080 lines = 1) on the window's height in window units, so Retina and
+		// display scaling change sharpness, not size; times the user's UI size (0.75 keeps the panels small).
+		int width = 0, height = 0;
+		glfwGetWindowSize(m_Window, &width, &height);
+		m_ImGui->SetScale(OverlayScaleFor(static_cast<uint32_t>(std::max(height, 1))) * 0.75f * m_Settings.UiScale);
 	}
+
+	float RuntimeDebugPanel::UiScale() const { return m_ImGui->GetScale(); }
 
 	RenderCamera RuntimeDebugPanel::BeginFrame(Scene& scene, SceneRenderer& renderer, float aspect)
 	{
-		UpdateStyle(static_cast<float>(renderer.GetViewportHeight()));
+		UpdateStyle();
 		m_ImGui->BeginFrame();
 		ImGuiIO& io = ImGui::GetIO();
 
@@ -285,7 +287,7 @@ namespace Penumbra {
 		}
 		else if (m_FreeLook)
 		{
-			ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, 10.0f * m_AppliedScale), ImGuiCond_Always, ImVec2(0.5f, 0.0f));
+			ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, 10.0f * UiScale()), ImGuiCond_Always, ImVec2(0.5f, 0.0f));
 			ImGui::SetNextWindowBgAlpha(0.6f);
 			ImGui::Begin("##freelook", nullptr,
 				ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings);
@@ -307,12 +309,13 @@ namespace Penumbra {
 			m_HasVideoMemory = device.QueryVideoMemory(m_VideoMemory);
 		}
 
-		const float margin = 10.0f * m_AppliedScale;
+		const float margin = 10.0f * UiScale();
 		ImGui::SetNextWindowPos(ImVec2(margin, margin), ImGuiCond_Always);
 		ImGui::SetNextWindowBgAlpha(0.72f);
 		ImGui::Begin("##performance", nullptr,
 			ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings |
 				ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav);
+		ImGui::PushFont(ImGuiFonts::Monospace(), 0.0f); // numbers line up
 
 		const ImVec4 fpsColor = summary.Fps >= 55.0f ? ImVec4(0.45f, 0.95f, 0.5f, 1.0f)
 								: summary.Fps >= 30.0f ? ImVec4(1.0f, 0.85f, 0.3f, 1.0f)
@@ -324,7 +327,7 @@ namespace Penumbra {
 		// Frame times of the last few seconds; the line marks 60 FPS.
 		const auto& history = m_Monitor.GetFrameHistory();
 		const float graphMax = std::max(33.4f, summary.FrameMsMax * 1.2f);
-		const ImVec2 graphSize(300.0f * m_AppliedScale, 46.0f * m_AppliedScale);
+		const ImVec2 graphSize(300.0f * UiScale(), 46.0f * UiScale());
 		ImGui::PlotLines("##frames", history.data(), static_cast<int>(history.size()), static_cast<int>(m_Monitor.GetHistoryOffset()), nullptr, 0.0f,
 			graphMax, graphSize);
 		const ImVec2 graphMin = ImGui::GetItemRectMin();
@@ -377,14 +380,16 @@ namespace Penumbra {
 			}
 			ImGui::EndTable();
 		}
+		ImGui::PopFont();
+
 		ImGui::End();
 	}
 
 	void RuntimeDebugPanel::DrawPanel(Scene& scene)
 	{
 		const ImGuiIO& io = ImGui::GetIO();
-		ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 10.0f * m_AppliedScale, 10.0f * m_AppliedScale), ImGuiCond_FirstUseEver, ImVec2(1.0f, 0.0f));
-		ImGui::SetNextWindowSize(ImVec2(430.0f * m_AppliedScale, 0.0f), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 10.0f * UiScale(), 10.0f * UiScale()), ImGuiCond_FirstUseEver, ImVec2(1.0f, 0.0f));
+		ImGui::SetNextWindowSize(ImVec2(430.0f * UiScale(), 0.0f), ImGuiCond_FirstUseEver);
 		if (!ImGui::Begin("Debug (F4)", &m_PanelOpen, ImGuiWindowFlags_NoSavedSettings))
 		{
 			ImGui::End();
@@ -494,7 +499,7 @@ namespace Penumbra {
 			{
 				float speed = m_FreeCamera.GetSpeed();
 				ImGui::SameLine();
-				ImGui::SetNextItemWidth(140.0f * m_AppliedScale);
+				ImGui::SetNextItemWidth(140.0f * UiScale());
 				if (ImGui::SliderFloat("m/s", &speed, 0.5f, 40.0f, "%.1f", ImGuiSliderFlags_Logarithmic))
 					m_FreeCamera.SetSpeed(speed);
 				if (ImGui::Button("Back to the thief's camera"))
@@ -512,7 +517,21 @@ namespace Penumbra {
 			ImGui::SameLine();
 			if (ImGui::SmallButton("1x"))
 				m_TimeScale = 1.0f;
-			ImGui::SliderFloat("UI size", &m_UserScale, 0.5f, 2.0f, "%.2fx");
+			// Shared with the editor (UserSettings), saved when the control is let go.
+			ImGui::SliderFloat("UI size", &m_Settings.UiScale, UserSettings::MinUiScale, UserSettings::MaxUiScale, "%.2fx");
+			if (ImGui::IsItemDeactivatedAfterEdit())
+				m_Settings.SaveDefault();
+			static constexpr const char* RenderScaleNames[] = { "Automatic", "50%", "75%", "100%" };
+			static constexpr float RenderScales[] = { 0.0f, 0.5f, 0.75f, 1.0f };
+			int current = 0;
+			for (int i = 0; i < 4; i++)
+				if (m_Settings.RenderScale == RenderScales[i])
+					current = i;
+			if (ImGui::Combo("3D resolution", &current, RenderScaleNames, 4))
+			{
+				m_Settings.RenderScale = RenderScales[current];
+				m_Settings.SaveDefault();
+			}
 		}
 		ImGui::End();
 		Input::SetGameInputBlocked(BlocksGameInput()); // the window's close button
@@ -663,9 +682,9 @@ namespace Penumbra {
 			}
 			const ImVec2 size = ImGui::CalcTextSize(text.c_str());
 			const ImVec2 topLeft(pixel.x - size.x * 0.5f, pixel.y - size.y);
-			const float pad = 4.0f * m_AppliedScale;
+			const float pad = 4.0f * UiScale();
 			draw->AddRectFilled(ImVec2(topLeft.x - pad, topLeft.y - pad), ImVec2(topLeft.x + size.x + pad, topLeft.y + size.y + pad),
-				IM_COL32(0, 0, 0, 150), 3.0f * m_AppliedScale);
+				IM_COL32(0, 0, 0, 150), 3.0f * UiScale());
 			draw->AddText(topLeft, ImGui::ColorConvertFloat4ToU32(ToImVec4(DebugOverlays::StateColor(component.RuntimeState))), text.c_str());
 		}
 	}
@@ -849,8 +868,8 @@ namespace Penumbra {
 	void RuntimeDebugPanel::DrawInspector(Scene& scene)
 	{
 		const ImGuiIO& io = ImGui::GetIO();
-		ImGui::SetNextWindowPos(ImVec2(10.0f * m_AppliedScale, io.DisplaySize.y * 0.25f), ImGuiCond_FirstUseEver);
-		ImGui::SetNextWindowSize(ImVec2(420.0f * m_AppliedScale, io.DisplaySize.y * 0.6f), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowPos(ImVec2(10.0f * UiScale(), io.DisplaySize.y * 0.25f), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowSize(ImVec2(420.0f * UiScale(), io.DisplaySize.y * 0.6f), ImGuiCond_FirstUseEver);
 		if (!ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoSavedSettings))
 		{
 			ImGui::End();

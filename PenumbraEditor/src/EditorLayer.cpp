@@ -1,9 +1,11 @@
 #include "EditorLayer.h"
 
+#include "Penumbra/ImGui/ImGuiFonts.h"
 #include "Penumbra/ImGui/ImGuiHost.h"
 
 #include "Penumbra/Asset/AssetManager.h"
 #include "Penumbra/Core/Application.h"
+#include "Penumbra/Core/FileSystem.h"
 #include "Penumbra/Core/Input.h"
 #include "Penumbra/Core/Platform.h"
 #include "Penumbra/Debug/DebugOverlays.h"
@@ -81,7 +83,9 @@ namespace Penumbra {
 		});
 
 		Application& app = Application::Get();
-		m_ImGui = CreateScope<ImGuiHost>(app.GetWindow()->GetNativeWindow(), app.GetRenderDevice().GetDevice(), "PenumbraEditor.ini");
+		m_Settings = UserSettings::LoadDefault();
+		m_ImGui = CreateScope<ImGuiHost>(app.GetWindow()->GetNativeWindow(), app.GetRenderDevice().GetDevice(),
+			FileSystem::GetUserDataDirectory() / "EditorLayout.ini");
 		m_Renderer = CreateScope<SceneRenderer>(app.GetRenderDevice());
 		m_Commands = CreateScope<CommandProcessor>(*this);
 
@@ -91,6 +95,15 @@ namespace Penumbra {
 
 		if (m_Options.EnableCommandServer)
 			m_Server.Start(m_Options.CommandPort);
+	}
+
+	glm::uvec2 EditorLayer::GetViewportPixels() const
+	{
+		const Window* window = Application::Get().GetWindow();
+		const float framebufferScale = window ? window->GetFramebufferScale() : 1.0f;
+		const float scale = framebufferScale * m_Settings.ResolveRenderScale(framebufferScale);
+		return { static_cast<uint32_t>(std::max(m_ViewportSize.x * scale, 1.0f)),
+			static_cast<uint32_t>(std::max(m_ViewportSize.y * scale, 1.0f)) };
 	}
 
 	void EditorLayer::OnDetach()
@@ -124,7 +137,7 @@ namespace Penumbra {
 			return false;
 		CommitPendingChange();
 		m_PlayScene = Scene::Copy(m_EditScene);
-		m_PlayScene->OnViewportResize(static_cast<uint32_t>(m_ViewportSize.x), static_cast<uint32_t>(m_ViewportSize.y));
+		m_PlayScene->OnViewportResize(GetViewportPixels().x, GetViewportPixels().y);
 		// Every play session plays out differently (events, search spots); headless automation keeps the fixed seed.
 		m_PlayScene->SetRandomSeed(static_cast<uint64_t>(std::chrono::steady_clock::now().time_since_epoch().count()));
 		m_PlayScene->OnRuntimeStart();
@@ -411,7 +424,7 @@ namespace Penumbra {
 						m_PlayScene->OnRuntimeStop();
 						loaded->SetGameState(m_PlayScene->GetGameStateRef());
 						m_PlayScene = loaded;
-						m_PlayScene->OnViewportResize(static_cast<uint32_t>(m_ViewportSize.x), static_cast<uint32_t>(m_ViewportSize.y));
+						m_PlayScene->OnViewportResize(GetViewportPixels().x, GetViewportPixels().y);
 						m_PlayScene->SetRandomSeed(static_cast<uint64_t>(std::chrono::steady_clock::now().time_since_epoch().count()));
 						m_PlayScene->OnRuntimeStart();
 					}
@@ -468,8 +481,9 @@ namespace Penumbra {
 	void EditorLayer::OnRender()
 	{
 		Ref<Scene> scene = GetActiveSceneForView();
-		const uint32_t width = static_cast<uint32_t>(std::max(m_ViewportSize.x, 1.0f));
-		const uint32_t height = static_cast<uint32_t>(std::max(m_ViewportSize.y, 1.0f));
+		const glm::uvec2 pixels = GetViewportPixels();
+		const uint32_t width = pixels.x;
+		const uint32_t height = pixels.y;
 		m_Renderer->SetViewportSize(width, height);
 		scene->OnViewportResize(width, height);
 
@@ -478,6 +492,7 @@ namespace Penumbra {
 		const RenderCamera camera = m_UseSceneCamera ? RenderCamera::FromScene(*scene, aspect) : m_Camera.GetRenderCamera(aspect);
 		m_Renderer->Render(*scene, camera);
 
+		m_ImGui->SetScale(Application::Get().GetWindow()->GetDpiScale() * m_Settings.UiScale);
 		m_ImGui->BeginFrame();
 		ImGuizmo::BeginFrame();
 		ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
@@ -668,6 +683,27 @@ namespace Penumbra {
 			ImGui::MenuItem("Perception debug", nullptr, &m_ShowPerception);
 			ImGui::MenuItem("Navmesh (play mode)", nullptr, &m_ShowNavMesh);
 			ImGui::MenuItem("Game camera", nullptr, &m_UseSceneCamera);
+			ImGui::Separator();
+			// Shared with the runtime's F4 panel (UserSettings); saved when the slider is let go.
+			ImGui::SetNextItemWidth(ImGui::GetFontSize() * 8.0f);
+			ImGui::SliderFloat("UI size", &m_Settings.UiScale, UserSettings::MinUiScale, UserSettings::MaxUiScale, "%.2fx");
+			if (ImGui::IsItemDeactivatedAfterEdit())
+				m_Settings.SaveDefault();
+			static constexpr std::pair<const char*, float> RenderScales[] = {
+				{ "Automatic", 0.0f }, { "50%", 0.5f }, { "75%", 0.75f }, { "100%", 1.0f }
+			};
+			if (ImGui::BeginMenu("3D resolution"))
+			{
+				for (const auto& [label, value] : RenderScales)
+				{
+					if (ImGui::MenuItem(label, nullptr, m_Settings.RenderScale == value))
+					{
+						m_Settings.RenderScale = value;
+						m_Settings.SaveDefault();
+					}
+				}
+				ImGui::EndMenu();
+			}
 			ImGui::EndMenu();
 		}
 		ImGui::TextDisabled("   %s", m_Server.IsRunning() ? std::format("automation: 127.0.0.1:{}", m_Server.GetPort()).c_str() : "automation: off");
@@ -886,6 +922,7 @@ namespace Penumbra {
 		ImGui::SameLine();
 		ImGui::TextDisabled(m_PlayScene ? "Input runs Lua in the playing scene" : "Input runs an automation command (JSON)");
 		ImGui::BeginChild("ConsoleScroll", ImVec2(0.0f, -ImGui::GetFrameHeightWithSpacing()));
+		ImGui::PushFont(ImGuiFonts::Monospace(), 0.0f);
 		{
 			std::scoped_lock lock(m_ConsoleMutex);
 			for (const ConsoleLine& line : m_Console)
@@ -902,6 +939,8 @@ namespace Penumbra {
 		}
 		if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
 			ImGui::SetScrollHereY(1.0f);
+		ImGui::PopFont();
+
 		ImGui::EndChild();
 
 		if (ImGui::InputText("##ConsoleInput", m_ConsoleInput, sizeof(m_ConsoleInput), ImGuiInputTextFlags_EnterReturnsTrue))

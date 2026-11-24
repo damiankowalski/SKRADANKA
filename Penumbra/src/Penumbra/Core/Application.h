@@ -27,6 +27,8 @@ namespace Penumbra {
 		uint64_t MaxFrames = 0;
 		// When set, every frame advances by exactly this many seconds (deterministic automation).
 		float FixedTimestep = 0.0f;
+		// The command line. --window-screenshot <file.png> (with MaxFrames, windowed runs) saves the last frame
+		// as the window shows it, UI included; --screenshot in the runtime saves only the scene.
 		CommandLine Arguments;
 	};
 
@@ -57,6 +59,7 @@ namespace Penumbra {
 
 	private:
 		void OnEvent(Event& event);
+		void SaveWindowScreenshot();
 
 	private:
 		ApplicationSpecification m_Specification;

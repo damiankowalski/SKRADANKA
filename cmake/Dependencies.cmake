@@ -159,6 +159,16 @@ target_include_directories(pn_imgui SYSTEM PUBLIC
 target_link_libraries(pn_imgui PUBLIC glfw)
 penumbra_third_party_target(pn_imgui)
 
+# The UI fonts come with the pinned ImGui and are compiled in (ImGui/ImGuiFonts.h): Roboto Medium
+# (Apache License 2.0) and Cousine Regular (SIL Open Font License 1.1).
+include("${CMAKE_CURRENT_LIST_DIR}/EmbedFile.cmake")
+set(PN_EMBEDDED_FONTS "${CMAKE_BINARY_DIR}/generated/EmbeddedFonts.cpp")
+penumbra_embed_files("${PN_EMBEDDED_FONTS}"
+    g_PenumbraFontRoboto "${imgui_SOURCE_DIR}/misc/fonts/Roboto-Medium.ttf"
+    g_PenumbraFontCousine "${imgui_SOURCE_DIR}/misc/fonts/Cousine-Regular.ttf")
+add_library(pn_fonts STATIC "${PN_EMBEDDED_FONTS}")
+penumbra_third_party_target(pn_fonts)
+
 # ImGuizmo (transform gizmos), used by the editor only
 if(PENUMBRA_BUILD_EDITOR)
 add_library(pn_imguizmo STATIC "${imguizmo_SOURCE_DIR}/src/ImGuizmo.cpp")

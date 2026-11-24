@@ -38,7 +38,8 @@ are decimal strings. Asset paths are relative to the project's asset directory a
 1. `project.new` / `project.open`; `component.list` to learn the data model.
 2. Build the level with `entity.create` / `prefab.instantiate`; write gameplay with `asset.write` (Lua, see `ScriptingAPI.md`).
 3. Write a test scene whose scripts call `test.check`/`test.complete`; verify with `test.run`.
-4. Look at the result with `render.screenshot`; fix and iterate.
+4. Look at the result with `render.screenshot`; fix and iterate. To see the editor's or runtime's own UI, run it windowed with
+   `--frames N --window-screenshot <file.png>` (and `PENUMBRA_USER_DIR` set to a scratch folder, see `DebugTools.md`).
 5. `scene.save`, `project.set {startScene}`, `project.export {output}`.
 
 `docs/examples/AgentQuickstart.jsonl` is a complete example and runs in CI. So does `docs/art/mood/MoodLab.jsonl`, which switches lighting variants

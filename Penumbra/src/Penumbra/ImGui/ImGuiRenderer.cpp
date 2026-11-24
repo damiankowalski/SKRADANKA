@@ -198,6 +198,7 @@ namespace Penumbra {
 			m_CommandList->writeBuffer(m_IndexBuffer, indices.data(), indices.size() * sizeof(ImDrawIdx));
 
 			const ImVec2 origin = drawData->DisplayPos;
+			const ImVec2 scale = drawData->FramebufferScale;
 			const glm::mat4 projection = glm::orthoRH_ZO(origin.x, origin.x + displaySize.x, origin.y + displaySize.y, origin.y, 0.0f, 1.0f);
 			nvrhi::IGraphicsPipeline* pipeline = GetPipeline(framebuffer);
 			const nvrhi::FramebufferInfoEx& info = framebuffer->getFramebufferInfo();
@@ -213,9 +214,11 @@ namespace Penumbra {
 							command.UserCallback(list, &command);
 						continue;
 					}
-					const ImVec2 clipMin(std::max(command.ClipRect.x - origin.x, 0.0f), std::max(command.ClipRect.y - origin.y, 0.0f));
-					const ImVec2 clipMax(std::min(command.ClipRect.z - origin.x, static_cast<float>(info.width)),
-						std::min(command.ClipRect.w - origin.y, static_cast<float>(info.height)));
+					// Clip rectangles are in window units; the framebuffer may have more pixels (Retina).
+					const ImVec2 clipMin(std::max((command.ClipRect.x - origin.x) * scale.x, 0.0f),
+						std::max((command.ClipRect.y - origin.y) * scale.y, 0.0f));
+					const ImVec2 clipMax(std::min((command.ClipRect.z - origin.x) * scale.x, static_cast<float>(info.width)),
+						std::min((command.ClipRect.w - origin.y) * scale.y, static_cast<float>(info.height)));
 					if (clipMax.x <= clipMin.x || clipMax.y <= clipMin.y)
 						continue;
 
