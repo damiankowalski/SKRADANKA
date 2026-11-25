@@ -328,6 +328,9 @@ namespace Penumbra {
 		float MotionFactor = 0.3f;      // m_motion
 		float ReferenceAngularSize = 0.05f; // radians - target size at which S reaches 1
 		float SuspicionRise = 0.6f;     // r_rise
+		// Added to B - 1 while B >= 1: a thief just at the threshold still raises suspicion at
+		// SuspicionRise * SuspicionFloor per second (0.15/s: mutters after 2 s, alarm after 6 s).
+		float SuspicionFloor = 0.25f;
 		float SuspicionDecay = 0.08f;   // r_decay
 		float SuspiciousThreshold = 0.3f; // suspicion D from which a sighting is a stimulus of strength 10 * D
 		// Hearing: a noise of loudness L (0-10) carries 1.4 * 2^(L/2) metres, losing 2 levels per

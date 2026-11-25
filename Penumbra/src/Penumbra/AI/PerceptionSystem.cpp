@@ -804,7 +804,8 @@ namespace Penumbra {
 
 		// Alert memory makes a guard notice faster.
 		perception.RuntimeSuspicion = PerceptionModel::UpdateSuspicion(perception.RuntimeSuspicion, perception.RuntimeStimulus, dt,
-			perception.SuspicionRise * (1.0f + perception.RuntimeAlertness), perception.SuspicionDecay);
+			perception.SuspicionRise * (1.0f + perception.RuntimeAlertness), perception.SuspicionDecay,
+			perception.SuspicionFloor);
 
 		// The reaction fades: Alarmed -> Searching -> Investigating -> Suspicious -> Unaware.
 		perception.RuntimeReactionTime = std::max(perception.RuntimeReactionTime - dt, 0.0f);

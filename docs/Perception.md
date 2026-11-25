@@ -28,7 +28,8 @@ corners, the AI lab guard end to end).
 4. **Threshold** — see the deviation below.
 5. **Factors** — size `S` (angular size vs. `ReferenceAngularSize`), peripheral `P(θ)` (1 → `PeripheralFactor`
    at the cone edge), motion `M = 1 + m·speed·(1 + peripherality)`.
-6. **Stimulus** `B = (C_eff / C_t)·f·S·P·M`; suspicion `D` rises by `r_rise·(B−1)·dt` when `B ≥ 1`, else decays.
+6. **Stimulus** `B = (C_eff / C_t)·f·S·P·M`; suspicion `D` rises by `r_rise·(B−1+floor)·dt` when `B ≥ 1`, else decays
+   (see Suspicion tempo below).
    From `SuspiciousThreshold` (0.3) a sighting is a stimulus of strength `10·D` (see Reactions).
 7. **Hearing** — noise events on a 0–10 loudness scale (see Hearing) become stimuli of the strength that
    reaches the guard.
@@ -92,6 +93,28 @@ and search the area, darkest spots first; Alarmed — chase while the player is 
 activity ends when the reaction does and the guard walks back to his route (`AILab` scene, end-to-end test
 "The AI lab guard patrols…").
 
+## Suspicion tempo
+
+`B ≥ 1` means the guard registers the thief; how fast he reacts follows from `D += r_rise·(B − 1 + floor)·dt`
+(`SuspicionRise` 0.6, `SuspicionFloor` 0.25). Without the floor the rise vanishes at the threshold itself: a thief
+at B 1.05 took 10 s to a mutter and 30 s to an alarm, and one at exactly 1 was registered and never reacted to. With
+it, whatever is registered is reacted to within seconds if it stays in sight, while a clearly seen thief changes
+little. Suspicion `D` 0.3 is a mutter (Suspicious), 0.4 Investigating, 0.7 Searching, 0.9 Alarmed (strength `10·D`
+against the levels below); alert memory multiplies the rise.
+
+| B | mutter (D 0.3) | alarm (D 0.9) | without the floor |
+|---|---|---|---|
+| 1.0 | 2.0 s | 6.0 s | never |
+| 1.05 | 1.7 s | 5.0 s | 10 s / 30 s |
+| 1.2 | 1.1 s | 3.3 s | 2.5 s / 7.5 s |
+| 1.5 | 0.7 s | 2.0 s | 1.0 s / 3.0 s |
+| 2 | 0.4 s | 1.2 s | 0.5 s / 1.5 s |
+| 5 | 0.12 s | 0.35 s | 0.13 s / 0.38 s |
+
+Glimpses shorter than that still fade without a reaction (suspicion decays 0.08/s). Measured with the playtester's
+PhysicsLab routes (`Assets/Playtest/PhysicsLab`, the thief still against the torch-lit haze, B 1.1-1.5) and the
+`Suspicion tempo report` test (every level's spots, floor 0 against 0.25).
+
 ## Touch and close range
 
 Shadow hides the player from eyes, not from hands.
@@ -104,8 +127,8 @@ Shadow hides the player from eyes, not from hands.
   unconscious feel nothing. `PerceptionSystem::IsTouching` tells whether two are in contact.
 * **Close range** — an intruder closer than `CloseRange` (1.2 m, horizontally) and in view is made out
   even in pitch darkness: the sight is at least `CloseRangeStimulus` (2) × visible fraction × peripheral
-  factor. That is slow on purpose — suspicion rises 0.6/s, so a guard face to face with the player in
-  the dark mutters after about half a second and raises the alarm after about two, time enough to back
+  factor. That is slow on purpose — suspicion rises 0.75/s, so a guard face to face with the player in
+  the dark mutters after about 0.4 s and raises the alarm after about 1.2 s, time enough to back
   off. Behind his back (outside the cone) close range does nothing; touch still does.
 
 ## Takedowns, bodies and shouts
@@ -289,6 +312,7 @@ of what it looks at (view probes plus the visible target samples).
 | `AdaptBrightTime` / `AdaptDarkTime` | `τ` (s) | 0.5 / 6 |
 | `MotionFactor` | `m_motion` | 0.3 |
 | `SuspicionRise` / `SuspicionDecay` | rates | 0.6 / 0.08 |
+| `SuspicionFloor` | added to `B − 1` while `B ≥ 1`: the rise at the threshold itself | 0.25 |
 | `SuspiciousThreshold` | `D` from which a sighting is a stimulus | 0.3 |
 | `HearingSensitivity` | distance multiplier for hearing | 1 |
 | `ReactionDuration` | seconds a strength-10 stimulus lasts | 90 |

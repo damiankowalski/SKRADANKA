@@ -74,8 +74,9 @@ namespace Penumbra::PerceptionModel {
 	// 4.6: combined stimulus B = (C_eff / C_t) * f * S * P * M.
 	float Stimulus(float effectiveContrast, float contrastThreshold, float visibleFraction, float sizeFactor, float peripheral, float motion);
 
-	// 4.6: suspicion counter D in [0, 1].
-	float UpdateSuspicion(float suspicion, float stimulus, float dt, float riseRate, float decayRate);
+	// 4.6: suspicion counter D in [0, 1]: rises by riseRate * (B - 1 + floor) * dt while B >= 1, else decays.
+	// The floor keeps a thief barely above the threshold from going unnoticed for half a minute.
+	float UpdateSuspicion(float suspicion, float stimulus, float dt, float riseRate, float decayRate, float floor = 0.0f);
 
 	// --- Hearing (loudness on a 0-10 designer scale, docs/Perception.md) ----------------------
 

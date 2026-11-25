@@ -480,6 +480,50 @@ TEST_SUITE("World")
 			});
 	}
 
+	TEST_CASE("PhysicsLab: a thief barely made out beside the patrol is reacted to sooner with the suspicion floor")
+	{
+		// The playtest place "Haze, beside the patrol" (Assets/Playtest/PhysicsLab/HazeSide.lua): the patrol passes him at
+		// 4-9 m and makes him out just above the threshold. Seconds until the guard mutters (D 0.3), without the floor
+		// and with the default.
+		auto timeTo = [](float floor) {
+			Level lab("Scenes/PhysicsLab.pscene");
+			Entity player = lab.Entity("Player");
+			lab.SceneInstance.OnRuntimeStop(); // restart with a still thief in sight; the guard keeps his patrol
+			player.RemoveComponent<CharacterControllerComponent>();
+			player.RemoveComponent<ScriptComponent>();
+			player.GetComponent<PerceptionTargetComponent>().SilhouettePoints = PerceptionTargetComponent().SilhouettePoints;
+			player.Transform().Translation = { 13.0f, 0.05f, 0.0f };
+			lab.Entity("Guard").GetComponent<PerceptionComponent>().SuspicionFloor = floor;
+			lab.SceneInstance.OnRuntimeStart();
+			PerceptionComponent& guard = lab.Entity("Guard").GetComponent<PerceptionComponent>();
+			const float dt = 1.0f / 60.0f;
+			for (float t = 0.0f; t < 15.0f; t += dt)
+			{
+				lab.SceneInstance.OnUpdateRuntime(Timestep(dt));
+				if (guard.RuntimeSuspicion >= 0.3f)
+					return t + dt;
+			}
+			return -1.0f;
+		};
+		const float without = timeTo(0.0f), with = timeTo(0.25f);
+		MESSAGE("guard mutters after " << without << " s without the floor, " << with << " s with it");
+		REQUIRE(without > 0.0f);
+		CHECK(with > 0.0f);
+		CHECK(with < without - 1.0f);
+	}
+
+	TEST_CASE("Suspicion tempo report: detection times in every level with guards, before and after" * doctest::skip())
+	{
+		// PenumbraTests -tc="Suspicion tempo report*" --no-skip (release): SuspicionFloor 0, then each guard's own value.
+		DetectionReport({ "Scenes/AILab.pscene", "Scenes/Cloister.pscene", "Scenes/Stealth.pscene", "Scenes/PhysicsLab.pscene",
+							"Scenes/MoodLab.pscene", "Scenes/PerceptionLab.pscene" },
+			[](Scene& scene, bool after) {
+				if (!after)
+					for (auto [handle, perception] : scene.GetRegistry().view<PerceptionComponent>().each())
+						perception.SuspicionFloor = 0.0f;
+			});
+	}
+
 	TEST_CASE("Cloister: the crossbow shoots only while aimed (right mouse); the compass follows the camera")
 	{
 		Level cloister("Scenes/Cloister.pscene");
