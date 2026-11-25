@@ -245,17 +245,20 @@ reaches the view, nearest first (`Renderer/ShadowSlots.h`); a lamp in view with 
 picture instead of shining through walls (F3 counts them). Every torch and hall lamp in Stealth casts shadows. A
 GPU test puts a torch behind a room's wall with more nearer lamps than maps (the old code lit the floor to 0.76).
 
-## In progress
-
-**Developer tools' UI** (M-L, approved 2026-11-23; brief `docs/research/DevToolsUI.md` approved 2026-11-24): four
-PRs. **A. Sharpness and foundations** (done, #43): Retina framebuffer and per-monitor DPI, Roboto + Cousine
+**Developer tools' UI** (M-L, approved 2026-11-23; brief `docs/research/DevToolsUI.md` approved 2026-11-24, before and
+after pictures there): four PRs. **A. Sharpness and foundations** (done, #43): Retina framebuffer and per-monitor DPI, Roboto + Cousine
 fonts, a render scale for the 3D picture, one UI size for the editor and runtime, layouts saved per user;
 `--window-screenshot` saves the window with its UI. **B. The editor's layout** (done, #44): a default docked
 layout on the first start and View → Reset layout (`ImGui/DockLayout.h`), the toolbar and frame time along the
-top of the viewport, Console and Statistics as tabs. **C. The editor's panels** (in progress): Properties in
+top of the viewport, Console and Statistics as tabs. **C. The editor's panels** (done, #45): Properties in
 registry order with labels, units and groups (declared in `VisitFields`), right-click menus (fields, components,
-Hierarchy, Content, Console), Hierarchy badges, search and rename, Console filters. Then **D** the runtime's F3-F7 tools
-(F4 in tabs, no overlaps, remembered layout).
+Hierarchy, Content, Console), Hierarchy badges, search and rename, Console filters. **D. The runtime's tools**
+(#46): F4 in seven tabs with the inspector among them, F3 at the top centre, both clear
+of the HUD and of each other (`Debug/ToolsLayout.h`), F4 remembers its place and size.
+
+## In progress
+
+Nothing.
 
 ## Known bugs
 
@@ -275,7 +278,7 @@ screenshots of the key moments. Package A (the bot, series and report) is done.
 
 Each package still needs the owner's approval and its own brief before it starts. The owner's playtest of the
 playtester added three packages in front (2026-11-23): controls and the player's view (done), the lightning
-(done), then the developer tools' UI (above).
+(done), then the developer tools' UI (done).
 
 1. **Agent playtester** (package A done; package B above).
 2. **Suspicion tempo near the threshold** (S): from the PhysicsLab playtest, a guard who barely makes the thief out

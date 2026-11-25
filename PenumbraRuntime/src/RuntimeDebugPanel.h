@@ -121,6 +121,8 @@ namespace Penumbra {
 		};
 		ClickMode m_ClickMode = ClickMode::Select; // what a left click in the world does (Shift+click: always a noise)
 		UUID m_Selection = UUID::Invalid;
+		UUID m_InspectedSelection = UUID::Invalid; // the selection the Inspector tab last showed
+		bool m_InspectedPlacing = false;
 		bool m_Placing = false;             // "Move here": the next left click puts the selection there
 		bool m_OnlySelectedVision = false;  // draw the selected NPC's view fan alone
 		bool m_OpenObjectMenu = false;

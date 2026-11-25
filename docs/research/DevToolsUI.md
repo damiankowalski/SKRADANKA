@@ -20,6 +20,11 @@ Console filters.
 
 ![](ui/after_c_editor.png)
 
+**Part D after**: the runtime with F3 and F4, nothing saved; F3 at the top centre, F4 in tabs under the compass,
+the game's HUD uncovered (compare the runtime's "before" below).
+
+![](ui/after_d_runtime.png)
+
 ## How the pictures were taken
 
 `--screenshot` saves only the scene renderer's output, so it never showed the UI. A new switch,

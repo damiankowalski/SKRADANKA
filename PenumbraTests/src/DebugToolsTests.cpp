@@ -7,6 +7,7 @@
 #include "Penumbra/Debug/FreeCamera.h"
 #include "Penumbra/Debug/NoiseProbe.h"
 #include "Penumbra/Debug/PerformanceMonitor.h"
+#include "Penumbra/Debug/ToolsLayout.h"
 #include "Penumbra/ImGui/DockLayout.h"
 #include "Penumbra/Renderer/DebugDraw.h"
 
@@ -408,5 +409,30 @@ TEST_SUITE("Debug")
 		CHECK(viewport->Size.x > 1600.0f * 0.5f); // the viewport keeps most of the screen
 		CHECK(hierarchy->Size.x == doctest::Approx(1600.0f * DockLayout::LeftShare).epsilon(0.05));
 		ImGui::DestroyContext();
+	}
+}
+
+TEST_SUITE("Debug")
+{
+	TEST_CASE("F3 and F4 open clear of each other and of the HUD's compass, on small and large windows, at any UI size")
+	{
+		const glm::vec2 displays[] = { { 1280.0f, 720.0f }, { 1600.0f, 900.0f }, { 1920.0f, 1080.0f }, { 1000.0f, 1000.0f } };
+		for (const glm::vec2 display : displays)
+		{
+			for (const float scale : { 0.4f, 0.625f, 1.0f, 1.5f })
+			{
+				CAPTURE(display);
+				CAPTURE(scale);
+				const RuntimeToolsLayout layout = RuntimeToolsLayout::Default(display, scale);
+				CHECK_FALSE(layout.Performance.Overlaps(layout.Panel));
+				// F3 at the top centre, F4 down the right edge under the compass band, both on screen.
+				CHECK(layout.Performance.Min.x + layout.Performance.Max.x == doctest::Approx(display.x));
+				CHECK(layout.Panel.Max.x <= display.x);
+				CHECK(layout.Panel.Min.x > display.x * 0.5f);
+				CHECK(layout.Panel.Min.y >= display.y * RuntimeToolsLayout::HudTopShare - 0.01f);
+				CHECK(layout.Panel.Max.y <= display.y);
+				CHECK(layout.Performance.Max.x - layout.Performance.Min.x > 0.0f);
+			}
+		}
 	}
 }
