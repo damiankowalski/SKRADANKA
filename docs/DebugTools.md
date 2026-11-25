@@ -59,9 +59,16 @@ The editor's panels:
 the editor's panels included (`--screenshot` saves only the 3D picture). It works in the editor and the runtime,
 in windowed runs.
 
+## Where the tools open
+
+The tools open clear of the game's HUD (objectives and controls on the left, compass and loot top right, the
+noise probe bottom left) and of each other (`Debug/ToolsLayout.h`): F3 at the top centre, F4 down the right side
+under the compass. F4 can be moved and resized, and keeps its place and size between runs (`RuntimeLayout.ini`
+in the user's folder, see above).
+
 ## Performance overlay (F3)
 
-Top left, refreshed twice a second over the frames since the last refresh:
+At the top centre (under the freelook banner while it shows), refreshed twice a second over the frames since the last refresh:
 
 * **FPS** and frame time (average, best, worst) with a graph of the last 240 frames; the blue line is 60 FPS.
 * **CPU**: the process's CPU time over wall time, as a share of one core (100% = one core busy) and of every
@@ -76,6 +83,9 @@ Top left, refreshed twice a second over the frames since the last refresh:
   `CastShadows` found no free shadow map and were left out of the picture (more than 8 point or 8 spot lamps reach it).
 
 ## Debug panel (F4)
+
+The panel is a row of tabs: **Fog of war**, **Fog**, **Weather**, **Guards**, **Noise**, **Inspector** and **Time**
+(camera, time scale, UI size, 3D resolution). Sliders leave their labels enough room never to be cut.
 
 **Fog of war: what the thief sees** (`FogOfWar.md`): the switch (also F7; it lasts across scene loads and
 overrides the level's FogOfWar component, without changing it), and the thief's FogOfWar settings live: whether
@@ -141,7 +151,8 @@ its own glow, height and height falloff, scattering and forward glare. Guards se
 With the panel up, a **left click** on anything in the level selects it (pick "left click in the world: makes the
 noise" in the panel, or hold Shift, to make test noises instead). A click on a part selects the whole: a guard,
 not his helmet; a torch, not its flame. The selection gets a yellow box. Guards the fog of war hides cannot be
-clicked (F7 shows them). The **Inspector** window shows:
+clicked (F7 shows them). Selecting something (or starting to place it) brings the **Inspector** tab forward; it
+shows:
 
 * its name, what kind of thing it is (NPC, thief, body, light, a scripted object named after its script such as
   Door, loose object, a prefab's name...) and the object it belongs to (click to go up);
@@ -179,6 +190,7 @@ The pieces are engine code with tests (`PenumbraTests/src/DebugToolsTests.cpp`, 
 `Debug/PerformanceMonitor`, `Debug/FreeCamera` (with `ScreenRayDirection` / `WorldToScreen`), `Debug/NoiseProbe`,
 `Debug/ObjectInspector` (picking, the kind of object and its key components, the menu's actions;
 `InspectorTests.cpp`), `ImGui/ComponentInspector` (the field widgets, shared with the editor's Properties panel),
-`Debug/DebugOverlays` (shared with the editor's "Perception debug" view), `Platform::GetProcessUsage`,
+`Debug/DebugOverlays` (shared with the editor's "Perception debug" view), `Debug/ToolsLayout` (where F3 and F4
+open), `Platform::GetProcessUsage`,
 `RenderDevice::QueryVideoMemory`, `SceneRenderer::GetGpuTimeMs`, `Input::SetGameInputBlocked`. The ImGui panel is
 `PenumbraRuntime/src/RuntimeDebugPanel`.

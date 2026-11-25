@@ -7,6 +7,7 @@
 #include "Penumbra/Core/Log.h"
 #include "Penumbra/Core/Platform.h"
 #include "Penumbra/Debug/ObjectInspector.h"
+#include "Penumbra/Debug/ToolsLayout.h"
 #include "Penumbra/ImGui/ComponentInspector.h"
 #include "Penumbra/ImGui/ImGuiFonts.h"
 #include "Penumbra/ImGui/ImGuiHost.h"
@@ -282,7 +283,6 @@ namespace Penumbra {
 		if (m_PanelOpen)
 		{
 			DrawPanel(scene);
-			DrawInspector(scene);
 			DrawObjectMenu(scene);
 		}
 		else if (m_FreeLook)
@@ -309,8 +309,11 @@ namespace Penumbra {
 			m_HasVideoMemory = device.QueryVideoMemory(m_VideoMemory);
 		}
 
-		const float margin = 10.0f * UiScale();
-		ImGui::SetNextWindowPos(ImVec2(margin, margin), ImGuiCond_Always);
+		// Top centre, clear of the game's HUD and of F4; under the freelook banner while it shows.
+		const ImGuiIO& io = ImGui::GetIO();
+		const RuntimeToolsLayout layout = RuntimeToolsLayout::Default({ io.DisplaySize.x, io.DisplaySize.y }, UiScale());
+		const float bannerHeight = m_FreeLook && !m_PanelOpen ? ImGui::GetFrameHeightWithSpacing() * 1.5f : 0.0f;
+		ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, layout.Performance.Min.y + bannerHeight), ImGuiCond_Always, ImVec2(0.5f, 0.0f));
 		ImGui::SetNextWindowBgAlpha(0.72f);
 		ImGui::Begin("##performance", nullptr,
 			ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings |
@@ -387,29 +390,56 @@ namespace Penumbra {
 
 	void RuntimeDebugPanel::DrawPanel(Scene& scene)
 	{
+		// Down the right side under the HUD's compass the first time; then where the user left it (RuntimeLayout.ini).
 		const ImGuiIO& io = ImGui::GetIO();
-		ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 10.0f * UiScale(), 10.0f * UiScale()), ImGuiCond_FirstUseEver, ImVec2(1.0f, 0.0f));
-		ImGui::SetNextWindowSize(ImVec2(430.0f * UiScale(), 0.0f), ImGuiCond_FirstUseEver);
-		if (!ImGui::Begin("Debug (F4)", &m_PanelOpen, ImGuiWindowFlags_NoSavedSettings))
+		const RuntimeToolsLayout layout = RuntimeToolsLayout::Default({ io.DisplaySize.x, io.DisplaySize.y }, UiScale());
+		ImGui::SetNextWindowPos(ImVec2(layout.Panel.Min.x, layout.Panel.Min.y), ImGuiCond_FirstUseEver);
+		const glm::vec2 panelSize = layout.Panel.Max - layout.Panel.Min;
+		ImGui::SetNextWindowSize(ImVec2(panelSize.x, panelSize.y), ImGuiCond_FirstUseEver);
+		if (!ImGui::Begin("Debug (F4)", &m_PanelOpen))
 		{
 			ImGui::End();
 			Input::SetGameInputBlocked(BlocksGameInput());
 			return;
 		}
 
-		ImGui::TextDisabled("F3 performance   F5 freelook   F6 pause   F7 fog of war");
+		ImGui::TextDisabled("F3 performance  F5 freelook  F6 pause  F7 fog of war");
+		// Sliders leave 45% of the width to their labels, so labels are never cut.
+		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * 0.55f);
 
-		if (ImGui::CollapsingHeader("Fog of war: what the thief sees", ImGuiTreeNodeFlags_DefaultOpen))
-			DrawFogOfWar(scene);
+		// A new selection (a click in the world, a parent or child button) brings the Inspector tab forward.
+		// So does placing an object, whose instructions it shows.
+		const bool showInspector = (m_Selection != m_InspectedSelection && m_Selection != UUID::Invalid) || (m_Placing && !m_InspectedPlacing);
+		m_InspectedSelection = m_Selection;
+		m_InspectedPlacing = m_Placing;
 
-		if (ImGui::CollapsingHeader("Fog and volumetric light"))
-			DrawFog(scene);
-
-		if (ImGui::CollapsingHeader("Weather: lightning and storms"))
-			DrawWeather(scene);
-
-		if (ImGui::CollapsingHeader("Guards: sight and hearing", ImGuiTreeNodeFlags_DefaultOpen))
+		if (!ImGui::BeginTabBar("Tools", ImGuiTabBarFlags_FittingPolicyScroll))
 		{
+			ImGui::PopItemWidth();
+			ImGui::End();
+			return;
+		}
+		if (ImGui::BeginTabItem("Fog of war"))
+		{
+			ImGui::TextDisabled("What the thief sees");
+			DrawFogOfWar(scene);
+			ImGui::EndTabItem();
+		}
+		if (ImGui::BeginTabItem("Fog"))
+		{
+			ImGui::TextDisabled("Fog and volumetric light");
+			DrawFog(scene);
+			ImGui::EndTabItem();
+		}
+		if (ImGui::BeginTabItem("Weather"))
+		{
+			ImGui::TextDisabled("Lightning and storms");
+			DrawWeather(scene);
+			ImGui::EndTabItem();
+		}
+		if (ImGui::BeginTabItem("Guards"))
+		{
+			ImGui::TextDisabled("Sight and hearing");
 			ImGui::Checkbox("View cones (cut by walls)", &m_ShowVision);
 			ImGui::SameLine();
 			ImGui::Checkbox("Labels", &m_ShowLabels);
@@ -443,9 +473,10 @@ namespace Penumbra {
 								   "over). Walls cost 4, closed doors their SoundLoss; sound also goes round along the navmesh.");
 				ImGui::TreePop();
 			}
+			ImGui::EndTabItem();
 		}
 
-		if (ImGui::CollapsingHeader("Test noise", ImGuiTreeNodeFlags_DefaultOpen))
+		if (ImGui::BeginTabItem("Noise"))
 		{
 			ImGui::TextUnformatted("Left click in the world:");
 			ImGui::SameLine();
@@ -489,10 +520,18 @@ namespace Penumbra {
 					ImGui::Text("%7.1f s  %4.1f  %s", noise.Time, noise.Loudness, noise.Cause.c_str());
 				ImGui::TreePop();
 			}
+			ImGui::EndTabItem();
 		}
 
-		if (ImGui::CollapsingHeader("Camera and time", ImGuiTreeNodeFlags_DefaultOpen))
+		if (ImGui::BeginTabItem("Inspector", nullptr, showInspector ? ImGuiTabItemFlags_SetSelected : 0))
 		{
+			DrawInspector(scene);
+			ImGui::EndTabItem();
+		}
+
+		if (ImGui::BeginTabItem("Time"))
+		{
+			ImGui::TextDisabled("Camera, time and the tools' size");
 			if (ImGui::Checkbox("Freelook (F5)", &m_FreeLook))
 				m_FreeLookStarted = false;
 			if (m_FreeLook)
@@ -532,7 +571,10 @@ namespace Penumbra {
 				m_Settings.RenderScale = RenderScales[current];
 				m_Settings.SaveDefault();
 			}
+			ImGui::EndTabItem();
 		}
+		ImGui::EndTabBar();
+		ImGui::PopItemWidth();
 		ImGui::End();
 		Input::SetGameInputBlocked(BlocksGameInput()); // the window's close button
 	}
@@ -867,14 +909,6 @@ namespace Penumbra {
 
 	void RuntimeDebugPanel::DrawInspector(Scene& scene)
 	{
-		const ImGuiIO& io = ImGui::GetIO();
-		ImGui::SetNextWindowPos(ImVec2(10.0f * UiScale(), io.DisplaySize.y * 0.25f), ImGuiCond_FirstUseEver);
-		ImGui::SetNextWindowSize(ImVec2(420.0f * UiScale(), io.DisplaySize.y * 0.6f), ImGuiCond_FirstUseEver);
-		if (!ImGui::Begin("Inspector", nullptr, ImGuiWindowFlags_NoSavedSettings))
-		{
-			ImGui::End();
-			return;
-		}
 		if (m_Placing)
 			ImGui::TextColored(ImVec4(1.0f, 0.85f, 0.2f, 1.0f), "Left-click where it goes (Esc cancels).");
 
@@ -882,7 +916,6 @@ namespace Penumbra {
 		if (!entity)
 		{
 			ImGui::TextWrapped("Click an object in the world to select it: a guard, a lamp, a door, a crate. Right-click for its menu.");
-			ImGui::End();
 			return;
 		}
 
@@ -940,7 +973,7 @@ namespace Penumbra {
 			}
 			ImGui::TreePop();
 		}
-		ImGui::End();
+
 	}
 
 }
