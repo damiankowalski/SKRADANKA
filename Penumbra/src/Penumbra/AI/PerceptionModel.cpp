@@ -130,10 +130,10 @@ namespace Penumbra::PerceptionModel {
 		return (effectiveContrast / std::max(contrastThreshold, Epsilon)) * visibleFraction * sizeFactor * peripheral * motion;
 	}
 
-	float UpdateSuspicion(float suspicion, float stimulus, float dt, float riseRate, float decayRate)
+	float UpdateSuspicion(float suspicion, float stimulus, float dt, float riseRate, float decayRate, float floor)
 	{
 		if (stimulus >= 1.0f)
-			suspicion += riseRate * (stimulus - 1.0f) * dt;
+			suspicion += riseRate * (stimulus - 1.0f + std::max(floor, 0.0f)) * dt;
 		else
 			suspicion -= decayRate * dt;
 		return std::clamp(suspicion, 0.0f, 1.0f);

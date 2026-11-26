@@ -260,6 +260,7 @@ namespace Penumbra {
 			v("AdaptDarkTime", c.AdaptDarkTime, "s");
 			v("Suspicion", Group);
 			v("SuspicionRise", c.SuspicionRise);
+			v("SuspicionFloor", c.SuspicionFloor);
 			v("SuspicionDecay", c.SuspicionDecay);
 			v("SuspiciousThreshold", c.SuspiciousThreshold);
 			v("Hearing", Group);

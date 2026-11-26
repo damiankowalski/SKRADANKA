@@ -256,6 +256,15 @@ Hierarchy, Content, Console), Hierarchy badges, search and rename, Console filte
 (#46): F4 in seven tabs with the inspector among them, F3 at the top centre, both clear
 of the HUD and of each other (`Debug/ToolsLayout.h`), F4 remembers its place and size.
 
+**Suspicion tempo near the threshold** (S, variant A approved 2026-11-25): suspicion rises by
+`r_rise·(B − 1 + SuspicionFloor)` while the guard registers the thief (`Perception.SuspicionFloor`, 0.25), so a thief
+barely made out is reacted to within seconds instead of half a minute (B 1.05: a mutter after 1.7 s instead of 10, the
+alarm after 5 s instead of 30); a clearly seen one changes little (B 5: 0.35 s instead of 0.38). Playtester routes for
+PhysicsLab (`Assets/Playtest/PhysicsLab`: the thief still against the torch-lit haze): the guard mutters after
+1.4 s instead of 2.6-3.6 s and raises the alarm after 2.9 s instead of 4.8-5.2 s; crouched he still goes unnoticed. The
+fog places of the earlier tuning: 1.2-4.2 s instead of 2.9-6.9 s. Stealth: the cellar route's two lucky escapes of 20
+are gone, the baseline escapes 3 of 20 instead of 4. See docs/Perception.md, "Suspicion tempo".
+
 ## In progress
 
 Nothing.
@@ -281,20 +290,17 @@ playtester added three packages in front (2026-11-23): controls and the player's
 (done), then the developer tools' UI (done).
 
 1. **Agent playtester** (package A done; package B above).
-2. **Suspicion tempo near the threshold** (S): from the PhysicsLab playtest, a guard who barely makes the thief out
-   (stimulus just above 1) takes seconds to react; how fast suspicion should rise there, measured with the
-   playtester.
-3. **F1 Fog-free interiors** (S-M, "fog for interiors" below): needed before the first mission's interiors.
-4. **Materials for the first mission** (S each, art pipeline below), then **the decal system** (M-L): dirt at the
+2. **F1 Fog-free interiors** (S-M, "fog for interiors" below): needed before the first mission's interiors.
+3. **Materials for the first mission** (S each, art pipeline below), then **the decal system** (M-L): dirt at the
    foot of walls, moss, soot (`docs/art/World.md`).
-5. **AudioGen** (M, local AI tools below), with Whisper for subtitles.
-6. **The characters' decision** (KayKit → Quaternius, M, art pipeline below), then **Kimodo PoC** (M): Kimodo
+4. **AudioGen** (M, local AI tools below), with Whisper for subtitles.
+5. **The characters' decision** (KayKit → Quaternius, M, art pipeline below), then **Kimodo PoC** (M): Kimodo
    retargets onto our skeleton, so the skeleton is settled first.
-7. **Pixal3D PoC** (M, props).
-8. The rest of the art pipeline: the full-screen map and its picture, concept art, img2img variations, emissive
+6. **Pixal3D PoC** (M, props).
+7. The rest of the art pipeline: the full-screen map and its picture, concept art, img2img variations, emissive
    textures, the other AssetGen add-ons.
-9. **F2 / F3** drifting and reacting mist.
-10. Movement and UI (below): rope arrows, climbing, swimming, the scouting orb, map and compass, inventory.
+8. **F2 / F3** drifting and reacting mist.
+9. Movement and UI (below): rope arrows, climbing, swimming, the scouting orb, map and compass, inventory.
 
 The player character's jitter (Known bugs) waits for the owner to narrow it down.
 
@@ -313,6 +319,8 @@ together, so guards see what the player sees without touching perception.
 * **F3 Mist that reacts** (M): the thief's and NPCs' steps part the mist and leave a fading trail, an opened door
   gives a gust; a bounded number of disturbances in `FogMedium` (guards see the same); about +0.05-0.15 ms; soft
   motion (froxel resolution, temporal smoothing).
+* F2 and F3 are research first (the owner, 2026-11-25): whether mechanics or animation make the fog more than static.
+  The Stealth cellar's smudge on the wall goes with them; until then the fog stays as it is.
 * Rejected: a full fluid simulation (L+, beyond the frame budget).
 
 ### Later, discussed: art pipeline (AssetGen)

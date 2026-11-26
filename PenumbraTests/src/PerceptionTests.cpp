@@ -207,7 +207,36 @@ TEST_SUITE("Perception")
 		CHECK(Test::Near(d, 0.5f));
 		CHECK(PerceptionModel::UpdateSuspicion(0.9f, 100.0f, 1.0f, 0.6f, 0.1f) == 1.0f);
 		CHECK(PerceptionModel::UpdateSuspicion(0.05f, 0.0f, 1.0f, 0.6f, 0.1f) == 0.0f);
+	}
 
+	TEST_CASE("Suspicion floor: a thief just above the threshold is reacted to within seconds")
+	{
+		// Seconds until D reaches 0.3 (a guard mutters) and 0.9 (alarm) at a steady stimulus.
+		auto timeTo = [](float target, float stimulus, float floor) {
+			float d = 0.0f;
+			const float dt = 1.0f / 60.0f;
+			for (float t = 0.0f; t < 60.0f; t += dt)
+			{
+				d = PerceptionModel::UpdateSuspicion(d, stimulus, dt, 0.6f, 0.08f, floor);
+				if (d >= target)
+					return t + dt;
+			}
+			return -1.0f;
+		};
+		// Without a floor, B = 1.05 takes 10 s to a mutter and 30 s to an alarm; B = 1 never gets anywhere.
+		CHECK(timeTo(0.3f, 1.05f, 0.0f) == doctest::Approx(10.0f).epsilon(0.01));
+		CHECK(timeTo(0.9f, 1.0f, 0.0f) < 0.0f);
+		// With the default floor 0.25: about 1.7 s and 5 s; at B = 1 exactly 2 s and 6 s.
+		CHECK(timeTo(0.3f, 1.05f, 0.25f) == doctest::Approx(1.67f).epsilon(0.02));
+		CHECK(timeTo(0.9f, 1.05f, 0.25f) == doctest::Approx(5.0f).epsilon(0.02));
+		CHECK(timeTo(0.3f, 1.0f, 0.25f) == doctest::Approx(2.0f).epsilon(0.02));
+		CHECK(timeTo(0.9f, 1.0f, 0.25f) == doctest::Approx(6.0f).epsilon(0.02));
+		// A clearly seen thief barely changes: B = 5 reaches the alarm in 0.38 s, 0.35 s with the floor.
+		CHECK(timeTo(0.9f, 5.0f, 0.25f) > 0.9f * timeTo(0.9f, 5.0f, 0.0f));
+		// Below the threshold the floor does nothing: suspicion decays as before; a negative floor counts as 0.
+		CHECK(PerceptionModel::UpdateSuspicion(0.5f, 0.99f, 1.0f, 0.6f, 0.08f, 0.25f) == doctest::Approx(0.42f));
+		CHECK(PerceptionModel::UpdateSuspicion(0.5f, 1.0f, 1.0f, 0.6f, 0.08f, -1.0f) == 0.5f);
+		CHECK(PerceptionComponent().SuspicionFloor == 0.25f);
 	}
 
 	TEST_CASE("Loudness carries 1.4 * 2^(L/2) metres and loses two levels per doubling of distance")
@@ -396,6 +425,9 @@ TEST_SUITE("Perception")
 		env.FogScattering = 0.5f;
 		env.FogAnisotropy = 0.3f;
 		lab.Wall(-16.0f, 0.3f, wallEmissive); // 8 m behind the thief
+		// These compare how well he is seen; the suspicion floor (a minimum tempo at the threshold) would squeeze
+		// the times of a barely seen thief together.
+		lab.Guard.GetComponent<PerceptionComponent>().SuspicionFloor = 0.0f;
 		setup(lab);
 		lab.Start();
 		lab.SceneInstance.GetPerceptionSystem()->SetFogGlow(glow);
