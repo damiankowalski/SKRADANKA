@@ -44,6 +44,8 @@ namespace Penumbra {
 
 		// 0..1: 1 deep inside, falling to 0 at the sides over EdgeFade metres.
 		float Weight(const glm::vec3& point) const;
+		// The part of the segment from + direction * [0, length] inside the box, if any.
+		bool Clip(const glm::vec3& from, const glm::vec3& direction, float length, float& enter, float& exit) const;
 	};
 
 	struct FogMedium
@@ -52,6 +54,7 @@ namespace Penumbra {
 		float Height = 0.0f;         // Environment.FogHeight
 		float HeightFalloff = 0.0f;  // Environment.FogHeightFalloff
 		std::vector<FogBox> Boxes;   // enabled FogVolume components (ignored, like the renderer, without VolumetricFog)
+		std::vector<FogBox> Clears;  // enabled Clear FogVolumes: interiors the environment's fog stays out of (likewise)
 
 		// How it is lit (Environment): its own glow, and how much of the lamps' light it scatters.
 		float ColorLuminance = 0.0f; // luminance of FogColor
@@ -67,10 +70,13 @@ namespace Penumbra {
 
 		// The environment's part at a height.
 		float GlobalDensityAt(float y) const;
-		// Extinction per metre at a point (environment + boxes).
+		// 0..1: how much of the environment's fog a Clear volume keeps out at a point (the strongest one).
+		float ClearAt(const glm::vec3& point) const;
+		// Extinction per metre at a point: environment * (1 - ClearAt) + boxes.
 		float DensityAt(const glm::vec3& point) const;
 		// Integral of DensityAt along the segment: exact for the environment's part, numerical
-		// (BoxSamples midpoints over the part inside each box) for the boxes.
+		// (BoxSamples midpoints over the part inside each box) for the boxes, and for what the Clear volumes
+		// take away (steps of at most ClearStep metres over the parts inside any of them).
 		float OpticalDepth(const glm::vec3& from, const glm::vec3& to) const;
 
 		// The fog along the segment as an eye at `from` sees it: steps of at most MaxScatterStep metres
@@ -82,6 +88,7 @@ namespace Penumbra {
 		FogPath Integrate(const glm::vec3& from, const glm::vec3& to, const std::function<float(const glm::vec3&)>& lampLight) const;
 
 		static constexpr int BoxSamples = 8;
+		static constexpr float ClearStep = 0.25f;
 		// Fine enough to catch a lamp's peak (the falloff is steep near it); the walk stops once almost nothing
 		// behind gets through (MinScatterTransmittance).
 		static constexpr float MaxScatterStep = 0.75f;

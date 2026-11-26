@@ -31,18 +31,24 @@ Texture3D<float4> g_FogHistory : register(t0, space1);
 StructuredBuffer<GPUFogVolume> g_FogVolumes : register(t1, space1);
 PN_IMAGE_FORMAT_RGBA16F RWTexture3D<float4> g_FogScatter : register(u0, space1);
 
-// FogMedium::DensityAt.
+// FogMedium::DensityAt: the environment's fog kept out by the strongest Clear volume (negative density), plus the
+// fog boxes.
 float FogDensityAt(float3 position)
 {
-	float density = FogGlobalDensity(position.y);
+	float added = 0.0;
+	float clear = 0.0;
 	for (uint i = 0; i < g_View.FogVolumeCount; i++)
 	{
 		GPUFogVolume volume = g_FogVolumes[i];
 		float3 offset = position - volume.CenterDensity.xyz;
 		float3 local = float3(dot(volume.Row0.xyz, offset), dot(volume.Row1.xyz, offset), dot(volume.Row2.xyz, offset));
-		density += volume.CenterDensity.w * FogBoxWeight(local, volume.HalfExtentsFade.xyz, volume.HalfExtentsFade.w);
+		float weight = FogBoxWeight(local, volume.HalfExtentsFade.xyz, volume.HalfExtentsFade.w);
+		if (volume.CenterDensity.w < 0.0)
+			clear = max(clear, weight);
+		else
+			added += volume.CenterDensity.w * weight;
 	}
-	return density;
+	return FogGlobalDensity(position.y) * (1.0 - clear) + added;
 }
 
 // One-tap shadow lookups: the jitter and the temporal blend soften them.

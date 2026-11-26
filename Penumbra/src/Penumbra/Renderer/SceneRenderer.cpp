@@ -1321,7 +1321,7 @@ namespace Penumbra {
 		view.FogAnisotropy = std::clamp(environment.FogAnisotropy, -0.95f, 0.95f);
 		view.VolumetricFog = volumetricFog ? 1.0f : 0.0f;
 		view.FogDistance = std::max(m_Settings.FogDistance, 1.0f);
-		view.FogVolumeCount = static_cast<uint32_t>(std::min<size_t>(fogMedium.Boxes.size(), GPU::MaxFogVolumes));
+		view.FogVolumeCount = static_cast<uint32_t>(std::min<size_t>(fogMedium.Boxes.size() + fogMedium.Clears.size(), GPU::MaxFogVolumes));
 		// Without last frame's samples, sample every slice's middle (no noise to average away).
 		view.FogJitter = fogHistory ? std::fmod(static_cast<float>(impl.FrameIndex) * 0.6180339f, 1.0f) : 0.5f;
 		view.PrevViewProj = fogHistory ? impl.PrevViewProj : view.ViewProj;
@@ -1388,19 +1388,22 @@ namespace Penumbra {
 		if (volumetricFog)
 		{
 			std::vector<GPU::FogVolume> boxes;
-			for (const FogBox& box : fogMedium.Boxes)
-			{
+			auto upload = [&boxes](const FogBox& box, bool clear) {
 				if (boxes.size() >= GPU::MaxFogVolumes)
-					break;
+					return;
 				const glm::mat3 toLocal = glm::mat3_cast(glm::inverse(box.Rotation));
 				GPU::FogVolume gpu;
-				gpu.CenterDensity = glm::vec4(box.Center, box.Density);
+				gpu.CenterDensity = glm::vec4(box.Center, clear ? -1.0f : box.Density); // negative: a Clear volume
 				gpu.HalfExtentsFade = glm::vec4(box.HalfExtents, box.EdgeFade);
 				gpu.Row0 = glm::vec4(toLocal[0][0], toLocal[1][0], toLocal[2][0], 0.0f);
 				gpu.Row1 = glm::vec4(toLocal[0][1], toLocal[1][1], toLocal[2][1], 0.0f);
 				gpu.Row2 = glm::vec4(toLocal[0][2], toLocal[1][2], toLocal[2][2], 0.0f);
 				boxes.push_back(gpu);
-			}
+			};
+			for (const FogBox& box : fogMedium.Boxes)
+				upload(box, false);
+			for (const FogBox& box : fogMedium.Clears)
+				upload(box, true);
 			if (!boxes.empty())
 				commandList->writeBuffer(impl.FogVolumeBuffer, boxes.data(), boxes.size() * sizeof(GPU::FogVolume));
 

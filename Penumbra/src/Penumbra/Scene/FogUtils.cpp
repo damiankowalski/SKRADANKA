@@ -41,6 +41,33 @@ namespace Penumbra {
 		return EdgeFade <= 0.0f ? 1.0f : std::clamp(depth / EdgeFade, 0.0f, 1.0f);
 	}
 
+	bool FogBox::Clip(const glm::vec3& from, const glm::vec3& direction, float length, float& enter, float& exit) const
+	{
+		const glm::quat toLocal = glm::inverse(Rotation);
+		const glm::vec3 localOrigin = toLocal * (from - Center);
+		const glm::vec3 localDirection = toLocal * direction;
+		enter = 0.0f;
+		exit = length;
+		for (int axis = 0; axis < 3; axis++)
+		{
+			if (std::abs(localDirection[axis]) < 1e-8f)
+			{
+				if (std::abs(localOrigin[axis]) > HalfExtents[axis])
+					return false;
+				continue;
+			}
+			float t1 = (-HalfExtents[axis] - localOrigin[axis]) / localDirection[axis];
+			float t2 = (HalfExtents[axis] - localOrigin[axis]) / localDirection[axis];
+			if (t1 > t2)
+				std::swap(t1, t2);
+			enter = std::max(enter, t1);
+			exit = std::min(exit, t2);
+			if (enter >= exit)
+				return false;
+		}
+		return true;
+	}
+
 	FogMedium FogMedium::FromScene(Scene& scene)
 	{
 		FogMedium medium;
@@ -60,7 +87,8 @@ namespace Penumbra {
 			return medium;
 		for (auto [handle, volume] : scene.GetRegistry().view<FogVolumeComponent>().each())
 		{
-			if (!volume.Enabled || volume.Density <= 0.0f)
+			const bool clear = volume.Mode == FogVolumeMode::Clear;
+			if (!volume.Enabled || (!clear && volume.Density <= 0.0f))
 				continue;
 			Entity entity(handle, &scene);
 			FogBox box;
@@ -69,7 +97,13 @@ namespace Penumbra {
 			box.HalfExtents = glm::max(volume.HalfExtents, glm::vec3(0.0f));
 			box.Density = volume.Density;
 			box.EdgeFade = std::max(volume.EdgeFade, 0.0f);
-			medium.Boxes.push_back(box);
+			if (clear)
+			{
+				box.Density = 0.0f;
+				medium.Clears.push_back(box);
+			}
+			else
+				medium.Boxes.push_back(box);
 		}
 		return medium;
 	}
@@ -82,10 +116,18 @@ namespace Penumbra {
 		return Density * std::exp(-HeightFalloff * (y - Height));
 	}
 
-	// Keep in step with FogDensityAt in shaders/Fog.hlsli.
+	float FogMedium::ClearAt(const glm::vec3& point) const
+	{
+		float clear = 0.0f;
+		for (const FogBox& box : Clears)
+			clear = std::max(clear, box.Weight(point));
+		return clear;
+	}
+
+	// Keep in step with FogDensityAt in shaders/Fog.hlsl.
 	float FogMedium::DensityAt(const glm::vec3& point) const
 	{
-		float density = GlobalDensityAt(point.y);
+		float density = GlobalDensityAt(point.y) * (1.0f - ClearAt(point));
 		for (const FogBox& box : Boxes)
 			density += box.Density * box.Weight(point);
 		return density;
@@ -110,31 +152,41 @@ namespace Penumbra {
 						(HeightProfileIntegral(to.y, Height, HeightFalloff) - HeightProfileIntegral(from.y, Height, HeightFalloff)) / rise;
 		}
 
-		// Boxes: clip the segment to each one, then sample the weight along the part inside.
+		// What the Clear volumes keep out: the environment's density times ClearAt, sampled over the union of the
+		// parts of the segment inside them (overlapping rooms are not taken away twice).
 		const glm::vec3 direction = delta / length;
+		if (Density > 0.0f && !Clears.empty())
+		{
+			std::vector<std::pair<float, float>> spans;
+			for (const FogBox& box : Clears)
+			{
+				float enter = 0.0f, exit = 0.0f;
+				if (box.Clip(from, direction, length, enter, exit))
+					spans.emplace_back(enter, exit);
+			}
+			std::sort(spans.begin(), spans.end());
+			for (size_t i = 0; i < spans.size();)
+			{
+				const float enter = spans[i].first;
+				float exit = spans[i].second;
+				for (i++; i < spans.size() && spans[i].first <= exit; i++)
+					exit = std::max(exit, spans[i].second);
+				const int samples = std::max(BoxSamples, static_cast<int>(std::ceil((exit - enter) / ClearStep)));
+				const float step = (exit - enter) / static_cast<float>(samples);
+				for (int s = 0; s < samples; s++)
+				{
+					const glm::vec3 point = from + direction * (enter + step * (static_cast<float>(s) + 0.5f));
+					depth -= GlobalDensityAt(point.y) * ClearAt(point) * step;
+				}
+			}
+			depth = std::max(depth, 0.0f);
+		}
+
+		// Boxes: clip the segment to each one, then sample the weight along the part inside.
 		for (const FogBox& box : Boxes)
 		{
-			const glm::quat toLocal = glm::inverse(box.Rotation);
-			const glm::vec3 localOrigin = toLocal * (from - box.Center);
-			const glm::vec3 localDirection = toLocal * direction;
-			float enter = 0.0f, exit = length;
-			bool missed = false;
-			for (int axis = 0; axis < 3 && !missed; axis++)
-			{
-				if (std::abs(localDirection[axis]) < 1e-8f)
-				{
-					missed = std::abs(localOrigin[axis]) > box.HalfExtents[axis];
-					continue;
-				}
-				float t1 = (-box.HalfExtents[axis] - localOrigin[axis]) / localDirection[axis];
-				float t2 = (box.HalfExtents[axis] - localOrigin[axis]) / localDirection[axis];
-				if (t1 > t2)
-					std::swap(t1, t2);
-				enter = std::max(enter, t1);
-				exit = std::min(exit, t2);
-				missed = enter >= exit;
-			}
-			if (missed)
+			float enter = 0.0f, exit = 0.0f;
+			if (!box.Clip(from, direction, length, enter, exit))
 				continue;
 			const float step = (exit - enter) / static_cast<float>(BoxSamples);
 			float weights = 0.0f;

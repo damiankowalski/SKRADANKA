@@ -868,6 +868,78 @@ TEST_SUITE("Renderer")
 		CHECK(fixture.Device->GetErrorCount() == 0);
 	}
 
+	TEST_CASE("A Clear fog volume keeps the lit fog out of a room on screen as for the guards; outside it still glows")
+	{
+		// Fog over everything and a lamp in the middle; a long Clear room on the left, from just beside the eye to
+		// past the lamp. The froxels through the room hold no fog (as FogMedium says); the right glows as before.
+		RendererFixture fixture;
+		Scene& scene = fixture.SceneInstance;
+		auto& environment = scene.CreateEntity("Environment").AddComponent<EnvironmentComponent>();
+		environment.AmbientColor = glm::vec3(0.0f);
+		environment.FogColor = glm::vec3(0.0f);
+		environment.FogDensity = 0.15f;
+		environment.SSAOEnabled = false;
+		environment.BloomIntensity = 0.0f;
+		Entity room = scene.CreateEntity("Room");
+		room.Transform().Translation = { -2.5f, 1.0f, -3.0f };
+		auto& clear = room.AddComponent<FogVolumeComponent>();
+		clear.Mode = FogVolumeMode::Clear;
+		clear.HalfExtents = { 2.0f, 2.0f, 7.0f };
+		clear.EdgeFade = 0.25f;
+		Entity lamp = scene.CreateEntity("Lamp");
+		lamp.Transform().Translation = { 0.0f, 1.0f, -5.0f };
+		auto& light = lamp.AddComponent<PointLightComponent>();
+		light.Intensity = 10.0f;
+		light.Range = 8.0f;
+		light.Flicker = 0.0f;
+		scene.OnRuntimeStart();
+
+		const glm::vec3 eye(0.0f, 1.0f, 3.0f);
+		const RenderCamera camera = RenderCamera::Perspective(eye, Math::LookRotation(glm::vec3(0.0f, 0.0f, -1.0f)), 60.0f,
+			static_cast<float>(RendererFixture::Width) / static_cast<float>(RendererFixture::Height), 0.1f, 100.0f);
+		const std::vector<uint8_t> pixels = fixture.RenderFrame(camera);
+		// Through the room: little glow (the line still crosses a little fog by the eye and past the room's back);
+		// on the right of the lamp, as much as ever.
+		const glm::uvec2 inRoom = RendererFixture::ToPixel(camera, { -2.0f, 1.0f, -5.0f });
+		const glm::uvec2 mirror = RendererFixture::ToPixel(camera, { 2.0f, 1.0f, -5.0f });
+		const float roomGlow = Math::Luminance(RendererFixture::Pixel(pixels, inRoom.x, inRoom.y));
+		const float outsideGlow = Math::Luminance(RendererFixture::Pixel(pixels, mirror.x, mirror.y));
+		MESSAGE("glow through the room ", roomGlow, ", outside it ", outsideGlow);
+		CHECK(outsideGlow > 0.05f);
+		CHECK(roomGlow < outsideGlow * 0.4f);
+
+		// The froxels' transmittance agrees with FogMedium along lines through the room and beside it.
+		std::vector<glm::vec4> volume;
+		glm::uvec3 size(0);
+		REQUIRE(fixture.Renderer->ReadFogVolume(volume, size));
+		const FogMedium medium = FogMedium::FromScene(scene);
+		REQUIRE(medium.Clears.size() == 1);
+		const float fogDistance = fixture.Renderer->GetSettings().FogDistance;
+		const glm::mat4 inverseViewProjection = glm::inverse(camera.Projection * camera.View);
+		float worst = 0.0f;
+		for (const uint32_t column : { 30u, 50u, 64u, 80u, 100u })
+		{
+			for (const uint32_t slice : { 30u, 38u, 44u })
+			{
+				const uint32_t row = size.y / 2;
+				const glm::vec2 uv = (glm::vec2(column, row) + 0.5f) / glm::vec2(size.x, size.y);
+				const glm::vec4 farPlane = inverseViewProjection * glm::vec4(uv.x * 2.0f - 1.0f, 1.0f - uv.y * 2.0f, 1.0f, 1.0f);
+				const glm::vec3 direction = glm::normalize(glm::vec3(farPlane) / farPlane.w - eye);
+				const float w = static_cast<float>(slice + 1) / static_cast<float>(size.z);
+				const float distance = fogDistance * w * w / glm::dot(direction, glm::vec3(0.0f, 0.0f, -1.0f));
+				const float cpu = std::exp(-medium.OpticalDepth(eye, eye + direction * distance));
+				const float gpu = volume[(static_cast<size_t>(slice) * size.y + row) * size.x + column].a;
+				CAPTURE(column);
+				CAPTURE(slice);
+				CHECK(std::abs(cpu - gpu) <= 0.03f);
+				worst = std::max(worst, std::abs(cpu - gpu));
+			}
+		}
+		MESSAGE("worst transmittance difference ", worst);
+		scene.OnRuntimeStop();
+		CHECK(fixture.Device->GetErrorCount() == 0);
+	}
+
 	TEST_CASE("Fog of war darkens and greys what the thief does not see, and leaves out guards there")
 	{
 		RendererFixture fixture;

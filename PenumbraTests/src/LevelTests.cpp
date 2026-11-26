@@ -7,6 +7,7 @@
 #include "Penumbra/Navigation/NavigationSystem.h"
 #include "Penumbra/Physics/PhysicsWorld.h"
 #include "Penumbra/Project/Project.h"
+#include "Penumbra/Scene/FogUtils.h"
 #include "Penumbra/Scene/SceneSerializer.h"
 #include "Penumbra/Scripting/ScriptEngine.h"
 
@@ -478,6 +479,19 @@ TEST_SUITE("World")
 					for (auto [handle, perception] : scene.GetRegistry().view<PerceptionComponent>().each())
 						perception.SelfShading = 0.0f;
 			});
+	}
+
+	TEST_CASE("Stealth: the level's fog stays out of the hall and the cellar, creeping in at their doorways")
+	{
+		Level stealth("Scenes/Stealth.pscene");
+		const FogMedium medium = FogMedium::FromScene(stealth.SceneInstance);
+		CHECK(medium.Clears.size() == 2);
+		CHECK(medium.DensityAt({ 10.0f, 1.5f, -12.0f }) == doctest::Approx(0.0f));    // the hall
+		CHECK(medium.DensityAt({ -10.25f, 1.5f, -17.0f }) == doctest::Approx(0.0f));  // the cellar
+		CHECK(medium.DensityAt({ 10.0f, 1.5f, -4.0f }) == doctest::Approx(medium.Density)); // the yard in front of the hall
+		CHECK(medium.Density > 0.0f);
+		// In the hall's doorway (the front wall's outer face is at z = -7.7): half a metre in, half the fog.
+		CHECK(medium.DensityAt({ 10.0f, 1.0f, -8.2f }) == doctest::Approx(medium.Density * 0.5f));
 	}
 
 	TEST_CASE("PhysicsLab: a thief barely made out beside the patrol is reacted to sooner with the suspicion floor")

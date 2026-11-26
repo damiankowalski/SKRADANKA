@@ -512,13 +512,21 @@ namespace Penumbra {
 		bool Enabled = true;
 	};
 
-	// Local fog: a box of extra fog (mist over a garden, a cellar's haze) added to the environment's. It fades
-	// in over EdgeFade metres from its sides. Rotates with the entity; HalfExtents are metres (scale ignored).
-	// Lit like the rest of the fog and seen through the same way by guards (Scene/FogUtils.h).
+	enum class FogVolumeMode : uint8_t
+	{
+		Add = 0, // extra fog: Density is added to the environment's
+		Clear    // an interior: the environment's fog is gone inside (other volumes' fog stays)
+	};
+
+	// Local fog: a box of extra fog (mist over a garden, a cellar's haze) added to the environment's, or (Clear) a
+	// room that keeps the level's fog out. It takes effect over EdgeFade metres from its sides (in a doorway the fog
+	// creeps in that far). Rotates with the entity; HalfExtents are metres (scale ignored). Lit like the rest of the
+	// fog and seen through the same way by guards (Scene/FogUtils.h).
 	struct FogVolumeComponent
 	{
+		FogVolumeMode Mode = FogVolumeMode::Add;
 		glm::vec3 HalfExtents{ 5.0f, 1.0f, 5.0f };
-		float Density = 0.1f; // extinction per metre added inside
+		float Density = 0.1f; // extinction per metre added inside (Add)
 		float EdgeFade = 1.0f;
 		bool Enabled = true;
 	};

@@ -71,6 +71,12 @@ namespace Penumbra {
 	};
 
 	template<>
+	struct EnumNames<FogVolumeMode>
+	{
+		static constexpr std::pair<FogVolumeMode, std::string_view> Values[] = { { FogVolumeMode::Add, "Add" }, { FogVolumeMode::Clear, "Clear" } };
+	};
+
+	template<>
 	struct EnumNames<VitalState>
 	{
 		static constexpr std::pair<VitalState, std::string_view> Values[] = {

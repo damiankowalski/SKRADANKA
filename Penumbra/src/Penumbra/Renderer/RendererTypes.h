@@ -65,7 +65,7 @@ namespace Penumbra::GPU {
 	// A local fog box (FogVolumeComponent) for shaders/Fog.hlsl: world to box space as rows of a rotation.
 	struct FogVolume
 	{
-		glm::vec4 CenterDensity;     // xyz centre, w density
+		glm::vec4 CenterDensity;     // xyz centre, w density (negative: a Clear volume, FogVolumeMode::Clear)
 		glm::vec4 HalfExtentsFade;   // xyz half extents, w edge fade
 		glm::vec4 Row0;
 		glm::vec4 Row1;
