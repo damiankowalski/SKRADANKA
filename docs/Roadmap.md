@@ -294,40 +294,50 @@ following a body the character collides with.
 
 ## Next
 
-**Agent playtester, package B: maps from above** (S-M, the next step of this item; needs its brief): the runs drawn
-on a top-down picture of the level (routes, where guards noticed the thief, their view and lamps), and engine
-screenshots of the key moments. Package A (the bot, series and report) is done.
+**The blockout of mission 1** (M, needs its brief): the whole route below in grey boxes, playable with today's
+mechanics, walked by the agent playtester. It fixes the sizes, sightlines, the prop list and the frame budget before
+any art.
 
 ### The goal: the first mission (the owner, 2026-11-26)
 
 One playable mission on one map, with full graphics, 2D and 3D art and sound: from a street and a tavern, through
 the city's lantern-lit streets, the church, its catacombs and a collapsed tunnel, into the mayor's vineyard and manor
-(kitchen, bathrooms, a drawing room with a fireplace, two staircases, the bedroom and the library upstairs). What it
-needs and an order of packages: [`research/MissionOne.md`](research/MissionOne.md), a proposal waiting for the
-owner's decisions; the priority order below is redone from it once they are taken.
+(kitchen, bathrooms, a drawing room with a fireplace, two staircases, the bedroom and the library upstairs). The
+thief leaves hidden in the cart of the feast's leftovers, which a guard pushes out of the grounds when the kitchen
+bell rings (Manuel the head cook's note tells how), or back through the vineyard when no guard is left. What it
+needs, the owner's decisions and the order of packages: [`research/MissionOne.md`](research/MissionOne.md). Still
+open: the main loot, the lord's title, and Blender MCP beside the scripts (decided when the prop pipeline starts).
 
 **Sound comes once the mission's world stands**: AudioGen package A (effects and ambience with a listening room) is
 approved with the owner's brief, [`research/AudioGenBrief.md`](research/AudioGenBrief.md); B (music) and C (voices)
 follow it.
 
-### Priority order (approved 2026-11-22, updated 2026-11-23)
+### Priority order (redone for the first mission, 2026-11-26)
 
-Each package still needs the owner's approval and its own brief before it starts. The owner's playtest of the
-playtester added three packages in front (2026-11-23): controls and the player's view (done), the lightning
-(done), then the developer tools' UI (done).
+Each package still needs its own brief and the owner's approval before it starts. The first mission comes first
+(`research/MissionOne.md`, "Order"); the earlier list follows it.
 
-1. **Agent playtester** (package A done; package B above).
-2. **The decal system** (M-L): dirt at the foot of walls, moss, soot (`docs/art/World.md`); the first mission's
-   materials are done.
-3. **AudioGen** (M, local AI tools below), with Whisper for subtitles: package A's brief is approved
-   (`research/AudioGenBrief.md`); it starts once the first mission's world stands.
-4. **The characters' decision** (KayKit → Quaternius, M, art pipeline below), then **Kimodo PoC** (M): Kimodo
-   retargets onto our skeleton, so the skeleton is settled first.
-5. **Pixal3D PoC** (M, props).
-6. The rest of the art pipeline: the full-screen map and its picture, concept art, img2img variations, emissive
-   textures, the other AssetGen add-ons.
-7. **F2 / F3** drifting and reacting mist.
-8. Movement and UI (below): rope arrows, climbing, swimming, the scouting orb, map and compass, inventory.
+1. **The blockout of mission 1** (M, above).
+2. **The engine for a big map** (about 6 PRs, M-L in all), starting with the stress-test district: instancing, light
+   culling, LOD and draw distance, room-bounded lights, alpha-tested materials, texture compression, collision
+   proxies.
+3. **The prop pipeline** (M): Blender (installed then, with the owner's approval), `Tools/PropGen`, its skill, a prop
+   lab, the architecture kit; Blender MCP beside the scripts decided then.
+4. **The characters' decision** (KayKit → Quaternius, M, art pipeline below; a mock-up first, waiting for the
+   owner's approval of the download), then **Pixal3D PoC** (M, hero props). **Kimodo PoC** (M) after the
+   characters: Kimodo retargets onto our skeleton, so the skeleton is settled first.
+5. **The mission's places**, one PR each (M): street and tavern; church and catacombs; vineyard; the manor's ground
+   floor; its first floor. Materials batch 2 and emissive windows come with them.
+6. **The mission's gameplay**: the leftovers cart (M), readables, keys, the tunnel, checkpoints (S-M), townsfolk.
+7. **AudioGen** (M, local AI tools below), with Whisper for subtitles: package A's brief is approved
+   (`research/AudioGenBrief.md`); it starts once the mission's world stands. Then B (music) and C (voices).
+8. **Polish**: the decal system (M-L: dirt at the foot of walls, moss, soot), playtester series, the frame budget
+   checked on Windows. **Agent playtester, package B: maps from above** (S-M: the runs drawn on a top-down picture
+   of the level, engine screenshots of the key moments) comes here, or earlier if the blockout's playtests need it.
+
+After the first mission: the rest of the art pipeline (the full-screen map and its picture, concept art, img2img
+variations, the other AssetGen add-ons); **F2 / F3** drifting and reacting mist; movement and UI (below): rope
+arrows, climbing, swimming, the scouting orb, map and compass, inventory.
 
 The player character's jitter (Known bugs) waits for the owner to narrow it down.
 
