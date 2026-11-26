@@ -112,11 +112,31 @@ Animation Library, CC0, M). The mission needs guards, the mayor, servants and to
 bodies (outfits, colours, hats, a lantern). Generating rigged characters with AI is not possible today (rejected in
 `AITools.md`), so the bodies come from CC0 and their variants from materials and attached props.
 
-The owner confirmed Quaternius (2026-11-26) and asked to see a mock-up first: Universal Base Characters (standard
-zip about 122 MB) with Modular Character Outfits - Fantasy (12 outfits from 62 parts, three texture variants each,
-standard zip about 263 MB), both CC0 from quaternius.itch.io, rendered by the engine in the mood lab beside today's
-KayKit knight. The download waits for his approval; nothing of it enters the repository before the characters'
-package.
+The owner confirmed Quaternius (2026-11-26) and asked to see a mock-up first. With his approval the free "Standard"
+zips of Universal Base Characters (129 MB) and Modular Character Outfits - Fantasy (294 MB), both CC0, came from
+quaternius.itch.io into a scratch folder outside the repository; the engine rendered them in the mood lab beside
+today's KayKit characters (images sent to the owner, not committed). What the mock-up showed:
+
+* **They load as they are**: glTF, metres, Y up, one 65-joint skeleton with the same bind pose for every body,
+  outfit and hairstyle, so parts stack as separate meshes on one skeleton. The look (stylised realism, hand-painted
+  textures) sits well beside the generated materials and under the game's light.
+* **The free versions are partial.** Bodies: only the "Superhero" proportions (male, female; the Regular and Teen
+  bodies are in the paid Source version). Outfits: 2 of 12 (Peasant and Ranger, male and female; three texture
+  variants are also in Source). Source costs about USD 20 per pack (pay what you want above that minimum), keeps
+  CC0 and adds `.blend` sources. For the mission's guards (armour), the mayor and the servants, the Source outfits
+  matter.
+* **Assembly**: an outfit needs only the head of a base body (the full body clips through clothes). The mock-up cut
+  the head out by its skin weights (head and neck joints); the Source version has the parts separate.
+* **Hair is white**, meant to be tinted (Source ships the shaders); a material colour tints it here.
+* **No animations**: the bodies come in a T-pose. The Universal Animation Library (CC0, another download, 120+
+  clips) is the next piece; the mock-up only lowered the arms by hand.
+* **Heavier than KayKit**: an outfit is 13,000-27,000 triangles, a head about 4,600, against about 6,000-7,000 for a
+  whole KayKit character. 25 characters at full detail would be about 600,000 triangles: LODs (A3) are needed for
+  characters too, made in Blender (the prop pipeline's tool) at import.
+* The characters' package (step 4) also re-tunes the perception's silhouette points and tests to the new bodies
+  (roadmap, art pipeline).
+
+Nothing of the packs enters the repository before that package.
 
 ### F. Sound
 
@@ -232,5 +252,6 @@ Roughly 25-35 PRs. Steps 1-2 also show early whether the plan holds.
 4. **The way out**: the leftovers cart, with the vineyard back to the tunnel when no guard is left (above).
    Still open: the main loot, and whether the lord of the manor is the mayor, a baron, or a baron who is the
    city's mayor.
-5. **Characters**: Quaternius confirmed, after a mock-up rendered by the engine (E above).
+5. **Characters**: Quaternius confirmed; the mock-up is done (E above). Open until the characters' package: the
+   paid Source versions (a purchase only the owner makes) and the download of the Universal Animation Library.
 6. **CC0 clutter**: allowed, each download approved by the owner.
