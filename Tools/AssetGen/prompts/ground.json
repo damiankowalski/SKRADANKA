@@ -1,0 +1,13 @@
+{
+	"material": "ground",
+	"description": "Floors of poor places and the land outside the walls: beaten earth and mud seen from above (docs/art/World.md).",
+	"prompt": "{style} A seamless tileable texture of bare ground seen from directly above: {variation}, small stones and grit scattered evenly, no single feature larger than a fifth of the square.",
+	"variations": [
+		"dry beaten brown earth packed hard, fine cracks, a few footprints",
+		"dark wet mud churned with shallow ruts and small puddles reflecting nothing",
+		"brown earth strewn with loose old straw and bits of hay, as on a stable floor"
+	],
+	"roughness": [0.75, 0.98],
+	"metallic": 0.0,
+	"normal_strength": 5.0
+}

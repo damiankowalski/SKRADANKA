@@ -1,0 +1,80 @@
+{
+  "tool": "Penumbra AssetGen",
+  "ai_generated": true,
+  "generated_at": "2026-11-26T17:57:25+00:00",
+  "material": "ground",
+  "template": "prompts/ground.json",
+  "prompt": "Hand-painted stylised realism for a dark medieval stealth game: painterly brushwork over believable materials, muted earthy colours, worn and lived-in surfaces. An albedo texture: flat even light, no cast shadows, no highlights, no vignette, no perspective, viewed straight on, the material fills the whole square edge to edge. A seamless tileable texture of bare ground seen from directly above: dark wet mud churned with shallow ruts and small puddles reflecting nothing, small stones and grit scattered evenly, no single feature larger than a fifth of the square.",
+  "seed": 1001,
+  "steps": 4,
+  "blend_steps": 4,
+  "size": 1024,
+  "quantize": 8,
+  "model": {
+    "id": "black-forest-labs/FLUX.2-klein-4B",
+    "revision": "e7b7dc27f91deacad38e78976d1f2b499d76a294",
+    "license": "Apache-2.0"
+  },
+  "mflux_version": "0.24.0",
+  "license": "Apache-2.0",
+  "timing": {
+    "model_load_seconds": 0.7,
+    "image_seconds": 234.6,
+    "mlx_peak_gb": 6.64,
+    "process_peak_rss_gb": 1.58
+  },
+  "seamless": {
+    "method": "generation",
+    "seam_limit": 1.6,
+    "detail_limit": 0.55,
+    "x": {
+      "wrap_step": 0.906,
+      "interior_step_p99": 1.366,
+      "weakest_detail": 0.762,
+      "weakest_detail_at": 534,
+      "detail_at_edge": 1.015,
+      "detail_at_centre": 0.875,
+      "line_at_edge": 1.179,
+      "line_at_centre": 0.814,
+      "line_limit": 2.5,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "y": {
+      "wrap_step": 0.952,
+      "interior_step_p99": 1.309,
+      "weakest_detail": 0.681,
+      "weakest_detail_at": 520,
+      "detail_at_edge": 0.985,
+      "detail_at_centre": 0.752,
+      "line_at_edge": 1.409,
+      "line_at_centre": 0.57,
+      "line_limit": 2.5,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "passed": true,
+    "fallback_can_help": false
+  },
+  "maps": {
+    "height": "albedo luminance (approximation)",
+    "normal_convention": "glTF: +X right, +Y up (green), +Z out",
+    "normal_strength": 5.0,
+    "metallic_roughness": "glTF: G roughness, B metallic",
+    "roughness": [
+      0.75,
+      0.98
+    ],
+    "metallic": 0.0
+  },
+  "files": {
+    "albedo": "ground_1001_albedo.png",
+    "normal": "ground_1001_normal.png",
+    "metallic_roughness": "ground_1001_mr.png",
+    "preview": "ground_1001_preview.png"
+  },
+  "catalog": {
+    "note": "Dark mud with ruts and small puddles; the ruts form a visible diamond when tiled, so best on narrow strips: lanes, stable yards (tiles after the masking fallback).",
+    "preview": "ground_1001.png"
+  }
+}

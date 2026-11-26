@@ -334,8 +334,10 @@ together, so guards see what the player sees without touching perception.
 Each item needs the owner's approval before its brief. Generation runs on the Mac (`Tools/AssetGen`); results keep
 their provenance and go to the texture catalog; materials follow `docs/art/World.md`.
 
-* **Materials for the first mission** (S per material): planks, plaster, roof tiles (wooden shingles exist; fired
-  clay and thatch are in the catalog but fail the seam test), rusty metal, mud.
+* **Materials for the first mission** (S per material, approved 2026-11-26, in progress): part 1 adds the templates
+  `planks`, `plaster`, `stone_floor`, `ground` and `metal` and their variants to the texture catalog (thatch now
+  tiles; fired clay and brass still fail the seam test) for the owner to choose; part 2 brings the chosen ones into
+  `DemoProject/Assets` with a sample wall in the mood lab. Brick later; no level texturing yet.
 * **The full-screen map's picture** (S): one generated image for the map item above.
 * **Concept art of locations** before their levels are built (S).
 * **Material variations through img2img** (S): wet, mossy and dirty versions of a material, against the repetition

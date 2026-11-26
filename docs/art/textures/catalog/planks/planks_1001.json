@@ -1,0 +1,80 @@
+{
+  "tool": "Penumbra AssetGen",
+  "ai_generated": true,
+  "generated_at": "2026-11-26T17:21:13+00:00",
+  "material": "planks",
+  "template": "prompts/planks.json",
+  "prompt": "Hand-painted stylised realism for a dark medieval stealth game: painterly brushwork over believable materials, muted earthy colours, worn and lived-in surfaces. An albedo texture: flat even light, no cast shadows, no highlights, no vignette, no perspective, viewed straight on, the material fills the whole square edge to edge. A seamless tileable texture of old wooden planks seen straight on: dark planks of a heavy door crossed by black iron bands with round nail heads, rust stains running from the nails, long parallel boards with dark narrow gaps between them, visible grain, knots and worn edges.",
+  "seed": 1001,
+  "steps": 4,
+  "blend_steps": 4,
+  "size": 1024,
+  "quantize": 8,
+  "model": {
+    "id": "black-forest-labs/FLUX.2-klein-4B",
+    "revision": "e7b7dc27f91deacad38e78976d1f2b499d76a294",
+    "license": "Apache-2.0"
+  },
+  "mflux_version": "0.24.0",
+  "license": "Apache-2.0",
+  "timing": {
+    "model_load_seconds": 0.8,
+    "image_seconds": 235.7,
+    "mlx_peak_gb": 6.57,
+    "process_peak_rss_gb": 0.97
+  },
+  "seamless": {
+    "method": "generation",
+    "seam_limit": 1.6,
+    "detail_limit": 0.55,
+    "x": {
+      "wrap_step": 0.388,
+      "interior_step_p99": 8.06,
+      "weakest_detail": 0.634,
+      "weakest_detail_at": 478,
+      "detail_at_edge": 1.648,
+      "detail_at_centre": 1.979,
+      "line_at_edge": 0.225,
+      "line_at_centre": 0.333,
+      "line_limit": 9.229,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "y": {
+      "wrap_step": 1.02,
+      "interior_step_p99": 4.655,
+      "weakest_detail": 0.892,
+      "weakest_detail_at": 361,
+      "detail_at_edge": 1.042,
+      "detail_at_centre": 0.957,
+      "line_at_edge": 1.827,
+      "line_at_centre": 0.746,
+      "line_limit": 12.968,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "passed": true,
+    "fallback_can_help": false
+  },
+  "maps": {
+    "height": "albedo luminance (approximation)",
+    "normal_convention": "glTF: +X right, +Y up (green), +Z out",
+    "normal_strength": 5.0,
+    "metallic_roughness": "glTF: G roughness, B metallic",
+    "roughness": [
+      0.6,
+      0.95
+    ],
+    "metallic": 0.0
+  },
+  "files": {
+    "albedo": "planks_1001_albedo.png",
+    "normal": "planks_1001_normal.png",
+    "metallic_roughness": "planks_1001_mr.png",
+    "preview": "planks_1001_preview.png"
+  },
+  "catalog": {
+    "note": "Dark planks held by riveted iron bands, two door leaves side by side: doors, gates, strong-room walls; the bands repeat visibly on large areas.",
+    "preview": "planks_1001.png"
+  }
+}

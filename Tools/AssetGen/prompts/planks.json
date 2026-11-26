@@ -1,0 +1,13 @@
+{
+	"material": "planks",
+	"description": "Timber boards: house floors, doors banded with iron, poor sheds (docs/art/World.md).",
+	"prompt": "{style} A seamless tileable texture of old wooden planks seen straight on: {variation}, long parallel boards with dark narrow gaps between them, visible grain, knots and worn edges.",
+	"variations": [
+		"brown oak floor boards of uneven widths, worn paler where people walk, dirt pressed into the gaps",
+		"dark planks of a heavy door crossed by black iron bands with round nail heads, rust stains running from the nails",
+		"rough boards coated in black tar, cracked and peeling to grey weathered wood underneath"
+	],
+	"roughness": [0.6, 0.95],
+	"metallic": 0.0,
+	"normal_strength": 5.0
+}

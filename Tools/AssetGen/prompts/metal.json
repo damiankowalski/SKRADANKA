@@ -1,0 +1,13 @@
+{
+	"material": "metal",
+	"description": "Early steam machinery as an accent: iron, copper and brass plates with rivets, soot and verdigris; never chrome (docs/art/World.md).",
+	"prompt": "{style} A seamless tileable texture of old metal plating seen straight on: {variation}, rows of round rivets along the seams, dents and scratches, soot in the corners.",
+	"variations": [
+		"dark iron plates heavily rusted in orange and brown patches, flaking",
+		"copper plates turned dull brown, streaked with pale green verdigris",
+		"darkened brass plates, dull and tarnished, a little green in the seams"
+	],
+	"roughness": [0.45, 0.9],
+	"metallic": 0.85,
+	"normal_strength": 4.0
+}

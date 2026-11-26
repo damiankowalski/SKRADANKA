@@ -1,0 +1,13 @@
+{
+	"material": "stone_floor",
+	"description": "Floors of halls, cloisters and cellars: stone flags seen from above (docs/art/World.md).",
+	"prompt": "{style} A seamless tileable texture of an old stone floor seen from directly above: {variation}, dark narrow joints between the flags, edges chipped, no single pattern repeating across the whole square.",
+	"variations": [
+		"large grey rectangular stone flags of different sizes laid in a staggered pattern, worn smooth",
+		"irregular sandstone flags worn into shallow hollows by centuries of feet, grit in the joints",
+		"dark wet stone flags with damp stains and a little moss in the joints"
+	],
+	"roughness": [0.5, 0.92],
+	"metallic": 0.0,
+	"normal_strength": 5.0
+}

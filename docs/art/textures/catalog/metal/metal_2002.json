@@ -1,0 +1,113 @@
+{
+  "tool": "Penumbra AssetGen",
+  "ai_generated": true,
+  "generated_at": "2026-11-26T18:34:46+00:00",
+  "material": "metal",
+  "template": "prompts/metal.json",
+  "prompt": "Hand-painted stylised realism for a dark medieval stealth game: painterly brushwork over believable materials, muted earthy colours, worn and lived-in surfaces. An albedo texture: flat even light, no cast shadows, no highlights, no vignette, no perspective, viewed straight on, the material fills the whole square edge to edge. A seamless tileable texture of old metal plating seen straight on: darkened brass plates, dull and tarnished, a little green in the seams, rows of round rivets along the seams, dents and scratches, soot in the corners.",
+  "seed": 2002,
+  "steps": 4,
+  "blend_steps": 4,
+  "size": 1024,
+  "quantize": 8,
+  "model": {
+    "id": "black-forest-labs/FLUX.2-klein-4B",
+    "revision": "e7b7dc27f91deacad38e78976d1f2b499d76a294",
+    "license": "Apache-2.0"
+  },
+  "mflux_version": "0.24.0",
+  "license": "Apache-2.0",
+  "timing": {
+    "model_load_seconds": 0.6,
+    "image_seconds": 234.7,
+    "mlx_peak_gb": 6.46,
+    "process_peak_rss_gb": 1.59
+  },
+  "seamless": {
+    "method": "generation+masking",
+    "seam_limit": 1.6,
+    "detail_limit": 0.55,
+    "x": {
+      "wrap_step": 6.079,
+      "interior_step_p99": 6.336,
+      "weakest_detail": 0.833,
+      "weakest_detail_at": 740,
+      "detail_at_edge": 2.52,
+      "detail_at_centre": 2.52,
+      "line_at_edge": 29.724,
+      "line_at_centre": 29.725,
+      "line_limit": 8.525,
+      "steps_ok": true,
+      "lines_ok": false
+    },
+    "y": {
+      "wrap_step": 0.907,
+      "interior_step_p99": 1.422,
+      "weakest_detail": 0.854,
+      "weakest_detail_at": 73,
+      "detail_at_edge": 0.996,
+      "detail_at_centre": 0.996,
+      "line_at_edge": 0.756,
+      "line_at_centre": 0.756,
+      "line_limit": 3.411,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "passed": false,
+    "fallback_can_help": false,
+    "before_fallback": {
+      "seam_limit": 1.6,
+      "detail_limit": 0.55,
+      "x": {
+        "wrap_step": 1.028,
+        "interior_step_p99": 4.865,
+        "weakest_detail": 0.833,
+        "weakest_detail_at": 864,
+        "detail_at_edge": 1.1,
+        "detail_at_centre": 2.549,
+        "line_at_edge": 1.092,
+        "line_at_centre": 24.059,
+        "line_limit": 4.125,
+        "steps_ok": true,
+        "lines_ok": false
+      },
+      "y": {
+        "wrap_step": 9.767,
+        "interior_step_p99": 4.315,
+        "weakest_detail": 0.853,
+        "weakest_detail_at": 578,
+        "detail_at_edge": 2.941,
+        "detail_at_centre": 0.988,
+        "line_at_edge": 39.113,
+        "line_at_centre": 0.982,
+        "line_limit": 3.785,
+        "steps_ok": false,
+        "lines_ok": false
+      },
+      "passed": false,
+      "fallback_can_help": true
+    }
+  },
+  "maps": {
+    "height": "albedo luminance (approximation)",
+    "normal_convention": "glTF: +X right, +Y up (green), +Z out",
+    "normal_strength": 4.0,
+    "metallic_roughness": "glTF: G roughness, B metallic",
+    "roughness": [
+      0.45,
+      0.9
+    ],
+    "metallic": 0.85
+  },
+  "files": {
+    "albedo": "metal_2002_albedo.png",
+    "normal": "metal_2002_normal.png",
+    "metallic_roughness": "metal_2002_mr.png",
+    "preview": "metal_2002_preview.png",
+    "raw_albedo": "metal_2002_raw.png"
+  },
+  "catalog": {
+    "note": "Dark tarnished brass in vertical riveted strips; FAILS the seam test after the masking fallback and the strip repeats four times inside the tile: regenerate before use.",
+    "preview": "metal_2002.png"
+  }
+}

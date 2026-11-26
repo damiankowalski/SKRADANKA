@@ -1,0 +1,113 @@
+{
+  "tool": "Penumbra AssetGen",
+  "ai_generated": true,
+  "generated_at": "2026-11-26T17:45:25+00:00",
+  "material": "stone_floor",
+  "template": "prompts/stone_floor.json",
+  "prompt": "Hand-painted stylised realism for a dark medieval stealth game: painterly brushwork over believable materials, muted earthy colours, worn and lived-in surfaces. An albedo texture: flat even light, no cast shadows, no highlights, no vignette, no perspective, viewed straight on, the material fills the whole square edge to edge. A seamless tileable texture of an old stone floor seen from directly above: irregular sandstone flags worn into shallow hollows by centuries of feet, grit in the joints, dark narrow joints between the flags, edges chipped, no single pattern repeating across the whole square.",
+  "seed": 1001,
+  "steps": 4,
+  "blend_steps": 4,
+  "size": 1024,
+  "quantize": 8,
+  "model": {
+    "id": "black-forest-labs/FLUX.2-klein-4B",
+    "revision": "e7b7dc27f91deacad38e78976d1f2b499d76a294",
+    "license": "Apache-2.0"
+  },
+  "mflux_version": "0.24.0",
+  "license": "Apache-2.0",
+  "timing": {
+    "model_load_seconds": 0.7,
+    "image_seconds": 234.8,
+    "mlx_peak_gb": 6.57,
+    "process_peak_rss_gb": 1.58
+  },
+  "seamless": {
+    "method": "generation+masking",
+    "seam_limit": 1.6,
+    "detail_limit": 0.55,
+    "x": {
+      "wrap_step": 4.156,
+      "interior_step_p99": 4.025,
+      "weakest_detail": 0.823,
+      "weakest_detail_at": 203,
+      "detail_at_edge": 2.385,
+      "detail_at_centre": 2.385,
+      "line_at_edge": 9.685,
+      "line_at_centre": 9.685,
+      "line_limit": 6.44,
+      "steps_ok": false,
+      "lines_ok": false
+    },
+    "y": {
+      "wrap_step": 1.965,
+      "interior_step_p99": 2.605,
+      "weakest_detail": 0.855,
+      "weakest_detail_at": 158,
+      "detail_at_edge": 1.603,
+      "detail_at_centre": 1.603,
+      "line_at_edge": 5.729,
+      "line_at_centre": 5.729,
+      "line_limit": 5.155,
+      "steps_ok": true,
+      "lines_ok": false
+    },
+    "passed": false,
+    "fallback_can_help": true,
+    "before_fallback": {
+      "seam_limit": 1.6,
+      "detail_limit": 0.55,
+      "x": {
+        "wrap_step": 1.532,
+        "interior_step_p99": 2.599,
+        "weakest_detail": 0.774,
+        "weakest_detail_at": 588,
+        "detail_at_edge": 1.318,
+        "detail_at_centre": 1.47,
+        "line_at_edge": 2.214,
+        "line_at_centre": 7.481,
+        "line_limit": 6.843,
+        "steps_ok": true,
+        "lines_ok": false
+      },
+      "y": {
+        "wrap_step": 5.177,
+        "interior_step_p99": 4.175,
+        "weakest_detail": 0.807,
+        "weakest_detail_at": 843,
+        "detail_at_edge": 2.206,
+        "detail_at_centre": 1.511,
+        "line_at_edge": 15.548,
+        "line_at_centre": 6.328,
+        "line_limit": 7.948,
+        "steps_ok": false,
+        "lines_ok": false
+      },
+      "passed": false,
+      "fallback_can_help": true
+    }
+  },
+  "maps": {
+    "height": "albedo luminance (approximation)",
+    "normal_convention": "glTF: +X right, +Y up (green), +Z out",
+    "normal_strength": 5.0,
+    "metallic_roughness": "glTF: G roughness, B metallic",
+    "roughness": [
+      0.5,
+      0.92
+    ],
+    "metallic": 0.0
+  },
+  "files": {
+    "albedo": "stone_floor_1001_albedo.png",
+    "normal": "stone_floor_1001_normal.png",
+    "metallic_roughness": "stone_floor_1001_mr.png",
+    "preview": "stone_floor_1001_preview.png",
+    "raw_albedo": "stone_floor_1001_raw.png"
+  },
+  "catalog": {
+    "note": "Worn sandstone flags. FAILS the seam test even after the masking fallback, and the masking left a soft square at the centre: regenerate before use.",
+    "preview": "stone_floor_1001.png"
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "tool": "Penumbra AssetGen",
+  "ai_generated": true,
+  "generated_at": "2026-11-26T18:05:31+00:00",
+  "material": "metal",
+  "template": "prompts/metal.json",
+  "prompt": "Hand-painted stylised realism for a dark medieval stealth game: painterly brushwork over believable materials, muted earthy colours, worn and lived-in surfaces. An albedo texture: flat even light, no cast shadows, no highlights, no vignette, no perspective, viewed straight on, the material fills the whole square edge to edge. A seamless tileable texture of old metal plating seen straight on: dark iron plates heavily rusted in orange and brown patches, flaking, rows of round rivets along the seams, dents and scratches, soot in the corners.",
+  "seed": 1000,
+  "steps": 4,
+  "blend_steps": 4,
+  "size": 1024,
+  "quantize": 8,
+  "model": {
+    "id": "black-forest-labs/FLUX.2-klein-4B",
+    "revision": "e7b7dc27f91deacad38e78976d1f2b499d76a294",
+    "license": "Apache-2.0"
+  },
+  "mflux_version": "0.24.0",
+  "license": "Apache-2.0",
+  "timing": {
+    "model_load_seconds": 0.7,
+    "image_seconds": 237.9,
+    "mlx_peak_gb": 6.48,
+    "process_peak_rss_gb": 1.64
+  },
+  "seamless": {
+    "method": "generation+masking",
+    "seam_limit": 1.6,
+    "detail_limit": 0.55,
+    "x": {
+      "wrap_step": 1.259,
+      "interior_step_p99": 3.19,
+      "weakest_detail": 0.873,
+      "weakest_detail_at": 140,
+      "detail_at_edge": 1.287,
+      "detail_at_centre": 1.287,
+      "line_at_edge": 1.602,
+      "line_at_centre": 1.602,
+      "line_limit": 4.157,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "y": {
+      "wrap_step": 1.564,
+      "interior_step_p99": 1.923,
+      "weakest_detail": 0.795,
+      "weakest_detail_at": 346,
+      "detail_at_edge": 1.27,
+      "detail_at_centre": 1.27,
+      "line_at_edge": 2.579,
+      "line_at_centre": 2.579,
+      "line_limit": 3.423,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "passed": true,
+    "fallback_can_help": false,
+    "before_fallback": {
+      "seam_limit": 1.6,
+      "detail_limit": 0.55,
+      "x": {
+        "wrap_step": 0.859,
+        "interior_step_p99": 3.676,
+        "weakest_detail": 0.848,
+        "weakest_detail_at": 781,
+        "detail_at_edge": 0.949,
+        "detail_at_centre": 1.13,
+        "line_at_edge": 1.395,
+        "line_at_centre": 1.2,
+        "line_limit": 4.44,
+        "steps_ok": true,
+        "lines_ok": true
+      },
+      "y": {
+        "wrap_step": 3.605,
+        "interior_step_p99": 3.079,
+        "weakest_detail": 0.854,
+        "weakest_detail_at": 202,
+        "detail_at_edge": 1.535,
+        "detail_at_centre": 1.291,
+        "line_at_edge": 9.954,
+        "line_at_centre": 2.27,
+        "line_limit": 2.754,
+        "steps_ok": false,
+        "lines_ok": false
+      },
+      "passed": false,
+      "fallback_can_help": true
+    }
+  },
+  "maps": {
+    "height": "albedo luminance (approximation)",
+    "normal_convention": "glTF: +X right, +Y up (green), +Z out",
+    "normal_strength": 4.0,
+    "metallic_roughness": "glTF: G roughness, B metallic",
+    "roughness": [
+      0.45,
+      0.9
+    ],
+    "metallic": 0.85
+  },
+  "files": {
+    "albedo": "metal_1000_albedo.png",
+    "normal": "metal_1000_normal.png",
+    "metallic_roughness": "metal_1000_mr.png",
+    "preview": "metal_1000_preview.png",
+    "raw_albedo": "metal_1000_raw.png"
+  },
+  "catalog": {
+    "note": "Rusted dark iron sheets with rivets (tiles after the masking fallback): doors, strongboxes, gates, machinery.",
+    "preview": "metal_1000.png"
+  }
+}
