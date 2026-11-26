@@ -265,6 +265,14 @@ PhysicsLab (`Assets/Playtest/PhysicsLab`: the thief still against the torch-lit 
 fog places of the earlier tuning: 1.2-4.2 s instead of 2.9-6.9 s. Stealth: the cellar route's two lucky escapes of 20
 are gone, the baseline escapes 3 of 20 instead of 4. See docs/Perception.md, "Suspicion tempo".
 
+**F1 Fog-free interiors** (S-M, brief approved 2026-11-26): `FogVolume.Mode` `Clear` keeps the level's fog out of a
+room, fading in over `EdgeFade` at its sides, so in a doorway the fog creeps a metre in; fog from `Add` volumes stays
+inside (a room can keep its own haze). One density for the screen and the guards (`FogMedium::ClearAt`,
+`shaders/Fog.hlsl`), a GPU test compares the froxels with it. The Stealth hall and cellar have one each; their lit
+hall is no longer full of glowing haze. Stealth playtest (20 seeds): the same outcomes on every route; a servant in
+the lit hall makes the thief out a little sooner (B 5.6 instead of 3.5 in one seed). See docs/Fog.md, "Laying out an
+interior".
+
 ## In progress
 
 Nothing.
@@ -290,17 +298,16 @@ playtester added three packages in front (2026-11-23): controls and the player's
 (done), then the developer tools' UI (done).
 
 1. **Agent playtester** (package A done; package B above).
-2. **F1 Fog-free interiors** (S-M, "fog for interiors" below): needed before the first mission's interiors.
-3. **Materials for the first mission** (S each, art pipeline below), then **the decal system** (M-L): dirt at the
+2. **Materials for the first mission** (S each, art pipeline below), then **the decal system** (M-L): dirt at the
    foot of walls, moss, soot (`docs/art/World.md`).
-4. **AudioGen** (M, local AI tools below), with Whisper for subtitles.
-5. **The characters' decision** (KayKit → Quaternius, M, art pipeline below), then **Kimodo PoC** (M): Kimodo
+3. **AudioGen** (M, local AI tools below), with Whisper for subtitles.
+4. **The characters' decision** (KayKit → Quaternius, M, art pipeline below), then **Kimodo PoC** (M): Kimodo
    retargets onto our skeleton, so the skeleton is settled first.
-6. **Pixal3D PoC** (M, props).
-7. The rest of the art pipeline: the full-screen map and its picture, concept art, img2img variations, emissive
+5. **Pixal3D PoC** (M, props).
+6. The rest of the art pipeline: the full-screen map and its picture, concept art, img2img variations, emissive
    textures, the other AssetGen add-ons.
-8. **F2 / F3** drifting and reacting mist.
-9. Movement and UI (below): rope arrows, climbing, swimming, the scouting orb, map and compass, inventory.
+7. **F2 / F3** drifting and reacting mist.
+8. Movement and UI (below): rope arrows, climbing, swimming, the scouting orb, map and compass, inventory.
 
 The player character's jitter (Known bugs) waits for the owner to narrow it down.
 
@@ -312,8 +319,7 @@ come from AssetGen, see below).
 Each package needs the owner's approval before its brief. All three change `FogMedium::DensityAt` and the shaders
 together, so guards see what the player sees without touching perception.
 
-* **F1 Fog-free interiors** (S-M): a volume that clears the fog (a FogVolume with negative density or a "clear"
-  mode), in `FogMedium` and the shaders; costs about nothing. Today a foggy level's interiors are foggy too.
+* **F1 Fog-free interiors**: done (above).
 * **F2 Drifting ground mist** (S-M): 3D noise and wind in the density (Environment/FogVolume: scale, strength,
   speed), deterministic from game time, the same on CPU and GPU; about +0.1-0.2 ms.
 * **F3 Mist that reacts** (M): the thief's and NPCs' steps part the mist and leave a fading trail, an opened door

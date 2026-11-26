@@ -474,6 +474,14 @@ def build_stealth_level():
     box(doc, "CellarRoof", (-10.25, 3.1, -16.75), (6.1, 0.2, 5.9), dark_stone)
     add_door(doc, "CellarDoor", (-10.85, 0, -14), 0, label="cellar door", locked=True, key="CellarKey", key_label="cellar key")
 
+    # The level's fog stays outside the hall and the cellar (Clear fog volumes, docs/Fog.md): each box reaches 1 m
+    # into the walls, floor and roof, so the fog fades out inside them, and ends at the front wall's outer face,
+    # so in the doorway it creeps 1 m into the room.
+    doc.add("HallFogClear", Transform=transform((10, 3, -12.2)),
+            FogVolume={"Mode": "Clear", "HalfExtents": [6.4, 4.0, 4.5], "EdgeFade": 1.0})
+    doc.add("CellarFogClear", Transform=transform((-10.25, 1.5, -17.05)),
+            FogVolume={"Mode": "Clear", "HalfExtents": [3.55, 2.5, 3.25], "EdgeFade": 1.0})
+
     # Patrol waypoints and guards.
     for name, position in (("WP_A1", (-10, 0, -4)), ("WP_A2", (8, 0, -5)), ("WP_A3", (8, 0, 4)), ("WP_A4", (-10, 0, 6)),
                            ("WP_A5", (-10.25, 0, -17.5)), ("WP_B1", (14, 0, 12)), ("WP_B2", (14, 0, -4))):

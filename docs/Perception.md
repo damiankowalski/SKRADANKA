@@ -260,7 +260,8 @@ both and the contrast falls); dark fog changes little; without fog `T = 1` and `
   glow does not change the eye's adaptation (the probes sample surfaces); past the renderer's 64 m grid the CPU
   still lights the fog (lamps do not reach that far).
 * **Without fog** (no environment fog, no fog volumes) the old path runs unchanged, at no extra cost.
-* **Future density changes** (clearing fog indoors, drifting noise, disturbances) go into `FogMedium::DensityAt`
+* **Interiors**: a `Clear` FogVolume keeps the level's fog out of a room for guards as on screen (`docs/Fog.md`).
+* **Future density changes** (drifting noise, disturbances) go into `FogMedium::DensityAt`
   and `shaders/Fog.hlsl` together; perception samples `DensityAt` and needs no change.
 * **Debug**: the F4 label shows the thief's and the background's luminance as the eye gets them and the fog's
   `T`, glow in front and behind; "Guards see the fog's glow" switches the model off to compare

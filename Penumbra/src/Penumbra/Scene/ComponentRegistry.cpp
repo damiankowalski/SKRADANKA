@@ -390,6 +390,7 @@ namespace Penumbra {
 		template<typename V>
 		void VisitFields(FogVolumeComponent& c, V&& v)
 		{
+			v("Mode", c.Mode);
 			v("HalfExtents", c.HalfExtents, "m");
 			v("Density", c.Density);
 			v("EdgeFade", c.EdgeFade, "m");

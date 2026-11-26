@@ -3495,6 +3495,74 @@
       "ID": "1068",
       "Components": {
         "Tag": {
+          "Tag": "HallFogClear"
+        },
+        "Transform": {
+          "Translation": [
+            10,
+            3,
+            -12.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "FogVolume": {
+          "Mode": "Clear",
+          "HalfExtents": [
+            6.4,
+            4.0,
+            4.5
+          ],
+          "EdgeFade": 1.0
+        }
+      }
+    },
+    {
+      "ID": "1069",
+      "Components": {
+        "Tag": {
+          "Tag": "CellarFogClear"
+        },
+        "Transform": {
+          "Translation": [
+            -10.25,
+            1.5,
+            -17.05
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "FogVolume": {
+          "Mode": "Clear",
+          "HalfExtents": [
+            3.55,
+            2.5,
+            3.25
+          ],
+          "EdgeFade": 1.0
+        }
+      }
+    },
+    {
+      "ID": "1070",
+      "Components": {
+        "Tag": {
           "Tag": "WP_A1"
         },
         "Transform": {
@@ -3517,7 +3585,7 @@
       }
     },
     {
-      "ID": "1069",
+      "ID": "1071",
       "Components": {
         "Tag": {
           "Tag": "WP_A2"
@@ -3542,7 +3610,7 @@
       }
     },
     {
-      "ID": "1070",
+      "ID": "1072",
       "Components": {
         "Tag": {
           "Tag": "WP_A3"
@@ -3567,7 +3635,7 @@
       }
     },
     {
-      "ID": "1071",
+      "ID": "1073",
       "Components": {
         "Tag": {
           "Tag": "WP_A4"
@@ -3592,7 +3660,7 @@
       }
     },
     {
-      "ID": "1072",
+      "ID": "1074",
       "Components": {
         "Tag": {
           "Tag": "WP_A5"
@@ -3617,7 +3685,7 @@
       }
     },
     {
-      "ID": "1073",
+      "ID": "1075",
       "Components": {
         "Tag": {
           "Tag": "WP_B1"
@@ -3642,7 +3710,7 @@
       }
     },
     {
-      "ID": "1074",
+      "ID": "1076",
       "Components": {
         "Tag": {
           "Tag": "WP_B2"
@@ -3667,7 +3735,7 @@
       }
     },
     {
-      "ID": "1075",
+      "ID": "1077",
       "Components": {
         "Tag": {
           "Tag": "GuardA"
@@ -3742,7 +3810,7 @@
       }
     },
     {
-      "ID": "1076",
+      "ID": "1078",
       "Components": {
         "Tag": {
           "Tag": "Model"
@@ -3780,10 +3848,10 @@
           "BlendDuration": 0.2
         }
       },
-      "Parent": "1075"
+      "Parent": "1077"
     },
     {
-      "ID": "1077",
+      "ID": "1079",
       "Components": {
         "Tag": {
           "Tag": "GuardB"
@@ -3858,7 +3926,7 @@
       }
     },
     {
-      "ID": "1078",
+      "ID": "1080",
       "Components": {
         "Tag": {
           "Tag": "Model"
@@ -3895,10 +3963,10 @@
           "BlendDuration": 0.2
         }
       },
-      "Parent": "1077"
+      "Parent": "1079"
     },
     {
-      "ID": "1079",
+      "ID": "1081",
       "Components": {
         "Tag": {
           "Tag": "Lantern"
@@ -3933,10 +4001,10 @@
           "CastShadows": true
         }
       },
-      "Parent": "1077"
+      "Parent": "1079"
     },
     {
-      "ID": "1080",
+      "ID": "1082",
       "Components": {
         "Tag": {
           "Tag": "HallCarpet"
@@ -3992,7 +4060,7 @@
       }
     },
     {
-      "ID": "1081",
+      "ID": "1083",
       "Components": {
         "Tag": {
           "Tag": "Grate"
@@ -4048,7 +4116,7 @@
       }
     },
     {
-      "ID": "1082",
+      "ID": "1084",
       "Components": {
         "Tag": {
           "Tag": "Lawn"
@@ -4104,7 +4172,7 @@
       }
     },
     {
-      "ID": "1083",
+      "ID": "1085",
       "Components": {
         "Tag": {
           "Tag": "Bucket"
@@ -4167,7 +4235,7 @@
       }
     },
     {
-      "ID": "1084",
+      "ID": "1086",
       "Components": {
         "Tag": {
           "Tag": "Navigation"
@@ -4193,7 +4261,7 @@
       }
     },
     {
-      "ID": "1085",
+      "ID": "1087",
       "Components": {
         "Tag": {
           "Tag": "Cook"
@@ -4227,7 +4295,7 @@
       }
     },
     {
-      "ID": "1086",
+      "ID": "1088",
       "Components": {
         "Tag": {
           "Tag": "Model"
@@ -4268,10 +4336,10 @@
           "BlendDuration": 0.2
         }
       },
-      "Parent": "1085"
+      "Parent": "1087"
     },
     {
-      "ID": "1087",
+      "ID": "1089",
       "Components": {
         "Tag": {
           "Tag": "KitchenZone"
@@ -4304,7 +4372,7 @@
       }
     },
     {
-      "ID": "1088",
+      "ID": "1090",
       "Components": {
         "Tag": {
           "Tag": "WP_S1"
@@ -4329,7 +4397,7 @@
       }
     },
     {
-      "ID": "1089",
+      "ID": "1091",
       "Components": {
         "Tag": {
           "Tag": "WP_S2"
@@ -4354,7 +4422,7 @@
       }
     },
     {
-      "ID": "1090",
+      "ID": "1092",
       "Components": {
         "Tag": {
           "Tag": "WP_S3"
@@ -4379,7 +4447,7 @@
       }
     },
     {
-      "ID": "1091",
+      "ID": "1093",
       "Components": {
         "Tag": {
           "Tag": "Servant"
@@ -4457,7 +4525,7 @@
       }
     },
     {
-      "ID": "1092",
+      "ID": "1094",
       "Components": {
         "Tag": {
           "Tag": "Model"
@@ -4498,10 +4566,10 @@
           "BlendDuration": 0.2
         }
       },
-      "Parent": "1091"
+      "Parent": "1093"
     },
     {
-      "ID": "1093",
+      "ID": "1095",
       "Components": {
         "Tag": {
           "Tag": "Bell"
@@ -4538,7 +4606,7 @@
       }
     },
     {
-      "ID": "1094",
+      "ID": "1096",
       "Components": {
         "Tag": {
           "Tag": "Post"
@@ -4581,10 +4649,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1093"
+      "Parent": "1095"
     },
     {
-      "ID": "1095",
+      "ID": "1097",
       "Components": {
         "Tag": {
           "Tag": "BellBody"
@@ -4627,10 +4695,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1093"
+      "Parent": "1095"
     },
     {
-      "ID": "1096",
+      "ID": "1098",
       "Components": {
         "Tag": {
           "Tag": "Lightning"
@@ -4665,7 +4733,7 @@
       }
     },
     {
-      "ID": "1097",
+      "ID": "1099",
       "Components": {
         "Tag": {
           "Tag": "Rain"
@@ -4696,7 +4764,7 @@
       }
     },
     {
-      "ID": "1098",
+      "ID": "1100",
       "Components": {
         "Tag": {
           "Tag": "World"
@@ -4732,7 +4800,7 @@
       }
     },
     {
-      "ID": "1099",
+      "ID": "1101",
       "Components": {
         "Tag": {
           "Tag": "Gate"
@@ -4771,7 +4839,7 @@
       }
     },
     {
-      "ID": "1100",
+      "ID": "1102",
       "Components": {
         "Tag": {
           "Tag": "GateArch"
@@ -4823,7 +4891,7 @@
       }
     },
     {
-      "ID": "1101",
+      "ID": "1103",
       "Components": {
         "Tag": {
           "Tag": "Player"
@@ -4860,7 +4928,7 @@
       }
     },
     {
-      "ID": "1102",
+      "ID": "1104",
       "Components": {
         "Tag": {
           "Tag": "Model"
@@ -4896,10 +4964,10 @@
           "BlendDuration": 0.2
         }
       },
-      "Parent": "1101"
+      "Parent": "1103"
     },
     {
-      "ID": "1103",
+      "ID": "1105",
       "Components": {
         "Tag": {
           "Tag": "Ambience"
@@ -4931,7 +4999,7 @@
       }
     },
     {
-      "ID": "1104",
+      "ID": "1106",
       "Components": {
         "Tag": {
           "Tag": "Mission"
@@ -4962,7 +5030,7 @@
       }
     },
     {
-      "ID": "1105",
+      "ID": "1107",
       "Components": {
         "Tag": {
           "Tag": "HallTable"
@@ -5018,7 +5086,7 @@
       }
     },
     {
-      "ID": "1106",
+      "ID": "1108",
       "Components": {
         "Tag": {
           "Tag": "GoldGoblet"
@@ -5080,7 +5148,7 @@
       }
     },
     {
-      "ID": "1107",
+      "ID": "1109",
       "Components": {
         "Tag": {
           "Tag": "SilverPlate"
@@ -5142,7 +5210,7 @@
       }
     },
     {
-      "ID": "1108",
+      "ID": "1110",
       "Components": {
         "Tag": {
           "Tag": "Candlestick"
@@ -5204,7 +5272,7 @@
       }
     },
     {
-      "ID": "1109",
+      "ID": "1111",
       "Components": {
         "Tag": {
           "Tag": "Chest"
@@ -5260,7 +5328,7 @@
       }
     },
     {
-      "ID": "1110",
+      "ID": "1112",
       "Components": {
         "Tag": {
           "Tag": "JewelBox"
@@ -5322,7 +5390,7 @@
       }
     },
     {
-      "ID": "1111",
+      "ID": "1113",
       "Components": {
         "Tag": {
           "Tag": "Coins"
@@ -5384,7 +5452,7 @@
       }
     },
     {
-      "ID": "1112",
+      "ID": "1114",
       "Components": {
         "Tag": {
           "Tag": "SilverRing"
@@ -5446,7 +5514,7 @@
       }
     },
     {
-      "ID": "1113",
+      "ID": "1115",
       "Components": {
         "Tag": {
           "Tag": "Emerald"
@@ -5508,7 +5576,7 @@
       }
     },
     {
-      "ID": "1114",
+      "ID": "1116",
       "Components": {
         "Tag": {
           "Tag": "CellarShelf"
@@ -5564,7 +5632,7 @@
       }
     },
     {
-      "ID": "1115",
+      "ID": "1117",
       "Components": {
         "Tag": {
           "Tag": "Wine"
@@ -5626,7 +5694,7 @@
       }
     },
     {
-      "ID": "1116",
+      "ID": "1118",
       "Components": {
         "Tag": {
           "Tag": "Strongbox"
@@ -5688,7 +5756,7 @@
       }
     },
     {
-      "ID": "1117",
+      "ID": "1119",
       "Components": {
         "Tag": {
           "Tag": "Purse"
@@ -5741,10 +5809,10 @@
           }
         }
       },
-      "Parent": "1075"
+      "Parent": "1077"
     },
     {
-      "ID": "1118",
+      "ID": "1120",
       "Components": {
         "Tag": {
           "Tag": "Purse"
@@ -5797,10 +5865,10 @@
           }
         }
       },
-      "Parent": "1077"
+      "Parent": "1079"
     },
     {
-      "ID": "1119",
+      "ID": "1121",
       "Components": {
         "Tag": {
           "Tag": "CellarKey"
@@ -5853,7 +5921,7 @@
           }
         }
       },
-      "Parent": "1077"
+      "Parent": "1079"
     }
   ]
 }
