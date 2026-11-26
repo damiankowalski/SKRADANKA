@@ -1,0 +1,13 @@
+{
+	"material": "plaster",
+	"description": "House walls: lime plaster, often in a timber frame (docs/art/World.md).",
+	"prompt": "{style} A seamless tileable texture of an old house wall seen straight on: {variation}, uneven hand-spread surface, faint stains of damp and soot.",
+	"variations": [
+		"rough off-white lime plaster, yellowed and greyed with age, small cracks and chips",
+		"pale lime plaster panels between dark oak timber beams of a half-timbered wall, the beams crossing in a regular grid",
+		"cracked and flaking plaster fallen away in patches, showing woven wattle and red brick underneath"
+	],
+	"roughness": [0.8, 0.98],
+	"metallic": 0.0,
+	"normal_strength": 4.0
+}

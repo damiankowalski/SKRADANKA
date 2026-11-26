@@ -68,7 +68,8 @@ muted, flat light: `docs/art/mood/README.md`). `<material>.json` holds the promp
 one variation per variant, `roughness` [smooth, rough], `metallic` and `normal_strength`. Describe the material.
 Never name games, studios or living artists.
 Templates so far: `stone_wall` (walls), `cobblestone` (floors seen from above), `roof_tiles` (roofs seen from
-above) and `wood_ceiling` (ceilings seen from below), three variations each.
+above), `wood_ceiling` (ceilings seen from below), and for the first mission `planks`, `plaster`, `stone_floor`,
+`ground` and `metal`, three variations each.
 
 ## The catalog
 

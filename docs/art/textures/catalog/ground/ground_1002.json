@@ -1,0 +1,113 @@
+{
+  "tool": "Penumbra AssetGen",
+  "ai_generated": true,
+  "generated_at": "2026-11-26T18:01:22+00:00",
+  "material": "ground",
+  "template": "prompts/ground.json",
+  "prompt": "Hand-painted stylised realism for a dark medieval stealth game: painterly brushwork over believable materials, muted earthy colours, worn and lived-in surfaces. An albedo texture: flat even light, no cast shadows, no highlights, no vignette, no perspective, viewed straight on, the material fills the whole square edge to edge. A seamless tileable texture of bare ground seen from directly above: brown earth strewn with loose old straw and bits of hay, as on a stable floor, small stones and grit scattered evenly, no single feature larger than a fifth of the square.",
+  "seed": 1002,
+  "steps": 4,
+  "blend_steps": 4,
+  "size": 1024,
+  "quantize": 8,
+  "model": {
+    "id": "black-forest-labs/FLUX.2-klein-4B",
+    "revision": "e7b7dc27f91deacad38e78976d1f2b499d76a294",
+    "license": "Apache-2.0"
+  },
+  "mflux_version": "0.24.0",
+  "license": "Apache-2.0",
+  "timing": {
+    "model_load_seconds": 0.7,
+    "image_seconds": 234.9,
+    "mlx_peak_gb": 6.64,
+    "process_peak_rss_gb": 1.58
+  },
+  "seamless": {
+    "method": "generation+masking",
+    "seam_limit": 1.6,
+    "detail_limit": 0.55,
+    "x": {
+      "wrap_step": 1.362,
+      "interior_step_p99": 1.97,
+      "weakest_detail": 0.677,
+      "weakest_detail_at": 956,
+      "detail_at_edge": 0.873,
+      "detail_at_centre": 0.873,
+      "line_at_edge": 2.039,
+      "line_at_centre": 2.039,
+      "line_limit": 8.052,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "y": {
+      "wrap_step": 0.8,
+      "interior_step_p99": 1.472,
+      "weakest_detail": 0.738,
+      "weakest_detail_at": 376,
+      "detail_at_edge": 0.805,
+      "detail_at_centre": 0.805,
+      "line_at_edge": 1.244,
+      "line_at_centre": 1.244,
+      "line_limit": 4.355,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "passed": true,
+    "fallback_can_help": false,
+    "before_fallback": {
+      "seam_limit": 1.6,
+      "detail_limit": 0.55,
+      "x": {
+        "wrap_step": 0.41,
+        "interior_step_p99": 1.566,
+        "weakest_detail": 0.521,
+        "weakest_detail_at": 8,
+        "detail_at_edge": 0.523,
+        "detail_at_centre": 0.881,
+        "line_at_edge": 0.461,
+        "line_at_centre": 1.188,
+        "line_limit": 3.492,
+        "steps_ok": false,
+        "lines_ok": true
+      },
+      "y": {
+        "wrap_step": 0.716,
+        "interior_step_p99": 1.522,
+        "weakest_detail": 0.663,
+        "weakest_detail_at": 54,
+        "detail_at_edge": 0.7,
+        "detail_at_centre": 0.806,
+        "line_at_edge": 1.202,
+        "line_at_centre": 1.412,
+        "line_limit": 2.75,
+        "steps_ok": true,
+        "lines_ok": true
+      },
+      "passed": false,
+      "fallback_can_help": true
+    }
+  },
+  "maps": {
+    "height": "albedo luminance (approximation)",
+    "normal_convention": "glTF: +X right, +Y up (green), +Z out",
+    "normal_strength": 5.0,
+    "metallic_roughness": "glTF: G roughness, B metallic",
+    "roughness": [
+      0.75,
+      0.98
+    ],
+    "metallic": 0.0
+  },
+  "files": {
+    "albedo": "ground_1002_albedo.png",
+    "normal": "ground_1002_normal.png",
+    "metallic_roughness": "ground_1002_mr.png",
+    "preview": "ground_1002_preview.png",
+    "raw_albedo": "ground_1002_raw.png"
+  },
+  "catalog": {
+    "note": "Earth with scattered straw; the image repeats itself inside the tile (2x2), so it reads finer than it is: stables, barns.",
+    "preview": "ground_1002.png"
+  }
+}

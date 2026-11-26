@@ -1,0 +1,113 @@
+{
+  "tool": "Penumbra AssetGen",
+  "ai_generated": true,
+  "generated_at": "2026-11-26T18:09:38+00:00",
+  "material": "metal",
+  "template": "prompts/metal.json",
+  "prompt": "Hand-painted stylised realism for a dark medieval stealth game: painterly brushwork over believable materials, muted earthy colours, worn and lived-in surfaces. An albedo texture: flat even light, no cast shadows, no highlights, no vignette, no perspective, viewed straight on, the material fills the whole square edge to edge. A seamless tileable texture of old metal plating seen straight on: copper plates turned dull brown, streaked with pale green verdigris, rows of round rivets along the seams, dents and scratches, soot in the corners.",
+  "seed": 1001,
+  "steps": 4,
+  "blend_steps": 4,
+  "size": 1024,
+  "quantize": 8,
+  "model": {
+    "id": "black-forest-labs/FLUX.2-klein-4B",
+    "revision": "e7b7dc27f91deacad38e78976d1f2b499d76a294",
+    "license": "Apache-2.0"
+  },
+  "mflux_version": "0.24.0",
+  "license": "Apache-2.0",
+  "timing": {
+    "model_load_seconds": 0.7,
+    "image_seconds": 242.5,
+    "mlx_peak_gb": 6.64,
+    "process_peak_rss_gb": 1.64
+  },
+  "seamless": {
+    "method": "generation+masking",
+    "seam_limit": 1.6,
+    "detail_limit": 0.55,
+    "x": {
+      "wrap_step": 0.812,
+      "interior_step_p99": 3.413,
+      "weakest_detail": 0.66,
+      "weakest_detail_at": 360,
+      "detail_at_edge": 0.998,
+      "detail_at_centre": 0.998,
+      "line_at_edge": 0.311,
+      "line_at_centre": 0.311,
+      "line_limit": 4.64,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "y": {
+      "wrap_step": 2.788,
+      "interior_step_p99": 5.613,
+      "weakest_detail": 0.795,
+      "weakest_detail_at": 745,
+      "detail_at_edge": 1.811,
+      "detail_at_centre": 1.811,
+      "line_at_edge": 7.535,
+      "line_at_centre": 7.534,
+      "line_limit": 7.685,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "passed": true,
+    "fallback_can_help": false,
+    "before_fallback": {
+      "seam_limit": 1.6,
+      "detail_limit": 0.55,
+      "x": {
+        "wrap_step": 7.328,
+        "interior_step_p99": 4.989,
+        "weakest_detail": 0.627,
+        "weakest_detail_at": 211,
+        "detail_at_edge": 1.731,
+        "detail_at_centre": 0.94,
+        "line_at_edge": 9.202,
+        "line_at_centre": 0.301,
+        "line_limit": 4.846,
+        "steps_ok": false,
+        "lines_ok": false
+      },
+      "y": {
+        "wrap_step": 12.726,
+        "interior_step_p99": 5.905,
+        "weakest_detail": 0.787,
+        "weakest_detail_at": 833,
+        "detail_at_edge": 2.349,
+        "detail_at_centre": 2.079,
+        "line_at_edge": 45.348,
+        "line_at_centre": 9.464,
+        "line_limit": 4.787,
+        "steps_ok": false,
+        "lines_ok": false
+      },
+      "passed": false,
+      "fallback_can_help": true
+    }
+  },
+  "maps": {
+    "height": "albedo luminance (approximation)",
+    "normal_convention": "glTF: +X right, +Y up (green), +Z out",
+    "normal_strength": 4.0,
+    "metallic_roughness": "glTF: G roughness, B metallic",
+    "roughness": [
+      0.45,
+      0.9
+    ],
+    "metallic": 0.85
+  },
+  "files": {
+    "albedo": "metal_1001_albedo.png",
+    "normal": "metal_1001_normal.png",
+    "metallic_roughness": "metal_1001_mr.png",
+    "preview": "metal_1001_preview.png",
+    "raw_albedo": "metal_1001_raw.png"
+  },
+  "catalog": {
+    "note": "Riveted copper sheets with green verdigris streaks (tiles after the masking fallback): roofs of rich houses, gutters, boilers.",
+    "preview": "metal_1001.png"
+  }
+}

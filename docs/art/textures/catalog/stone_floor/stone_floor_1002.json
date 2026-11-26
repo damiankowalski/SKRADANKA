@@ -1,0 +1,80 @@
+{
+  "tool": "Penumbra AssetGen",
+  "ai_generated": true,
+  "generated_at": "2026-11-26T17:49:23+00:00",
+  "material": "stone_floor",
+  "template": "prompts/stone_floor.json",
+  "prompt": "Hand-painted stylised realism for a dark medieval stealth game: painterly brushwork over believable materials, muted earthy colours, worn and lived-in surfaces. An albedo texture: flat even light, no cast shadows, no highlights, no vignette, no perspective, viewed straight on, the material fills the whole square edge to edge. A seamless tileable texture of an old stone floor seen from directly above: dark wet stone flags with damp stains and a little moss in the joints, dark narrow joints between the flags, edges chipped, no single pattern repeating across the whole square.",
+  "seed": 1002,
+  "steps": 4,
+  "blend_steps": 4,
+  "size": 1024,
+  "quantize": 8,
+  "model": {
+    "id": "black-forest-labs/FLUX.2-klein-4B",
+    "revision": "e7b7dc27f91deacad38e78976d1f2b499d76a294",
+    "license": "Apache-2.0"
+  },
+  "mflux_version": "0.24.0",
+  "license": "Apache-2.0",
+  "timing": {
+    "model_load_seconds": 0.7,
+    "image_seconds": 234.9,
+    "mlx_peak_gb": 6.57,
+    "process_peak_rss_gb": 1.58
+  },
+  "seamless": {
+    "method": "generation",
+    "seam_limit": 1.6,
+    "detail_limit": 0.55,
+    "x": {
+      "wrap_step": 0.819,
+      "interior_step_p99": 3.487,
+      "weakest_detail": 0.75,
+      "weakest_detail_at": 1001,
+      "detail_at_edge": 0.835,
+      "detail_at_centre": 1.459,
+      "line_at_edge": 1.23,
+      "line_at_centre": 3.474,
+      "line_limit": 5.26,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "y": {
+      "wrap_step": 1.178,
+      "interior_step_p99": 3.759,
+      "weakest_detail": 0.774,
+      "weakest_detail_at": 434,
+      "detail_at_edge": 1.368,
+      "detail_at_centre": 1.726,
+      "line_at_edge": 1.48,
+      "line_at_centre": 11.855,
+      "line_limit": 6.607,
+      "steps_ok": true,
+      "lines_ok": false
+    },
+    "passed": false,
+    "fallback_can_help": false
+  },
+  "maps": {
+    "height": "albedo luminance (approximation)",
+    "normal_convention": "glTF: +X right, +Y up (green), +Z out",
+    "normal_strength": 5.0,
+    "metallic_roughness": "glTF: G roughness, B metallic",
+    "roughness": [
+      0.5,
+      0.92
+    ],
+    "metallic": 0.0
+  },
+  "files": {
+    "albedo": "stone_floor_1002_albedo.png",
+    "normal": "stone_floor_1002_normal.png",
+    "metallic_roughness": "stone_floor_1002_mr.png",
+    "preview": "stone_floor_1002_preview.png"
+  },
+  "catalog": {
+    "note": "Dark wet flagstones with grass and black puddle stains in the joints: courtyards, wet cellars. FAILS the seam test (a faint line): regenerate before use.",
+    "preview": "stone_floor_1002.png"
+  }
+}

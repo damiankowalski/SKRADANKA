@@ -1,0 +1,80 @@
+{
+  "tool": "Penumbra AssetGen",
+  "ai_generated": true,
+  "generated_at": "2026-11-26T18:38:49+00:00",
+  "material": "roof_tiles",
+  "template": "prompts/roof_tiles.json",
+  "prompt": "Hand-painted stylised realism for a dark medieval stealth game: painterly brushwork over believable materials, muted earthy colours, worn and lived-in surfaces. An albedo texture: flat even light, no cast shadows, no highlights, no vignette, no perspective, viewed straight on, the material fills the whole square edge to edge. A seamless tileable texture of an old roof seen from directly above: old thatch of straw and reeds laid in thick overlapping bundles, darkened and patchy with age, each row overlapping the one below, dark shadowed gaps under the edges, chipped and weathered.",
+  "seed": 3001,
+  "steps": 4,
+  "blend_steps": 4,
+  "size": 1024,
+  "quantize": 8,
+  "model": {
+    "id": "black-forest-labs/FLUX.2-klein-4B",
+    "revision": "e7b7dc27f91deacad38e78976d1f2b499d76a294",
+    "license": "Apache-2.0"
+  },
+  "mflux_version": "0.24.0",
+  "license": "Apache-2.0",
+  "timing": {
+    "model_load_seconds": 0.6,
+    "image_seconds": 234.7,
+    "mlx_peak_gb": 6.46,
+    "process_peak_rss_gb": 1.59
+  },
+  "seamless": {
+    "method": "generation",
+    "seam_limit": 1.6,
+    "detail_limit": 0.55,
+    "x": {
+      "wrap_step": 0.839,
+      "interior_step_p99": 1.446,
+      "weakest_detail": 0.751,
+      "weakest_detail_at": 49,
+      "detail_at_edge": 0.951,
+      "detail_at_centre": 0.998,
+      "line_at_edge": 1.047,
+      "line_at_centre": 1.285,
+      "line_limit": 2.529,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "y": {
+      "wrap_step": 0.966,
+      "interior_step_p99": 1.285,
+      "weakest_detail": 0.599,
+      "weakest_detail_at": 402,
+      "detail_at_edge": 1.066,
+      "detail_at_centre": 1.166,
+      "line_at_edge": 0.837,
+      "line_at_centre": 1.047,
+      "line_limit": 3.37,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "passed": true,
+    "fallback_can_help": false
+  },
+  "maps": {
+    "height": "albedo luminance (approximation)",
+    "normal_convention": "glTF: +X right, +Y up (green), +Z out",
+    "normal_strength": 5.0,
+    "metallic_roughness": "glTF: G roughness, B metallic",
+    "roughness": [
+      0.65,
+      0.95
+    ],
+    "metallic": 0.0
+  },
+  "files": {
+    "albedo": "roof_tiles_3001_albedo.png",
+    "normal": "roof_tiles_3001_normal.png",
+    "metallic_roughness": "roof_tiles_3001_mr.png",
+    "preview": "roof_tiles_3001_preview.png"
+  },
+  "catalog": {
+    "note": "Old thatch in overlapping straw bundles, brown and darkened: poor houses, barns, the outskirts.",
+    "preview": "roof_tiles_3001.png"
+  }
+}
