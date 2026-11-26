@@ -1,0 +1,14 @@
+# Mood lab sample wall: the first mission's materials, one bay each, south of the cloister (docs/art/mood/README.md).
+# Run from the repository root:
+#   PenumbraEditor --headless --exec docs/art/mood/Samples.jsonl --project DemoProject
+# The bays and their lamps come from Tools/BuildDemoProject.py (SAMPLE_MATERIALS); the base variant's night lights the rest.
+{"cmd": "scene.open", "path": "Scenes/MoodLab.pscene"}
+{"cmd": "play"}
+{"cmd": "simulate", "seconds": 1.0}
+{"cmd": "script.exec", "code": "return require('Scripts/MoodLab/Variants').apply('Base')"}
+{"cmd": "simulate", "frames": 6}
+{"cmd": "render.screenshot", "path": "docs/art/mood/samples/wide.png", "width": 1600, "height": 720, "camera": {"position": [0.0, 2.4, 12.0], "target": [0.0, 1.0, 22.0], "fov": 60}}
+{"cmd": "render.screenshot", "path": "docs/art/mood/samples/walls_wood_plaster.png", "width": 1280, "height": 720, "camera": {"position": [6.0, 1.7, 16.0], "target": [6.0, 1.4, 22.0], "fov": 55}}
+{"cmd": "render.screenshot", "path": "docs/art/mood/samples/walls_metal_thatch.png", "width": 1280, "height": 720, "camera": {"position": [-1.2, 1.7, 16.0], "target": [-1.2, 1.4, 22.0], "fov": 55}}
+{"cmd": "render.screenshot", "path": "docs/art/mood/samples/floors.png", "width": 1280, "height": 720, "camera": {"position": [-7.2, 3.2, 15.5], "target": [-7.2, 0.0, 20.5], "fov": 60}}
+{"cmd": "stop"}

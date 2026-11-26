@@ -1108,11 +1108,55 @@ def mood_astral_lamp(doc, name, position, shadows=False):
             PointLight={"Color": [0.35, 0.85, 1.0], "Intensity": 14.0, "Range": 10.0, "Flicker": 0.0, "CastShadows": shadows})
 
 
+# The mood lab's sample wall (docs/art/mood/README.md, "Materials for the first mission"): a row of bays south of
+# the cloister, one generated material each, wall materials on the bay's back panel, floor materials on its floor,
+# under its own lamp (no variant switches it). Each entry: (name, texture stem, "wall" | "floor", metres per tile,
+# tint, metallic). Tints lift the painted albedos (mean linear 0.05-0.12) towards 0.2-0.3; the plasters are light
+# already. The cube's -Z face maps u along X and v along Y, its top face u along Z and v along X.
+SAMPLE_MATERIALS = (
+    ("Planks_Oak", "Textures/Planks/planks_1000", "wall", 2.0, 2.0, 0.0),
+    ("Planks_Tarred", "Textures/Planks/planks_1002", "wall", 2.0, 2.0, 0.0),
+    ("Plaster_Lime", "Textures/Plaster/plaster_1000", "wall", 2.0, 0.6, 0.0),
+    ("Plaster_HalfTimber", "Textures/Plaster/plaster_1001", "wall", 2.4, 1.0, 0.0),
+    ("Metal_Rust", "Textures/Metal/metal_1000", "wall", 1.5, 2.5, 1.0),
+    ("Roof_Thatch", "Textures/Roof/roof_tiles_3001", "wall", 2.0, 2.5, 0.0),
+    ("StoneFloor_Flags", "Textures/StoneFloor/stone_floor_1000", "floor", 1.5, 2.5, 0.0),
+    ("StoneFloor_Wet", "Textures/StoneFloor/stone_floor_2002", "floor", 1.5, 3.5, 0.0),
+    ("Ground_Earth", "Textures/Ground/ground_1000", "floor", 2.0, 2.0, 0.0),
+)
+SAMPLE_BAY_WIDTH = 2.4
+SAMPLE_BAY_DEPTH = 4.0
+SAMPLE_BACK_Z = 22.0
+SAMPLE_WALL_HEIGHT = 3.0
+
+
+def sample_wall(doc):
+    """The bays of SAMPLE_MATERIALS side by side along X, centred on x = 0, their back panels at SAMPLE_BACK_Z, read from
+    left to right by a camera looking south (+Z)."""
+    neutral = (0.18, 0.18, 0.18)
+    front_z = SAMPLE_BACK_Z - SAMPLE_BAY_DEPTH
+    for index, (name, texture, kind, tile, tint, metallic) in enumerate(SAMPLE_MATERIALS):
+        x = ((len(SAMPLE_MATERIALS) - 1) / 2 - index) * SAMPLE_BAY_WIDTH  # the first on the left, seen from the north
+        floor_size = (SAMPLE_BAY_WIDTH, 0.2, SAMPLE_BAY_DEPTH)
+        panel_size = (SAMPLE_BAY_WIDTH, SAMPLE_WALL_HEIGHT, 0.2)
+        floor_mat = panel_mat = None
+        if kind == "floor":
+            floor_mat = tiled_material(texture, tint, (floor_size[2] / tile, floor_size[0] / tile))
+        else:
+            panel_mat = tiled_material(texture, tint, (panel_size[0] / tile, panel_size[1] / tile))
+            panel_mat["Metallic"] = metallic
+        box(doc, f"Sample_{name}_Floor", (x, -0.1, front_z + SAMPLE_BAY_DEPTH / 2), floor_size, neutral, mat=floor_mat)
+        box(doc, f"Sample_{name}", (x, SAMPLE_WALL_HEIGHT / 2, SAMPLE_BACK_Z + 0.1), panel_size, neutral, mat=panel_mat)
+        doc.add(f"Sample_{name}_Lamp", Transform=transform((x, 2.6, front_z + 1.2)),
+                PointLight={"Color": [1.0, 0.93, 0.85], "Intensity": 6.0, "Range": 5.0, "Flicker": 0.0, "CastShadows": False})
+
+
 def build_mood_lab():
     doc = Document("PenumbraScene")
     add_environment(doc)
     doc.add("Camera", Transform=transform((1.5, 1.6, -9.4), (0, -90, 0)), Camera={"VerticalFOV": 65.0, "NearClip": 0.05, "FarClip": 300.0})
     cloister_architecture(doc, textured=True)
+    sample_wall(doc)
     for index, ((x, z), zone, shadows) in enumerate(MOOD_TORCHES):
         torch_prefab_entities(doc, (x, 0, z), shadows=shadows, name=f"Fire_{zone}_Torch{index + 1}")
     for index, ((x, z), zone) in enumerate(MOOD_BRAZIERS):
