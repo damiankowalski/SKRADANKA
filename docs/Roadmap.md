@@ -273,6 +273,13 @@ hall is no longer full of glowing haze. Stealth playtest (20 seeds): the same ou
 the lit hall makes the thief out a little sooner (B 5.6 instead of 3.5 in one seed). See docs/Fog.md, "Laying out an
 interior".
 
+**Materials for the first mission** (S, brief approved 2026-11-26): five new AssetGen templates (`planks`,
+`plaster`, `stone_floor`, `ground`, `metal`) and their 20 variants in the texture catalog with notes (#49); the owner
+chose nine for the game, now in `DemoProject/Assets/Textures` with their provenance: oak and tarred planks, lime plaster
+and half-timbering, rusted iron, thatch (`roof_tiles_3001`, the first thatch that tiles), grey and wet flagstones,
+beaten earth. The mood lab shows them on a sample wall south of the cloister (docs/art/mood/README.md, "Sample wall").
+Fired clay tiles and brass still fail the seam test; brick comes later. No level is textured yet.
+
 ## In progress
 
 Nothing.
@@ -298,8 +305,8 @@ playtester added three packages in front (2026-11-23): controls and the player's
 (done), then the developer tools' UI (done).
 
 1. **Agent playtester** (package A done; package B above).
-2. **Materials for the first mission** (S each, art pipeline below), then **the decal system** (M-L): dirt at the
-   foot of walls, moss, soot (`docs/art/World.md`).
+2. **The decal system** (M-L): dirt at the foot of walls, moss, soot (`docs/art/World.md`); the first mission's
+   materials are done.
 3. **AudioGen** (M, local AI tools below), with Whisper for subtitles.
 4. **The characters' decision** (KayKit → Quaternius, M, art pipeline below), then **Kimodo PoC** (M): Kimodo
    retargets onto our skeleton, so the skeleton is settled first.
@@ -334,10 +341,8 @@ together, so guards see what the player sees without touching perception.
 Each item needs the owner's approval before its brief. Generation runs on the Mac (`Tools/AssetGen`); results keep
 their provenance and go to the texture catalog; materials follow `docs/art/World.md`.
 
-* **Materials for the first mission** (S per material, approved 2026-11-26, in progress): part 1 adds the templates
-  `planks`, `plaster`, `stone_floor`, `ground` and `metal` and their variants to the texture catalog (thatch now
-  tiles; fired clay and brass still fail the seam test) for the owner to choose; part 2 brings the chosen ones into
-  `DemoProject/Assets` with a sample wall in the mood lab. Brick later; no level texturing yet.
+* **More materials** (S per material): brick, fired clay roof tiles and brass (both fail the seam test so far).
+  The first mission's set is done (above).
 * **The full-screen map's picture** (S): one generated image for the map item above.
 * **Concept art of locations** before their levels are built (S).
 * **Material variations through img2img** (S): wet, mossy and dirty versions of a material, against the repetition

@@ -2,6 +2,7 @@
 
 #include "Penumbra/Animation/Animation.h"
 #include "Penumbra/Asset/AssetManager.h"
+#include "Penumbra/Asset/Importers.h"
 #include "Penumbra/Core/Input.h"
 #include "Penumbra/AI/PerceptionSystem.h"
 #include "Penumbra/Navigation/NavigationSystem.h"
@@ -10,6 +11,8 @@
 #include "Penumbra/Scene/FogUtils.h"
 #include "Penumbra/Scene/SceneSerializer.h"
 #include "Penumbra/Scripting/ScriptEngine.h"
+
+#include <set>
 
 using namespace Penumbra;
 
@@ -492,6 +495,61 @@ TEST_SUITE("World")
 		CHECK(medium.Density > 0.0f);
 		// In the hall's doorway (the front wall's outer face is at z = -7.7): half a metre in, half the fog.
 		CHECK(medium.DensityAt({ 10.0f, 1.0f, -8.2f }) == doctest::Approx(medium.Density * 0.5f));
+	}
+
+	TEST_CASE("MoodLab: the sample wall shows every material of the first mission; each generated texture loads and has its provenance")
+	{
+		std::string error;
+		REQUIRE_MESSAGE(Project::Load(std::filesystem::path(PENUMBRA_DEMO_PROJECT_DIR) / "project.json", error), error);
+		Scene scene;
+		REQUIRE_MESSAGE(SceneSerializer::Deserialize(scene, Project::GetAssetDirectory() / "Scenes/MoodLab.pscene", error), error);
+
+		// Tools/BuildDemoProject.py SAMPLE_MATERIALS: (bay, texture stem).
+		const std::vector<std::pair<std::string, std::string>> samples = {
+			{ "Planks_Oak", "Textures/Planks/planks_1000" },
+			{ "Planks_Tarred", "Textures/Planks/planks_1002" },
+			{ "Plaster_Lime", "Textures/Plaster/plaster_1000" },
+			{ "Plaster_HalfTimber", "Textures/Plaster/plaster_1001" },
+			{ "Metal_Rust", "Textures/Metal/metal_1000" },
+			{ "Roof_Thatch", "Textures/Roof/roof_tiles_3001" },
+			{ "StoneFloor_Flags", "Textures/StoneFloor/stone_floor_1000" },
+			{ "StoneFloor_Wet", "Textures/StoneFloor/stone_floor_2002" },
+			{ "Ground_Earth", "Textures/Ground/ground_1000" },
+		};
+		for (const auto& [bay, stem] : samples)
+		{
+			CAPTURE(bay);
+			Entity panel = scene.FindEntityByName("Sample_" + bay);
+			Entity floor = scene.FindEntityByName("Sample_" + bay + "_Floor");
+			REQUIRE(panel);
+			REQUIRE(floor);
+			const std::string panelAlbedo = panel.GetComponent<MaterialComponent>().AlbedoTexture;
+			const std::string floorAlbedo = floor.GetComponent<MaterialComponent>().AlbedoTexture;
+			CHECK(((panelAlbedo == stem + "_albedo.png") != (floorAlbedo == stem + "_albedo.png")));  // on the wall or the floor
+		}
+
+		// Every generated texture the scene uses (the cloister's and the samples') loads, and its provenance .json sits beside it.
+		std::set<std::string> paths;
+		for (auto handle : scene.GetRegistry().view<MaterialComponent>())
+		{
+			const auto& material = scene.GetRegistry().get<MaterialComponent>(handle);
+			for (const std::string* path : { &material.AlbedoTexture, &material.NormalTexture, &material.MetallicRoughnessTexture })
+				if (!path->empty())
+					paths.insert(*path);
+		}
+		CHECK(paths.size() == 3 * (5 + samples.size()));  // stone x2, cobblestone, shingles, ceiling + the samples
+		for (const std::string& path : paths)
+		{
+			CAPTURE(path);
+			const std::filesystem::path file = Project::GetAssetDirectory() / path;
+			const auto texture = TextureImporter::LoadFromFile(file, error);
+			REQUIRE_MESSAGE(texture.has_value(), error);
+			CHECK(texture->Width == 1024);
+			const std::string name = file.filename().string();
+			const std::filesystem::path provenance = file.parent_path() / (name.substr(0, name.rfind('_')) + ".json");
+			CHECK(std::filesystem::exists(provenance));
+		}
+		Project::Unload();
 	}
 
 	TEST_CASE("PhysicsLab: a thief barely made out beside the patrol is reacted to sooner with the suspicion floor")
