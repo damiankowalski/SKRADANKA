@@ -298,6 +298,18 @@ following a body the character collides with.
 on a top-down picture of the level (routes, where guards noticed the thief, their view and lamps), and engine
 screenshots of the key moments. Package A (the bot, series and report) is done.
 
+### The goal: the first mission (the owner, 2026-11-26)
+
+One playable mission on one map, with full graphics, 2D and 3D art and sound: from a street and a tavern, through
+the city's lantern-lit streets, the church, its catacombs and a collapsed tunnel, into the mayor's vineyard and manor
+(kitchen, bathrooms, a drawing room with a fireplace, two staircases, the bedroom and the library upstairs). What it
+needs and an order of packages: [`research/MissionOne.md`](research/MissionOne.md), a proposal waiting for the
+owner's decisions; the priority order below is redone from it once they are taken.
+
+**Sound comes once the mission's world stands**: AudioGen package A (effects and ambience with a listening room) is
+approved with the owner's brief, [`research/AudioGenBrief.md`](research/AudioGenBrief.md); B (music) and C (voices)
+follow it.
+
 ### Priority order (approved 2026-11-22, updated 2026-11-23)
 
 Each package still needs the owner's approval and its own brief before it starts. The owner's playtest of the
@@ -307,7 +319,8 @@ playtester added three packages in front (2026-11-23): controls and the player's
 1. **Agent playtester** (package A done; package B above).
 2. **The decal system** (M-L): dirt at the foot of walls, moss, soot (`docs/art/World.md`); the first mission's
    materials are done.
-3. **AudioGen** (M, local AI tools below), with Whisper for subtitles.
+3. **AudioGen** (M, local AI tools below), with Whisper for subtitles: package A's brief is approved
+   (`research/AudioGenBrief.md`); it starts once the first mission's world stands.
 4. **The characters' decision** (KayKit → Quaternius, M, art pipeline below), then **Kimodo PoC** (M): Kimodo
    retargets onto our skeleton, so the skeleton is settled first.
 5. **Pixal3D PoC** (M, props).
@@ -366,8 +379,9 @@ at a time, weights in `~/AI/huggingface`, uv per tool, pinned versions, provenan
 before any install) are in [`research/AITools.md`](research/AITools.md).
 
 * **Agent playtester**: package A done (docs/Playtest.md); package B in "Next" above.
-* **AudioGen** (M): a tool on the AssetGen model for Stable Audio Open Small (effects, ambience), ACE-Step 1.5
-  (music) and Chatterbox Multilingual (voices).
+* **AudioGen** (M): a tool on the AssetGen model. Package A (effects, ambience, a listening room) with Stable Audio
+  3 Small SFX, brief approved (`research/AudioGenBrief.md`); B music (ACE-Step 1.5 against Stable Audio 3 Small
+  Music); C voices (Chatterbox Multilingual + Whisper).
 * **Kimodo PoC** (M): text to animation, retargeted in Blender onto our skeleton; whether it fits in 16 GB.
 * **Pixal3D PoC** (M): photo to a 3D prop with PBR textures, cleaned in Blender.
 * **AssetGen add-ons** (S each): Depth Anything V2 Small (height maps: the "better height maps" item above),
