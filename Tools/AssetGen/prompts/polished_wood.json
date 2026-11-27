@@ -1,0 +1,16 @@
+{
+	"material": "polished_wood",
+	"description": "Furniture: tables, chairs, beds, bookcases, the library's desk.",
+	"prompt": "{style} A seamless tileable texture of polished furniture wood seen straight on: {variation}, long straight grain, fine scratches and wear.",
+	"variations": [
+		"dark brown oak with clear open grain",
+		"warm reddish cherry wood with a soft sheen",
+		"almost black ebonised wood with faint grain"
+	],
+	"roughness": [
+		0.3,
+		0.6
+	],
+	"metallic": 0.0,
+	"normal_strength": 2.5
+}

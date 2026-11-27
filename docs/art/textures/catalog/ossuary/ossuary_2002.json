@@ -1,0 +1,80 @@
+{
+  "tool": "Penumbra AssetGen",
+  "ai_generated": true,
+  "generated_at": "2026-11-27T21:13:19+00:00",
+  "material": "ossuary",
+  "template": "prompts/ossuary.json",
+  "prompt": "Hand-painted stylised realism for a dark medieval stealth game: painterly brushwork over believable materials, muted earthy colours, worn and lived-in surfaces. An albedo texture: flat even light, no cast shadows, no highlights, no vignette, no perspective, viewed straight on, the material fills the whole square edge to edge. A seamless tileable texture of an ossuary wall seen straight on: rough stone niches filled with piled bones and a few skulls, crumbling plaster around them, old yellowed bone, dust and darkness between them.",
+  "seed": 2002,
+  "steps": 4,
+  "blend_steps": 4,
+  "size": 1024,
+  "quantize": 8,
+  "model": {
+    "id": "black-forest-labs/FLUX.2-klein-4B",
+    "revision": "e7b7dc27f91deacad38e78976d1f2b499d76a294",
+    "license": "Apache-2.0"
+  },
+  "mflux_version": "0.24.0",
+  "license": "Apache-2.0",
+  "timing": {
+    "model_load_seconds": 0.6,
+    "image_seconds": 234.7,
+    "mlx_peak_gb": 6.46,
+    "process_peak_rss_gb": 1.58
+  },
+  "seamless": {
+    "method": "generation",
+    "seam_limit": 1.6,
+    "detail_limit": 0.55,
+    "x": {
+      "wrap_step": 0.934,
+      "interior_step_p99": 1.571,
+      "weakest_detail": 0.807,
+      "weakest_detail_at": 473,
+      "detail_at_edge": 0.987,
+      "detail_at_centre": 1.023,
+      "line_at_edge": 1.675,
+      "line_at_centre": 1.465,
+      "line_limit": 2.986,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "y": {
+      "wrap_step": 1.605,
+      "interior_step_p99": 1.606,
+      "weakest_detail": 0.596,
+      "weakest_detail_at": 550,
+      "detail_at_edge": 1.457,
+      "detail_at_centre": 0.914,
+      "line_at_edge": 1.423,
+      "line_at_centre": 1.794,
+      "line_limit": 2.617,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "passed": true,
+    "fallback_can_help": false
+  },
+  "maps": {
+    "height": "albedo luminance (approximation)",
+    "normal_convention": "glTF: +X right, +Y up (green), +Z out",
+    "normal_strength": 5.0,
+    "metallic_roughness": "glTF: G roughness, B metallic",
+    "roughness": [
+      0.7,
+      0.95
+    ],
+    "metallic": 0.0
+  },
+  "files": {
+    "albedo": "ossuary_2002_albedo.png",
+    "normal": "ossuary_2002_normal.png",
+    "metallic_roughness": "ossuary_2002_mr.png",
+    "preview": "ossuary_2002_preview.png"
+  },
+  "catalog": {
+    "note": "Plaster wall with niches of skulls and crossed bones, a regular decorative repeat: small panels only.",
+    "preview": "ossuary_2002.png"
+  }
+}

@@ -1,0 +1,16 @@
+{
+	"material": "wallpaper",
+	"description": "The manor's upper walls: painted plaster or fabric hangings with patterns.",
+	"prompt": "{style} A seamless tileable texture of a rich old interior wall covering seen straight on: {variation}, faded with age, slightly uneven.",
+	"variations": [
+		"deep red damask fabric with a repeating gold floral pattern",
+		"dark green painted plaster with a stencilled pattern of vines and leaves",
+		"faded blue-grey wall hanging with small heraldic lilies in a diamond grid"
+	],
+	"roughness": [
+		0.7,
+		0.92
+	],
+	"metallic": 0.0,
+	"normal_strength": 2.5
+}
