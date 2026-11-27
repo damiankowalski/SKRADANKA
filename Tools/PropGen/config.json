@@ -39,6 +39,24 @@
 			"metres_per_repeat": 0.5,
 			"base_color": [0.8, 0.8, 0.8],
 			"note": "rusted iron: bands, nails, hinges"
+		},
+		"clay": {
+			"base_color": [0.46, 0.25, 0.16],
+			"roughness": 0.85,
+			"metallic": 0.0,
+			"note": "fired clay, unglazed: jugs, bowls, storage jars (no texture yet)"
+		},
+		"glaze": {
+			"base_color": [0.32, 0.3, 0.22],
+			"roughness": 0.35,
+			"metallic": 0.0,
+			"note": "a dark green-brown glaze inside and on the good pots"
+		},
+		"wax": {
+			"base_color": [0.86, 0.8, 0.64],
+			"roughness": 0.55,
+			"metallic": 0.0,
+			"note": "tallow and beeswax candles"
 		}
 	}
 }

@@ -306,9 +306,9 @@ wiring the accepted sounds into the game finish the package. See `Tools/AudioGen
 **The prop pipeline, part 1: PropGen and the first families** (M, branch `feature/propgen`, after AudioGen):
 `Tools/PropGen` builds props from one script per family (Python's standard library, no Blender needed yet):
 boxes and lathes in metres with the pivot at the base, UVs on the generated board and iron sheets, three authored
-LODs, collision boxes, provenance, checks (winding, pivot, budget, LODs, textures, staleness). 27 props in ten
-families: crates, barrels, chests, tables, chairs, stools, benches, shelves, wine racks, plank doors (60-1,032
-triangles), shown in `Scenes/PropLab.pscene`. The engine now loads
+LODs, collision boxes, provenance, checks (winding, pivot, budget, LODs, textures, staleness). 35 props in thirteen
+families: crates, barrels, chests, tables, chairs, stools, benches, shelves, wine racks, plank doors, pottery,
+buckets, candlesticks (60-1,032 triangles), shown in `Scenes/PropLab.pscene`. The engine now loads
 a texture a `.glb` names by file once for every model using it. Next: beds and cloth, clutter, the doors on
 the blockout's doorways, the architecture kit; Blender for bevels, booleans and cleaning AI or CC0 meshes, with the official MCP for live sessions.
 

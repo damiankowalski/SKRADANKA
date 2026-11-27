@@ -1757,7 +1757,9 @@ PROP_LAB_ROWS = [("door", ["house", "cellar", "leaf"]), ("shelf", ["kitchen", "c
                  ("wine_rack", ["wall", "barrel"]), ("crate", ["small", "large", "long", "banded"]),
                  ("barrel", ["wine", "water", "keg"]), ("chest", ["travel", "strongbox", "dowry"]),
                  ("table", ["kitchen", "small", "feast"]), ("chair", ["plain", "slatted"]),
-                 ("stool", ["milking", "tavern"]), ("bench", ["short", "long"])]
+                 ("stool", ["milking", "tavern"]), ("bench", ["short", "long"]),
+                 ("pottery", ["jug", "mug", "bowl", "storage_jar"]), ("bucket", ["well", "washtub"]),
+                 ("candlestick", ["table", "pricket"])]
 PROP_LAB_ROW = 2.2  # metres between rows, back (-Z) to front
 
 

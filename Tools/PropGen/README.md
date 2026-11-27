@@ -1,7 +1,7 @@
 # PropGen: procedural props
 
 Builds the props the world is furnished with (crates, barrels, chests, tables, chairs, stools, benches, shelves,
-wine racks, plank doors; later the architecture kit) from scripts: one Python file per family of objects, with parameters per variant. The scripts are the source; the
+wine racks, plank doors, pottery, buckets, candlesticks; later the architecture kit) from scripts: one Python file per family of objects, with parameters per variant. The scripts are the source; the
 generated `.glb` files and their provenance are committed, like the demo's scenes. Agents:
 `.claude/skills/penumbra-generate-props`. Why this way: `docs/research/MissionOne.md`, "Filling the world with 3D
 objects".
@@ -32,7 +32,8 @@ Python's standard library only: no Blender, no packages, nothing to install; it 
   (`Prop.lathe`: a barrel's staves, its heads and hoops), flat-shaded, in metres, Y up, with the pivot at the
   middle of the base.
 * **Materials** are the generated texture sheets in `Assets/Textures` (config.json `materials`: oak boards, tarred
-  boards, rusted iron). A `.glb` refers to them by relative URI, never embeds them: the engine loads a sheet once
+  boards, rusted iron; clay, glaze and wax are plain colours until they have sheets of their own). A `.glb`
+  refers to them by relative URI, never embeds them: the engine loads a sheet once
   and every prop shares it (`AssetManager`), in memory and on the GPU.
 * **UVs** are in metres of the texture (`metres_per_repeat`), along the wood's grain (`grain`, default the
   longest side). The board textures have eight boards per repeat running along V: a board-sized part
@@ -70,6 +71,9 @@ Python's standard library only: no Blender, no packages, nothing to install; it 
 | shelf | cellar, kitchen, low | 108-156 / 72-108 / 36-48 |
 | wine_rack | barrel, wall | 288-1032 / 144-312 / 60 |
 | door | cellar, house, leaf | 336-372 / 72 / 12 |
+| pottery | bowl, jug, mug, storage_jar | 124-200 / 60-116 / 20-32 |
+| bucket | washtub, well | 176-212 / 22-25 / 16 |
+| candlestick | pricket, table | 126 / 74 / 20 |
 
 A new family: copy the closest script, set `FAMILY`, `BUDGET` and `VARIANTS`, build it from boxes and lathes, add
 it to `families/__init__.py`, run `generate.py`, add it to the prop lab (`PROP_LAB_ROWS` in
