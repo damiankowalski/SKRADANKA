@@ -596,6 +596,41 @@ TEST_SUITE("World")
 			});
 	}
 
+	TEST_CASE("No lamp in the demo's scenes sits in or on a solid body (it would light nothing on that side, for the eye or the guards)")
+	{
+		std::string error;
+		REQUIRE_MESSAGE(Project::Load(std::filesystem::path(PENUMBRA_DEMO_PROJECT_DIR) / "project.json", error), error);
+		int lamps = 0;
+		for (const auto& file : std::filesystem::directory_iterator(Project::GetAssetDirectory() / "Scenes"))
+		{
+			if (file.path().extension() != ".pscene")
+				continue;
+			CAPTURE(file.path().filename().string());
+			Scene scene;
+			scene.SetAudioDeviceEnabled(false);
+			REQUIRE_MESSAGE(SceneSerializer::Deserialize(scene, file.path(), error), error);
+			scene.OnRuntimeStart();
+			const PhysicsWorld& physics = *scene.GetPhysicsWorld();
+			auto check = [&](entt::entity handle) {
+				Entity light(handle, &scene);
+				const glm::vec3 position = scene.GetWorldPosition(light);
+				// 5 cm of clearance all round: a torch's flame 8 cm over its pole is fine, a lamp on a post's top is not.
+				const std::optional<RaycastHit> hit = physics.SphereCast(position, { 0.0f, -1.0f, 0.0f }, 0.05f, 0.001f);
+				CAPTURE(light.GetName());
+				CAPTURE(position);
+				CHECK_FALSE(hit.has_value());
+				++lamps;
+			};
+			for (entt::entity handle : scene.GetRegistry().view<PointLightComponent>())
+				check(handle);
+			for (entt::entity handle : scene.GetRegistry().view<SpotLightComponent>())
+				check(handle);
+			scene.OnRuntimeStop();
+		}
+		CHECK(lamps > 100);
+		Project::Unload();
+	}
+
 	TEST_CASE("Cloister: the crossbow shoots only while aimed (right mouse); the compass follows the camera")
 	{
 		Level cloister("Scenes/Cloister.pscene");

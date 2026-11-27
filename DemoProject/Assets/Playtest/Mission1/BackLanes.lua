@@ -13,6 +13,7 @@ return {
         { to = vec3(-80, 0, 0.6), label = "east along the south side of the main street" },
         { wait_for = "StreetWatch", away = 16, timeout = 120, label = "until the lantern watchman is off" },
         { to = vec3(-47, 0, 0.6), label = "on east to the square" },
+        { wait_for = "SquareWatch", away = 14, timeout = 120, label = "until the square's watchman walks off" },
         { to = vec3(-38, 0, -12.2), label = "behind the crate at the square's corner" },
         { to = vec3(-30, 0, -14.5), label = "to the churchyard gate" },
         { to = vec3(-9, 0, -8.5), label = "through the churchyard to the side door" },

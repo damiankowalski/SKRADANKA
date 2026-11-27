@@ -143,7 +143,11 @@ Fixed in this package:
 6. **Patrols.** A watchman walking a dead-end lane there and back leaves no way past him but to follow him until
    he turns into you: the city's watch walks loops round the blocks. The upstairs guard no longer ends his round
    at the ledger's desk.
-7. **The playtester at doors.** It aimed at a door's hinge on the floor and, standing close, could not turn the
+7. **Lanterns** (found by the owner playing it): the street lanterns' light sat on their posts' top, so the post hid
+   everything below it: the ground under a lantern stayed dark, and for the guards (and the light gem) the thief
+   standing in the lantern's light was in the dark (gem 0.00; 0.59 once the light hangs from an arm). The lanterns
+   hang from arms now, and a test checks every lamp of every demo scene for 5 cm of clearance from solid bodies.
+8. **The playtester at doors.** It aimed at a door's hinge on the floor and, standing close, could not turn the
    camera over its shoulder onto the leaf: it now steps 1.1 m back and aims at the leaf's middle. Before the fix
    to the doors' storeys, its route had only got into the church because the catacombs' watchman, walking below,
    opened the side door for it.

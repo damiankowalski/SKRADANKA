@@ -1344,12 +1344,17 @@ def lamp(doc, name, position, intensity=10.0, light_range=8.0, colour=(1.0, 0.8,
     return light
 
 
-def street_lantern(doc, name, x, z):
-    """A street lantern on an iron post (the city lights its streets with lanterns, not torches)."""
+def street_lantern(doc, name, x, z, arm=(0.0, 1.0)):
+    """A street lantern on an iron post (the city lights its streets with lanterns, not torches): the lantern hangs
+    from an arm 0.6 m out from the post, towards `arm`, so neither post nor arm stands between the light and the
+    ground below it (a light on the post's top would light nothing beneath, for the eye and the guards alike)."""
     post = doc.add(name, Transform=transform((x, 0, z)))
-    doc.add("Post", post, Transform=transform((0, 1.6, 0), scale=(0.12, 3.2, 0.12)), Mesh={"Mesh": "builtin:cylinder"},
+    doc.add("Post", post, Transform=transform((0, 1.65, 0), scale=(0.12, 3.3, 0.12)), Mesh={"Mesh": "builtin:cylinder"},
             Material=material(M1_COLOURS["iron"], roughness=0.5, metallic=0.8), BoxCollider={"HalfExtents": [0.5, 0.5, 0.5]})
-    lamp(doc, f"{name}Light", (x, 3.2, z), intensity=14.0, light_range=11.0)
+    dx, dz = arm
+    doc.add("Arm", post, Transform=transform((0.35 * dx, 3.25, 0.35 * dz), scale=(0.05 + 0.65 * abs(dx), 0.05, 0.05 + 0.65 * abs(dz))),
+            Mesh={"Mesh": "builtin:cube"}, Material=material(M1_COLOURS["iron"], roughness=0.5, metallic=0.8))
+    lamp(doc, f"{name}Light", (x + 0.6 * dx, 2.95, z + 0.6 * dz), intensity=14.0, light_range=11.0)
     return post
 
 
@@ -1429,10 +1434,12 @@ def m1_city(doc):
         box(doc, f"Crate{index + 1}", (x, h / 2, z), (w, h, d), c["wood"], surface="Wood")
 
     # Street lanterns: the main street, the lanes, the square and the church door.
-    for index, (x, z) in enumerate(((-99, -7.2), (-86, 1.2), (-72, -7.2), (-58, 1.2), (-46, -7.2), (-80, -29), (-60, -29),
-                                     (-78, 23), (-56, 23), (-42, -14), (-42, 14), (-30.5, -14), (-30.5, 14),
-                                     (-29.5, 2.8), (-29.5, -2.8))):
-        street_lantern(doc, f"StreetLantern{index + 1}", x, z)
+    # Each lantern's arm reaches out over the street, away from the wall it stands by.
+    for index, (x, z, arm) in enumerate(((-90.5, -7.2, (0, 1)), (-86, 1.2, (0, -1)), (-72, -7.2, (0, 1)), (-58, 1.2, (0, -1)),
+                                          (-46, -7.2, (0, 1)), (-80, -31.2, (0, 1)), (-60, -31.2, (0, 1)), (-78, 25.2, (0, -1)),
+                                          (-56, 25.2, (0, -1)), (-42, -6, (1, 0)), (-42, 14, (1, 0)), (-30.5, -14, (-1, 0)),
+                                          (-30.5, 14, (-1, 0)), (-29.5, 2.8, (-1, 0)), (-29.5, -2.8, (-1, 0)))):
+        street_lantern(doc, f"StreetLantern{index + 1}", x, z, arm)
 
 
 def m1_church(doc):
@@ -1641,8 +1648,10 @@ def m1_people(doc):
                                                                    (-66, 0, -29), (-70, 0, -12))), lantern=True, **scene)
     guards["SouthWatch"] = add_guard(doc, "SouthWatch", (-86, 0.05, 23), 90,
                                      waypoints(doc, "WP_South", ((-86, 0, 23), (-48, 0, 23), (-42, 0, 18))), character=KNIGHT, **scene)
+    # The square's watchman keeps to the church's main door and the square's south half; the churchyard's gate in
+    # the north corner is the quieter way in.
     guards["SquareWatch"] = add_guard(doc, "SquareWatch", (-38, 0.05, 10), 0,
-                                      waypoints(doc, "WP_Square", ((-38, 0, 10), (-31, 0, 0), (-38, 0, -10), (-36, 0, 0))), **scene)
+                                      waypoints(doc, "WP_Square", ((-38, 0, 10), (-31, 0, 2.5), (-31, 0, -2.5), (-36, 0, 4))), **scene)
     guards["Sexton"] = add_guard(doc, "Sexton", (-24, 0.05, 3.5), 90,
                                  waypoints(doc, "WP_Church", ((-25, 0, 3.6), (-8.5, 0, 3.6), (-7.5, 0, 1.8))), **scene)
     guards["CryptWatch"] = add_guard(doc, "CryptWatch", (-8, -3.95, -4), 90,
