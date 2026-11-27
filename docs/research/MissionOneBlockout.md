@@ -166,3 +166,23 @@ Left for later (each needs the owner's approval before its brief):
 Engine screenshots (`render.screenshot` in the editor's headless mode), with the roofs hidden, the moon raised and
 the fog off for legibility, then turned 180 degrees so that north is up (the screenshot camera looking straight
 down keeps south at the top).
+
+## After the owner's playtest: the light (2026-11-27)
+
+The owner played the blockout and found the light wrong in two ways: lamps lit the ground only in part, and the light
+gem said "dark" where the thief plainly stood in a lantern's light. Two causes, both fixed:
+
+1. **The lanterns** (above, "What the blockout taught", 7): their light sat on the post's top.
+2. **The renderer's eight shadow maps.** Every lamp with `CastShadows` needs one, or it would light the rooms behind
+   the walls; with only eight, the nearest lamps in view took them and the rest (up to 27 on the street) went dark,
+   which ones changing as the camera turned, while the guards and the gem counted them all. Now 32 point shadow maps
+   at 256 px a face (the memory the eight at 512 took) are **kept from frame to frame**: a lamp's map is drawn again
+   only when the lamp moves or something in its reach moves (a guard, a door, a body), at most eight a frame for what
+   moved. A test renders sixteen lamps of four strengths, more than the old eight, and checks that the picture and
+   the gem agree under each: lit or dark, and which brighter (it fails with eight maps).
+
+| | Before | After |
+|---|---|---|
+| The main street, the same frame of the route | 12.2 ms, 10 lights drawn, 27 lamps left dark, 53 shadow views drawn | 11.7 ms, 34 lights drawn, 2 left out, 29 shadow views drawn |
+
+![The main street before (top) and after (bottom): the lanterns light the street, the gem lights up](mission1/light_street_before_after.png)

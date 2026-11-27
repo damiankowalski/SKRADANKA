@@ -12,7 +12,7 @@ namespace Penumbra::GPU {
 	constexpr uint32_t MaxCascades = 4;
 	constexpr uint32_t MaxLights = 256;
 	constexpr uint32_t MaxSpotShadows = 8;
-	constexpr uint32_t MaxPointShadows = 8; // cube maps; the lamps reaching the view get them, nearest first
+	constexpr uint32_t MaxPointShadows = 32; // cube maps; the lamps reaching the view get them, nearest first, kept between frames
 	constexpr uint32_t MaxFogVolumes = 32;
 
 	constexpr uint32_t LightDirectional = 0;

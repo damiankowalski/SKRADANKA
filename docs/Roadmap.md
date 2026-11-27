@@ -287,6 +287,10 @@ second mission; [`research/MissionOneBlockout.md`](research/MissionOneBlockout.m
 taught). On the way: doors fixed for storeys, half-turned leaves, passers-by and the household's own noise, the
 alarm bell's reach, the exit's `remind`, the playtester at doors, street lanterns on arms with a lamp-clearance test.
 
+**No lamp goes dark** (2026-11-27, after the owner's playtest of the blockout): 32 point shadow maps kept between
+frames instead of 8 drawn every frame (a lamp's map is drawn again only when something in its reach moves), so a
+street of lanterns is lit and the picture and the light gem agree under every lamp (a test with sixteen lamps).
+
 ## In progress
 
 Nothing.
@@ -301,11 +305,7 @@ following a body the character collides with.
 
 ## Next
 
-**No lamp goes dark** (S-M, the owner's decision after playing the blockout, 2026-11-27; branch
-`feature/shadow-cache`): 32 point shadow maps kept between frames instead of 8 drawn every frame, so the picture and
-the light gem agree under every lamp (`research/MissionOneBlockout.md`, "After the owner's playtest: the light").
-
-**Then the asset library before dressing the map** (the owner, 2026-11-27): materials, 3D props, characters, sound
+**The asset library before dressing the map** (the owner, 2026-11-27): materials, 3D props, characters, sound
 and music generated into the repository's catalogs first; the mission's places are built from them afterwards.
 
 ### The goal: the first mission (the owner, 2026-11-26)
@@ -327,10 +327,9 @@ follow it.
 Each package still needs its own brief and the owner's approval before it starts. The first mission comes first
 (`research/MissionOne.md`, "Order"); the earlier list follows it.
 
-1. **No lamp goes dark** (above).
-2. **The asset library** (the owner, 2026-11-27: before the places): materials batch 2, the prop pipeline (3 below),
+1. **The asset library** (the owner, 2026-11-27: before the places): materials batch 2, the prop pipeline (3 below),
    the characters (4 below), AudioGen A and B (7 below), each into its catalog.
-3. **The engine for a big map** (about 6 PRs, M-L in all), starting with the stress-test district: instancing, light
+2. **The engine for a big map** (about 6 PRs, M-L in all), starting with the stress-test district: instancing, light
    culling, LOD and draw distance, room-bounded lights, alpha-tested materials, texture compression, collision
    proxies.
 3. **The prop pipeline** (M): Blender (installed then, with the owner's approval), `Tools/PropGen`, its skill, a prop

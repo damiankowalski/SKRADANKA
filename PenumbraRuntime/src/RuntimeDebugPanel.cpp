@@ -352,8 +352,9 @@ namespace Penumbra {
 						   m_PhysicalMemory ? std::format(" of {:.0f} GB", static_cast<double>(m_PhysicalMemory) / (1024.0 * 1024.0 * 1024.0))
 											: std::string()));
 			const SceneRendererStatistics& stats = renderer.GetStatistics();
-			Row("draws", std::format("{} calls, {:.1f}k triangles, {} lights, {} shadow views, {} culled", stats.DrawCalls,
-							 static_cast<double>(stats.Triangles) / 1000.0, stats.Lights, stats.ShadowViews, stats.CulledObjects));
+			Row("draws", std::format("{} calls, {:.1f}k triangles, {} lights, {} culled", stats.DrawCalls,
+							 static_cast<double>(stats.Triangles) / 1000.0, stats.Lights, stats.CulledObjects));
+			Row("shadows", std::format("{} lamps with a map, {} views drawn this frame", stats.ShadowMaps, stats.ShadowViews));
 			if (stats.LeftOutLamps > 0)
 				Row("  left out", std::format("{} lamps in view without a free shadow map", stats.LeftOutLamps));
 			const PhysicsWorld* physics = scene.GetPhysicsWorld();

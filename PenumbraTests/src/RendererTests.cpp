@@ -13,6 +13,7 @@
 #include "Penumbra/UI/Overlay.h"
 
 #include <imgui.h>
+#include <map>
 #include <stb_image_write.h>
 
 using namespace Penumbra;
@@ -152,11 +153,13 @@ TEST_SUITE("Renderer")
 		fixture.Renderer->GetDebugDraw().Box(glm::vec3(0.0f, 0.75f, 0.0f), glm::vec3(0.8f), glm::quat(1, 0, 0, 0), { 1, 1, 0, 1 });
 
 		fixture.RenderFrame(fixture.Camera()); // first frame builds the IBL maps
+		CHECK(fixture.Renderer->GetStatistics().ShadowViews >= 4 + 1 + 6); // cascades + spot + point cube faces, all new
 		const std::vector<uint8_t> pixels = fixture.RenderFrame(fixture.Camera()); // steady state (IBL built)
 
 		const SceneRendererStatistics& stats = fixture.Renderer->GetStatistics();
 		CHECK(stats.Lights == 3);
-		CHECK(stats.ShadowViews >= 4 + 1 + 6); // cascades + spot + point cube faces
+		CHECK(stats.ShadowMaps == 2);   // the spot and the torch keep their maps
+		CHECK(stats.ShadowViews == 4); // nothing moved: only the sun's cascades (they follow the camera) are drawn again
 		CHECK(stats.DrawCalls > 0);
 		CHECK(fixture.Device->GetErrorCount() == 0);
 
@@ -372,6 +375,163 @@ TEST_SUITE("Renderer")
 		CHECK(eight.Shadowed == std::vector<size_t>{ 2, 4, 5, 0 });
 		CHECK(eight.Overflow == 0);
 		CHECK(eight.LeftOut.size() == 2);
+	}
+
+	TEST_CASE("The shadow map cache: a lamp keeps its slot while it keeps a map; newcomers take the slots longest unused")
+	{
+		std::vector<ShadowCacheSlot> cache(3);
+		CHECK(AssignCacheSlots({ 11, 22 }, cache, 1) == std::vector<uint32_t>{ 0, 1 });
+		cache[0].Pose = cache[0].Content = 5; // drawn
+		CHECK(AssignCacheSlots({ 22, 11 }, cache, 2) == std::vector<uint32_t>{ 1, 0 }); // nearest first changed: slots did not
+		CHECK(cache[0].Content == 5);                                                  // and the drawn map is kept
+		CHECK(AssignCacheSlots({ 33, 11 }, cache, 3) == std::vector<uint32_t>{ 2, 0 }); // 33 takes the free slot
+		CHECK(cache[2].Lamp == 33);
+		CHECK(cache[2].Content == 0); // nothing drawn for it yet
+		// 44 comes: the slot unused longest (22's, last used in frame 2) is cleared for it.
+		CHECK(AssignCacheSlots({ 44, 33 }, cache, 4) == std::vector<uint32_t>{ 1, 2 });
+		CHECK(cache[1].Lamp == 44);
+		CHECK(cache[1].Pose == 0);
+	}
+
+	TEST_CASE("Sixteen shadowed lamps in view all light the floor, and the light gem agrees with the picture under each")
+	{
+		// The renderer used to give its shadow maps to the eight nearest lamps and leave the rest dark, while the guards
+		// (and the gem) counted them all: under the far lamps the thief was lit for one and dark on screen. Sixteen lamps
+		// of four strengths in a grid, each lighting a spot of floor beside it where a thief stands; a wall hides four of
+		// those spots from their lamps. Both must say the same: which spots are lit, and which brighter.
+		RendererFixture fixture;
+		Scene& scene = fixture.SceneInstance;
+		auto& environment = scene.CreateEntity("Environment").AddComponent<EnvironmentComponent>();
+		environment.AmbientColor = glm::vec3(0.0f);
+		environment.SSAOEnabled = false;
+		environment.BloomIntensity = 0.0f;
+		environment.VolumetricFog = false;
+		environment.FogDensity = 0.0f;
+		Test::CreateBox(scene, "Ground", { 0.0f, -0.5f, 0.0f }, { 30.0f, 0.5f, 30.0f }, glm::vec4(0.6f, 0.6f, 0.6f, 1.0f));
+		struct Spot
+		{
+			Entity Thief;
+			glm::vec3 Floor;
+			float Intensity;
+			bool Walled;
+		};
+		std::vector<Spot> spots;
+		for (int i = 0; i < 4; i++)
+		{
+			for (int j = 0; j < 4; j++)
+			{
+				const glm::vec3 position(-9.0f + 6.0f * static_cast<float>(i), 2.5f, -9.0f + 6.0f * static_cast<float>(j));
+				Entity lamp = scene.CreateEntity("Lamp");
+				lamp.Transform().Translation = position;
+				auto& light = lamp.AddComponent<PointLightComponent>();
+				light.Intensity = 3.0f + 2.0f * static_cast<float>(j);
+				light.Range = 4.5f;
+				light.Flicker = 0.0f;
+				light.CastShadows = true;
+				const bool walled = i == 0;
+				if (walled)
+					Test::CreateBox(scene, "Wall", position + glm::vec3(0.8f, -1.0f, 0.0f), { 0.1f, 1.5f, 1.0f });
+				Entity thief = scene.CreateEntity("Thief");
+				thief.Transform().Translation = { position.x + 1.6f, 0.0f, position.z };
+				thief.AddComponent<PerceptionTargetComponent>();
+				spots.push_back({ thief, { position.x + 1.6f, 0.0f, position.z }, light.Intensity, walled });
+			}
+		}
+		scene.OnRuntimeStart();
+		Test::Simulate(scene, 0.3f); // perception updates the bodies' light
+
+		const float aspect = static_cast<float>(RendererFixture::Width) / static_cast<float>(RendererFixture::Height);
+		const glm::quat down = Math::LookRotation(glm::vec3(0.0f, -1.0f, -0.0003f));
+		const RenderCamera above = RenderCamera::Perspective({ 0.0f, 30.0f, 0.01f }, down, 60.0f, aspect, 0.5f, 100.0f);
+		fixture.RenderFrame(above);
+		const std::vector<uint8_t> pixels = fixture.RenderFrame(above);
+		const SceneRendererStatistics& stats = fixture.Renderer->GetStatistics();
+		CHECK(stats.ShadowMaps == 16);
+		CHECK(stats.LeftOutLamps == 0);
+
+		float darkest = 1.0f, brightestWalled = 0.0f, highestWalledLevel = 0.0f, lowestLitLevel = 1e9f;
+		std::map<float, std::pair<float, float>> byIntensity; // open spots: intensity -> (picture, gem level), averaged
+		std::map<float, int> counts;
+		for (const Spot& spot : spots)
+		{
+			const glm::uvec2 pixel = RendererFixture::ToPixel(above, spot.Floor);
+			const float picture = Math::Luminance(RendererFixture::Pixel(pixels, pixel.x, pixel.y));
+			const float level = spot.Thief.GetComponent<PerceptionTargetComponent>().RuntimeLightLevel;
+			CAPTURE(spot.Floor);
+			CAPTURE(picture);
+			CAPTURE(level);
+			if (spot.Walled)
+			{
+				brightestWalled = std::max(brightestWalled, picture);
+				highestWalledLevel = std::max(highestWalledLevel, level);
+			}
+			else
+			{
+				darkest = std::min(darkest, picture);
+				lowestLitLevel = std::min(lowestLitLevel, level);
+				byIntensity[spot.Intensity].first += picture;
+				byIntensity[spot.Intensity].second += level;
+				counts[spot.Intensity]++;
+			}
+		}
+		// Every open spot is lit on screen and for the guards; every walled one dark for both.
+		CHECK(darkest > brightestWalled + 0.03f);
+		CHECK(lowestLitLevel > 10.0f * std::max(highestWalledLevel, 1e-4f));
+		// The brighter the lamp, the brighter the floor on screen and the higher the gem.
+		float previousPicture = 0.0f, previousLevel = 0.0f;
+		for (const auto& [intensity, sums] : byIntensity)
+		{
+			const float picture = sums.first / static_cast<float>(counts[intensity]);
+			const float level = sums.second / static_cast<float>(counts[intensity]);
+			CAPTURE(intensity);
+			CHECK(picture > previousPicture);
+			CHECK(level > previousLevel);
+			previousPicture = picture;
+			previousLevel = level;
+		}
+		CHECK(fixture.Device->GetErrorCount() == 0);
+		scene.OnRuntimeStop();
+	}
+
+	TEST_CASE("A shadow map is drawn once and kept; a box moved in the lamp's reach has its shadow drawn again")
+	{
+		RendererFixture fixture;
+		Scene& scene = fixture.SceneInstance;
+		auto& environment = scene.CreateEntity("Environment").AddComponent<EnvironmentComponent>();
+		environment.AmbientColor = glm::vec3(0.0f);
+		environment.SSAOEnabled = false;
+		environment.BloomIntensity = 0.0f;
+		environment.VolumetricFog = false;
+		Test::CreateBox(scene, "Ground", { 0.0f, -0.5f, 0.0f }, { 10.0f, 0.5f, 10.0f }, glm::vec4(0.7f, 0.7f, 0.7f, 1.0f));
+		Entity lamp = scene.CreateEntity("Lamp");
+		lamp.Transform().Translation = { 0.0f, 2.5f, 0.0f };
+		auto& light = lamp.AddComponent<PointLightComponent>();
+		light.Intensity = 10.0f;
+		light.Range = 6.0f;
+		light.Flicker = 0.0f;
+		light.CastShadows = true;
+		Entity box = Test::CreateBox(scene, "Box", { 1.0f, 0.5f, 0.0f }, { 0.25f, 0.5f, 0.25f });
+
+		const float aspect = static_cast<float>(RendererFixture::Width) / static_cast<float>(RendererFixture::Height);
+		const glm::quat down = Math::LookRotation(glm::vec3(0.0f, -1.0f, -0.001f));
+		const RenderCamera above = RenderCamera::Perspective({ 0.0f, 9.0f, 0.01f }, down, 60.0f, aspect, 0.5f, 100.0f);
+		const glm::uvec2 right = RendererFixture::ToPixel(above, { 1.75f, 0.0f, 0.0f });
+		const glm::uvec2 left = RendererFixture::ToPixel(above, { -1.75f, 0.0f, 0.0f });
+		auto at = [&](const std::vector<uint8_t>& pixels, glm::uvec2 p) {
+			return Math::Luminance(RendererFixture::Pixel(pixels, p.x, p.y));
+		};
+
+		std::vector<uint8_t> pixels = fixture.RenderFrame(above);
+		CHECK(fixture.Renderer->GetStatistics().ShadowViews == 6); // the lamp's six faces, new
+		pixels = fixture.RenderFrame(above);
+		CHECK(fixture.Renderer->GetStatistics().ShadowViews == 0); // kept
+		CHECK(at(pixels, right) + 0.1f < at(pixels, left));      // the box's shadow falls to the right
+
+		box.Transform().Translation = { -1.0f, 0.5f, 0.0f };
+		pixels = fixture.RenderFrame(above);
+		CHECK(fixture.Renderer->GetStatistics().ShadowViews == 6); // something moved in its reach: drawn again
+		CHECK(at(pixels, left) + 0.1f < at(pixels, right));       // and the shadow went with the box
+		CHECK(fixture.Device->GetErrorCount() == 0);
 	}
 
 	TEST_CASE("Frustum culling")
@@ -687,7 +847,7 @@ TEST_SUITE("Renderer")
 	{
 		// A closed room with the camera inside; a shadow-casting lamp stands just outside its north wall. Little lamps
 		// inside, nearer to the eye, take the shadow maps first when there are more of them than maps.
-		for (const int innerLamps : { 0, 12 })
+		for (const int innerLamps : { 0, static_cast<int>(GPU::MaxPointShadows) + 4 })
 		{
 			RendererFixture fixture;
 			Scene& scene = fixture.SceneInstance;
@@ -714,7 +874,7 @@ TEST_SUITE("Renderer")
 			};
 			Entity outside = addLamp("Torch outside", { 0.0f, 1.5f, -3.0f }, 40.0f, 8.0f);
 			for (int i = 0; i < innerLamps; i++)
-				addLamp("Candle", { -1.8f + 0.3f * static_cast<float>(i), 0.3f, 0.3f }, 0.5f, 0.3f);
+				addLamp("Candle", { -1.8f + 0.1f * static_cast<float>(i), 0.3f, 0.3f }, 0.5f, 0.3f);
 
 			const RenderCamera inside = RenderCamera::Perspective({ 0.0f, 1.5f, 1.5f }, Math::LookRotation(glm::vec3(0.0f, -1.5f, -2.5f)), 60.0f,
 				static_cast<float>(RendererFixture::Width) / static_cast<float>(RendererFixture::Height), 0.05f, 100.0f);
@@ -731,7 +891,7 @@ TEST_SUITE("Renderer")
 				CHECK(fixture.Renderer->GetStatistics().LeftOutLamps > 0);
 
 			// The same torch inside the room lights the floor (the test sees light where there is some), as long as
-			// it finds a shadow map: with the candles taking all eight it is the ninth and is left out.
+			// it finds a shadow map: with the candles taking all of them it is the last and is left out.
 			if (innerLamps == 0)
 			{
 				outside.Transform().Translation = { 0.0f, 1.5f, -1.5f };
