@@ -114,6 +114,30 @@ TEST_SUITE("Mission")
 		CHECK(menu.SceneInstance.GetScriptEngine()->GetErrors().empty());
 	}
 
+	TEST_CASE("The menu offers both missions; the one chosen is remembered for the next visit")
+	{
+		{
+			Demo menu("Scenes/Menu.pscene");
+			menu.SceneInstance.OnRuntimeStart();
+			menu.Run(0.1f);
+			CHECK(menu.Lua("return scene.find('Menu'):script().definition.name") == "\"The Ashcombe Manor\"");
+			CHECK(menu.Lua("return scene.find('Menu'):script():pick_mission(2)") == "\"The Mayor's Leftovers\"");
+			CHECK(menu.Lua("return scene.find('Menu'):script():pick_mission(3)") == "\"The Mayor's Leftovers\""); // no third
+			CHECK(menu.Lua("return scene.find('Menu'):script():begin()") == "\"Normal\"");
+			REQUIRE(menu.SceneInstance.GetRequestedScene());
+			CHECK(*menu.SceneInstance.GetRequestedScene() == "Scenes/Mission1.pscene");
+			CHECK(std::get<std::string>(menu.SceneInstance.GetGameState()["mission"]) == "Scripts/Missions/Mission1");
+			CHECK(menu.SceneInstance.GetScriptEngine()->GetErrors().empty());
+		}
+		// Back at the menu (a new scene with the game's values): the last mission is chosen again.
+		Demo menu("Scenes/Menu.pscene");
+		menu.SceneInstance.GetGameState()["mission"] = std::string("Scripts/Missions/Mission1");
+		menu.SceneInstance.OnRuntimeStart();
+		menu.Run(0.1f);
+		CHECK(menu.Lua("return scene.find('Menu'):script().definition.name") == "\"The Mayor's Leftovers\"");
+		CHECK(menu.Lua("return scene.find('Menu'):script():pick_mission(1)") == "\"The Ashcombe Manor\"");
+	}
+
 	TEST_CASE("Loot is counted; the gate lets the thief out only once the objectives are done; the summary follows")
 	{
 		Demo demo("Scenes/Stealth.pscene"); // no difficulty chosen: Normal

@@ -7,11 +7,23 @@
 --   (Scripts/World/Lockpick.lua).
 --   NPCs: walking up to a door (towards it, not past it) they open it (guards and servants carry
 --   the keys) and close it behind them once nobody is in the way; a locked door stays locked.
+--   The creak and the thud are heard by the thief either way; the guards take note only when the
+--   thief works a door (the household's own comings and goings are nothing to check).
 --
 -- The "Lock" child marks where the lock is: the lockpicking bar hangs there.
 
 local Noises = require("Scripts/AI/Noises")
 local Mission = require("Scripts/Mission/Mission")
+
+-- A door's noise: for the guards to check when the thief (or nobody known) worked it, only a sound
+-- when one of the household did.
+local function door_noise(name, position, who)
+    if who and who:valid() and who:has("Perception") then
+        Noises.sound(name, position)
+    else
+        Noises.emit(name, position, who)
+    end
+end
 
 local Door = {
     Properties = {
@@ -25,13 +37,16 @@ local Door = {
         pins = 6,             -- letters to press when picking the lock
         npc_reach = 1.7,      -- an NPC this close (and walking) gets the door opened
         close_delay = 1.5,    -- seconds with nobody near before an NPC's door swings shut
+        jam_time = 6.0,       -- an NPC's door that someone stays by without passing is shut after this
     }
 }
 
 function Door:on_create()
     self.is_door = true
-    local rotation = self.entity:get_rotation()
-    self.base_yaw = rotation.y
+    -- The yaw from where the closed panel runs (its local +X). The Euler angles may read back as
+    -- (180, 0, 180) for a leaf turned half round, whose y alone would be 0.
+    local right = self.entity:right()
+    self.base_yaw = math.deg(math.atan(-right.z, right.x))
     self.angle = 0          -- current swing, degrees (0 = closed)
     self.target = 0
     self.npc_opened = false -- opened by an NPC, who closes it again
@@ -87,7 +102,7 @@ function Door:open(who)
         away = side > 0 and -1 or 1
     end
     self.target = away * self.open_angle
-    Noises.emit("DoorOpen", self:center() + vec3(0, 1, 0), who)
+    door_noise("DoorOpen", self:center() + vec3(0, 1, 0), who)
     self:refresh()
     return true
 end
@@ -137,12 +152,15 @@ function Door:picking_done(success, user)
     end
 end
 
+-- People count for a door only on its own storey: within this many metres above or below its foot.
+local FLOOR_REACH = 1.5
+
 -- Anyone near the doorway: NPCs who are up, and the thief.
 function Door:someone_near(radius)
     local center = self:center()
     for _, npc in ipairs(scene.entities_with("CharacterController")) do
         local offset = npc:get_position() - center
-        if vec3(offset.x, 0, offset.z):length() < radius then return npc end
+        if vec3(offset.x, 0, offset.z):length() < radius and math.abs(offset.y) < FLOOR_REACH then return npc end
     end
     return nil
 end
@@ -154,12 +172,18 @@ function Door:npc_coming()
     for _, npc in ipairs(scene.entities_with("Perception")) do
         if ai.vital_state(npc) == "Awake" and nav.status(npc) == "Moving" then
             local offset = npc:get_position() - center
+            local rise = offset.y
             offset = vec3(offset.x, 0, offset.z)
+            if math.abs(rise) >= FLOOR_REACH then offset = vec3(1e6, 0, 0) end -- another storey
             if offset:length() < self.npc_reach and math.abs(offset:dot(along)) < self.width * 0.5 + 0.5 then
                 local velocity = character.get_velocity(npc)
-                local across = vec3(velocity.x, 0, velocity.z):dot(facing)
-                -- Heading for the door plane from either side (side * velocity < 0), at a walk.
-                if offset:dot(facing) * across < 0 and math.abs(across) > 0.3 then return npc end
+                local flat = vec3(velocity.x, 0, velocity.z)
+                local across = flat:dot(facing)
+                -- Heading for the door plane from either side (side * velocity < 0), at a walk, and
+                -- mostly at it: someone walking past along a corridor does not open a side door.
+                if offset:dot(facing) * across < 0 and math.abs(across) > 0.3 and math.abs(across) > 0.6 * flat:length() then
+                    return npc
+                end
             end
         end
     end
@@ -175,14 +199,24 @@ function Door:update_npcs(dt)
         if npc then
             self:open(npc)
             self.npc_opened = true
+            self.opened_by = npc -- it swings shut behind him: his noise, the household's
             self.empty_time = 0
+            self.jammed_time = 0
         end
     elseif self.npc_opened then
         if self:someone_near(self.width + 1.0) then
             self.empty_time = 0
+            -- Someone stays by it without going through (the leaf may be in his way): shut it, so
+            -- whoever comes next opens it away from himself.
+            self.jammed_time = (self.jammed_time or 0) + 0.15
+            if self.jammed_time >= self.jam_time then
+                self.jammed_time = 0
+                self:close(self.opened_by)
+            end
         else
+            self.jammed_time = 0
             self.empty_time = self.empty_time + 0.15
-            if self.empty_time >= self.close_delay then self:close(nil) end
+            if self.empty_time >= self.close_delay then self:close(self.opened_by) end
         end
     end
 end
@@ -194,7 +228,7 @@ function Door:on_update(dt)
         local delta = self.target - self.angle
         if math.abs(delta) <= step then
             self.angle = self.target
-            if self.target == 0 then Noises.emit("DoorShut", self:center() + vec3(0, 1, 0), self.closing_by) end
+            if self.target == 0 then door_noise("DoorShut", self:center() + vec3(0, 1, 0), self.closing_by) end
         else
             self.angle = self.angle + (delta > 0 and step or -step)
         end
