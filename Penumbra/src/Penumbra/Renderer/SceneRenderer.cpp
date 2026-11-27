@@ -41,6 +41,20 @@ namespace Penumbra {
 		constexpr uint32_t BRDFLutSize = 128;
 		constexpr uint32_t MaxBloomMips = 6;
 		constexpr float ShadowNearPlane = 0.05f;
+		// Shadow maps drawn again in a frame because something moved in their lamp's reach (ShadowSlots.h); the rest wait a
+		// frame or two. Maps for lamps that are new to their slot, or moved, are always drawn.
+		constexpr uint32_t MaxShadowRefreshes = 8;
+
+		// FNV-1a over raw bytes: a fingerprint of what a shadow map shows.
+		void HashBytes(uint64_t& hash, const void* data, size_t size)
+		{
+			const auto* bytes = static_cast<const uint8_t*>(data);
+			for (size_t i = 0; i < size; i++)
+			{
+				hash ^= bytes[i];
+				hash *= 1099511628211ull;
+			}
+		}
 
 		uint32_t MipCount(uint32_t size)
 		{
@@ -255,13 +269,22 @@ namespace Penumbra {
 		std::vector<SkinJob> SkinJobs;
 		uint64_t FrameIndex = 0;
 		std::vector<GPU::Light> Lights;
+		std::vector<uint64_t> LightIds; // the UUID of each of Lights (0 for directional lights)
 		uint32_t LeftOutLamps = 0; // lamps in view with CastShadows that found no shadow map (left out)
+		uint32_t ShadowMaps = 0;   // lamps with a shadow map this frame
+		// Shadow maps kept between frames (ShadowSlots.h), per scene: a lamp's map is drawn again only when the lamp or
+		// a shadow caster in its reach changed, at most MaxShadowRefreshes a frame for what moved (new maps always).
+		std::vector<ShadowCacheSlot> PointShadowCache, SpotShadowCache;
+		const Scene* ShadowCacheScene = nullptr;
+		uint64_t ShadowCacheAssets = 0;
+		std::vector<std::pair<glm::vec3, glm::vec3>> DrawBounds; // world-space bounds of Draws, for the caches
 		GPU::ViewConstants View{};
 		Timer Clock; // animates effects in the editor, where scene time stands still
 
 		void CreateShadersAndLayouts();
 		void CreatePipelines();
 		void CreateShadowMaps(const SceneRendererSettings& settings);
+		uint64_t ShadowCasters(const glm::vec3& position, float range) const;
 		void CreateTargets(uint32_t width, uint32_t height, nvrhi::TextureHandle& output);
 		void CreateBRDFLut();
 		void CreateFogVolumes(const SceneRendererSettings& settings);
@@ -519,6 +542,26 @@ namespace Penumbra {
 		PN_CORE_VERIFY(FogIntegratePipeline, "Failed to create the fog integrate pipeline");
 	}
 
+	uint64_t SceneRenderer::Impl::ShadowCasters(const glm::vec3& position, float range) const
+	{
+		uint64_t hash = 1469598103934665603ull;
+		for (size_t i = 0; i < Draws.size(); i++)
+		{
+			const DrawItem& draw = Draws[i];
+			if (!draw.CastShadows || draw.Translucent)
+				continue;
+			const glm::vec3 closest = glm::clamp(position, DrawBounds[i].first, DrawBounds[i].second);
+			if (glm::dot(closest - position, closest - position) > range * range)
+				continue;
+			HashBytes(hash, &draw.World, sizeof(draw.World));
+			HashBytes(hash, &draw.Mesh, sizeof(draw.Mesh));
+			HashBytes(hash, &draw.IndexOffset, sizeof(draw.IndexOffset));
+			if (draw.VertexBuffer != draw.Mesh->VertexBuffer.Get()) // a skinned body: posed anew every frame
+				HashBytes(hash, &FrameIndex, sizeof(FrameIndex));
+		}
+		return hash;
+	}
+
 	void SceneRenderer::Impl::CreateShadowMaps(const SceneRendererSettings& settings)
 	{
 		auto create = [&](const char* name, uint32_t resolution, uint32_t slices, nvrhi::TextureDimension dimension,
@@ -545,6 +588,8 @@ namespace Penumbra {
 		CascadeShadows = create("CascadeShadows", settings.CascadeResolution, GPU::MaxCascades, nvrhi::TextureDimension::Texture2DArray, CascadeFramebuffers);
 		SpotShadows = create("SpotShadows", settings.SpotShadowResolution, GPU::MaxSpotShadows, nvrhi::TextureDimension::Texture2DArray, SpotFramebuffers);
 		PointShadows = create("PointShadows", settings.PointShadowResolution, GPU::MaxPointShadows * 6, nvrhi::TextureDimension::TextureCubeArray, PointFramebuffers);
+		PointShadowCache.assign(GPU::MaxPointShadows, {});
+		SpotShadowCache.assign(GPU::MaxSpotShadows, {});
 		EyeDepth = create("EyeDepth", settings.EyeMapResolution, 6, nvrhi::TextureDimension::TextureCube, EyeFramebuffers);
 	}
 
@@ -1079,6 +1124,7 @@ namespace Penumbra {
 		std::vector<ShadowView>& shadowViews)
 	{
 		Lights.clear();
+		LightIds.clear();
 		auto& registry = scene.GetRegistry();
 		const float time = scene.GetTime();
 		// Fog of war: a lamp a hidden guard carries goes with him (lamps on walls stay lit for the player).
@@ -1111,6 +1157,7 @@ namespace Penumbra {
 					shadowViews.push_back({ View.CascadeViewProj[c], CascadeFramebuffers[c], CascadeShadows, c, settings.CascadeResolution });
 			}
 			Lights.push_back(gpu);
+			LightIds.push_back(0);
 		}
 		if (View.DirectionalShadowIndex < 0.0f)
 			View.ShadowSoftness = 1.0f;
@@ -1136,6 +1183,7 @@ namespace Penumbra {
 			if (light.CastShadows)
 				spotCandidates.push_back({ Lights.size(), gpu.Position, gpu.Range });
 			Lights.push_back(gpu);
+			LightIds.push_back(static_cast<uint64_t>(entity.GetUUID()));
 		}
 
 		for (auto [handle, light] : registry.view<PointLightComponent>().each())
@@ -1154,6 +1202,7 @@ namespace Penumbra {
 			if (light.CastShadows)
 				pointCandidates.push_back({ Lights.size(), gpu.Position, gpu.Range });
 			Lights.push_back(gpu);
+			LightIds.push_back(static_cast<uint64_t>(entity.GetUUID()));
 		}
 
 		// Lamps with CastShadows never light through walls: the ones whose light reaches the view get the shadow
@@ -1162,24 +1211,87 @@ namespace Penumbra {
 		const ShadowSlotAssignment spots = AssignShadowSlots(spotCandidates, frustum, camera.Position, GPU::MaxSpotShadows);
 		const ShadowSlotAssignment points = AssignShadowSlots(pointCandidates, frustum, camera.Position, GPU::MaxPointShadows);
 		LeftOutLamps = spots.Overflow + points.Overflow;
+		ShadowMaps = static_cast<uint32_t>(spots.Shadowed.size() + points.Shadowed.size());
 
-		for (uint32_t slot = 0; slot < spots.Shadowed.size(); slot++)
+		// The maps live in a cache between frames: a lamp keeps its slot while it keeps a map, and its map is drawn again
+		// only when the lamp moved or a shadow caster in its reach changed (ShadowSlots.h).
+		if (ShadowCacheScene != &scene || ShadowCacheAssets != AssetGeneration)
 		{
-			GPU::Light& light = Lights[spots.Shadowed[slot]];
+			PointShadowCache.assign(GPU::MaxPointShadows, {});
+			SpotShadowCache.assign(GPU::MaxSpotShadows, {});
+			ShadowCacheScene = &scene;
+			ShadowCacheAssets = AssetGeneration;
+		}
+		DrawBounds.clear();
+		if (!spots.Shadowed.empty() || !points.Shadowed.empty())
+		{
+			DrawBounds.reserve(Draws.size());
+			for (const DrawItem& draw : Draws)
+			{
+				glm::vec3 lo(std::numeric_limits<float>::max()), hi(std::numeric_limits<float>::lowest());
+				for (int corner = 0; corner < 8; corner++)
+				{
+					const glm::vec3 local((corner & 1) ? draw.Bounds.Max.x : draw.Bounds.Min.x, (corner & 2) ? draw.Bounds.Max.y : draw.Bounds.Min.y,
+						(corner & 4) ? draw.Bounds.Max.z : draw.Bounds.Min.z);
+					const glm::vec3 world = glm::vec3(draw.World * glm::vec4(local, 1.0f));
+					lo = glm::min(lo, world);
+					hi = glm::max(hi, world);
+				}
+				DrawBounds.emplace_back(lo, hi);
+			}
+		}
+		// Gives the lamps their slots and returns those whose map must be drawn this frame.
+		auto useCache = [&](const ShadowSlotAssignment& assignment, std::vector<ShadowCacheSlot>& cache) {
+			std::vector<uint64_t> lamps;
+			for (size_t index : assignment.Shadowed)
+				lamps.push_back(LightIds[index]);
+			const std::vector<uint32_t> slots = AssignCacheSlots(lamps, cache, FrameIndex);
+			std::vector<std::pair<size_t, uint32_t>> redraw; // light index, slot
+			uint32_t refreshes = 0;
+			for (size_t i = 0; i < assignment.Shadowed.size(); i++)
+			{
+				GPU::Light& light = Lights[assignment.Shadowed[i]];
+				ShadowCacheSlot& slot = cache[slots[i]];
+				light.ShadowIndex = static_cast<int32_t>(slots[i]);
+				uint64_t pose = 1469598103934665603ull;
+				HashBytes(pose, &light.Position, sizeof(light.Position));
+				HashBytes(pose, &light.Direction, sizeof(light.Direction));
+				HashBytes(pose, &light.Range, sizeof(light.Range));
+				HashBytes(pose, &light.CosOuter, sizeof(light.CosOuter));
+				const uint64_t content = ShadowCasters(light.Position, light.Range);
+				if (slot.Pose == pose && slot.Content == content)
+					continue; // the map still shows what it should
+				if (slot.Pose == pose && refreshes >= MaxShadowRefreshes)
+					continue; // only something in its reach moved: drawn again in a frame or two (nearest lamps first)
+				if (slot.Pose == pose)
+					refreshes++;
+				slot.Pose = pose;
+				slot.Content = content;
+				redraw.emplace_back(assignment.Shadowed[i], slots[i]);
+			}
+			return redraw;
+		};
+
+		for (size_t index : spots.Shadowed)
+		{
+			GPU::Light& light = Lights[index];
 			const glm::vec3 up = std::abs(light.Direction.y) > 0.99f ? glm::vec3(0, 0, 1) : glm::vec3(0, 1, 0);
 			const float fov = std::min(2.0f * std::acos(std::clamp(light.CosOuter, -1.0f, 1.0f)) + glm::radians(4.0f), glm::radians(170.0f));
 			light.ShadowViewProj = glm::perspectiveRH_ZO(fov, 1.0f, ShadowNearPlane, std::max(light.Range, ShadowNearPlane * 2.0f)) *
 								   glm::lookAtRH(light.Position, light.Position + light.Direction, up);
-			light.ShadowIndex = static_cast<int32_t>(slot);
-			shadowViews.push_back({ light.ShadowViewProj, SpotFramebuffers[slot], SpotShadows, slot, settings.SpotShadowResolution });
 		}
+		for (const auto& [index, slot] : useCache(spots, SpotShadowCache))
+			shadowViews.push_back({ Lights[index].ShadowViewProj, SpotFramebuffers[slot], SpotShadows, slot, settings.SpotShadowResolution });
 
-		for (uint32_t slot = 0; slot < points.Shadowed.size(); slot++)
+		for (size_t index : points.Shadowed)
 		{
-			GPU::Light& light = Lights[points.Shadowed[slot]];
-			light.ShadowIndex = static_cast<int32_t>(slot);
+			GPU::Light& light = Lights[index];
 			light.ShadowNear = ShadowNearPlane;
 			light.ShadowFar = std::max(light.Range, ShadowNearPlane * 2.0f);
+		}
+		for (const auto& [index, slot] : useCache(points, PointShadowCache))
+		{
+			const GPU::Light& light = Lights[index];
 			for (uint32_t face = 0; face < 6; face++)
 			{
 				const uint32_t layer = slot * 6 + face;
@@ -1198,9 +1310,13 @@ namespace Penumbra {
 		for (size_t i = 0; i < Lights.size(); i++)
 		{
 			if (!leftOut[i])
+			{
+				LightIds[kept] = LightIds[i];
 				Lights[kept++] = Lights[i];
+			}
 		}
 		Lights.resize(kept);
+		LightIds.resize(kept);
 	}
 
 	void SceneRenderer::Impl::DrawFullscreen(nvrhi::IGraphicsPipeline* pipeline, nvrhi::IFramebuffer* framebuffer, nvrhi::IBindingSet* set,
@@ -1294,6 +1410,7 @@ namespace Penumbra {
 		m_Statistics.Lights = static_cast<uint32_t>(impl.Lights.size());
 		m_Statistics.ShadowViews = static_cast<uint32_t>(shadowViews.size());
 		m_Statistics.LeftOutLamps = impl.LeftOutLamps;
+		m_Statistics.ShadowMaps = impl.ShadowMaps;
 
 		// View constants
 		GPU::ViewConstants& view = impl.View;

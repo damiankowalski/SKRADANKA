@@ -22,7 +22,7 @@ namespace Penumbra {
 	{
 		uint32_t CascadeResolution = 2048;
 		uint32_t SpotShadowResolution = 1024;
-		uint32_t PointShadowResolution = 512;
+		uint32_t PointShadowResolution = 256; // 32 cube maps at 256 take the memory 8 at 512 did
 		uint32_t EyeMapResolution = 1024; // fog of war: the player's eye depth cube (per face)
 		// Volumetric fog: the froxel grid over the view frustum (columns, rows, depth slices) and how far it reaches.
 		uint32_t FogGridWidth = 160;
@@ -40,7 +40,8 @@ namespace Penumbra {
 		uint32_t DrawCalls = 0;
 		uint32_t Triangles = 0;
 		uint32_t Lights = 0;
-		uint32_t ShadowViews = 0;
+		uint32_t ShadowViews = 0; // shadow map views drawn this frame (the cascades, and the lamps' maps that changed)
+		uint32_t ShadowMaps = 0;  // lamps with a shadow map this frame (most of them kept from earlier frames)
 		uint32_t LeftOutLamps = 0; // lamps in view with CastShadows but no shadow map left: left out, not lit through walls
 		uint32_t CulledObjects = 0;
 	};
