@@ -1,0 +1,109 @@
+{
+  "tool": "Penumbra AssetGen",
+  "ai_generated": true,
+  "generated_at": "2026-11-27T20:40:49+00:00",
+  "material": "ceramic_tiles",
+  "template": "prompts/ceramic_tiles.json",
+  "prompt": "Hand-painted stylised realism for a dark medieval stealth game: painterly brushwork over believable materials, muted earthy colours, worn and lived-in surfaces. An albedo texture: flat even light, no cast shadows, no highlights, no vignette, no perspective, viewed straight on, the material fills the whole square edge to edge. A seamless tileable texture of a tiled floor seen from directly above: pale glazed tiles with hand-painted blue patterns, worn in the middle, thin grout lines, chipped corners, grime in the grout.",
+  "seed": 1002,
+  "steps": 4,
+  "blend_steps": 4,
+  "size": 1024,
+  "quantize": 8,
+  "model": {
+    "id": "black-forest-labs/FLUX.2-klein-4B",
+    "revision": "e7b7dc27f91deacad38e78976d1f2b499d76a294",
+    "license": "Apache-2.0"
+  },
+  "mflux_version": "0.24.0",
+  "license": "Apache-2.0",
+  "timing": {
+    "model_load_seconds": 0.7,
+    "image_seconds": 240.6,
+    "mlx_peak_gb": 6.57,
+    "process_peak_rss_gb": 1.59
+  },
+  "seamless": {
+    "method": "generation+masking",
+    "seam_limit": 1.6,
+    "detail_limit": 0.55,
+    "x": {
+      "wrap_step": 0.933,
+      "interior_step_p99": 3.155,
+      "weakest_detail": 0.578,
+      "weakest_detail_at": 18,
+      "detail_at_edge": 1.415,
+      "detail_at_centre": 1.415,
+      "line_at_edge": 1.763,
+      "line_at_centre": 1.763,
+      "line_limit": 4.274,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "y": {
+      "wrap_step": 1.476,
+      "interior_step_p99": 2.858,
+      "weakest_detail": 0.825,
+      "weakest_detail_at": 702,
+      "detail_at_edge": 1.509,
+      "detail_at_centre": 1.509,
+      "line_at_edge": 1.819,
+      "line_at_centre": 1.819,
+      "line_limit": 3.521,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "passed": true,
+    "fallback_can_help": false,
+    "before_fallback": {
+      "seam_limit": 1.6,
+      "detail_limit": 0.55,
+      "x": {
+        "wrap_step": 0.983,
+        "interior_step_p99": 2.706,
+        "weakest_detail": 0.599,
+        "weakest_detail_at": 175,
+        "detail_at_edge": 1.28,
+        "detail_at_centre": 1.508,
+        "line_at_edge": 1.299,
+        "line_at_centre": 1.47,
+        "line_limit": 3.334,
+        "steps_ok": true,
+        "lines_ok": true
+      },
+      "y": {
+        "wrap_step": 3.548,
+        "interior_step_p99": 3.07,
+        "weakest_detail": 0.758,
+        "weakest_detail_at": 758,
+        "detail_at_edge": 1.577,
+        "detail_at_centre": 1.534,
+        "line_at_edge": 10.039,
+        "line_at_centre": 3.118,
+        "line_limit": 3.576,
+        "steps_ok": false,
+        "lines_ok": false
+      },
+      "passed": false,
+      "fallback_can_help": true
+    }
+  },
+  "maps": {
+    "height": "albedo luminance (approximation)",
+    "normal_convention": "glTF: +X right, +Y up (green), +Z out",
+    "normal_strength": 3.0,
+    "metallic_roughness": "glTF: G roughness, B metallic",
+    "roughness": [
+      0.3,
+      0.8
+    ],
+    "metallic": 0.0
+  },
+  "files": {
+    "albedo": "ceramic_tiles_1002_albedo.png",
+    "normal": "ceramic_tiles_1002_normal.png",
+    "metallic_roughness": "ceramic_tiles_1002_mr.png",
+    "preview": "ceramic_tiles_1002_preview.png",
+    "raw_albedo": "ceramic_tiles_1002_raw.png"
+  }
+}
