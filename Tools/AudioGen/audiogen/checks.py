@@ -206,8 +206,10 @@ def prepare(audio, rate, category, loop=False, mono=None):
 
 # ------------------------------------------------------------------------------------------------ the verdict
 
-def check(audio, rate, category, seconds=None, loop=False):
-    """Every check for one finished clip: a dict of measures, a list of failures (empty: it passes)."""
+def check(audio, rate, category, seconds=None, loop=False, lufs_range=None):
+    """Every check for one finished clip: a dict of measures, a list of failures (empty: it passes). `lufs_range`
+    overrides the category's (a template's own, for impulsive loops such as a crackling fire: its pops reach the
+    true peak ceiling before its body reaches the category's loudness)."""
     rules = CATEGORIES[category]
     audio = np.atleast_2d(audio)
     duration = audio.shape[1] / rate
@@ -228,7 +230,7 @@ def check(audio, rate, category, seconds=None, loop=False):
         failures.append(f"clipped ({measures['clipped_samples']} samples at full scale)")
     if measures["true_peak_dbtp"] > rules["true_peak"]:
         failures.append(f"true peak {measures['true_peak_dbtp']} dBTP over {rules['true_peak']}")
-    low, high = rules["lufs_range"]
+    low, high = lufs_range or rules["lufs_range"]
     if math.isfinite(measures["lufs"]) and not low <= measures["lufs"] <= high:
         failures.append(f"loudness {measures['lufs']} LUFS, not {low} to {high}")
     if rules["mono"] and audio.shape[0] != 1:
@@ -246,10 +248,10 @@ def check(audio, rate, category, seconds=None, loop=False):
     return measures, failures
 
 
-def check_file(path, category, seconds=None, loop=False):
+def check_file(path, category, seconds=None, loop=False, lufs_range=None):
     """check() for a WAV file on disk; a file that cannot be read as 16-bit PCM fails instead of raising."""
     try:
         audio, rate = read_wav(path)
     except (OSError, EOFError, ValueError, wave.Error) as error:
         return {}, [f"unreadable: {error}"]
-    return check(audio, rate, category, seconds, loop)
+    return check(audio, rate, category, seconds, loop, lufs_range)

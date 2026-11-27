@@ -118,7 +118,8 @@ def run(args):
             checks.write_wav(wav.with_name(wav.stem + "_raw.wav"), np.clip(raw, -1, 1), rate)
             audio = finish(raw, rate, template)
             checks.write_wav(wav, audio, rate)
-            measures, failures = checks.check(audio, rate, template["category"], template.get("length"), template.get("loop", False))
+            measures, failures = checks.check(audio, rate, template["category"], template.get("length"), template.get("loop", False),
+                                           template.get("lufs_range"))
             data = record(template, sound, seed, variation, prompt, settings, rate, wav, measures, failures, taken)
             wav.with_suffix(".json").write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
             failed += bool(failures)
@@ -140,7 +141,8 @@ def reprocess(series):
         raw, rate = checks.read_wav(series / data["raw"])
         audio = finish(raw, rate, template)
         checks.write_wav(series / data["file"], audio, rate)
-        measures, failures = checks.check(audio, rate, template["category"], template.get("length"), template.get("loop", False))
+        measures, failures = checks.check(audio, rate, template["category"], template.get("length"), template.get("loop", False),
+                                           template.get("lufs_range"))
         data["checks"] = {"measures": measures, "failures": failures, "passed": not failures}
         meta.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
         print(f"{meta.stem}: {'ok' if not failures else 'REJECTED: ' + '; '.join(failures)}")

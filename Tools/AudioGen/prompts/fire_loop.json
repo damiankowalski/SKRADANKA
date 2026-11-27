@@ -1,0 +1,23 @@
+{
+	"description": "A hearth fire crackling: a loop played at the hearth (3D, mono). Its pops reach the peak ceiling first, so it may sit quieter than other ambience.",
+	"category": "ambience",
+	"loop": true,
+	"mono": true,
+	"generate_seconds": 64.0,
+	"length": [
+		55.0,
+		65.0
+	],
+	"game_name": "Fire",
+	"prompt": "A wood fire burning in a stone hearth, {variation}, recorded in the room, no music, no voices.",
+	"variations": [
+		"calm crackling and soft hissing",
+		"lively crackling with small pops",
+		"low embers glowing with a quiet hiss",
+		"a big fire roaring gently with crackles"
+	],
+	"lufs_range": [
+		-38.0,
+		-27.0
+	]
+}

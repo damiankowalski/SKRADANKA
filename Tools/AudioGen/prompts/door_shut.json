@@ -1,0 +1,18 @@
+{
+	"description": "A wooden door falling shut (Door.lua's DoorShut, the game's Thud.wav for doors).",
+	"category": "effect",
+	"mono": true,
+	"generate_seconds": 2.0,
+	"length": [
+		0.15,
+		2.0
+	],
+	"game_name": "Door_Shut",
+	"prompt": "A heavy wooden door with iron fittings closing, {variation}, inside a stone house, recorded close, no music, no voices.",
+	"variations": [
+		"a solid thud and the latch clicking",
+		"pushed shut softly, a muffled knock",
+		"slammed, a loud bang with a rattle",
+		"swinging shut slowly, a dull knock"
+	]
+}
