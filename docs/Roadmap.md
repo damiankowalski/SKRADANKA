@@ -280,6 +280,13 @@ and half-timbering, rusted iron, thatch (`roof_tiles_3001`, the first thatch tha
 beaten earth. The mood lab shows them on a sample wall south of the cloister (docs/art/mood/README.md, "Sample wall").
 Fired clay tiles and brass still fail the seam test; brick comes later. No level is textured yet.
 
+**The first mission's blockout** (2026-11-27): the whole route in grey boxes, from the tavern through the old town,
+the church and its catacombs, a collapsed tunnel under the city wall, into the mayor's vineyard and his two-storey
+manor, and back; playable, walked unseen by the playtester in 20 of 20 seeds (`Scenes/Mission1.pscene`, the menu's
+second mission; [`research/MissionOneBlockout.md`](research/MissionOneBlockout.md): map, counts, frame times, what it
+taught). On the way: doors fixed for storeys, half-turned leaves, passers-by and the household's own noise, the
+alarm bell's reach, the exit's `remind`, the playtester at doors, street lanterns on arms with a lamp-clearance test.
+
 ## In progress
 
 Nothing.
@@ -294,9 +301,12 @@ following a body the character collides with.
 
 ## Next
 
-**The blockout of mission 1** (M, needs its brief): the whole route below in grey boxes, playable with today's
-mechanics, walked by the agent playtester. It fixes the sizes, sightlines, the prop list and the frame budget before
-any art.
+**No lamp goes dark** (S-M, the owner's decision after playing the blockout, 2026-11-27; branch
+`feature/shadow-cache`): 32 point shadow maps kept between frames instead of 8 drawn every frame, so the picture and
+the light gem agree under every lamp (`research/MissionOneBlockout.md`, "After the owner's playtest: the light").
+
+**Then the asset library before dressing the map** (the owner, 2026-11-27): materials, 3D props, characters, sound
+and music generated into the repository's catalogs first; the mission's places are built from them afterwards.
 
 ### The goal: the first mission (the owner, 2026-11-26)
 
@@ -317,8 +327,10 @@ follow it.
 Each package still needs its own brief and the owner's approval before it starts. The first mission comes first
 (`research/MissionOne.md`, "Order"); the earlier list follows it.
 
-1. **The blockout of mission 1** (M, above).
-2. **The engine for a big map** (about 6 PRs, M-L in all), starting with the stress-test district: instancing, light
+1. **No lamp goes dark** (above).
+2. **The asset library** (the owner, 2026-11-27: before the places): materials batch 2, the prop pipeline (3 below),
+   the characters (4 below), AudioGen A and B (7 below), each into its catalog.
+3. **The engine for a big map** (about 6 PRs, M-L in all), starting with the stress-test district: instancing, light
    culling, LOD and draw distance, room-bounded lights, alpha-tested materials, texture compression, collision
    proxies.
 3. **The prop pipeline** (M): Blender (installed then, with the owner's approval), `Tools/PropGen`, its skill, a prop
