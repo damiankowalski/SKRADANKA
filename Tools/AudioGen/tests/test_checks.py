@@ -98,6 +98,13 @@ class CheckTests(unittest.TestCase):
         self.assertAlmostEqual(measures["lufs"], -30.0, delta=0.3)
 
 
+    def test_a_template_may_set_its_own_loudness_range(self):
+        quiet = checks.normalise(noise(seconds=10, amplitude=0.05), RATE, -35.0, -3.0)
+        _, failures = checks.check(quiet, RATE, "ambience")
+        self.assertTrue(any(f.startswith("loudness") for f in failures), failures)
+        _, failures = checks.check(quiet, RATE, "ambience", lufs_range=(-38.0, -27.0))
+        self.assertFalse(any(f.startswith("loudness") for f in failures), failures)
+
 class LoopTests(unittest.TestCase):
     def test_a_crossfaded_loop_has_no_seam(self):
         looped = checks.make_loop(noise(seconds=10, channels=2), RATE)

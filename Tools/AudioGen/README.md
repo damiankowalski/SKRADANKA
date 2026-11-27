@@ -84,7 +84,8 @@ Close `PenumbraEditor` before generating on a 16 GB Mac.
 A sound is `prompts/<sound>.json`: `category` (`effect` or `ambience`), `prompt` with `{variation}`, `variations`
 (one per variant), `generate_seconds` (what the model is asked for), `length` (the finished clip's allowed range),
 `game_name` (the asset's name), and for effects `mono` and `first_event` (keep only the first sound of a clip:
-one footstep out of the few the model makes), for ambience `loop`. Describe sounds plainly (material, place,
+one footstep out of the few the model makes), for ambience `loop`; an impulsive
+loop (a crackling fire, whose pops meet the peak ceiling first) may set its own `lufs_range`. Describe sounds plainly (material, place,
 distance, "no music, no voices"); never name games, films, studios or living people.
 
 ## Checks
