@@ -54,7 +54,7 @@ ledger, the lord's title ("the mayor") and the name are placeholders until the o
 | | |
 |---|---|
 | Entities | 750 (590 meshes, 481 box colliders) |
-| Lights | 44 point lights, all casting shadows (the renderer gives its 8 point shadow maps to the lamps reaching the view), and 3 guards' lanterns |
+| Lights | 44 point lights, all casting shadows (the renderer gives its 8 point shadow maps to the lamps reaching the view and leaves the rest of those in view out), and 3 guards' lanterns |
 | People | 11 guards, 2 servants, 3 standing figures |
 | Doors | 22 leaves, 3 of them locked |
 | Navmesh | 949 polygons over 204 x 65 m and three levels (-4, 0 and 4 m), built in about 150 ms |
@@ -87,8 +87,10 @@ What it says:
   sees it (52 shadow views a frame: 8 point lights x 6 faces and the moon's cascades). With the props of the
   finished map (several times as many objects, `MissionOne.md`) this is what instancing (A1) and draw distance
   (A3) must bring down.
-* **Lamps without a shadow map**: up to 27 lamps in view on the street get none of the 8 point shadow maps and light
-  through walls. Room-bounded lights (A4) are needed before the art, not after it.
+* **Lamps without a shadow map**: up to 27 lamps in view on the street get none of the 8 point shadow maps, and the
+  renderer leaves them out (rather than let them light the rooms behind the walls): they do not light at all that
+  frame, and which ones go dark changes with the view. Room-bounded lights (A4) and light culling (A2) are needed
+  before the art, not after it.
 * Culling works (up to 498 draws culled in the library), but the whole old town is drawn from its street.
 
 | | |
