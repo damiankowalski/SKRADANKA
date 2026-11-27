@@ -1730,6 +1730,60 @@ def build_mission1():
 
 
 # --------------------------------------------------------------------------------------------
+# Props (Tools/PropGen): generated models with their provenance beside them. add_prop places one with its collision
+# boxes (children with BoxColliders, from the provenance); the prop lab shows every family under the game's light.
+# --------------------------------------------------------------------------------------------
+
+PROPS = "Models/Props"
+
+
+def prop_provenance(family, variant):
+    with open(ASSETS / PROPS / family / f"{family}_{variant}.json", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def add_prop(doc, family, variant, position, yaw=0.0, name=None, parent=None, shadows=True):
+    """A generated prop standing at `position` (its pivot is the middle of its base), turned by `yaw` degrees."""
+    provenance = prop_provenance(family, variant)
+    prop = doc.add(name or f"{family}_{variant}", parent, Transform=transform(position, (0, yaw, 0)),
+                   Mesh={"Mesh": f"{PROPS}/{family}/{provenance['files']['lod0']}", "CastShadows": shadows},
+                   Surface={"Material": "Wood", "NoiseModifier": SURFACES["Wood"]["NoiseModifier"]})
+    for index, box_ in enumerate(provenance["collision"]):
+        doc.add(f"Collider{index}", prop, Transform=transform(box_["center"]), BoxCollider={"HalfExtents": box_["half_extents"]})
+    return prop
+
+
+PROP_LAB_ROWS = [("door", ["house", "cellar", "leaf"]), ("shelf", ["kitchen", "cellar", "low"]),
+                 ("wine_rack", ["wall", "barrel"]), ("crate", ["small", "large", "long", "banded"]),
+                 ("barrel", ["wine", "water", "keg"]), ("chest", ["travel", "strongbox", "dowry"]),
+                 ("table", ["kitchen", "small", "feast"]), ("chair", ["plain", "slatted"]),
+                 ("stool", ["milking", "tavern"]), ("bench", ["short", "long"])]
+PROP_LAB_ROW = 2.2  # metres between rows, back (-Z) to front
+
+
+def build_prop_lab():
+    doc = Document("PenumbraScene")
+    add_environment(doc, ambient=0.05, map_intensity=0.35, fog=0.004, moon=0.25)
+    depth = PROP_LAB_ROW * (len(PROP_LAB_ROWS) - 1)
+    doc.add("Camera", Transform=transform((0, 4.0, depth / 2 + 5), (-22, 0, 0)), Camera={"VerticalFOV": 60.0, "NearClip": 0.05, "FarClip": 200.0})
+    floor_size = (16, 1, depth + 6)
+    box(doc, "Floor", (0, -0.5, 0), floor_size, (0.3, 0.3, 0.3), surface="Stone",
+        mat=tiled_material("Textures/StoneFloor/stone_floor_1000", 1.0, (floor_size[2] / 2, floor_size[0] / 2)))
+    for row, (family, variants) in enumerate(PROP_LAB_ROWS):
+        z = round(-depth / 2 + row * PROP_LAB_ROW, 3)
+        widths = [prop_provenance(family, v)["bounds"]["max"][0] - prop_provenance(family, v)["bounds"]["min"][0] for v in variants]
+        total = sum(widths) + 0.8 * (len(variants) - 1)
+        x = -total / 2
+        for variant, width in zip(variants, widths):
+            add_prop(doc, family, variant, (round(x + width / 2, 3), 0, z))
+            x += width + 0.8
+    lamps = [(x, round(z, 3)) for z in (-depth / 3, 0, depth / 3) for x in (-4.5, 4.5)]
+    for index, (x, z) in enumerate(lamps):
+        lamp(doc, f"Lamp{index + 1}", (x, 3.2, z), intensity=14.0, light_range=9.0)
+    doc.save("Scenes/PropLab.pscene")
+
+
+# --------------------------------------------------------------------------------------------
 # The listening scene (Tools/AudioGen/README.md): the game's sounds where the game plays them. A strip of floors to
 # walk (footsteps by Scripts/AI/Noises.lua), three doors to the east at 3, 10 and 25 m from the strip's end that
 # Scripts/Listening.lua works in turn, the night's wind and fog. Generated sounds the owner accepted are in
@@ -1797,4 +1851,5 @@ if __name__ == "__main__":
     build_mission1()
     build_audio()
     build_listening()
+    build_prop_lab()
     print(f"Demo project written to {ROOT}")

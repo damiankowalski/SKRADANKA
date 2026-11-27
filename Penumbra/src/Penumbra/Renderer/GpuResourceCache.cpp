@@ -213,20 +213,11 @@ namespace Penumbra {
 	{
 		for (auto it = m_Meshes.begin(); it != m_Meshes.end();)
 		{
+			// A mesh's textures are shared pointers: the sweep below drops them once nothing else holds them.
 			if (it->second.Source.use_count() == 1)
-			{
-				// Textures embedded in the mesh are keyed by their address inside it.
-				for (const TextureData& texture : it->second.Source->Textures)
-				{
-					m_Textures.erase(TextureKey(&texture, true));
-					m_Textures.erase(TextureKey(&texture, false));
-				}
 				it = m_Meshes.erase(it);
-			}
 			else
-			{
 				++it;
-			}
 		}
 		std::erase_if(m_Textures, [](const auto& entry) { return entry.second.Owner && entry.second.Owner.use_count() == 1; });
 	}

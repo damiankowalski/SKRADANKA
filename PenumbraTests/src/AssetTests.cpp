@@ -199,7 +199,7 @@ TEST_SUITE("Assets")
 		CHECK(Test::Near(mesh->Materials[0].Emissive, { 1.0f, 0.5f, 0.0f }));
 		REQUIRE(mesh->Materials[0].AlbedoTexture == 0);
 		REQUIRE(mesh->Textures.size() == 1);
-		CHECK(mesh->Textures[0].Width == 4);
+		CHECK(mesh->Textures[0]->Width == 4);
 
 		// Node 0 translated along +Z.
 		CHECK(Test::Near(mesh->Vertices[0].Position, { 0.0f, 0.0f, 5.0f }));
@@ -219,6 +219,35 @@ TEST_SUITE("Assets")
 		CHECK(AssetManager::GetMesh("Meshes/Triangle.gltf") != nullptr);
 		CHECK(AssetManager::GetMesh("Meshes/Missing.gltf") == nullptr);
 		CHECK(AssetManager::GetMesh("Meshes/albedo.png") == nullptr);
+		AssetManager::Clear();
+	}
+
+	TEST_CASE("glTF files sharing an image file share one copy of it, the texture cache's")
+	{
+		// Props built from the same material sheets (Tools/PropGen) must not load a sheet once per prop.
+		Test::TemporaryProject project;
+		const std::vector<uint8_t> pixels(4 * 4 * 4, 200);
+		REQUIRE(TextureImporter::WritePNG(project.GetAssetDirectory() / "Textures" / "sheet.png", 4, 4, pixels.data(), 16));
+		project.WriteAsset("Meshes/A.gltf", MakeTriangleGltf("../Textures/sheet.png"));
+		project.WriteAsset("Meshes/B/B.gltf", MakeTriangleGltf("../../Textures/sheet.png"));
+
+		const std::shared_ptr<const MeshData> a = AssetManager::GetMesh("Meshes/A.gltf");
+		const std::shared_ptr<const MeshData> b = AssetManager::GetMesh("Meshes/B/B.gltf");
+		REQUIRE(a);
+		REQUIRE(b);
+		REQUIRE(a->Textures.size() == 1);
+		REQUIRE(b->Textures.size() == 1);
+		CHECK(a->Textures[0]->Width == 4);
+		CHECK(a->Textures[0] == b->Textures[0]);
+		CHECK(a->Textures[0] == AssetManager::GetTexture("Textures/sheet.png"));
+
+		// Imported without the cache (no loader), each file reads its own copy, as before.
+		std::string error;
+		std::optional<MeshData> direct = GltfImporter::Import(project.GetAssetDirectory() / "Meshes" / "A.gltf", error);
+		REQUIRE_MESSAGE(direct, error);
+		REQUIRE(direct->Textures.size() == 1);
+		CHECK(direct->Textures[0] != a->Textures[0]);
+		CHECK(direct->Textures[0]->Width == 4);
 		AssetManager::Clear();
 	}
 

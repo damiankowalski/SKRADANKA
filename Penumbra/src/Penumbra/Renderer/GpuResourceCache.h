@@ -54,7 +54,7 @@ namespace Penumbra {
 		struct TextureEntry
 		{
 			nvrhi::TextureHandle Texture;
-			std::shared_ptr<const TextureData> Owner; // empty for textures owned by a cached mesh
+			std::shared_ptr<const TextureData> Owner; // empty for textures passed by address (kept alive by their caller)
 		};
 		std::unordered_map<uint64_t, TextureEntry> m_Textures;
 

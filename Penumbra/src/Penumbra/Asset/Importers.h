@@ -3,6 +3,8 @@
 #include "Penumbra/Asset/MeshData.h"
 
 #include <filesystem>
+#include <functional>
+#include <memory>
 #include <optional>
 #include <string>
 
@@ -21,9 +23,14 @@ namespace Penumbra {
 	class GltfImporter
 	{
 	public:
+		// Loads an image file a glTF refers to by URI; returns nullptr when it cannot (AssetManager shares them).
+		using ExternalImageLoader = std::function<std::shared_ptr<const TextureData>(const std::filesystem::path& file, std::string& error)>;
+
 		// Imports a .gltf/.glb file: all scene nodes are flattened into a single mesh,
-		// with node transforms baked into vertices. Materials and textures are imported.
-		static std::optional<MeshData> Import(const std::filesystem::path& path, std::string& error);
+		// with node transforms baked into vertices. Materials and textures are imported; image files outside
+		// the glTF go through `loadExternal` when given (each file loaded once), else are read directly.
+		static std::optional<MeshData> Import(const std::filesystem::path& path, std::string& error,
+											  const ExternalImageLoader& loadExternal = {});
 	};
 
 }

@@ -35,7 +35,13 @@ namespace Penumbra {
 			}
 		}
 
-		std::optional<TextureData> LoadImage(const cgltf_image* image, const std::filesystem::path& baseDirectory, std::string& error)
+		std::shared_ptr<const TextureData> Shared(std::optional<TextureData> texture)
+		{
+			return texture ? std::make_shared<const TextureData>(std::move(*texture)) : nullptr;
+		}
+
+		std::shared_ptr<const TextureData> LoadImage(const cgltf_image* image, const std::filesystem::path& baseDirectory,
+													 const GltfImporter::ExternalImageLoader& loadExternal, std::string& error)
 		{
 			if (image->buffer_view)
 			{
@@ -43,15 +49,15 @@ namespace Penumbra {
 				if (!view->buffer || !view->buffer->data)
 				{
 					error = "image buffer is not loaded";
-					return std::nullopt;
+					return nullptr;
 				}
 				const uint8_t* bytes = static_cast<const uint8_t*>(view->buffer->data) + view->offset;
-				return TextureImporter::LoadFromMemory(bytes, view->size, error);
+				return Shared(TextureImporter::LoadFromMemory(bytes, view->size, error));
 			}
 			if (!image->uri)
 			{
 				error = "image has neither a URI nor a buffer view";
-				return std::nullopt;
+				return nullptr;
 			}
 
 			const std::string_view uri(image->uri);
@@ -61,7 +67,7 @@ namespace Penumbra {
 				if (comma == std::string_view::npos || uri.substr(0, comma).find(";base64") == std::string_view::npos)
 				{
 					error = "unsupported data URI";
-					return std::nullopt;
+					return nullptr;
 				}
 				const std::string_view payload = uri.substr(comma + 1);
 				size_t padding = 0;
@@ -73,18 +79,21 @@ namespace Penumbra {
 				if (payload.size() % 4 != 0 || cgltf_load_buffer_base64(&options, size, payload.data(), &decoded) != cgltf_result_success)
 				{
 					error = "invalid base64 image data";
-					return std::nullopt;
+					return nullptr;
 				}
 				std::optional<TextureData> texture = TextureImporter::LoadFromMemory(static_cast<const uint8_t*>(decoded), size, error);
 				// cgltf allocates with the default allocator (malloc) when options carry no custom one.
 				std::free(decoded);
-				return texture;
+				return Shared(std::move(texture));
 			}
 
 			std::string decodedUri(uri);
 			cgltf_decode_uri(decodedUri.data());
 			decodedUri.resize(std::strlen(decodedUri.c_str()));
-			return TextureImporter::LoadFromFile(baseDirectory / std::filesystem::path(std::u8string(decodedUri.begin(), decodedUri.end())), error);
+			const std::filesystem::path file = baseDirectory / std::filesystem::path(std::u8string(decodedUri.begin(), decodedUri.end()));
+			if (loadExternal)
+				return loadExternal(file, error);
+			return Shared(TextureImporter::LoadFromFile(file, error));
 		}
 
 		TextureIndex TextureOf(const cgltf_data* data, const cgltf_texture_view& view)
@@ -475,7 +484,7 @@ namespace Penumbra {
 
 	}
 
-	std::optional<MeshData> GltfImporter::Import(const std::filesystem::path& path, std::string& error)
+	std::optional<MeshData> GltfImporter::Import(const std::filesystem::path& path, std::string& error, const ExternalImageLoader& loadExternal)
 	{
 		cgltf_options options{};
 		cgltf_data* rawData = nullptr;
@@ -507,13 +516,13 @@ namespace Penumbra {
 		for (cgltf_size i = 0; i < data->images_count; i++)
 		{
 			std::string imageError;
-			std::optional<TextureData> texture = LoadImage(&data->images[i], baseDirectory, imageError);
+			std::shared_ptr<const TextureData> texture = LoadImage(&data->images[i], baseDirectory, loadExternal, imageError);
 			if (!texture)
 			{
 				PN_CORE_WARN("glTF '{}': image {} skipped: {}", pathString, i, imageError);
-				texture = TextureData{};
+				texture = std::make_shared<const TextureData>();
 			}
-			mesh.Textures.push_back(std::move(*texture));
+			mesh.Textures.push_back(std::move(texture));
 		}
 
 		for (cgltf_size i = 0; i < data->materials_count; i++)

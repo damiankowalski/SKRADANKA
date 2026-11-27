@@ -973,7 +973,7 @@ namespace Penumbra {
 					auto meshTexture = [&](TextureIndex index, bool srgb) -> nvrhi::ITexture* {
 						if (index < 0 || static_cast<size_t>(index) >= mesh->Textures.size())
 							return nullptr;
-						return Cache->GetTexture(&mesh->Textures[static_cast<size_t>(index)], srgb, CommandList);
+						return Cache->GetTexture(mesh->Textures[static_cast<size_t>(index)], srgb, CommandList);
 					};
 					albedo = meshTexture(material.AlbedoTexture, true);
 					normal = meshTexture(material.NormalTexture, false);

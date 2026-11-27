@@ -869,4 +869,69 @@ TEST_SUITE("World")
 			CHECK(data["checks"].value("passed", false));
 		}
 	}
+
+	TEST_CASE("PropLab: every generated prop loads as its provenance says, its texture sheets shared, its collision in place")
+	{
+		std::string error;
+		REQUIRE_MESSAGE(Project::Load(std::filesystem::path(PENUMBRA_DEMO_PROJECT_DIR) / "project.json", error), error);
+		const std::filesystem::path props = Project::GetAssetDirectory() / "Models/Props";
+		std::shared_ptr<const TextureData> woodSheet;
+		size_t count = 0;
+		for (const auto& file : std::filesystem::recursive_directory_iterator(props))
+		{
+			if (file.path().extension() != ".json")
+				continue;
+			CAPTURE(file.path().string());
+			std::ifstream stream(file.path());
+			const nlohmann::json provenance = nlohmann::json::parse(stream, nullptr, false);
+			REQUIRE_FALSE(provenance.is_discarded());
+			const std::string folder = "Models/Props/" + provenance["family"].get<std::string>() + "/";
+			for (int lod = 0; lod < 3; lod++)
+			{
+				const std::string path = folder + provenance["files"]["lod" + std::to_string(lod)].get<std::string>();
+				const std::shared_ptr<const MeshData> mesh = AssetManager::GetMesh(path);
+				REQUIRE_MESSAGE(mesh, path);
+				CHECK(mesh->Indices.size() / 3 == provenance["triangles"][lod].get<size_t>());
+				for (const auto& texture : mesh->Textures)
+					CHECK(texture->IsValid());
+				if (lod > 0)
+					continue;
+				// Metres, Y up, the pivot at the middle of the base: as the provenance measured it.
+				const auto& bounds = provenance["bounds"];
+				for (int axis = 0; axis < 3; axis++)
+				{
+					CHECK(Test::Near(mesh->Bounds.Min[axis], bounds["min"][axis].get<float>(), 0.001f));
+					CHECK(Test::Near(mesh->Bounds.Max[axis], bounds["max"][axis].get<float>(), 0.001f));
+				}
+				CHECK(Test::Near(mesh->Bounds.Min.y, 0.0f, 0.002f));
+				for (size_t m = 0; m < mesh->Materials.size(); m++)
+				{
+					if (mesh->Materials[m].Name != "wood")
+						continue;
+					const auto& sheet = mesh->Textures[static_cast<size_t>(mesh->Materials[m].AlbedoTexture)];
+					if (!woodSheet)
+						woodSheet = sheet;
+					CHECK(sheet == woodSheet); // one copy of the oak boards for every prop
+				}
+			}
+			count++;
+		}
+		CHECK(count >= 14);
+		CHECK(woodSheet == AssetManager::GetTexture("Textures/Planks/planks_1000_albedo.png"));
+
+		// In the lab, a prop's collision boxes stand where its provenance put them: a crate stops a ray.
+		Scene scene;
+		scene.SetAudioDeviceEnabled(false);
+		REQUIRE_MESSAGE(SceneSerializer::Deserialize(scene, Project::GetAssetDirectory() / "Scenes/PropLab.pscene", error), error);
+		scene.OnRuntimeStart();
+		Test::Simulate(scene, 0.1f);
+		const glm::vec3 crate = scene.GetWorldPosition(scene.FindEntityByName("crate_large"));
+		const auto hit = scene.GetPhysicsWorld()->Raycast(crate + glm::vec3(0.0f, 0.3f, -1.5f), { 0.0f, 0.0f, 1.0f }, 5.0f); // from behind the row
+		REQUIRE(hit.has_value());
+		CAPTURE(hit->Distance);
+		CHECK(Test::Near(hit->Distance, 1.5f - 0.35f, 0.02f));
+		scene.OnRuntimeStop();
+		AssetManager::Clear();
+		Project::Unload();
+	}
 }

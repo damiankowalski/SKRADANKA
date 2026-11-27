@@ -82,3 +82,15 @@ if(PENUMBRA_UV_EXECUTABLE)
 else()
     message(STATUS "uv not found: the Tools.AssetGen and Tools.AudioGen tests are skipped (their README.md)")
 endif()
+
+# PropGen (Tools/PropGen): the mesh kit, the .glb writer, the props' checks, and the committed props matching their
+# scripts. Python's standard library only.
+find_package(Python3 COMPONENTS Interpreter QUIET)
+if(Python3_Interpreter_FOUND)
+    add_test(NAME Tools.PropGen
+        COMMAND "${Python3_EXECUTABLE}" -m unittest discover -s "${PROJECT_SOURCE_DIR}/Tools/PropGen/tests"
+        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")
+    set_tests_properties(Tools.PropGen PROPERTIES TIMEOUT 300)
+else()
+    message(STATUS "Python 3 not found: the Tools.PropGen test is skipped (Tools/PropGen/README.md)")
+endif()

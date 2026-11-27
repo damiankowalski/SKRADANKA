@@ -303,6 +303,15 @@ plays them in place: a strip of six floors, doors at 3, 10 and 25 m, the night's
 (footsteps on stone and wood, a door, a 60 s wind loop, 16 variants) waits for the owner's ears; the cycle and
 wiring the accepted sounds into the game finish the package. See `Tools/AudioGen/README.md`.
 
+**The prop pipeline, part 1: PropGen and the first families** (M, branch `feature/propgen`, after AudioGen):
+`Tools/PropGen` builds props from one script per family (Python's standard library, no Blender needed yet):
+boxes and lathes in metres with the pivot at the base, UVs on the generated board and iron sheets, three authored
+LODs, collision boxes, provenance, checks (winding, pivot, budget, LODs, textures, staleness). 27 props in ten
+families: crates, barrels, chests, tables, chairs, stools, benches, shelves, wine racks, plank doors (60-1,032
+triangles), shown in `Scenes/PropLab.pscene`. The engine now loads
+a texture a `.glb` names by file once for every model using it. Next: beds and cloth, clutter, the doors on
+the blockout's doorways, the architecture kit; Blender for bevels, booleans and cleaning AI or CC0 meshes, with the official MCP for live sessions.
+
 ## Known bugs
 
 **Player character jitters** (reported in a playtest after PR #22, not reproduced yet): after a while of

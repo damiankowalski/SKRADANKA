@@ -1,0 +1,2920 @@
+{
+  "Format": "PenumbraScene",
+  "Version": 1,
+  "Entities": [
+    {
+      "ID": "1000",
+      "Components": {
+        "Tag": {
+          "Tag": "Environment"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Environment": {
+          "EnvironmentMap": "Environment/NightSky_1k.hdr",
+          "EnvironmentIntensity": 0.35,
+          "SkyboxIntensity": 0.6,
+          "AmbientColor": [
+            0.05,
+            0.05,
+            0.06999999999999999
+          ],
+          "Exposure": 1.4,
+          "FogDensity": 0.004,
+          "FogColor": [
+            0.02,
+            0.025,
+            0.035
+          ],
+          "SSAOEnabled": true,
+          "BloomIntensity": 0.05
+        }
+      }
+    },
+    {
+      "ID": "1001",
+      "Components": {
+        "Tag": {
+          "Tag": "Moon"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            -35,
+            140,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "DirectionalLight": {
+          "Color": [
+            0.55,
+            0.65,
+            1.0
+          ],
+          "Intensity": 0.25,
+          "CastShadows": true,
+          "ShadowSoftness": 1.5
+        }
+      }
+    },
+    {
+      "ID": "1002",
+      "Components": {
+        "Tag": {
+          "Tag": "Camera"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            4.0,
+            14.9
+          ],
+          "Rotation": [
+            -22,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Camera": {
+          "VerticalFOV": 60.0,
+          "NearClip": 0.05,
+          "FarClip": 200.0
+        }
+      }
+    },
+    {
+      "ID": "1003",
+      "Components": {
+        "Tag": {
+          "Tag": "Floor"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            -0.5,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            16,
+            1,
+            25.8
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false,
+          "AlbedoTexture": "Textures/StoneFloor/stone_floor_1000_albedo.png",
+          "NormalTexture": "Textures/StoneFloor/stone_floor_1000_normal.png",
+          "MetallicRoughnessTexture": "Textures/StoneFloor/stone_floor_1000_mr.png",
+          "UVScale": [
+            12.9,
+            8.0
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        },
+        "Surface": {
+          "Material": "Stone",
+          "NoiseModifier": 0.0
+        }
+      }
+    },
+    {
+      "ID": "1004",
+      "Components": {
+        "Tag": {
+          "Tag": "door_house"
+        },
+        "Transform": {
+          "Translation": [
+            -1.763,
+            0,
+            -9.9
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/door/door_house.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1005",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.09,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.69,
+            1.09,
+            0.0425
+          ]
+        }
+      },
+      "Parent": "1004"
+    },
+    {
+      "ID": "1006",
+      "Components": {
+        "Tag": {
+          "Tag": "door_cellar"
+        },
+        "Transform": {
+          "Translation": [
+            0.32,
+            0,
+            -9.9
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/door/door_cellar.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1007",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.99,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.59,
+            0.99,
+            0.0425
+          ]
+        }
+      },
+      "Parent": "1006"
+    },
+    {
+      "ID": "1008",
+      "Components": {
+        "Tag": {
+          "Tag": "door_leaf"
+        },
+        "Transform": {
+          "Translation": [
+            2.083,
+            0,
+            -9.9
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/door/door_leaf.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1009",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.19,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.37,
+            1.19,
+            0.0425
+          ]
+        }
+      },
+      "Parent": "1008"
+    },
+    {
+      "ID": "1010",
+      "Components": {
+        "Tag": {
+          "Tag": "shelf_kitchen"
+        },
+        "Transform": {
+          "Translation": [
+            -2.1,
+            0,
+            -7.7
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/shelf/shelf_kitchen.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1011",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.9,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            0.9,
+            0.175
+          ]
+        }
+      },
+      "Parent": "1010"
+    },
+    {
+      "ID": "1012",
+      "Components": {
+        "Tag": {
+          "Tag": "shelf_cellar"
+        },
+        "Transform": {
+          "Translation": [
+            0.1,
+            0,
+            -7.7
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/shelf/shelf_cellar.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1013",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.8,
+            1.0,
+            0.225
+          ]
+        }
+      },
+      "Parent": "1012"
+    },
+    {
+      "ID": "1014",
+      "Components": {
+        "Tag": {
+          "Tag": "shelf_low"
+        },
+        "Transform": {
+          "Translation": [
+            2.2,
+            0,
+            -7.7
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/shelf/shelf_low.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1015",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.45,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.45,
+            0.16
+          ]
+        }
+      },
+      "Parent": "1014"
+    },
+    {
+      "ID": "1016",
+      "Components": {
+        "Tag": {
+          "Tag": "wine_rack_wall"
+        },
+        "Transform": {
+          "Translation": [
+            -1.5,
+            0,
+            -5.5
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/wine_rack/wine_rack_wall.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1017",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.9,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.7,
+            0.9,
+            0.18
+          ]
+        }
+      },
+      "Parent": "1016"
+    },
+    {
+      "ID": "1018",
+      "Components": {
+        "Tag": {
+          "Tag": "wine_rack_barrel"
+        },
+        "Transform": {
+          "Translation": [
+            1.1,
+            0,
+            -5.5
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/wine_rack/wine_rack_barrel.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1019",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.21,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            1.1,
+            0.21,
+            0.4
+          ]
+        }
+      },
+      "Parent": "1018"
+    },
+    {
+      "ID": "1020",
+      "Components": {
+        "Tag": {
+          "Tag": "crate_small"
+        },
+        "Transform": {
+          "Translation": [
+            -2.564,
+            0,
+            -3.3
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/crate/crate_small.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1021",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.236,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.25,
+            0.236,
+            0.25
+          ]
+        }
+      },
+      "Parent": "1020"
+    },
+    {
+      "ID": "1022",
+      "Components": {
+        "Tag": {
+          "Tag": "crate_large"
+        },
+        "Transform": {
+          "Translation": [
+            -1.106,
+            0,
+            -3.3
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/crate/crate_large.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1023",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.361,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.4,
+            0.361,
+            0.35
+          ]
+        }
+      },
+      "Parent": "1022"
+    },
+    {
+      "ID": "1024",
+      "Components": {
+        "Tag": {
+          "Tag": "crate_long"
+        },
+        "Transform": {
+          "Translation": [
+            0.702,
+            0,
+            -3.3
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/crate/crate_long.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1025",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.286,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            0.286,
+            0.3
+          ]
+        }
+      },
+      "Parent": "1024"
+    },
+    {
+      "ID": "1026",
+      "Components": {
+        "Tag": {
+          "Tag": "crate_banded"
+        },
+        "Transform": {
+          "Translation": [
+            2.462,
+            0,
+            -3.3
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/crate/crate_banded.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1027",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.311,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.35,
+            0.311,
+            0.35
+          ]
+        }
+      },
+      "Parent": "1026"
+    },
+    {
+      "ID": "1028",
+      "Components": {
+        "Tag": {
+          "Tag": "barrel_wine"
+        },
+        "Transform": {
+          "Translation": [
+            -1.314,
+            0,
+            -1.1
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/barrel/barrel_wine.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1029",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.475,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.3017,
+            0.475,
+            0.3017
+          ]
+        }
+      },
+      "Parent": "1028"
+    },
+    {
+      "ID": "1030",
+      "Components": {
+        "Tag": {
+          "Tag": "barrel_water"
+        },
+        "Transform": {
+          "Translation": [
+            0.145,
+            0,
+            -1.1
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/barrel/barrel_water.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1031",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.375,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.255,
+            0.375,
+            0.255
+          ]
+        }
+      },
+      "Parent": "1030"
+    },
+    {
+      "ID": "1032",
+      "Components": {
+        "Tag": {
+          "Tag": "barrel_keg"
+        },
+        "Transform": {
+          "Translation": [
+            1.459,
+            0,
+            -1.1
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/barrel/barrel_keg.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1033",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.25,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.1785,
+            0.25,
+            0.1785
+          ]
+        }
+      },
+      "Parent": "1032"
+    },
+    {
+      "ID": "1034",
+      "Components": {
+        "Tag": {
+          "Tag": "chest_travel"
+        },
+        "Transform": {
+          "Translation": [
+            -1.764,
+            0,
+            1.1
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/chest/chest_travel.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1035",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.25,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.45,
+            0.25,
+            0.25
+          ]
+        }
+      },
+      "Parent": "1034"
+    },
+    {
+      "ID": "1036",
+      "Components": {
+        "Tag": {
+          "Tag": "chest_strongbox"
+        },
+        "Transform": {
+          "Translation": [
+            -0.15,
+            0,
+            1.1
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/chest/chest_strongbox.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1037",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.225,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.35,
+            0.225,
+            0.225
+          ]
+        }
+      },
+      "Parent": "1036"
+    },
+    {
+      "ID": "1038",
+      "Components": {
+        "Tag": {
+          "Tag": "chest_dowry"
+        },
+        "Transform": {
+          "Translation": [
+            1.614,
+            0,
+            1.1
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/chest/chest_dowry.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1039",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.275,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            0.275,
+            0.275
+          ]
+        }
+      },
+      "Parent": "1038"
+    },
+    {
+      "ID": "1040",
+      "Components": {
+        "Tag": {
+          "Tag": "table_kitchen"
+        },
+        "Transform": {
+          "Translation": [
+            -2.55,
+            0,
+            3.3
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/table/table_kitchen.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1041",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.7375,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.8,
+            0.0225,
+            0.4
+          ]
+        }
+      },
+      "Parent": "1040"
+    },
+    {
+      "ID": "1042",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider1"
+        },
+        "Transform": {
+          "Translation": [
+            -0.6925,
+            0.3575,
+            -0.2925
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.0375,
+            0.3575,
+            0.0375
+          ]
+        }
+      },
+      "Parent": "1040"
+    },
+    {
+      "ID": "1043",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider2"
+        },
+        "Transform": {
+          "Translation": [
+            -0.6925,
+            0.3575,
+            0.2925
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.0375,
+            0.3575,
+            0.0375
+          ]
+        }
+      },
+      "Parent": "1040"
+    },
+    {
+      "ID": "1044",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider3"
+        },
+        "Transform": {
+          "Translation": [
+            0.6925,
+            0.3575,
+            -0.2925
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.0375,
+            0.3575,
+            0.0375
+          ]
+        }
+      },
+      "Parent": "1040"
+    },
+    {
+      "ID": "1045",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider4"
+        },
+        "Transform": {
+          "Translation": [
+            0.6925,
+            0.3575,
+            0.2925
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.0375,
+            0.3575,
+            0.0375
+          ]
+        }
+      },
+      "Parent": "1040"
+    },
+    {
+      "ID": "1046",
+      "Components": {
+        "Tag": {
+          "Tag": "table_small"
+        },
+        "Transform": {
+          "Translation": [
+            -0.5,
+            0,
+            3.3
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/table/table_small.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1047",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.7175,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.45,
+            0.0225,
+            0.3
+          ]
+        }
+      },
+      "Parent": "1046"
+    },
+    {
+      "ID": "1048",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider1"
+        },
+        "Transform": {
+          "Translation": [
+            -0.3425,
+            0.3475,
+            -0.1925
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.0375,
+            0.3475,
+            0.0375
+          ]
+        }
+      },
+      "Parent": "1046"
+    },
+    {
+      "ID": "1049",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider2"
+        },
+        "Transform": {
+          "Translation": [
+            -0.3425,
+            0.3475,
+            0.1925
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.0375,
+            0.3475,
+            0.0375
+          ]
+        }
+      },
+      "Parent": "1046"
+    },
+    {
+      "ID": "1050",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider3"
+        },
+        "Transform": {
+          "Translation": [
+            0.3425,
+            0.3475,
+            -0.1925
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.0375,
+            0.3475,
+            0.0375
+          ]
+        }
+      },
+      "Parent": "1046"
+    },
+    {
+      "ID": "1051",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider4"
+        },
+        "Transform": {
+          "Translation": [
+            0.3425,
+            0.3475,
+            0.1925
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.0375,
+            0.3475,
+            0.0375
+          ]
+        }
+      },
+      "Parent": "1046"
+    },
+    {
+      "ID": "1052",
+      "Components": {
+        "Tag": {
+          "Tag": "table_feast"
+        },
+        "Transform": {
+          "Translation": [
+            2.05,
+            0,
+            3.3
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/table/table_feast.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1053",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.7575,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            1.3,
+            0.0225,
+            0.475
+          ]
+        }
+      },
+      "Parent": "1052"
+    },
+    {
+      "ID": "1054",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider1"
+        },
+        "Transform": {
+          "Translation": [
+            -1.1925,
+            0.3675,
+            -0.3675
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.0375,
+            0.3675,
+            0.0375
+          ]
+        }
+      },
+      "Parent": "1052"
+    },
+    {
+      "ID": "1055",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider2"
+        },
+        "Transform": {
+          "Translation": [
+            -1.1925,
+            0.3675,
+            0.3675
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.0375,
+            0.3675,
+            0.0375
+          ]
+        }
+      },
+      "Parent": "1052"
+    },
+    {
+      "ID": "1056",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider3"
+        },
+        "Transform": {
+          "Translation": [
+            1.1925,
+            0.3675,
+            -0.3675
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.0375,
+            0.3675,
+            0.0375
+          ]
+        }
+      },
+      "Parent": "1052"
+    },
+    {
+      "ID": "1057",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider4"
+        },
+        "Transform": {
+          "Translation": [
+            1.1925,
+            0.3675,
+            0.3675
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.0375,
+            0.3675,
+            0.0375
+          ]
+        }
+      },
+      "Parent": "1052"
+    },
+    {
+      "ID": "1058",
+      "Components": {
+        "Tag": {
+          "Tag": "chair_plain"
+        },
+        "Transform": {
+          "Translation": [
+            -0.63,
+            0,
+            5.5
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/chair/chair_plain.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1059",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.225,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.22,
+            0.225,
+            0.22
+          ]
+        }
+      },
+      "Parent": "1058"
+    },
+    {
+      "ID": "1060",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider1"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.685,
+            0.2327
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.22,
+            0.235,
+            0.0727
+          ]
+        }
+      },
+      "Parent": "1058"
+    },
+    {
+      "ID": "1061",
+      "Components": {
+        "Tag": {
+          "Tag": "chair_slatted"
+        },
+        "Transform": {
+          "Translation": [
+            0.62,
+            0,
+            5.5
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/chair/chair_slatted.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1062",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.23,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.23,
+            0.23,
+            0.23
+          ]
+        }
+      },
+      "Parent": "1061"
+    },
+    {
+      "ID": "1063",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider1"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.73,
+            0.2476
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.23,
+            0.27,
+            0.0776
+          ]
+        }
+      },
+      "Parent": "1061"
+    },
+    {
+      "ID": "1064",
+      "Components": {
+        "Tag": {
+          "Tag": "stool_milking"
+        },
+        "Transform": {
+          "Translation": [
+            -0.57,
+            0,
+            7.7
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/stool/stool_milking.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1065",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.16,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.15,
+            0.16,
+            0.15
+          ]
+        }
+      },
+      "Parent": "1064"
+    },
+    {
+      "ID": "1066",
+      "Components": {
+        "Tag": {
+          "Tag": "stool_tavern"
+        },
+        "Transform": {
+          "Translation": [
+            0.55,
+            0,
+            7.7
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/stool/stool_tavern.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1067",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.31,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.17,
+            0.31,
+            0.17
+          ]
+        }
+      },
+      "Parent": "1066"
+    },
+    {
+      "ID": "1068",
+      "Components": {
+        "Tag": {
+          "Tag": "bench_short"
+        },
+        "Transform": {
+          "Translation": [
+            -1.6,
+            0,
+            9.9
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/bench/bench_short.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1069",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.225,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            0.225,
+            0.15
+          ]
+        }
+      },
+      "Parent": "1068"
+    },
+    {
+      "ID": "1070",
+      "Components": {
+        "Tag": {
+          "Tag": "bench_long"
+        },
+        "Transform": {
+          "Translation": [
+            1.0,
+            0,
+            9.9
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/bench/bench_long.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1071",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.23,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            1.2,
+            0.23,
+            0.16
+          ]
+        }
+      },
+      "Parent": "1070"
+    },
+    {
+      "ID": "1072",
+      "Components": {
+        "Tag": {
+          "Tag": "Lamp1"
+        },
+        "Transform": {
+          "Translation": [
+            -4.5,
+            3.2,
+            -6.6
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.8,
+            0.55
+          ],
+          "Intensity": 14.0,
+          "Range": 9.0,
+          "Flicker": 0.05,
+          "CastShadows": true
+        }
+      }
+    },
+    {
+      "ID": "1073",
+      "Components": {
+        "Tag": {
+          "Tag": "Glow"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.1,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.18,
+            0.24,
+            0.18
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            1.0,
+            0.85,
+            0.6,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 5.0,
+          "EmissiveColor": [
+            1.0,
+            0.8,
+            0.55
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1072"
+    },
+    {
+      "ID": "1074",
+      "Components": {
+        "Tag": {
+          "Tag": "Lamp2"
+        },
+        "Transform": {
+          "Translation": [
+            4.5,
+            3.2,
+            -6.6
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.8,
+            0.55
+          ],
+          "Intensity": 14.0,
+          "Range": 9.0,
+          "Flicker": 0.05,
+          "CastShadows": true
+        }
+      }
+    },
+    {
+      "ID": "1075",
+      "Components": {
+        "Tag": {
+          "Tag": "Glow"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.1,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.18,
+            0.24,
+            0.18
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            1.0,
+            0.85,
+            0.6,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 5.0,
+          "EmissiveColor": [
+            1.0,
+            0.8,
+            0.55
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1074"
+    },
+    {
+      "ID": "1076",
+      "Components": {
+        "Tag": {
+          "Tag": "Lamp3"
+        },
+        "Transform": {
+          "Translation": [
+            -4.5,
+            3.2,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.8,
+            0.55
+          ],
+          "Intensity": 14.0,
+          "Range": 9.0,
+          "Flicker": 0.05,
+          "CastShadows": true
+        }
+      }
+    },
+    {
+      "ID": "1077",
+      "Components": {
+        "Tag": {
+          "Tag": "Glow"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.1,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.18,
+            0.24,
+            0.18
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            1.0,
+            0.85,
+            0.6,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 5.0,
+          "EmissiveColor": [
+            1.0,
+            0.8,
+            0.55
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1076"
+    },
+    {
+      "ID": "1078",
+      "Components": {
+        "Tag": {
+          "Tag": "Lamp4"
+        },
+        "Transform": {
+          "Translation": [
+            4.5,
+            3.2,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.8,
+            0.55
+          ],
+          "Intensity": 14.0,
+          "Range": 9.0,
+          "Flicker": 0.05,
+          "CastShadows": true
+        }
+      }
+    },
+    {
+      "ID": "1079",
+      "Components": {
+        "Tag": {
+          "Tag": "Glow"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.1,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.18,
+            0.24,
+            0.18
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            1.0,
+            0.85,
+            0.6,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 5.0,
+          "EmissiveColor": [
+            1.0,
+            0.8,
+            0.55
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1078"
+    },
+    {
+      "ID": "1080",
+      "Components": {
+        "Tag": {
+          "Tag": "Lamp5"
+        },
+        "Transform": {
+          "Translation": [
+            -4.5,
+            3.2,
+            6.6
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.8,
+            0.55
+          ],
+          "Intensity": 14.0,
+          "Range": 9.0,
+          "Flicker": 0.05,
+          "CastShadows": true
+        }
+      }
+    },
+    {
+      "ID": "1081",
+      "Components": {
+        "Tag": {
+          "Tag": "Glow"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.1,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.18,
+            0.24,
+            0.18
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            1.0,
+            0.85,
+            0.6,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 5.0,
+          "EmissiveColor": [
+            1.0,
+            0.8,
+            0.55
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1080"
+    },
+    {
+      "ID": "1082",
+      "Components": {
+        "Tag": {
+          "Tag": "Lamp6"
+        },
+        "Transform": {
+          "Translation": [
+            4.5,
+            3.2,
+            6.6
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.8,
+            0.55
+          ],
+          "Intensity": 14.0,
+          "Range": 9.0,
+          "Flicker": 0.05,
+          "CastShadows": true
+        }
+      }
+    },
+    {
+      "ID": "1083",
+      "Components": {
+        "Tag": {
+          "Tag": "Glow"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.1,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.18,
+            0.24,
+            0.18
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            1.0,
+            0.85,
+            0.6,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 5.0,
+          "EmissiveColor": [
+            1.0,
+            0.8,
+            0.55
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1082"
+    }
+  ]
+}

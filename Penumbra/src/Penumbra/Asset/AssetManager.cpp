@@ -47,7 +47,23 @@ namespace Penumbra {
 				PN_CORE_ERROR("Mesh '{}': unsupported format (use .gltf or .glb)", path);
 				return nullptr;
 			}
-			std::optional<MeshData> mesh = GltfImporter::Import(resolved, error);
+			// Image files inside the project come from the texture cache: props sharing a material sheet share
+			// one copy of it, in memory and on the GPU.
+			const auto loadExternal = [](const std::filesystem::path& file, std::string& imageError) -> std::shared_ptr<const TextureData> {
+				std::error_code ignored;
+				const std::filesystem::path relative = std::filesystem::relative(file, Project::GetAssetDirectory(), ignored);
+				const std::string assetPath = relative.generic_string();
+				if (!Project::GetAssetDirectory().empty() && !relative.empty() && !assetPath.starts_with(".."))
+				{
+					std::shared_ptr<const TextureData> shared = AssetManager::GetTexture(assetPath);
+					if (!shared)
+						imageError = "cannot load " + assetPath;
+					return shared;
+				}
+				std::optional<TextureData> texture = TextureImporter::LoadFromFile(file, imageError);
+				return texture ? std::make_shared<const TextureData>(std::move(*texture)) : nullptr;
+			};
+			std::optional<MeshData> mesh = GltfImporter::Import(resolved, error, loadExternal);
 			if (!mesh)
 			{
 				PN_CORE_ERROR("Mesh '{}': {}", path, error);

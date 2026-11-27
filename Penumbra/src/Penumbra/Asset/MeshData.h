@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 
 #include <limits>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -86,7 +87,8 @@ namespace Penumbra {
 		std::vector<uint32_t> Indices;
 		std::vector<Submesh> Submeshes;
 		std::vector<MaterialData> Materials;
-		std::vector<TextureData> Textures;
+		// Shared: an image file outside the mesh is loaded once and shared by every mesh using it (AssetManager).
+		std::vector<std::shared_ptr<const TextureData>> Textures;
 		BoundingBox Bounds; // bind pose
 
 		// Skeletal data (empty for static meshes).

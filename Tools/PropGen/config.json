@@ -1,0 +1,44 @@
+{
+	"blender": {
+		"version": "5.3.0",
+		"source": "Homebrew cask blender (the blender.org build)",
+		"license": "GPL-3.0-or-later covers Blender itself; what it makes is the owner's"
+	},
+	"output": "DemoProject/Assets/Models/Props",
+	"budgets": {
+		"clutter": [50, 500],
+		"furniture": [300, 2000],
+		"big": [1000, 5000],
+		"hero": [100, 10000]
+	},
+	"lods": [1.0, 0.5, 0.15],
+	"lod_floor": [0, 120, 64],
+	"materials": {
+		"wood": {
+			"albedo": "Textures/Planks/planks_1000_albedo.png",
+			"normal": "Textures/Planks/planks_1000_normal.png",
+			"metallic_roughness": "Textures/Planks/planks_1000_mr.png",
+			"metres_per_repeat": 1.0,
+			"base_color": [1.0, 1.0, 1.0],
+			"boards_per_repeat": 8,
+			"note": "oak boards: eight vertical boards per repeat, the grain along V"
+		},
+		"wood_dark": {
+			"albedo": "Textures/Planks/planks_1002_albedo.png",
+			"normal": "Textures/Planks/planks_1002_normal.png",
+			"metallic_roughness": "Textures/Planks/planks_1002_mr.png",
+			"metres_per_repeat": 1.0,
+			"base_color": [1.0, 1.0, 1.0],
+			"boards_per_repeat": 8,
+			"note": "tarred boards, as wood"
+		},
+		"iron": {
+			"albedo": "Textures/Metal/metal_1000_albedo.png",
+			"normal": "Textures/Metal/metal_1000_normal.png",
+			"metallic_roughness": "Textures/Metal/metal_1000_mr.png",
+			"metres_per_repeat": 0.5,
+			"base_color": [0.8, 0.8, 0.8],
+			"note": "rusted iron: bands, nails, hinges"
+		}
+	}
+}
