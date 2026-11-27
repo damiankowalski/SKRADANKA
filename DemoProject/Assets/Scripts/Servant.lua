@@ -1,7 +1,8 @@
 -- A servant: goes about his chores between a few spots. He is no fighter: anything that worries
 -- him beyond a glance (a noise worth checking, a glimpse of the intruder, a body) sends him
 -- running to the alarm bell, shouting. Ringing it tells every guard where the trouble is
--- (a strong report, as if each of them had heard it). Knock him out before he gets there.
+-- (a strong report, as if each of them had heard it), or in a big level every guard within
+-- `bell_reach` of the bell. Knock him out before he gets there.
 -- Calm, he lights lamps the thief put out (Scripts/AI/Lamps.lua).
 
 local Actor = require("Scripts/AI/Actor")
@@ -16,6 +17,7 @@ local Servant = {
         wait_time = 4.0,
         bell = "Bell",        -- entity he runs to when alarmed
         bell_strength = 9.0,  -- strength of the report every guard gets when he rings
+        bell_reach = 0.0,     -- metres from the bell within which guards get it (0: every guard in the level)
     }
 }
 
@@ -39,9 +41,11 @@ function Servant:on_create()
 end
 
 function Servant:ring()
-    Noises.emit("Bell", self.bell_entity:get_position() + vec3(0, 2, 0), self.entity)
+    local bell = self.bell_entity:get_position()
+    Noises.emit("Bell", bell + vec3(0, 2, 0), self.entity)
     for _, npc in ipairs(scene.entities_with("Perception")) do
-        if npc ~= self.entity and ai.vital_state(npc) == "Awake" then
+        if npc ~= self.entity and ai.vital_state(npc) == "Awake"
+            and (self.bell_reach <= 0 or npc:get_position():distance(bell) <= self.bell_reach) then
             ai.notify(npc, self.fleeing, self.bell_strength, "Bell")
         end
     end

@@ -122,4 +122,12 @@ function Noises.emit(name, position, source)
     return sound.loudness
 end
 
+-- The same sound with nothing for the guards to hear: the household's own doors and chores.
+function Noises.sound(name, position)
+    local sound = Noises.sounds[name]
+    if not sound then error("unknown noise '" .. tostring(name) .. "'") end
+    if sound.clip then audio.play_at(sound.clip, position, sound.volume or 1.0) end
+    return sound.loudness
+end
+
 return Noises

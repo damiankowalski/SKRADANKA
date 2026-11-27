@@ -78,7 +78,10 @@ return {
 
 * `gait` (`crouch`, `walk`, `run`) holds from the step that sets it until another changes it.
 * Between points the bot follows `nav.path` corner to corner and only walks while facing within 50° of where it goes
-  (turning at most 540°/s). A closed door in the way is used (a locked one is picked, a letter every 0.3 s).
+  (turning at most 540°/s). A closed door in the way is used (a locked one is picked, a letter every 0.3 s): he
+  steps 1.1 m back from the leaf on his side and aims at its middle (the camera over his shoulder cannot be turned
+  onto something closer to him than the shoulder). An open leaf is not on the navmesh: a route that has to pass the
+  hinge side of a door it opened goes round the leaf with a step of its own.
 * No progress for 4 s: it looks for a path again; a second time ends the run as `stuck`, a problem with the route
   or the tool, not with the level.
 * `baseline` needs no file: crouched, the nearest loot first (by navmesh distance) until the mission's loot target

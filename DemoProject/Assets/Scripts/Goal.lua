@@ -1,9 +1,14 @@
 -- Exit zone. With a mission running (MissionControl.lua) the thief may leave once the other
--- objectives are done; otherwise he is told what is missing. Without one, reaching it wins.
+-- objectives are done; otherwise he is told what is missing (unless `remind` is off: an exit on the
+-- way in, which he walks through before he has done anything). Without one, reaching it wins.
 
 local Mission = require("Scripts/Mission/Mission")
 
-local Goal = {}
+local Goal = {
+    Properties = {
+        remind = true, -- tell the thief what is missing when he arrives too early
+    }
+}
 
 function Goal:on_create()
     self.won = false
@@ -17,8 +22,10 @@ function Goal:reach()
     if Mission.current then
         local escaped, missing = Mission.try_escape()
         if not escaped then
-            self.notice = "Not yet: " .. table.concat(missing, "; ")
-            self.notice_timer = 4
+            if self.remind then
+                self.notice = "Not yet: " .. table.concat(missing, "; ")
+                self.notice_timer = 4
+            end
             return false
         end
     end

@@ -10,7 +10,7 @@ target_compile_definitions(PenumbraTests PRIVATE
 
 # Each doctest test suite is registered separately so CTest reports them individually.
 set(PENUMBRA_TEST_SUITES Core Scene Serialization Assets Animation Physics Audio Scripting Perception Navigation World Mission
-    Stim Automation Mcp Renderer Debug FogOfWar Fog Playtest)
+    MissionOne Stim Automation Mcp Renderer Debug FogOfWar Fog Playtest)
 foreach(suite ${PENUMBRA_TEST_SUITES})
     add_test(NAME Unit.${suite} COMMAND PenumbraTests --test-suite=${suite} --no-colors)
 endforeach()
@@ -34,7 +34,11 @@ add_test(NAME Scene.FeatureTest
 add_test(NAME Scene.StealthDemo
     COMMAND PenumbraRuntime --project "${PROJECT_SOURCE_DIR}/DemoProject" --headless --warp --fixed-timestep 0.0166667
             --frames 120 --width 320 --height 180)
-set_tests_properties(Scene.FeatureTest Scene.StealthDemo PROPERTIES LABELS gpu TIMEOUT 600)
+# The first mission's blockout, the biggest level: loads, simulates and renders without errors.
+add_test(NAME Scene.Mission1Demo
+    COMMAND PenumbraRuntime --project "${PROJECT_SOURCE_DIR}/DemoProject" --scene Scenes/Mission1.pscene --headless --warp
+            --fixed-timestep 0.0166667 --frames 120 --width 320 --height 180)
+set_tests_properties(Scene.FeatureTest Scene.StealthDemo Scene.Mission1Demo PROPERTIES LABELS gpu TIMEOUT 600)
 if(PENUMBRA_BUILD_EDITOR)
     # An agent builds a level from scratch through the editor's headless command line.
     add_test(NAME Automation.EditorCLI

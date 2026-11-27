@@ -60,7 +60,10 @@ within 1.4 m). What reaches the guard:
   without authoring rooms. Doors are kinematic, so the navmesh runs through them: each closed door on the
   way costs its `SoundLoss` too. The louder wins.
 
-Closed doors block sight and light like walls; open, they swing out of the way (`Scripts/World/Door.lua`).
+Closed doors block sight and light like walls; open, they swing out of the way (`Scripts/World/Door.lua`). A
+door's creak and thud are noises for the guards only when the thief works it: one of the household (an NPC with
+`Perception`) opening or shutting it makes the sound alone (`Noises.sound`), so a manor's own comings and goings
+do not keep its guards looking round. Doors count people only on their own storey (within 1.5 m of their foot).
 
 `HearingSensitivity` scales the distances; alert memory adds up to 50%. `Environment.AmbientNoise` (rain,
 machinery, a storm) is subtracted from everything heard: it masks quiet sounds.
@@ -146,7 +149,8 @@ Shadow hides the player from eyes, not from hands.
   speaker's mouth (distance, walls, paths around them, ambient masking) gets a Reported stimulus at the
   speaker's stimulus position, one level weaker. The demo guard shouts when he starts a search or raises the
   alarm (not when he is only passing on a shout, so news spreads without echoing). The servant runs to the
-  alarm bell instead; ringing it reports the trouble to every guard at strength 9.
+  alarm bell instead; ringing it reports the trouble to every guard at strength 9, or in a big level to every
+  guard within the servant's `bell_reach` of the bell (the first mission: 60 m, the manor's grounds).
 * **Lines** — guards say a line on every change of mind ("Hm?", "I'd better take a look.", "Must have been
   rats."), shown above their heads with `ui.world_to_screen` (`Scripts/AI/Actor.lua`). Voices are a
   placeholder sound.

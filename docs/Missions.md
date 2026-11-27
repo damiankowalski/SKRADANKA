@@ -1,20 +1,24 @@
 # Missions
 
-A mission is a level plus a small Lua table that says what the thief must do there. The demo's
-is `DemoProject/Assets/Scripts/Missions/Manor.lua` on `Scenes/Stealth.pscene`. Everything is
-gameplay script; the engine only keeps values across scene loads (`game.get` / `game.set`).
+A mission is a level plus a small Lua table that says what the thief must do there. The demo has two:
+`Scripts/Missions/Manor.lua` on `Scenes/Stealth.pscene`, and the first mission's blockout,
+`Scripts/Missions/Mission1.lua` on `Scenes/Mission1.pscene` (the whole route in grey boxes:
+`docs/research/MissionOneBlockout.md`). Everything is gameplay script; the engine only keeps values across scene
+loads (`game.get` / `game.set`).
 
 ## Flow
 
-1. **Menu** (`Scenes/Menu.pscene`, `Scripts/Menu.lua`, the project's start scene): the briefing, the
-   choice of difficulty (1/2/3 or up/down) and the objectives it brings. Enter stores the difficulty
-   with `game.set("difficulty", ...)` and loads the mission's scene.
+1. **Menu** (`Scenes/Menu.pscene`, `Scripts/Menu.lua`, the project's start scene): the choice of mission
+   (left/right, from its `missions` list), its briefing, the choice of difficulty (1/2/3 or up/down) and the
+   objectives it brings. Enter stores the difficulty and the mission with `game.set` (the menu opens on the last
+   one again) and loads the mission's scene.
 2. **Mission** (`Scripts/MissionControl.lua` on an entity of the level): starts the mission at
    `game.get("difficulty", "Normal")`, shows the loot (top right) and the objectives (for a few seconds
    at the start, then on Tab), and counts what happens: knockouts, kills (finishing off someone knocked
    out turns the knockout into a kill), alarms raised and bodies found.
 3. **The way out** (`Scripts/Goal.lua`): reaching it completes the mission once every other objective
-   is done; otherwise the thief is told what is missing.
+   is done; otherwise the thief is told what is missing, unless its `remind` property is off (an exit on the
+   way in, like the first mission's tunnel, which he walks through before he has done anything).
 4. **Summary**: time, loot (and how many of the level's pieces), pickpockets, knockouts, kills, alarms,
    bodies found and the objectives. Enter goes back to the menu after a success, or tries again after a
    failure. A caught thief starts over with the same difficulty (it lives in the game values).
