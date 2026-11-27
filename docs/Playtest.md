@@ -129,3 +129,23 @@ records the same events).
 `DarkBehind` (crouched in the dark behind him) `undetected` in every seed; anything else is a bug in the
 playtester. Tests (`PenumbraTests --test-suite=Playtest`) check both, that the bot's controls drive the thief exactly
 as the keyboard does, and that a run is reproducible.
+
+## Benchmark
+
+The same bot measures frame times: `Tools/Playtest/benchmark.py` runs one route in a window (the frames need a
+display) with the runtime's `--perf-out` log, and reports, for the whole run and for every step of the route, the
+frame time, the GPU's time, the draw calls and the lamps left without a shadow map:
+
+```sh
+python Tools/Playtest/benchmark.py --scene Scenes/Mission1.pscene --route Playtest/Mission1/BackLanes
+python Tools/Playtest/benchmark.py --scene Scenes/Stress.pscene --route Playtest/Mission1/BackLanes --notarget
+python Tools/Playtest/benchmark.py report out/benchmark/Stress/20261127-0300     # the report again
+```
+
+* No vsync by default (`--vsync` to keep it), the project's window size (`--width`, `--height`), release build
+  (`--config`), seed 1. `--notarget` makes the guards ignore the thief, so the route is walked to its end however the
+  level's light falls (perception then skips the thief, about 0.1 ms of a frame).
+* Output: `out/benchmark/<Level>/<date-time>/` with `report.md`, `perf.jsonl` (the runtime's lines, twice a second),
+  `run.jsonl` (the bot's record) and `series.json`.
+* `Scenes/Stress.pscene` is the first mission's blockout at the density of the finished map
+  (`docs/research/StressTest.md`): the engine packages for the big map are measured on it before and after.

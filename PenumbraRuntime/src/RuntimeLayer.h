@@ -35,6 +35,8 @@ namespace Penumbra {
 		std::optional<std::filesystem::path> PlaytestOut;
 		// The 3D picture's resolution for this run (--render-scale 0.25-1), overriding the user's setting.
 		std::optional<float> RenderScale;
+		// Frame statistics as JSON lines, twice a second (--perf-out; Tools/Benchmark.py). Needs the testing tools.
+		std::optional<std::filesystem::path> PerfOut;
 	};
 
 	// Plays a project's scene: runtime simulation, rendering to the window (or offscreen when

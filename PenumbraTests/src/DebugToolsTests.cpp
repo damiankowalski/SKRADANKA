@@ -12,6 +12,7 @@
 #include "Penumbra/Renderer/DebugDraw.h"
 
 #include <imgui.h>
+#include <nlohmann/json.hpp>
 #include <imgui_internal.h>
 
 #include <algorithm>
@@ -122,6 +123,44 @@ TEST_SUITE("Debug")
 		for (int frame = 0; frame < 40; ++frame)
 			noGpu.AddFrame(sample, frame / 60.0, usage);
 		CHECK_FALSE(noGpu.GetSummary().GpuMsAverage.has_value());
+	}
+
+	TEST_CASE("Each refresh of the performance monitor is one line of the frame-statistics log (--perf-out)")
+	{
+		PerformanceMonitor monitor(1);
+		Platform::ProcessUsage usage;
+		usage.ResidentBytes = 256ull << 20;
+		PerformanceSample sample;
+		sample.FrameMs = 12.5f;
+		sample.UpdateMs = 1.0f;
+		sample.RenderMs = 3.0f;
+		sample.GpuMs = 11.0f;
+		CHECK(monitor.GetSummary().Refresh == 0);
+		for (int frame = 0; frame <= 40; ++frame) // 41 frames at 80 FPS: one refresh after half a second
+			monitor.AddFrame(sample, frame / 80.0, usage);
+		CHECK(monitor.GetSummary().Refresh == 1);
+
+		const PerformanceRenderCounts counts{ 2303, 49400, 10, 53, 27, 71 };
+		const glm::vec3 player(-60.0f, 0.05f, -3.0f);
+		const nlohmann::json line = nlohmann::json::parse(PerformanceLogLine(110.123f, monitor.GetSummary(), counts, player));
+		CHECK(line["t"].get<double>() == doctest::Approx(110.12));
+		CHECK(line["frame_ms"].get<double>() == doctest::Approx(12.5));
+		CHECK(line["gpu_ms"].get<double>() == doctest::Approx(11.0));
+		CHECK(line["update_ms"].get<double>() == doctest::Approx(1.0));
+		CHECK(line["draws"].get<int>() == 2303);
+		CHECK(line["left_out_lamps"].get<int>() == 27);
+		CHECK(line["shadow_views"].get<int>() == 53);
+		CHECK(line["resident_mb"].get<double>() == doctest::Approx(256.0));
+		CHECK(line["player"][0].get<double>() == doctest::Approx(-60.0));
+
+		// No GPU timer and no player: the line says so.
+		PerformanceMonitor noGpu(1);
+		sample.GpuMs.reset();
+		for (int frame = 0; frame <= 40; ++frame)
+			noGpu.AddFrame(sample, frame / 80.0, usage);
+		const nlohmann::json bare = nlohmann::json::parse(PerformanceLogLine(1.0f, noGpu.GetSummary(), counts, std::nullopt));
+		CHECK(bare["gpu_ms"].is_null());
+		CHECK_FALSE(bare.contains("player"));
 	}
 
 	TEST_CASE("The process's CPU time and memory are read from the operating system")

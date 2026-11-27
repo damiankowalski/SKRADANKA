@@ -42,7 +42,10 @@ namespace {
 			"  --debug-layer            enable the D3D12/NVRHI validation layers\n"
 			"  --dev                    testing tools in a shipping build (F3 performance, F4 debug panel,\n"
 			"                           F5 freelook, F6 pause); development builds always have them\n"
-			"  --debug-ui <list>        open testing tools at start: performance,panel,freelook\n");
+			"  --debug-ui <list>        open testing tools at start: performance,panel,freelook; notarget:\n"
+			"                           the guards ignore the thief\n"
+			"  --perf-out <file>        frame statistics as JSON lines, twice a second (Tools/Benchmark.py);\n"
+			"                           needs a window and the testing tools\n");
 	}
 
 	float ParseFloat(const CommandLine& args, std::string_view name, float fallback)
@@ -106,6 +109,8 @@ namespace {
 			options.ScreenshotPath = *screenshot;
 		if (const std::optional<std::string> playtestOut = args.GetValue("playtest-out"))
 			options.PlaytestOut = *playtestOut;
+		if (const std::optional<std::string> perfOut = args.GetValue("perf-out"))
+			options.PerfOut = *perfOut;
 		options.Width = spec.Width;
 		options.Height = spec.Height;
 		if (const std::optional<int> seed = args.GetInt("seed"))

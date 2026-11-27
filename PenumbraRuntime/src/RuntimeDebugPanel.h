@@ -14,6 +14,8 @@
 #include <imgui.h>
 
 #include <deque>
+#include <filesystem>
+#include <fstream>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -45,8 +47,11 @@ namespace Penumbra {
 		RuntimeDebugPanel(const RuntimeDebugPanel&) = delete;
 		RuntimeDebugPanel& operator=(const RuntimeDebugPanel&) = delete;
 
-		// Opens tools by name, comma separated: "performance", "panel", "freelook" (unknown names are logged).
+		// Opens tools by name, comma separated: "performance", "panel", "freelook", and "notarget" (the guards
+		// ignore the thief); unknown names are logged.
 		void Open(std::string_view tools);
+		// Writes the frame statistics there, one JSON line per refresh of the performance monitor (--perf-out).
+		bool StartPerformanceLog(const std::filesystem::path& path);
 		// A function key the panel owns; true when it was handled.
 		bool OnKeyPressed(KeyCode key, Scene* scene);
 		// A new scene started: settings that live in the scene (perception's notarget) are applied again.
@@ -95,6 +100,8 @@ namespace Penumbra {
 		bool m_ShowPerformance = false;
 		PerformanceMonitor m_Monitor;
 		PerformanceSample m_PendingSample;
+		std::ofstream m_PerformanceLog;
+		uint64_t m_LoggedRefresh = 0;
 		VideoMemoryInfo m_VideoMemory;
 		bool m_HasVideoMemory = false;
 		double m_VideoMemoryTime = -1.0;

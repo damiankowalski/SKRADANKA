@@ -1687,8 +1687,9 @@ def m1_people(doc):
     add_purse(doc, guards["UpperGuard"], 75)
 
 
-def build_mission1():
-    """The first mission's blockout (Scripts/Missions/Mission1.lua, playtester routes in Playtest/Mission1)."""
+def mission1_document():
+    """The first mission's blockout as a document (Scripts/Missions/Mission1.lua, playtester routes in
+    Playtest/Mission1); the stress test adds to it."""
     doc = Document("PenumbraScene")
     add_environment(doc)
     doc.add("Camera", Transform=transform((-101, 3, -10)), Camera={"VerticalFOV": 65.0, "NearClip": 0.05, "FarClip": 300.0})
@@ -1717,7 +1718,136 @@ def build_mission1():
                                                       "Properties": {"mission": "Scripts/Missions/Mission1"}})
     doc.add("Ambience", Transform=transform((0, 3, 0)),
             AudioSource={"Clip": "Audio/Wind.wav", "Loop": True, "PlayOnStart": True, "Spatial": False, "Volume": 0.2})
-    doc.save(M1_SCENE)
+    return doc
+
+
+def build_mission1():
+    mission1_document().save(M1_SCENE)
+
+
+# --------------------------------------------------------------------------------------------
+# The stress test (A8, docs/research/StressTest.md): the first mission's blockout filled to the density the finished
+# map is expected to have (MissionOne.md: 1,500-2,500 pieces of architecture, 1,500-3,000 props, 150-250 lights), as
+# plain boxes, cylinders and spheres, each its own entity. Every engine package for the big map (instancing, light
+# culling, LOD, room-bounded lights) is measured on it before and after, along the same playtester route. The added
+# pieces have no colliders, so the navmesh, the patrols and the route stay those of the blockout.
+# --------------------------------------------------------------------------------------------
+
+STRESS_SCENE = "Scenes/Stress.pscene"
+# Where props and candles go: (x0, z0, x1, z1), floor height, props, candles. Rooms, the streets' edges, the vineyard.
+STRESS_AREAS = (
+    ((-107.5, -19.5, -94.5, -8.5), 0.0, 160, 10),   # the tavern
+    ((-27.5, -5.5, -4.5, 5.5), 0.0, 150, 24),       # the church
+    ((-11.6, -7.6, -4.4, -0.4), -4.0, 60, 4),       # the crypt
+    ((-11.6, -31.6, -2.4, -24.4), -4.0, 80, 6),     # the ossuary
+    ((50.3, -9.7, 61.7, -0.3), 0.0, 110, 8),        # dining hall
+    ((62.3, -9.7, 79.7, -0.3), 0.0, 130, 8),        # drawing room
+    ((50.3, 0.3, 57.7, 9.7), 0.0, 120, 5),          # kitchen
+    ((62.3, 0.3, 69.7, 9.7), 0.0, 50, 4),           # hall (beside the stairs)
+    ((74.3, 0.3, 79.7, 9.7), 0.0, 50, 3),           # bathroom and cloakroom
+    ((50.3, -9.7, 63.7, -0.3), 4.0, 160, 6),        # library
+    ((64.3, -9.7, 79.7, -0.3), 4.0, 110, 6),        # bedroom
+    ((50.3, 3.3, 57.7, 9.7), 4.0, 50, 3),           # maid's room
+    ((62.3, 3.3, 69.7, 9.7), 4.0, 50, 3),           # guest room
+    ((74.3, 3.3, 79.7, 9.7), 4.0, 40, 2),           # upstairs bathroom
+    ((-92, -7.9, -40, -7.0), 0.0, 180, 8),          # the main street's north edge
+    ((-108, 1.0, -44, 1.9), 0.0, 180, 8),           # its south edge
+    ((-94, -31.9, -44, -31.0), 0.0, 120, 5),        # the back lane
+    ((-90, 25.0, -44, 25.9), 0.0, 100, 4),          # the south lane
+    ((-44, -16, -28, 16), 0.0, 120, 8),             # the square
+    ((-27.5, -29.5, -1.5, -6.5), 0.0, 120, 6),      # the churchyard
+    ((5, -19, 43, 19), 0.0, 260, 0),                # the vineyard
+    ((50, 10.5, 66, 22), 0.0, 100, 4),              # the kitchen yard
+)
+STRESS_COLOURS = ((0.32, 0.22, 0.13), (0.45, 0.42, 0.38), (0.2, 0.25, 0.3), (0.5, 0.45, 0.3), (0.3, 0.1, 0.08), (0.6, 0.6, 0.58),
+                  (0.15, 0.2, 0.1))
+
+
+def stress_architecture(doc, rng):
+    """Detail on the blockout's walls and houses, as the modular kit will have it: a skirting and a cornice on both
+    faces of every wall, pilasters, window frames on two storeys and a cornice on the houses, posts along the vines."""
+    count = 0
+    for entity in list(doc.entities):
+        name = entity["Components"]["Tag"]["Tag"]
+        if "Parent" in entity or "Transform" not in entity["Components"]:
+            continue
+        t = entity["Components"]["Transform"]
+        (x, y, z), (sx, sy, sz) = t["Translation"], t["Scale"]
+        if "Wall" in name and sy >= 2.5 and min(sx, sz) <= 0.5:
+            along_x = sx >= sz
+            length = sx if along_x else sz
+            if length < 0.5:
+                continue
+            for side in (-1, 1):
+                offset = (sz if along_x else sx) / 2 + 0.04
+                for height, thickness in ((y - sy / 2 + 0.1, 0.2), (y + sy / 2 - 0.15, 0.3)):
+                    position = (x, height, z + side * offset) if along_x else (x + side * offset, height, z)
+                    size = (length, thickness, 0.08) if along_x else (0.08, thickness, length)
+                    doc.add(f"Trim{count}", Transform=transform(position, scale=size), Mesh={"Mesh": "builtin:cube", "CastShadows": False},
+                            Material=material(STRESS_COLOURS[count % 3], roughness=0.8))
+                    count += 1
+        elif name.startswith("House") and name[5:].isdigit():
+            for side in (-1, 1):
+                for along_x in (True, False):
+                    length = sx if along_x else sz
+                    face = (z + side * (sz / 2 + 0.08)) if along_x else (x + side * (sx / 2 + 0.08))
+                    steps = int(length // 2.5)
+                    for i in range(steps + 1):
+                        u = (x - sx / 2 if along_x else z - sz / 2) + i * length / max(steps, 1)
+                        position = (u, sy / 2, face) if along_x else (face, sy / 2, u)
+                        size = (0.3, sy, 0.16) if along_x else (0.16, sy, 0.3)
+                        doc.add(f"Pilaster{count}", Transform=transform(position, scale=size), Mesh={"Mesh": "builtin:cube"},
+                                Material=material(STRESS_COLOURS[1], roughness=0.9))
+                        count += 1
+                        if i == steps:
+                            continue
+                        for storey in (2.0, 5.0):  # a window frame in the bay, on each storey
+                            middle = u + length / max(steps, 1) / 2
+                            position = (middle, storey, face) if along_x else (face, storey, middle)
+                            size = (0.9, 1.3, 0.1) if along_x else (0.1, 1.3, 0.9)
+                            doc.add(f"WindowFrame{count}", Transform=transform(position, scale=size),
+                                    Mesh={"Mesh": "builtin:cube", "CastShadows": False}, Material=material(STRESS_COLOURS[0]))
+                            count += 1
+                    position = (x, sy - 0.2, face) if along_x else (face, sy - 0.2, z)
+                    size = (length, 0.4, 0.3) if along_x else (0.3, 0.4, length)
+                    doc.add(f"Cornice{count}", Transform=transform(position, scale=size), Mesh={"Mesh": "builtin:cube"},
+                            Material=material(STRESS_COLOURS[1], roughness=0.9))
+                    count += 1
+        elif name.startswith("Vines"):
+            for i in range(int(sx // 2.5) + 1):
+                doc.add(f"VinePost{count}", Transform=transform((x - sx / 2 + i * 2.5, 0.9, z), scale=(0.08, 1.8, 0.08)),
+                        Mesh={"Mesh": "builtin:cylinder", "CastShadows": False}, Material=material(STRESS_COLOURS[0]))
+                count += 1
+    return count
+
+
+def stress_props(doc, rng):
+    """Props and candles scattered over STRESS_AREAS: on the floor and on shelves along the walls."""
+    props = lamps = 0
+    shapes = ("builtin:cube", "builtin:cylinder", "builtin:sphere")
+    for (x0, z0, x1, z1), floor, count, candles in STRESS_AREAS:
+        for _ in range(count):
+            size = rng.uniform(0.08, 0.6)
+            x, z = rng.uniform(x0, x1), rng.uniform(z0, z1)
+            height = floor + (rng.uniform(0.8, 2.0) if rng.random() < 0.35 else 0.0) + size / 2
+            doc.add(f"Prop{props}", Transform=transform((x, height, z), (0, rng.uniform(0, 360), 0), (size, size * rng.uniform(0.6, 1.6), size)),
+                    Mesh={"Mesh": shapes[props % 3], "CastShadows": size > 0.3}, Material=material(STRESS_COLOURS[props % len(STRESS_COLOURS)]))
+            props += 1
+        for _ in range(candles):
+            x, z = rng.uniform(x0, x1), rng.uniform(z0, z1)
+            lamp(doc, f"Candle{lamps}", (x, floor + rng.uniform(1.0, 2.2), z), intensity=rng.uniform(2.0, 4.0),
+                 light_range=rng.uniform(4.0, 6.0))
+            lamps += 1
+    return props, lamps
+
+
+def build_stress():
+    doc = mission1_document()
+    rng = random.Random(2026)
+    pieces = stress_architecture(doc, rng)
+    props, lamps = stress_props(doc, rng)
+    doc.save(STRESS_SCENE)
+    return pieces, props, lamps
 
 
 def build_project_file():
@@ -1738,5 +1868,6 @@ if __name__ == "__main__":
     build_cloister()
     build_mood_lab()
     build_mission1()
+    build_stress()
     build_audio()
     print(f"Demo project written to {ROOT}")

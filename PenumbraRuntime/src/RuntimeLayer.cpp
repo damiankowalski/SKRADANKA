@@ -36,7 +36,18 @@ namespace Penumbra {
 			{
 				m_DebugPanel = CreateScope<RuntimeDebugPanel>(window->GetNativeWindow(), app.GetRenderDevice().GetDevice(), m_Settings);
 				m_DebugPanel->Open(m_Options.DebugToolsOpen);
+				if (m_Options.PerfOut && !m_DebugPanel->StartPerformanceLog(*m_Options.PerfOut))
+				{
+					Finish(1);
+					return;
+				}
 			}
+		}
+		if (m_Options.PerfOut && !m_DebugPanel)
+		{
+			PN_CORE_CRITICAL("--perf-out needs a window and the testing tools (a development build, or --dev)");
+			Finish(1);
+			return;
 		}
 		m_LastFrame = std::chrono::steady_clock::now();
 

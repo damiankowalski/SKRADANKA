@@ -6,6 +6,7 @@
 
 #include <array>
 #include <optional>
+#include <string>
 
 namespace Penumbra {
 
@@ -43,7 +44,8 @@ namespace Penumbra {
 			float CpuMachinePercent = 0.0f; // share of every logical core
 			uint64_t ResidentBytes = 0;
 			uint64_t PeakResidentBytes = 0;
-			uint32_t Frames = 0; // frames the summary covers
+			uint32_t Frames = 0;  // frames the summary covers
+			uint64_t Refresh = 0; // counts the refreshes: a new number, a new summary
 		};
 
 		explicit PerformanceMonitor(uint32_t logicalCores = Platform::GetLogicalCoreCount());
@@ -76,5 +78,22 @@ namespace Penumbra {
 		double m_CpuAtWindowStart = 0.0;
 		Summary m_Summary;
 	};
+
+	// What the renderer did in the last frame (SceneRendererStatistics), for the frame-statistics log.
+	struct PerformanceRenderCounts
+	{
+		uint32_t DrawCalls = 0;
+		uint32_t Triangles = 0;
+		uint32_t Lights = 0;
+		uint32_t ShadowViews = 0;
+		uint32_t LeftOutLamps = 0;
+		uint32_t CulledObjects = 0;
+	};
+
+	// One JSON line of the frame-statistics log (PenumbraRuntime --perf-out, Tools/Benchmark.py): the game's
+	// clock, the last summary (averages over its RefreshInterval), the renderer's counts and the player's
+	// position when the scene has one.
+	std::string PerformanceLogLine(float gameSeconds, const PerformanceMonitor::Summary& summary, const PerformanceRenderCounts& render,
+		const std::optional<glm::vec3>& player);
 
 }

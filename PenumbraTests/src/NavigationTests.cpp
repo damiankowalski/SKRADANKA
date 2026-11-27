@@ -243,6 +243,26 @@ TEST_SUITE("Navigation")
 		lab.SceneInstance.OnRuntimeStop();
 	}
 
+	TEST_CASE("Taking something smaller than an agent off a table does not rebuild the navmesh; a wide obstacle does")
+	{
+		NavLab lab;
+		Entity goblet = Test::CreateBox(lab.SceneInstance, "Goblet", { 3.0f, 0.12f, 3.0f }, { 0.06f, 0.12f, 0.06f });
+		Entity chest = Test::CreateBox(lab.SceneInstance, "Chest", { -3.0f, 0.4f, 3.0f }, { 0.3f, 0.4f, 0.25f }); // 0.78 m across
+		lab.SceneInstance.OnRuntimeStart();
+		NavigationSystem& navigation = lab.Navigation();
+		REQUIRE(navigation.GetNavMesh());
+		CHECK(navigation.GetBuildCount() == 1);
+
+		lab.SceneInstance.DestroyEntity(goblet); // 0.17 m across: nothing to rebuild
+		Test::Simulate(lab.SceneInstance, 0.5f);
+		CHECK(navigation.GetBuildCount() == 1);
+
+		lab.SceneInstance.DestroyEntity(chest); // wider than an agent (0.7 m)
+		Test::Simulate(lab.SceneInstance, 0.5f);
+		CHECK(navigation.GetBuildCount() == 2);
+		lab.SceneInstance.OnRuntimeStop();
+	}
+
 	TEST_CASE("Sound travels around walls along the navmesh")
 	{
 		NavLab lab;

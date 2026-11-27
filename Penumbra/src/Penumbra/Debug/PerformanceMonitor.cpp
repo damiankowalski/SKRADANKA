@@ -1,6 +1,8 @@
 #include "pnpch.h"
 #include "Penumbra/Debug/PerformanceMonitor.h"
 
+#include <nlohmann/json.hpp>
+
 namespace Penumbra {
 
 	namespace {
@@ -79,6 +81,7 @@ namespace Penumbra {
 		summary.CpuMachinePercent = summary.CpuCorePercent / static_cast<float>(m_LogicalCores);
 		summary.ResidentBytes = usage.ResidentBytes;
 		summary.PeakResidentBytes = usage.PeakResidentBytes;
+		++summary.Refresh;
 
 		m_Frames = 0;
 		m_FrameMsSum = m_UpdateMsSum = m_RenderMsSum = m_GpuMsSum = 0.0;
@@ -86,6 +89,33 @@ namespace Penumbra {
 		m_SystemsSum = {};
 		m_WindowStart = wallSeconds;
 		m_CpuAtWindowStart = usage.CpuSeconds;
+	}
+
+	std::string PerformanceLogLine(float gameSeconds, const PerformanceMonitor::Summary& summary, const PerformanceRenderCounts& render,
+		const std::optional<glm::vec3>& player)
+	{
+		auto round2 = [](double value) { return std::round(value * 100.0) / 100.0; };
+		nlohmann::json line = {
+			{ "t", round2(gameSeconds) },
+			{ "frames", summary.Frames },
+			{ "fps", round2(summary.Fps) },
+			{ "frame_ms", round2(summary.FrameMsAverage) },
+			{ "frame_ms_min", round2(summary.FrameMsMin) },
+			{ "frame_ms_max", round2(summary.FrameMsMax) },
+			{ "update_ms", round2(summary.UpdateMsAverage) },
+			{ "render_ms", round2(summary.RenderMsAverage) },
+			{ "draws", render.DrawCalls },
+			{ "triangles", render.Triangles },
+			{ "lights", render.Lights },
+			{ "shadow_views", render.ShadowViews },
+			{ "left_out_lamps", render.LeftOutLamps },
+			{ "culled", render.CulledObjects },
+			{ "resident_mb", round2(static_cast<double>(summary.ResidentBytes) / (1024.0 * 1024.0)) },
+		};
+		line["gpu_ms"] = summary.GpuMsAverage ? nlohmann::json(round2(*summary.GpuMsAverage)) : nlohmann::json(nullptr);
+		if (player)
+			line["player"] = { round2(player->x), round2(player->y), round2(player->z) };
+		return line.dump();
 	}
 
 }

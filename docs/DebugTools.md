@@ -12,8 +12,12 @@ window (nothing is drawn headless).
 | F6 | pause / resume the simulation |
 | F7 | fog of war on / off (what the thief sees, or the whole level) |
 
-`--debug-ui performance,panel,freelook` opens any of them at start. F1 (the game's controls panel) and F12
-(screenshot) stay with the game.
+`--debug-ui performance,panel,freelook` opens any of them at start; `notarget` ticks the panel's "Guards ignore the
+thief" from the start. F1 (the game's controls panel) and F12 (screenshot) stay with the game.
+
+`--perf-out <file>` writes the performance tool's numbers twice a second as JSON lines (the game's clock, frame,
+update, CPU render and GPU times, draw calls, triangles, shadow views, culled objects, lamps left out, memory and the
+thief's position); `Tools/Playtest/benchmark.py` reads them along a playtester route (docs/Playtest.md, "Benchmark").
 
 ## Size, sharpness and the user's settings
 

@@ -58,7 +58,12 @@ namespace Penumbra {
 		const NavMesh* GetBakedNavMesh() const { return m_NavMesh.get(); }
 
 		void Update(Timestep ts);
+		// A solid static body going away marks the navmesh for a rebuild, unless it is narrower than an agent
+		// (2 x AgentRadius): a goblet taken off a table cannot open or close a way, and the whole navmesh is
+		// rebuilt at once (about 150 ms on the first mission's map).
 		void OnEntityDestroyed(Entity entity);
+		// How many times the navmesh has been built (the first bake included).
+		uint32_t GetBuildCount() const { return m_BuildCount; }
 
 		// Starts walking the agent (a CharacterController; a NavAgent is added when missing) to
 		// the destination. Returns false, with the agent's status set to Failed, when there is no
@@ -92,6 +97,7 @@ namespace Penumbra {
 		Scope<NavMesh> m_NavMesh;
 		bool m_BakeAttempted = false;
 		bool m_Dirty = false;
+		uint32_t m_BuildCount = 0;
 		float m_RebuildTimer = 0.0f;
 		uint32_t m_RandomState = 0x2545F491u;
 		std::unordered_map<UUID, AgentState> m_Agents;

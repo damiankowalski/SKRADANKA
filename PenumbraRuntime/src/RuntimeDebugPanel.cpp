@@ -95,11 +95,27 @@ namespace Penumbra {
 				m_PanelOpen = true;
 			else if (name == "freelook")
 				m_FreeLook = true;
+			else if (name == "notarget") // the guards ignore the thief (the panel's checkbox), e.g. for benchmarks
+				m_IgnoreThief = true;
 			else if (!name.empty())
-				PN_CORE_WARN("--debug-ui: unknown tool '{}' (performance, panel, freelook)", name);
+				PN_CORE_WARN("--debug-ui: unknown tool '{}' (performance, panel, freelook, notarget)", name);
 			start = end + 1;
 		}
 		Input::SetGameInputBlocked(BlocksGameInput());
+	}
+
+	bool RuntimeDebugPanel::StartPerformanceLog(const std::filesystem::path& path)
+	{
+		std::error_code ignored;
+		if (path.has_parent_path())
+			std::filesystem::create_directories(path.parent_path(), ignored);
+		m_PerformanceLog.open(path, std::ios::binary | std::ios::trunc);
+		if (!m_PerformanceLog)
+		{
+			PN_CORE_ERROR("--perf-out: cannot write {}", path.string());
+			return false;
+		}
+		return true;
 	}
 
 	bool RuntimeDebugPanel::OnKeyPressed(KeyCode key, Scene* scene)
@@ -271,6 +287,18 @@ namespace Penumbra {
 		m_PendingSample.RenderMs = renderMs;
 		m_PendingSample.GpuMs = renderer.GetGpuTimeMs();
 		m_Monitor.AddFrame(m_PendingSample, WallSeconds(), Platform::GetProcessUsage());
+		if (m_PerformanceLog.is_open() && m_Monitor.GetSummary().Refresh != m_LoggedRefresh)
+		{
+			m_LoggedRefresh = m_Monitor.GetSummary().Refresh;
+			const SceneRendererStatistics& stats = renderer.GetStatistics();
+			const PerformanceRenderCounts counts{ stats.DrawCalls, stats.Triangles, stats.Lights, stats.ShadowViews, stats.LeftOutLamps,
+				stats.CulledObjects };
+			std::optional<glm::vec3> player;
+			if (Entity entity = scene.FindEntityByName("Player"))
+				player = scene.GetWorldPosition(entity);
+			m_PerformanceLog << PerformanceLogLine(scene.GetTime(), m_Monitor.GetSummary(), counts, player) << '\n';
+			m_PerformanceLog.flush();
+		}
 
 		if (m_ShowPerformance)
 			DrawPerformance(scene, renderer, device);

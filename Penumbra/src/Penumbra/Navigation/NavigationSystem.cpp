@@ -19,6 +19,22 @@ namespace Penumbra {
 			return !body || (body->Type == RigidBodyType::Static && !body->IsTrigger);
 		}
 
+		// The widest horizontal span of an entity's collider in the world (metres), rotation allowed for;
+		// nullopt for a mesh collider (its size is the mesh's).
+		std::optional<float> ColliderSpan(Scene& scene, Entity entity)
+		{
+			const glm::mat4 world = scene.GetWorldTransform(entity);
+			const glm::vec3 scale(glm::length(glm::vec3(world[0])), glm::length(glm::vec3(world[1])), glm::length(glm::vec3(world[2])));
+			const float widest = std::max(scale.x, scale.z);
+			if (const auto* box = entity.TryGetComponent<BoxColliderComponent>())
+				return 2.0f * glm::length(glm::vec2(box->HalfExtents.x * scale.x, box->HalfExtents.z * scale.z));
+			if (const auto* sphere = entity.TryGetComponent<SphereColliderComponent>())
+				return 2.0f * sphere->Radius * std::max(widest, scale.y);
+			if (const auto* capsule = entity.TryGetComponent<CapsuleColliderComponent>())
+				return 2.0f * (capsule->Radius + capsule->HalfHeight) * std::max(widest, scale.y);
+			return std::nullopt;
+		}
+
 	}
 
 	NavigationSystem::NavigationSystem(Scene& scene)
@@ -70,6 +86,7 @@ namespace Penumbra {
 		}
 		PN_CORE_TRACE("Navmesh: {} polygons from {} triangles in {:.1f} ms", navMesh->GetPolygonCount(), indices.size() / 3, milliseconds);
 		m_NavMesh = std::move(navMesh);
+		++m_BuildCount;
 
 		// Paths computed on the old navmesh may cross what changed: refresh them now.
 		for (auto& [uuid, state] : m_Agents)
@@ -90,7 +107,14 @@ namespace Penumbra {
 	void NavigationSystem::OnEntityDestroyed(Entity entity)
 	{
 		m_Agents.erase(entity.GetUUID());
-		if (m_NavMesh && IsStaticSolidCollider(entity))
+		if (!m_NavMesh || !IsStaticSolidCollider(entity))
+			return;
+		float agentRadius = NavMeshBuildSettings{}.AgentRadius;
+		auto view = m_Scene.GetRegistry().view<NavMeshComponent>();
+		if (const entt::entity first = view.front(); first != entt::null)
+			agentRadius = view.get<NavMeshComponent>(first).AgentRadius;
+		const std::optional<float> span = ColliderSpan(m_Scene, entity);
+		if (!span || *span >= 2.0f * agentRadius)
 			m_Dirty = true;
 	}
 
