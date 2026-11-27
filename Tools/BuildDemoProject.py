@@ -319,11 +319,15 @@ def add_purse(doc, npc, value, side=1.0, name="Purse"):
                     mesh="builtin:sphere", parent=npc, pickpocket=True)
 
 
-def add_servant(doc, name, position, yaw, waypoints, bell="Bell"):
-    """A servant doing chores between waypoints; alarmed, he runs to the bell (Scripts/Servant.lua)."""
+def add_servant(doc, name, position, yaw, waypoints, bell="Bell", bell_reach=None):
+    """A servant doing chores between waypoints; alarmed, he runs to the bell (Scripts/Servant.lua), which calls
+    every guard, or those within bell_reach metres of it."""
+    properties = {"waypoints": ",".join(waypoints), "bell": bell}
+    if bell_reach is not None:
+        properties["bell_reach"] = bell_reach
     servant = doc.add(name, Transform=transform(position, (0, yaw, 0)), CharacterController={"Radius": 0.3, "Height": 1.8},
                       Perception={"FieldOfView": 140.0}, StimResponse=NPC_RESPONSES, Ragdoll={},
-                      Script={"Script": "Scripts/Servant.lua", "Properties": {"waypoints": ",".join(waypoints), "bell": bell}})
+                      Script={"Script": "Scripts/Servant.lua", "Properties": properties})
     character_model(doc, servant, COOK)
     return servant
 
@@ -545,7 +549,8 @@ def build_menu():
     box(doc, "Ground", (0, -0.5, 0), (20, 1, 20), (0.2, 0.19, 0.18))
     box(doc, "Wall", (0, 3, -2), (20, 6, 0.6), (0.3, 0.29, 0.28))
     torch_prefab_entities(doc, (2.5, 0, -1.5))
-    doc.add("Menu", Transform=transform(), Script={"Script": "Scripts/Menu.lua", "Properties": {"mission": "Scripts/Missions/Manor"}})
+    doc.add("Menu", Transform=transform(), Script={"Script": "Scripts/Menu.lua",
+                                                    "Properties": {"missions": "Scripts/Missions/Manor,Scripts/Missions/Mission1"}})
     doc.save("Scenes/Menu.pscene")
 
 
@@ -1174,6 +1179,547 @@ def build_mood_lab():
     doc.save("Scenes/MoodLab.pscene")
 
 
+# --------------------------------------------------------------------------------------------
+# Mission 1, the blockout (docs/research/MissionOne.md, "Blockout"): the whole route in grey boxes, playable with
+# today's mechanics. West to east: the tavern and the old town's streets, the church, the catacombs under it and the
+# churchyard, a collapsed tunnel beneath the city wall, the mayor's vineyard and his manor (two floors, two
+# staircases). Ground level is y = 0 above a 1 m slab; the catacombs' floor is at y = -4, under the slab.
+# --------------------------------------------------------------------------------------------
+
+PLAN_GRID = 0.5      # floor plans are drawn on this grid (metres)
+PLAN_WALL = 0.3      # wall thickness, centred on the plan's lines
+STEP_RISE = 0.16     # every staircase: 25 steps between floors 4 m apart (0.2 m risers sit on the navmesh's climb limit)
+M1_SCENE = "Scenes/Mission1.pscene"
+M1_COLOURS = {"street": (0.2, 0.2, 0.19), "house": (0.3, 0.27, 0.24), "plaster": (0.36, 0.33, 0.29),
+              "church": (0.38, 0.37, 0.35), "rock": (0.2, 0.19, 0.17), "wood": (0.3, 0.2, 0.12),
+              "vine": (0.13, 0.17, 0.08), "iron": (0.1, 0.1, 0.11), "bone": (0.55, 0.52, 0.45), "cloth": (0.35, 0.09, 0.08)}
+
+
+def plan_cells(rects):
+    """The grid cells covered by rectangles (x0, z0, x1, z1)."""
+    cells = set()
+    for x0, z0, x1, z1 in rects:
+        for i in range(round(x0 / PLAN_GRID), round(x1 / PLAN_GRID)):
+            for k in range(round(z0 / PLAN_GRID), round(z1 / PLAN_GRID)):
+                cells.add((i, k))
+    return cells
+
+
+def merge_runs(indices):
+    """Consecutive integers merged into half-open runs (start, end)."""
+    runs = []
+    for i in sorted(indices):
+        if runs and runs[-1][1] == i:
+            runs[-1][1] = i + 1
+        else:
+            runs.append([i, i + 1])
+    return [tuple(run) for run in runs]
+
+
+def subtract(interval, cuts):
+    """An interval minus the cut intervals: the pieces left, each (start, end, start is original, end is original)."""
+    pieces = [(interval[0], interval[1], True, True)]
+    for c0, c1 in cuts:
+        kept = []
+        for a, b, keep_a, keep_b in pieces:
+            if c1 <= a or c0 >= b:
+                kept.append((a, b, keep_a, keep_b))
+                continue
+            if c0 > a:
+                kept.append((a, c0, keep_a, False))
+            if c1 < b:
+                kept.append((c1, b, False, keep_b))
+        pieces = kept
+    return pieces
+
+
+def floor_plan(doc, prefix, rooms, y, height, colour, openings=()):
+    """The walls of one storey from its plan. `rooms` maps a name to rectangles on the PLAN_GRID: a wall stands on every
+    grid line between two different rooms and between a room and the outside. `openings` are (x, z, width, top): a gap
+    centred at (x, z) on a wall line, `top` metres high, with a lintel above it up to the wall's height."""
+    owner = {}
+    for name, rects in rooms.items():
+        for cell in plan_cells(rects):
+            owner[cell] = name
+    lines = {"x": {}, "z": {}}  # walls along Z stand on lines of constant x, and the other way round
+    for (i, k), name in owner.items():
+        if owner.get((i + 1, k)) != name:
+            lines["x"].setdefault(i + 1, set()).add(k)
+        if (i - 1, k) not in owner:
+            lines["x"].setdefault(i, set()).add(k)
+        if owner.get((i, k + 1)) != name:
+            lines["z"].setdefault(k + 1, set()).add(i)
+        if (i, k - 1) not in owner:
+            lines["z"].setdefault(k, set()).add(i)
+    count = 0
+    for axis in ("x", "z"):
+        for line, segments in sorted(lines[axis].items()):
+            at = line * PLAN_GRID
+            for a, b in merge_runs(segments):
+                start, end = a * PLAN_GRID, b * PLAN_GRID
+                cuts = []
+                for ox, oz, width, top in openings:
+                    across, along = (ox, oz) if axis == "x" else (oz, ox)
+                    if abs(across - at) < 1e-6 and start < along < end:
+                        cuts.append((along - width / 2, along + width / 2, top))
+                for lo, hi, keep_lo, keep_hi in subtract((start, end), [(c0, c1) for c0, c1, _ in sorted(cuts)]):
+                    lo -= PLAN_WALL / 2 if keep_lo else 0.0  # original ends reach into the crossing wall: no gaps at corners
+                    hi += PLAN_WALL / 2 if keep_hi else 0.0
+                    middle, length = (lo + hi) / 2, hi - lo
+                    position = (at, y + height / 2, middle) if axis == "x" else (middle, y + height / 2, at)
+                    size = (PLAN_WALL, height, length) if axis == "x" else (length, height, PLAN_WALL)
+                    box(doc, f"{prefix}Wall{count}", position, size, colour)
+                    count += 1
+                for c0, c1, top in cuts:
+                    if top < height:
+                        middle, length = (c0 + c1) / 2, c1 - c0
+                        position = (at, y + (top + height) / 2, middle) if axis == "x" else (middle, y + (top + height) / 2, at)
+                        size = (PLAN_WALL, height - top, length) if axis == "x" else (length, height - top, PLAN_WALL)
+                        box(doc, f"{prefix}Lintel{count}", position, size, colour)
+                        count += 1
+
+
+def slab(doc, name, rect, top, thickness, colour, holes=(), surface=None):
+    """A horizontal slab over a rectangle with rectangular holes (stairwells), as boxes around them."""
+    x0, z0, x1, z1 = rect
+    xs = sorted({x0, x1} | {h[0] for h in holes if x0 < h[0] < x1} | {h[2] for h in holes if x0 < h[2] < x1})
+    count = 0
+    for a, b in zip(xs, xs[1:]):
+        cuts = sorted((max(h[1], z0), min(h[3], z1)) for h in holes if h[0] < b and h[2] > a and h[1] < z1 and h[3] > z0)
+        for lo, hi, _, _ in subtract((z0, z1), cuts):
+            box(doc, f"{name}{count}", ((a + b) / 2, top - thickness / 2, (lo + hi) / 2), (b - a, thickness, hi - lo), colour,
+                surface=surface)
+            count += 1
+
+
+def stairs(doc, name, rect, bottom, top, towards, colour):
+    """A straight flight of solid steps over rect (x0, z0, x1, z1), rising from `bottom` to `top` towards "+x", "-x",
+    "+z" or "-z". Each step is a block from `bottom` up to its tread."""
+    x0, z0, x1, z1 = rect
+    count = max(1, round((top - bottom) / STEP_RISE))
+    along_x = towards in ("+x", "-x")
+    length = (x1 - x0) if along_x else (z1 - z0)
+    tread = length / count
+    for s in range(count):
+        height = (top - bottom) * (s + 1) / count
+        # Slice s counts from the low end.
+        if towards in ("+x", "+z"):
+            a = (x0 if along_x else z0) + s * tread
+        else:
+            a = (x1 if along_x else z1) - (s + 1) * tread
+        if along_x:
+            position, size = (a + tread / 2, bottom + height / 2, (z0 + z1) / 2), (tread, height, z1 - z0)
+        else:
+            position, size = ((x0 + x1) / 2, bottom + height / 2, a + tread / 2), (x1 - x0, height, tread)
+        box(doc, f"{name}Step{s + 1}", position, size, colour, surface="Stone" if colour != M1_COLOURS["wood"] else "Wood")
+
+
+def door_in_plan(doc, name, x, z, axis, y=0.0, width=1.4, **door):
+    """A door leaf filling a `width` gap centred at (x, z) of a wall along X (axis "x") or along Z (axis "z")."""
+    if axis == "x":
+        add_door(doc, name, (x - width / 2, y, z), 0, width=width, **door)
+    else:
+        add_door(doc, name, (x, y, z + width / 2), 90, width=width, **door)
+
+
+def double_door_in_plan(doc, name, x, z, axis, label, y=0.0):
+    """Two 1.2 m leaves in a 2.4 m gap centred at (x, z), as add_double_door, at height y."""
+    if axis == "x":
+        add_door(doc, name + "Left", (x - 1.2, y, z), 0, label=label)
+        add_door(doc, name + "Right", (x + 1.2, y, z), 180, label=label)
+    else:
+        add_door(doc, name + "Left", (x, y, z + 1.2), 90, label=label)
+        add_door(doc, name + "Right", (x, y, z - 1.2), -90, label=label)
+
+
+def lamp(doc, name, position, intensity=10.0, light_range=8.0, colour=(1.0, 0.8, 0.55), glow=True, shadows=True):
+    """A hanging lamp or a candle: a point light, with a small glowing body. Every lamp casts shadows, so none lights
+    the room behind a wall (the renderer gives its shadow maps to the lamps reaching the view)."""
+    light = doc.add(name, Transform=transform(position),
+                    PointLight={"Color": list(colour), "Intensity": intensity, "Range": light_range, "Flicker": 0.05,
+                                "CastShadows": shadows})
+    if glow:
+        doc.add("Glow", light, Transform=transform((0, 0.1, 0), scale=(0.18, 0.24, 0.18)), Mesh={"Mesh": "builtin:cube", "CastShadows": False},
+                Material=material((1.0, 0.85, 0.6), emissive=5.0, emissive_color=colour))
+    return light
+
+
+def street_lantern(doc, name, x, z):
+    """A street lantern on an iron post (the city lights its streets with lanterns, not torches)."""
+    post = doc.add(name, Transform=transform((x, 0, z)))
+    doc.add("Post", post, Transform=transform((0, 1.6, 0), scale=(0.12, 3.2, 0.12)), Mesh={"Mesh": "builtin:cylinder"},
+            Material=material(M1_COLOURS["iron"], roughness=0.5, metallic=0.8), BoxCollider={"HalfExtents": [0.5, 0.5, 0.5]})
+    lamp(doc, f"{name}Light", (x, 3.2, z), intensity=14.0, light_range=11.0)
+    return post
+
+
+def lit_window(doc, name, position, size):
+    """A lit window pane on an outer wall: light behind the glass, a silhouette trap at night."""
+    box(doc, name, position, size, (0.9, 0.75, 0.5), emissive=2.5, emissive_color=(1.0, 0.75, 0.45), collider=False)
+
+
+def npc_figure(doc, name, position, yaw, character=COOK):
+    """Someone who only stands there in the blockout (tavern folk wait for the townsfolk package)."""
+    figure = doc.add(name, Transform=transform(position, (0, yaw, 0)),
+                     CapsuleCollider={"Radius": 0.3, "HalfHeight": 0.6, "Offset": [0, 0.9, 0]})
+    character_model(doc, figure, character)
+    return figure
+
+
+def waypoints(doc, prefix, points):
+    """Named waypoints <prefix>1..n at the given points; returns their names."""
+    names = []
+    for index, point in enumerate(points):
+        names.append(f"{prefix}{index + 1}")
+        doc.add(names[-1], Transform=transform(point))
+    return names
+
+
+def m1_city(doc):
+    """The old town west of the city wall: the tavern (the start), the main street, lanes and alleys, the square, the
+    churchyard, and the houses as solid blocks."""
+    c = M1_COLOURS
+    # The tavern: one room, its door on the main street.
+    floor_plan(doc, "Tavern", {"Tavern": [(-108, -20, -94, -8)]}, 0.0, 4.0, c["plaster"], openings=[(-101, -8, 1.4, 2.4)])
+    door_in_plan(doc, "TavernDoor", -101, -8, "x", label="tavern door")
+    slab(doc, "TavernRoof", (-108.15, -20.15, -93.85, -7.85), 4.3, 0.3, c["wood"])
+    floor_patch(doc, "TavernFloor", "Wood", (-101, -14), (13.7, 11.7))
+    box(doc, "TavernBar", (-105.5, 0.55, -14), (1.0, 1.1, 6.0), c["wood"], surface="Wood")
+    box(doc, "TavernHearth", (-101, 0.6, -19.4), (2.4, 1.2, 0.8), c["rock"], emissive=1.2, emissive_color=(1.0, 0.35, 0.1))
+    for index, (x, z) in enumerate(((-99, -12), (-97, -16), (-101, -16), (-96.5, -11))):
+        box(doc, f"TavernTable{index + 1}", (x, 0.4, z), (1.4, 0.8, 0.9), c["wood"], surface="Wood")
+    lamp(doc, "TavernHearthLight", (-101, 1.2, -18.6), intensity=10.0, light_range=9.0, colour=(1.0, 0.5, 0.2), glow=False)
+    lamp(doc, "TavernLamp1", (-104, 3.4, -12), intensity=5.0, light_range=7.0)
+    lamp(doc, "TavernLamp2", (-97, 3.4, -14), intensity=5.0, light_range=7.0)
+    npc_figure(doc, "Innkeeper", (-106.3, 0.05, -13), 90)
+    npc_figure(doc, "Patron1", (-98.2, 0.05, -12.8), -60)
+    npc_figure(doc, "Patron2", (-97.5, 0.05, -16.9), 150)
+
+    # Houses: solid blocks between the streets, lanes and alleys (x0, z0, x1, z1, height).
+    blocks = ((-92, -26, -72, -8, 8.0), (-68, -26, -48, -8, 9.0), (-112, 2, -90, 20, 7.0), (-86, 2, -66, 20, 8.5),
+              (-62, 2, -44, 20, 7.5), (-48, -26, -44, -8, 9.0), (-108, -26, -94, -20, 7.0), (-112, -33, -28, -32, 9.0),
+              (-112, 26, -2, 27, 8.0), (-40, -32, -28, -16, 8.0), (-40, 20, -28, 26, 8.0), (-26, 10, -6, 24, 9.0),
+              (-28, 24, -2, 26, 7.0), (-112, -26, -108, 2, 7.0))
+    for index, (x0, z0, x1, z1, height) in enumerate(blocks):
+        box(doc, f"House{index + 1}", ((x0 + x1) / 2, height / 2, (z0 + z1) / 2), (x1 - x0, height, z1 - z0), c["house"])
+    for index, (x, z) in enumerate(((-88, -8), (-80, -8), (-60, -8), (-54, -8))):
+        lit_window(doc, f"HouseWindow{index + 1}", (x, 3.2, -7.97), (1.0, 1.3, 0.05))
+    for index, x in enumerate((-100, -76, -52)):
+        lit_window(doc, f"HouseWindowSouth{index + 1}", (x, 3.4, 1.97), (1.0, 1.3, 0.05))
+    # The west end of the main street and the lanes' far ends.
+    box(doc, "CityWallWest", (-112.5, 5, -3), (1, 10, 60), c["rock"])
+    box(doc, "LaneWestEnd", (-93, 4, 23), (1, 8, 6), c["house"])
+
+    # The churchyard north of the church: a low wall, graves and tombs; its gate opens from the square.
+    box(doc, "ChurchyardWallWest", (-28, 0.75, -23), (0.4, 1.5, 14), c["church"])
+    box(doc, "ChurchyardWallWestB", (-28, 0.75, -9.5), (0.4, 1.5, 7), c["church"])
+    box(doc, "ChurchyardWallNorth", (-15, 0.75, -30), (26, 1.5, 0.4), c["church"])
+    random.seed(11)
+    for index in range(18):
+        x, z = -25 + (index % 6) * 3.6 + random.uniform(-0.4, 0.4), -27 + (index // 6) * 5.5 + random.uniform(-0.5, 0.5)
+        box(doc, f"Grave{index + 1}", (x, 0.45, z), (0.7, 0.9, 0.2), c["church"])
+    for index, (x, z) in enumerate(((-20, -14), (-11, -21), (-6, -12))):
+        box(doc, f"Tomb{index + 1}", (x, 0.6, z), (1.2, 1.4, 2.4), c["church"])
+
+    # Cover along the streets: crates, barrels and a cart against the house fronts.
+    for index, (x, z, w, d, h) in enumerate(((-89, -7.0, 1.2, 1.0, 1.1), (-77, 1.0, 1.0, 1.0, 1.0), (-64, -7.0, 2.6, 1.4, 1.2),
+                                              (-52, 1.0, 1.0, 1.0, 1.1), (-85, -26.8, 1.2, 1.0, 1.1), (-74, -31.2, 1.0, 1.0, 1.0),
+                                              (-56, -26.8, 1.0, 1.0, 1.1), (-50, -31.2, 1.6, 1.0, 1.2), (-81, 20.8, 1.0, 1.0, 1.0),
+                                              (-60, 25.2, 1.2, 1.0, 1.1), (-38, -11, 1.0, 1.0, 1.0), (-34, 12, 2.6, 1.4, 1.2))):
+        box(doc, f"Crate{index + 1}", (x, h / 2, z), (w, h, d), c["wood"], surface="Wood")
+
+    # Street lanterns: the main street, the lanes, the square and the church door.
+    for index, (x, z) in enumerate(((-99, -7.2), (-86, 1.2), (-72, -7.2), (-58, 1.2), (-46, -7.2), (-80, -29), (-60, -29),
+                                     (-78, 23), (-56, 23), (-42, -14), (-42, 14), (-30.5, -14), (-30.5, 14),
+                                     (-29.5, 2.8), (-29.5, -2.8))):
+        street_lantern(doc, f"StreetLantern{index + 1}", x, z)
+
+
+def m1_church(doc):
+    """The church: a nave with a door from the square and a side door to the churchyard; the crypt stairs along its
+    north wall lead down to the catacombs."""
+    c = M1_COLOURS
+    floor_plan(doc, "Church", {"Nave": [(-28, -6, -4, 6)]}, 0.0, 11.0, c["church"],
+               openings=[(-28, 0, 2.4, 4.0), (-8, -6, 1.4, 2.6)])
+    double_door_in_plan(doc, "ChurchDoor", -28, 0, "z", "church door")
+    door_in_plan(doc, "ChurchSideDoor", -8, -6, "x", label="side door")
+    slab(doc, "ChurchRoof", (-28.15, -6.15, -3.85, 6.15), 11.4, 0.4, c["rock"])
+    # The crypt stairs: down eastwards from x = -18 to the crypt at x = -12, behind a railing.
+    stairs(doc, "CryptStairs", (-18, -5.85, -12, -3.65), -4.0, 0.0, "-x", c["rock"])
+    box(doc, "CryptRailing", (-15, 0.5, -3.55), (6.0, 1.0, 0.2), c["church"])
+    box(doc, "CryptRailingEnd", (-12.1, 0.5, -4.7), (0.2, 1.0, 2.1), c["church"])
+    # Pews, the altar and candles.
+    for row in range(6):
+        for side in (-1, 1):
+            if side < 0 and row > 2:
+                continue  # the crypt stairs
+            box(doc, f"Pew{row + 1}{'N' if side < 0 else 'S'}", (-24 + row * 2.2, 0.45, side * 3.0), (0.6, 0.9, 3.6), c["wood"],
+                surface="Wood")
+    box(doc, "Altar", (-6.0, 0.55, 0), (1.2, 1.1, 3.0), c["church"])
+    lamp(doc, "AltarCandle1", (-6.0, 1.4, -1.2), intensity=3.0, light_range=7.0)
+    lamp(doc, "AltarCandle2", (-6.0, 1.4, 1.2), intensity=3.0, light_range=7.0)
+    for index, (x, z) in enumerate(((-24, -5.3), (-24, 5.3), (-14, 5.3), (-10, -5.3))):
+        lamp(doc, f"ChurchCandle{index + 1}", (x, 2.2, z), intensity=3.5, light_range=7.0)
+    for index, x in enumerate((-22, -16, -10)):
+        lit_window(doc, f"ChurchWindow{index + 1}", (x, 6.5, 6.2), (1.2, 3.0, 0.05))
+
+
+def m1_catacombs(doc):
+    """Under the church and the churchyard: the crypt, a loop of passages with niches past the ossuary, and the
+    collapsed tunnel that runs on under the city wall and climbs into the vineyard."""
+    c = M1_COLOURS
+    passages = [(-18, -6, -12, -3.5),                      # the stairs' shaft
+                (-12, -8, -4, 0),                          # the crypt under the church's east end
+                (-4, -5, 10, -3),                          # east, towards the wall
+                (-9, -24, -7, -8),                         # north under the churchyard
+                (-12, -32, -2, -24),                       # the ossuary
+                (-2, -29, 8, -27), (6, -27, 8, -5)]        # round to the east passage
+    niches = [(-10, z, -9, z + 1) for z in (-21, -17, -13)] + [(8, z, 9, z + 1) for z in (-24, -18, -12)]
+    floor_plan(doc, "Catacombs", {"Catacombs": passages + niches + [(10, -5, 22, -3)]}, -4.0, 3.0, c["rock"])
+    for index, (x0, z0, x1, z1) in enumerate(passages + niches + [(10, -5, 22, -3)]):
+        box(doc, f"CatacombFloor{index + 1}", ((x0 + x1) / 2, -4.1, (z0 + z1) / 2), (x1 - x0, 0.2, z1 - z0), c["rock"], surface="Stone")
+    # Bones in the niches and the ossuary.
+    for index, (x0, z0, x1, z1) in enumerate(niches):
+        box(doc, f"Bones{index + 1}", ((x0 + x1) / 2, -3.7, (z0 + z1) / 2), (0.6, 0.4, 0.8), c["bone"], collider=False)
+    for index, x in enumerate((-11, -9, -5, -3)):
+        box(doc, f"OssuaryShelf{index + 1}", (x, -3.0, -31.4), (1.6, 2.0, 0.6), c["bone"])
+    box(doc, "Sarcophagus", (-8, -3.5, -2), (1.2, 1.0, 2.4), c["church"])
+    lamp(doc, "CryptCandle", (-5, -2.4, -7.5), intensity=3.0, light_range=7.0)
+    lamp(doc, "OssuaryCandle", (-7, -2.4, -24.5), intensity=3.0, light_range=7.0)
+    lamp(doc, "JunctionCandle", (7.5, -2.4, -5.6), intensity=2.5, light_range=6.0)
+    # The collapsed tunnel: rubble narrows it, a fallen beam; then steps up through the vineyard's soil.
+    for index, (x, z, w, d) in enumerate(((11.8, -4.75, 1.4, 0.2), (13.8, -3.25, 1.0, 0.2), (15.2, -4.75, 0.8, 0.2))):
+        box(doc, f"Rubble{index + 1}", (x, -3.6, z), (w, 0.8, d), c["rock"])
+    box(doc, "FallenBeam", (14.4, -1.6, -4.0), (0.25, 0.25, 1.8), c["wood"], collider=False)
+    stairs(doc, "TunnelStairs", (16, -4.85, 22, -3.15), -4.0, 0.0, "+x", c["rock"])
+
+
+def m1_vineyard(doc):
+    """The mayor's vineyard east of the city wall: rows of vines (cover for a crouching thief), a press house, the
+    tunnel's mouth in a ruined well house, and the grounds' walls."""
+    c = M1_COLOURS
+    slab(doc, "VineyardSoil", (3, -21, 45, 21), 0.02, 0.02, SURFACE_COLORS["Grass"], holes=((15.7, -5.3, 22, -2.7),),
+         surface="Grass")  # open over the tunnel's stairs
+    # The tunnel's mouth: low broken walls around the stairwell, open to the east.
+    box(doc, "WellHouseNorth", (19, 0.6, -5.15), (6.4, 1.2, 0.3), c["rock"])
+    box(doc, "WellHouseSouth", (19, 0.6, -2.85), (6.4, 1.2, 0.3), c["rock"])
+    box(doc, "WellHouseWest", (15.85, 0.6, -4.0), (0.3, 1.4, 2.6), c["rock"])
+    # Rows of vines along X, 2 m apart, broken by crossing paths; the middle path (z = 0) leads to the manor.
+    for row in range(19):
+        z = -18 + row * 2
+        if abs(z) < 1.5:
+            continue
+        for segment, (x0, x1) in enumerate(((6, 17), (20, 31), (34, 42))):
+            if x0 < 23 and x1 > 15 and -6 < z < -2:
+                continue  # the well house stands here
+            box(doc, f"Vines{row + 1}_{segment + 1}", ((x0 + x1) / 2, 0.7, z), (x1 - x0, 1.4, 0.35), c["vine"], roughness=1.0)
+    # The press house in the north-east corner of the vineyard.
+    box(doc, "PressHouse", (44, 2.0, -24), (5, 4.0, 5), c["wood"])
+    lamp(doc, "PressHouseLantern", (41.3, 2.6, -22.5), intensity=8.0, light_range=9.0)
+    # The grounds: the city wall on the west, low walls round the rest, the gate on the south.
+    box(doc, "CityWall", (0, 5, -1.5), (2, 10, 66), c["rock"])
+    box(doc, "GroundsWallNorth", (45.5, 2, -30.2), (89, 4, 0.4), c["rock"])
+    box(doc, "GroundsWallEast", (90.2, 2, 0), (0.4, 4, 60.8), c["rock"])
+    box(doc, "GroundsWallSouthA", (37.5, 2, 30.2), (73, 4, 0.4), c["rock"])
+    box(doc, "GroundsWallSouthB", (84, 2, 30.2), (12, 4, 0.4), c["rock"])
+    box(doc, "Gate", (76, 1.75, 30.2), (4, 3.5, 0.3), c["iron"])  # closed: the cart's way out comes later
+    lamp(doc, "GateLamp1", (73.4, 3.0, 29.6), intensity=9.0, light_range=10.0)
+    lamp(doc, "GateLamp2", (78.6, 3.0, 29.6), intensity=9.0, light_range=10.0)
+
+
+def m1_manor(doc):
+    """The mayor's manor: two floors of 4 m with the rooms the owner asked for, two staircases (the grand one in the
+    hall, the servants' one from the kitchen), the kitchen yard with the leftovers cart, its bell and Manuel's note."""
+    c = M1_COLOURS
+    ground = {"Dining": [(50, -10, 62, 0)], "Drawing": [(62, -10, 80, 0)], "Kitchen": [(50, 0, 58, 10)],
+              "BackStairs": [(58, 0, 62, 10)], "Hall": [(62, 0, 74, 10)], "Bath": [(74, 0, 80, 5)], "Cloak": [(74, 5, 80, 10)]}
+    ground_openings = [(50, -5, 1.4, 2.4), (54, 10, 1.4, 2.4), (66, 10, 2.4, 3.0), (54, 0, 1.4, 2.4), (58, 9.1, 1.4, 2.4),
+                       (62, -5, 2.4, 3.0), (66, 0, 2.4, 3.0), (74, 2.5, 1.4, 2.4), (74, 9.2, 1.4, 2.4)]
+    floor_plan(doc, "ManorGround", ground, 0.0, 4.0, c["plaster"], openings=ground_openings)
+    door_in_plan(doc, "GardenDoor", 50, -5, "z", label="garden door", locked=True, pins=6)
+    door_in_plan(doc, "KitchenDoor", 54, 10, "x", label="kitchen door")
+    double_door_in_plan(doc, "MainDoor", 66, 10, "x", "front door")
+    door_in_plan(doc, "PantryDoor", 54, 0, "x", label="dining room door")
+    door_in_plan(doc, "BackStairsDoor", 58, 9.1, "z", label="back stairs door")
+    double_door_in_plan(doc, "DrawingDoor", 62, -5, "z", "drawing room door")
+    double_door_in_plan(doc, "HallDrawingDoor", 66, 0, "x", "drawing room door")
+    door_in_plan(doc, "BathDoor", 74, 2.5, "z", label="bathroom door")
+    door_in_plan(doc, "CloakDoor", 74, 9.2, "z", label="cloakroom door")
+
+    upper = {"Library": [(50, -10, 64, 0)], "Bedroom": [(64, -10, 80, 0)],
+             "Corridor": [(50, 0, 80, 3), (58, 3, 62, 10), (70, 3, 74, 10)],
+             "MaidRoom": [(50, 3, 58, 10)], "Guest": [(62, 3, 70, 10)], "UpperBath": [(74, 3, 80, 10)]}
+    upper_openings = [(57, 0, 1.4, 2.4), (72, 0, 1.4, 2.4), (64, -2, 1.4, 2.4), (54, 3, 1.4, 2.4), (66, 3, 1.4, 2.4),
+                      (77, 3, 1.4, 2.4)]
+    floor_plan(doc, "ManorUpper", upper, 4.0, 4.0, c["plaster"], openings=upper_openings)
+    door_in_plan(doc, "LibraryDoor", 57, 0, "x", y=4.0, label="library door")
+    door_in_plan(doc, "BedroomDoor", 72, 0, "x", y=4.0, label="bedroom door", locked=True, pins=7)
+    door_in_plan(doc, "StudyDoor", 64, -2, "z", y=4.0, label="door to the bedroom")
+    door_in_plan(doc, "MaidDoor", 54, 3, "x", y=4.0, label="maid's room door")
+    door_in_plan(doc, "GuestDoor", 66, 3, "x", y=4.0, label="guest room door")
+    door_in_plan(doc, "UpperBathDoor", 77, 3, "x", y=4.0, label="bathroom door")
+
+    # Floors: the ground floor over the soil, the first floor (the ground floor's ceiling) with the stairwells, the roof.
+    back, grand = (58.15, 3.0, 61.85, 8.4), (70.15, 3.0, 73.85, 8.4)
+    slab(doc, "ManorFirstFloor", (49.85, -10.15, 80.15, 10.15), 4.0, 0.3, c["wood"], holes=(back, grand), surface="Wood")
+    slab(doc, "ManorRoof", (49.85, -10.15, 80.15, 10.15), 8.4, 0.4, c["rock"])
+    for name, (x0, z0, x1, z1), surface in (("Dining", (50, -10, 62, 0), "Wood"), ("Drawing", (62, -10, 80, 0), "Carpet")):
+        floor_patch(doc, f"{name}Floor", surface, ((x0 + x1) / 2, (z0 + z1) / 2), (x1 - x0 - 0.3, z1 - z0 - 0.3))
+    # The staircases: both rise north to the first-floor corridor; railings close the stairwells' far ends.
+    stairs(doc, "BackStairs", back, 0.0, 4.0, "-z", c["wood"])
+    stairs(doc, "GrandStairs", grand, 0.0, 4.0, "-z", c["wood"])
+    box(doc, "BackStairsRailing", (60, 4.5, 8.5), (3.7, 1.0, 0.2), c["wood"])
+    box(doc, "GrandStairsRailing", (72, 4.5, 8.5), (3.7, 1.0, 0.2), c["wood"])
+
+    # Furniture (cover) and the rooms' lights.
+    box(doc, "FeastTable", (56, 0.4, -5), (7.0, 0.8, 1.2), c["wood"], surface="Wood")
+    box(doc, "Sideboard", (56, 0.5, -9.4), (4.0, 1.0, 0.6), c["wood"], surface="Wood")
+    box(doc, "Fireplace", (71, 0.9, -9.55), (2.6, 1.8, 0.6), c["rock"], emissive=1.5, emissive_color=(1.0, 0.35, 0.1))
+    box(doc, "Settee", (71, 0.4, -6.5), (3.0, 0.8, 0.9), c["cloth"], surface="Carpet")
+    box(doc, "DrawingCabinet", (78.9, 0.9, -4), (0.6, 1.8, 2.0), c["wood"], surface="Wood")
+    box(doc, "KitchenHearth", (50.6, 0.8, 5), (0.9, 1.6, 2.6), c["rock"], emissive=1.0, emissive_color=(1.0, 0.3, 0.08))
+    box(doc, "KitchenTable", (54.5, 0.45, 4.5), (3.0, 0.9, 1.2), c["wood"], surface="Wood")
+    box(doc, "Bathtub", (77, 0.35, 2.4), (1.8, 0.7, 0.9), c["church"])
+    box(doc, "HallChest", (64, 0.4, 7), (1.2, 0.8, 0.6), c["wood"], surface="Wood")
+    for index, x in enumerate((51.5, 54, 56.5, 59, 61.5)):
+        box(doc, f"Bookcase{index + 1}", (x, 5.3, -9.5), (2.0, 2.6, 0.5), c["wood"])
+    for index, z in enumerate((-7, -4)):
+        box(doc, f"BookcaseWest{index + 1}", (50.5, 5.3, z), (0.5, 2.6, 2.0), c["wood"])
+    box(doc, "LibraryDesk", (58, 4.4, -4.5), (2.0, 0.8, 1.0), c["wood"], surface="Wood")
+    box(doc, "Bed", (75, 4.35, -7.5), (2.2, 0.7, 2.8), c["cloth"], surface="Carpet")
+    box(doc, "Nightstand", (73.4, 4.3, -8.6), (0.6, 0.6, 0.6), c["wood"])
+    box(doc, "Wardrobe", (79.4, 5.1, -3.5), (0.8, 2.2, 2.0), c["wood"])
+    box(doc, "MaidBed", (51.2, 4.3, 8.5), (1.0, 0.6, 2.0), c["wood"])
+    box(doc, "GuestBed", (66, 4.3, 8.6), (2.0, 0.6, 2.0), c["cloth"])
+    box(doc, "UpperBathtub", (78.6, 4.35, 8.5), (0.9, 0.7, 1.8), c["church"])
+    lamp(doc, "FireplaceLight", (71, 1.0, -8.8), intensity=10.0, light_range=9.0, colour=(1.0, 0.5, 0.2), glow=False)
+    lamp(doc, "KitchenHearthLight", (51.4, 1.0, 5), intensity=6.0, light_range=7.0, colour=(1.0, 0.45, 0.18), glow=False)
+    lamp(doc, "DiningCandles", (56, 1.4, -5), intensity=4.0, light_range=7.0)
+    lamp(doc, "HallLamp", (67, 3.3, 5), intensity=8.0, light_range=9.0)
+    lamp(doc, "BackStairsLamp", (60, 3.3, 1.5), intensity=4.0, light_range=6.0)
+    lamp(doc, "BathLamp", (77, 3.3, 2.5), intensity=3.0, light_range=5.0)
+    lamp(doc, "CorridorLamp1", (55, 7.3, 1.5), intensity=5.0, light_range=8.0)
+    lamp(doc, "CorridorLamp2", (76, 7.3, 1.5), intensity=5.0, light_range=8.0)
+    lamp(doc, "LibraryLamp", (58, 5.6, -4.0), intensity=5.0, light_range=8.0)
+    lamp(doc, "BedsideCandle", (73.4, 4.9, -8.6), intensity=2.5, light_range=6.0)
+    lamp(doc, "MaidCandle", (52.5, 5.2, 9.3), intensity=2.5, light_range=6.0)
+    for index, (x, z) in enumerate(((53, -10.2), (59, -10.2), (68, -10.2), (75, -10.2))):
+        lit_window(doc, f"ManorWindowNorth{index + 1}", (x, 2.2 if index % 2 else 6.2, z), (1.2, 1.6, 0.05))
+    for index, z in enumerate((-7.5, -2.5)):
+        lit_window(doc, f"ManorWindowWest{index + 1}", (49.8, 6.2, z), (0.05, 1.6, 1.2))
+
+    # The kitchen yard: the leftovers cart, the bell to call the guards for it and Manuel's note (the way out
+    # through the cart comes with its own package; here they only stand where they will be).
+    box(doc, "LeftoversCart", (58, 0.7, 16), (1.4, 1.0, 2.6), c["wood"])
+    box(doc, "CartScraps", (58, 1.3, 16), (1.2, 0.3, 2.2), (0.35, 0.12, 0.1), collider=False)
+    cart_bell = doc.add("CartBell", Transform=transform((52.4, 0, 10.8)), BoxCollider={"HalfExtents": [0.1, 1.0, 0.1], "Offset": [0, 1.0, 0]})
+    doc.add("Post", cart_bell, Transform=transform((0, 1.0, 0), scale=(0.1, 2.0, 0.1)), Mesh={"Mesh": "builtin:cube"},
+            Material=material(c["wood"]))
+    doc.add("BellBody", cart_bell, Transform=transform((0, 2.0, 0.15), scale=(0.22, 0.25, 0.22)), Mesh={"Mesh": "builtin:cylinder"},
+            Material=material((0.6, 0.45, 0.15), roughness=0.3, metallic=0.9))
+    box(doc, "ManuelsNote", (55.2, 1.6, 9.83), (0.25, 0.35, 0.02), (0.85, 0.8, 0.65), collider=False)
+    lamp(doc, "KitchenDoorLamp", (55.6, 2.6, 10.4), intensity=6.0, light_range=8.0)
+    lamp(doc, "FrontDoorLamp1", (64.3, 2.8, 10.4), intensity=7.0, light_range=8.0)
+    lamp(doc, "FrontDoorLamp2", (67.7, 2.8, 10.4), intensity=7.0, light_range=8.0)
+    doc.add("Fountain", Transform=transform((78, 0.4, 20), scale=(3.0, 0.8, 3.0)), Mesh={"Mesh": "builtin:cylinder"},
+            Material=material(c["church"]), BoxCollider={"HalfExtents": [0.5, 0.5, 0.5]})
+    for index, (x, z, w, d) in enumerate(((70, 14, 4, 1), (86, 14, 4, 1), (70, 26, 4, 1), (86, 26, 4, 1))):
+        box(doc, f"Hedge{index + 1}", (x, 0.6, z), (w, 1.2, d), (0.1, 0.22, 0.08), roughness=1.0)
+
+
+def m1_people(doc):
+    """Eleven guards, two servants (their alarm bell in the hall) and the loot."""
+    scene = {"catch_scene": M1_SCENE}
+    guards = {}
+    # The city's watch walks loops round the blocks (a dead-end beat leaves no way past a watchman but to follow him
+    # until he turns back into you): one round the block west of the alley, the other, with a lantern, round the
+    # block east of it, out to the square.
+    guards["LaneWatch"] = add_guard(doc, "LaneWatch", (-93, 0.05, -20), 180,
+                                    waypoints(doc, "WP_Lane", ((-93, 0, -29), (-70, 0, -29), (-70, 0, -3), (-93, 0, -3))), **scene)
+    guards["StreetWatch"] = add_guard(doc, "StreetWatch", (-60, 0.05, -3), 90,
+                                      waypoints(doc, "WP_Street", ((-66, 0, -3), (-42, 0, -3), (-42, 0, -21), (-46, 0, -29),
+                                                                   (-66, 0, -29), (-70, 0, -12))), lantern=True, **scene)
+    guards["SouthWatch"] = add_guard(doc, "SouthWatch", (-86, 0.05, 23), 90,
+                                     waypoints(doc, "WP_South", ((-86, 0, 23), (-48, 0, 23), (-42, 0, 18))), character=KNIGHT, **scene)
+    guards["SquareWatch"] = add_guard(doc, "SquareWatch", (-38, 0.05, 10), 0,
+                                      waypoints(doc, "WP_Square", ((-38, 0, 10), (-31, 0, 0), (-38, 0, -10), (-36, 0, 0))), **scene)
+    guards["Sexton"] = add_guard(doc, "Sexton", (-24, 0.05, 3.5), 90,
+                                 waypoints(doc, "WP_Church", ((-25, 0, 3.6), (-8.5, 0, 3.6), (-7.5, 0, 1.8))), **scene)
+    guards["CryptWatch"] = add_guard(doc, "CryptWatch", (-8, -3.95, -4), 90,
+                                     waypoints(doc, "WP_Crypt", ((-8, -4, -4), (7, -4, -4), (7, -4, -28), (-7, -4, -28), (-8, -4, -10))),
+                                     lantern=True, **scene)
+    guards["VineWatch"] = add_guard(doc, "VineWatch", (8, 0.05, -19), 90,
+                                    waypoints(doc, "WP_Vine", ((8, 0, -19.5), (43, 0, -19.5), (45, 0, 19.5), (8, 0, 19.5))),
+                                    lantern=True, **scene)
+    guards["TerraceWatch"] = add_guard(doc, "TerraceWatch", (47.5, 0.05, -14), 180,
+                                       waypoints(doc, "WP_Terrace", ((47.5, 0, -14), (47.5, 0, 14))), character=KNIGHT, **scene)
+    guards["HallGuard"] = add_guard(doc, "HallGuard", (66, 0.05, 6), 0,
+                                    waypoints(doc, "WP_Hall", ((66, 0, 6), (71, 0, -5), (66, 0, 6), (68, 4, 1.5))), **scene)
+    guards["UpperGuard"] = add_guard(doc, "UpperGuard", (60, 4.05, 1.5), 90,
+                                     waypoints(doc, "WP_Upper", ((52, 4, 1.5), (78, 4, 1.5))), **scene)
+    guards["YardGuard"] = add_guard(doc, "YardGuard", (56, 0.05, 14), 90,
+                                    waypoints(doc, "WP_Yard", ((56, 0, 13.5), (70, 0, 24), (86, 0, 12), (70, 0, 24))), **scene)
+    add_bell(doc, (63, 0, 9.3))
+    # The scullion carries the feast's scraps out to the cart and comes back for more.
+    # The manor's bell calls the manor's guards (within 60 m: the grounds), not the city watch beyond the wall.
+    add_servant(doc, "Scullion", (55, 0.05, 2), 90, waypoints(doc, "WP_Scullion", ((55, 0, 2), (57.5, 0, 14.6))), bell_reach=60.0)
+    add_servant(doc, "Maid", (52, 4.05, 6), 90, waypoints(doc, "WP_Maid", ((52, 4, 6), (77, 4, 6), (66, 4, 1.5))), bell_reach=60.0)
+
+    # Loot (about 1,800 in all) and the two items the objectives name.
+    add_loot(doc, "AltarCandlestick1", (-6.0, 1.3, -0.6), (0.08, 0.4, 0.08), "altar candlestick", 100, color=SILVER)
+    add_loot(doc, "AltarCandlestick2", (-6.0, 1.3, 0.6), (0.08, 0.4, 0.08), "altar candlestick", 100, color=SILVER)
+    box(doc, "OfferingStand", (-26.5, 0.325, 5.0), (0.5, 0.65, 0.4), M1_COLOURS["wood"])
+    add_loot(doc, "OfferingBox", (-26.5, 0.8, 5.0), (0.4, 0.3, 0.3), "offering box", 75, mesh="builtin:cube", color=LEATHER)
+    add_loot(doc, "GraveRing", (-9.5, -3.48, -16.5), (0.08, 0.03, 0.08), "gold ring", 125)
+    add_loot(doc, "Reliquary", (-9, -1.85, -31.4), (0.35, 0.3, 0.25), "silver reliquary", 150, mesh="builtin:cube", color=SILVER)
+    for index, x in enumerate((54.0, 56.0, 58.0)):
+        add_loot(doc, f"SilverPlate{index + 1}", (x, 0.815, -5.15), (0.4, 0.03, 0.4), "silver plate", 75, color=SILVER)
+    add_loot(doc, "FeastGoblet", (55.0, 0.92, -4.8), (0.12, 0.24, 0.12), "gold goblet", 150)
+    add_loot(doc, "Snuffbox", (70.0, 1.86, -9.55), (0.15, 0.06, 0.1), "gold snuffbox", 125, mesh="builtin:cube")
+    add_loot(doc, "Candelabrum", (78.9, 2.0, -4.0), (0.1, 0.4, 0.1), "silver candelabrum", 100, color=SILVER)
+    add_loot(doc, "JewelBox", (79.4, 6.3, -3.5), (0.4, 0.2, 0.3), "jewel box", 250, mesh="builtin:cube")
+    add_loot(doc, "SignetRing", (73.4, 4.63, -8.5), (0.06, 0.03, 0.06), "the mayor's signet ring", 100, item="SignetRing")
+    add_loot(doc, "Ledger", (58.3, 4.84, -4.6), (0.3, 0.08, 0.4), "the mayor's ledger", 0, mesh="builtin:cube", color=LEATHER,
+             item="Ledger")
+    add_loot(doc, "Inkwell", (57.4, 4.86, -4.3), (0.08, 0.1, 0.08), "gold inkwell", 75)
+    add_purse(doc, guards["StreetWatch"], 50)
+    add_purse(doc, guards["HallGuard"], 75)
+    add_purse(doc, guards["UpperGuard"], 75)
+
+
+def build_mission1():
+    """The first mission's blockout (Scripts/Missions/Mission1.lua, playtester routes in Playtest/Mission1)."""
+    doc = Document("PenumbraScene")
+    add_environment(doc)
+    doc.add("Camera", Transform=transform((-101, 3, -10)), Camera={"VerticalFOV": 65.0, "NearClip": 0.05, "FarClip": 300.0})
+    # The ground: one slab over the whole map, open over the crypt stairs and the tunnel's mouth; the catacombs lie
+    # under it (their ceiling is its underside).
+    slab(doc, "Ground", (-113, -34, 91, 31), 0.0, 1.0, M1_COLOURS["street"],
+         holes=((-18, -5.85, -12, -3.65), (16, -4.85, 22, -3.15)))
+    m1_city(doc)
+    m1_church(doc)
+    m1_catacombs(doc)
+    m1_vineyard(doc)
+    m1_manor(doc)
+    m1_people(doc)
+    # The level's fog stays out of the buildings and the catacombs (Clear fog volumes, docs/Fog.md).
+    for name, center, half in (("TavernFogClear", (-101, 2, -14), (7.5, 3, 6.5)), ("ChurchFogClear", (-16, 5.5, 0), (12.5, 6.5, 6.5)),
+                               ("CatacombsFogClear", (2, -2.5, -17), (21, 2.5, 16)), ("ManorFogClear", (65, 4, 0), (15.5, 5, 10.5))):
+        doc.add(name, Transform=transform(center), FogVolume={"Mode": "Clear", "HalfExtents": list(half), "EdgeFade": 1.0})
+    doc.add("Navigation", Transform=transform(), NavMesh={})
+
+    # The thief starts in the tavern; the way out is back the way he came, into the tunnel (Goal.lua; it says nothing
+    # when he first comes through, before the objectives are done).
+    add_player(doc, (-104, 0.05, -11), yaw=180)
+    doc.add("Goal", Transform=transform((12, -2.5, -4.0)), BoxCollider={"HalfExtents": [1.0, 1.5, 1.0]},
+            RigidBody={"Type": "Static", "IsTrigger": True}, Script={"Script": "Scripts/Goal.lua", "Properties": {"remind": False}})
+    doc.add("Mission", Transform=transform(), Script={"Script": "Scripts/MissionControl.lua",
+                                                      "Properties": {"mission": "Scripts/Missions/Mission1"}})
+    doc.add("Ambience", Transform=transform((0, 3, 0)),
+            AudioSource={"Clip": "Audio/Wind.wav", "Loop": True, "PlayOnStart": True, "Spatial": False, "Volume": 0.2})
+    doc.save(M1_SCENE)
+
+
 def build_project_file():
     project = {"Name": "Penumbra Demo", "StartScene": "Scenes/Menu.pscene", "AssetDirectory": "Assets",
                "WindowWidth": 1600, "WindowHeight": 900}
@@ -1191,5 +1737,6 @@ if __name__ == "__main__":
     build_physics_lab()
     build_cloister()
     build_mood_lab()
+    build_mission1()
     build_audio()
     print(f"Demo project written to {ROOT}")

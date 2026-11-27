@@ -29,6 +29,7 @@ local WALK_TURN = 50        -- he only walks while facing within this many degre
 local CORNER = 0.3          -- metres: a path corner counts as reached this close
 local ARRIVE = 0.35         -- metres: a waypoint counts as reached this close
 local REACH = 1.4           -- metres from an object (horizontally) to use it
+local DOOR_STANDOFF = 1.1   -- metres in front of a door's leaf where he stands to use it
 local STUCK_TIME = 4.0      -- seconds without 0.25 m of progress: repath once, then give up
 local USE_TIMEOUT = 8.0     -- seconds to aim at and use something
 local PICK_INTERVAL = 0.3   -- seconds between lockpick letters
@@ -74,13 +75,21 @@ local function make_random(seed)
     end
 end
 
+-- Where to go and aim for an entity: a door at the middle of its leaf (its entity stands at the
+-- hinge, at the floor, where the line of sight ends on the jamb), anything else at its position.
+local function aim_point(entity)
+    local instance = entity:has("Script") and entity:script() or nil
+    if instance and instance.is_door then return instance:center() + vec3(0, 1.2, 0) end
+    return entity:get_position()
+end
+
 local function entity_or_point(target)
     if type(target) == "userdata" and target.valid then
-        return target:valid() and target:get_position() or nil, target
+        return target:valid() and aim_point(target) or nil, target
     end
     if type(target) == "string" then
         local entity = scene.find(target)
-        return entity and entity:valid() and entity:get_position() or nil, entity
+        return entity and entity:valid() and aim_point(entity) or nil, entity
     end
     return target, nil
 end
@@ -395,7 +404,17 @@ function Bot:use_step(dt)
     end
     if not self.phase then
         local spot = nav.closest_point(position, 2.0) or position
-        if flat_distance(player.entity:get_position(), position) > REACH and not self:go(spot, 0.5, dt) then return false end
+        local instance = entity and entity:valid() and entity:has("Script") and entity:script() or nil
+        if instance and instance.is_door then
+            -- A step back from the leaf on his own side: the camera over his shoulder cannot be turned onto
+            -- something closer to him than the shoulder.
+            local center, normal = instance:center(), instance:facing()
+            local side = (player.entity:get_position() - center):dot(normal) >= 0 and 1 or -1
+            spot = nav.closest_point(center + normal * (DOOR_STANDOFF * side), 1.0) or spot
+            if flat_distance(player.entity:get_position(), spot) > 0.4 and not self:go(spot, 0.3, dt) then return false end
+        elseif flat_distance(player.entity:get_position(), position) > REACH and not self:go(spot, 0.5, dt) then
+            return false
+        end
         self.phase, self.timer = "aim", 0
     end
     -- Aim the camera's line at it, then press F (again every second until it works).

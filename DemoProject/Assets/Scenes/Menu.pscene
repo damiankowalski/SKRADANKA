@@ -452,7 +452,7 @@
         "Script": {
           "Script": "Scripts/Menu.lua",
           "Properties": {
-            "mission": "Scripts/Missions/Manor"
+            "missions": "Scripts/Missions/Manor,Scripts/Missions/Mission1"
           }
         }
       }
