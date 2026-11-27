@@ -25,8 +25,10 @@ Noises.footsteps = {
 -- Landing after a jump or a fall: loudness per m/s of falling speed (a 1.3 m drop is ~5 m/s).
 Noises.fall = { per_speed = 1.0, minimum_speed = 3.0, volume = 0.6 }
 
--- Footstep clips by floor material (anything else uses the stone step).
+-- Footstep clips by floor material (anything else uses the stone step). A clip anywhere in this file may be a
+-- list of variants (generated ones: Audio/Generated, Tools/AudioGen): each play picks one of them.
 Noises.footstep_clips = {
+    Stone = "Audio/Footstep.wav",
     Metal = "Audio/Footstep_Metal.wav",
     Wood = "Audio/Footstep_Wood.wav",
     Carpet = "Audio/Footstep_Soft.wav",
@@ -58,6 +60,13 @@ Noises.sounds = {
 
 local function clamp(value, low, high) return math.max(low, math.min(high, value)) end
 
+-- One clip out of a clip or a list of variants (the scene's seeded math.random picks; a single clip draws nothing).
+function Noises.clip(clip)
+    if type(clip) ~= "table" then return clip end
+    if #clip <= 1 then return clip[1] end
+    return clip[math.random(#clip)]
+end
+
 -- Material and noise modifier of the floor under an entity ("Stone", 0 without a Surface).
 function Noises.surface_under(entity)
     local hit = physics.raycast(entity:get_position() + vec3(0, 0.3, 0), vec3(0, -1, 0), 1.0, entity)
@@ -77,7 +86,7 @@ function Noises.footstep(entity, gait)
     if loudness > 0 then ai.emit_noise(feet, loudness, entity, "Footstep." .. material) end
     -- What the player hears follows what the guards hear.
     local volume = step.volume * clamp(1 + modifier * 0.25, 0.2, 2.0)
-    audio.play_at(Noises.footstep_clips[material] or "Audio/Footstep.wav", feet, volume)
+    audio.play_at(Noises.clip(Noises.footstep_clips[material] or Noises.footstep_clips.Stone), feet, volume)
     return loudness, material
 end
 
@@ -88,7 +97,7 @@ function Noises.landing(entity, fall_speed)
     local loudness = clamp(fall_speed * Noises.fall.per_speed + modifier, 0, 10)
     local feet = entity:get_position()
     ai.emit_noise(feet, loudness, entity, "Landing." .. material)
-    audio.play_at(Noises.footstep_clips[material] or "Audio/Footstep.wav", feet, Noises.fall.volume)
+    audio.play_at(Noises.clip(Noises.footstep_clips[material] or Noises.footstep_clips.Stone), feet, Noises.fall.volume)
     return loudness
 end
 
@@ -109,7 +118,8 @@ function Noises.arrow_impact(position, struck, source)
     end
     local loudness = clamp(Noises.arrow.loudness + modifier, 0, 10)
     if loudness > 0 then ai.emit_noise(position, loudness, source, "Arrow." .. material) end
-    audio.play_at(Noises.footstep_clips[material] or Noises.arrow.clip, position, Noises.arrow.volume)
+    audio.play_at(Noises.clip(material ~= "Stone" and Noises.footstep_clips[material] or Noises.arrow.clip), position,
+        Noises.arrow.volume)
     return loudness
 end
 
@@ -118,7 +128,7 @@ function Noises.emit(name, position, source)
     local sound = Noises.sounds[name]
     if not sound then error("unknown noise '" .. tostring(name) .. "'") end
     ai.emit_noise(position, sound.loudness, source, name)
-    if sound.clip then audio.play_at(sound.clip, position, sound.volume or 1.0) end
+    if sound.clip then audio.play_at(Noises.clip(sound.clip), position, sound.volume or 1.0) end
     return sound.loudness
 end
 
@@ -126,7 +136,7 @@ end
 function Noises.sound(name, position)
     local sound = Noises.sounds[name]
     if not sound then error("unknown noise '" .. tostring(name) .. "'") end
-    if sound.clip then audio.play_at(sound.clip, position, sound.volume or 1.0) end
+    if sound.clip then audio.play_at(Noises.clip(sound.clip), position, sound.volume or 1.0) end
     return sound.loudness
 end
 

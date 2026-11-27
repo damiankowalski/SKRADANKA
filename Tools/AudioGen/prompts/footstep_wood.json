@@ -1,0 +1,19 @@
+{
+	"description": "One footstep on boards (the game's Footstep_Wood.wav).",
+	"category": "effect",
+	"mono": true,
+	"first_event": true,
+	"generate_seconds": 2.0,
+	"length": [
+		0.08,
+		1.0
+	],
+	"game_name": "Footstep_Wood",
+	"prompt": "A single footstep of a leather boot on old wooden floorboards, recorded close, {variation}, no music, no voices.",
+	"variations": [
+		"the board creaks softly under the weight",
+		"a dull hollow knock",
+		"a careful slow step",
+		"a firm step on a loose plank"
+	]
+}

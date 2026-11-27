@@ -293,7 +293,15 @@ street of lanterns is lit and the picture and the light gem agree under every la
 
 ## In progress
 
-Nothing.
+**AudioGen, package A: effects and ambience with a listening room** (M, branch `feature/audiogen`, the owner's
+brief [`research/AudioGenBrief.md`](research/AudioGenBrief.md)): `Tools/AudioGen` generates sound effects and
+ambience loops on the Mac with Stable Audio 3 Small SFX (on the CPU: a 10 s clip in 3.9 s, 60 s in 8.8 s, 4.5 GB
+at most), checks them (BS.1770 loudness, true peak, leading silence, mono for 3D effects, loop seams; a broken
+file is rejected), plays a series in a local listening room where the owner accepts, rejects or asks for a change
+with a note, and promotes accepted sounds to `Assets/Audio/Generated` with their provenance. `Scenes/Listening.pscene`
+plays them in place: a strip of six floors, doors at 3, 10 and 25 m, the night's wind in fog. The first series
+(footsteps on stone and wood, a door, a 60 s wind loop, 16 variants) waits for the owner's ears; the cycle and
+wiring the accepted sounds into the game finish the package. See `Tools/AudioGen/README.md`.
 
 ## Known bugs
 

@@ -1,0 +1,18 @@
+{
+	"description": "A wooden door opening (Door.lua's creak, the game's Door.wav).",
+	"category": "effect",
+	"mono": true,
+	"generate_seconds": 3.0,
+	"length": [
+		0.4,
+		3.0
+	],
+	"game_name": "Door",
+	"prompt": "An old heavy wooden door with iron hinges opening, {variation}, inside a stone house, recorded close, no music, no voices.",
+	"variations": [
+		"a long slow creak",
+		"a short squeak of the hinges",
+		"a low groaning creak",
+		"a quick creak and a soft knock"
+	]
+}

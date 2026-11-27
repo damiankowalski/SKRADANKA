@@ -1,0 +1,24 @@
+{
+	"model": {
+		"id": "stabilityai/stable-audio-3-small-sfx",
+		"revision": "05ca3857881c94a2b84026b1111c537d78f5f9f0",
+		"license": "Stability AI Community License (with the Gemma Terms of Use for its text encoder)"
+	},
+	"library": "stable-audio-3 @ Stability-AI/stable-audio-3 4007b6f2987bcb760626c2b4ae3e3541753984e9 (MIT)",
+	"allowed_models": [
+		{
+			"id": "stabilityai/stable-audio-3-small-sfx",
+			"license": "Stability AI Community License",
+			"note": "Sound effects and ambience. Results are the owner's; commercial use up to USD 1M revenue a year (stability.ai/license)."
+		}
+	],
+	"download_files": ["model.safetensors", "model_config.json", "LICENSE.md", "LICENSE_GEMMA.md", "NOTICE", "README.md", "t5gemma-b-b-ul2/*"],
+	"defaults": {
+		"variants": 3,
+		"seed": 1000,
+		"steps": 8,
+		"cfg_scale": 1.0,
+		"sample_rate": 44100
+	},
+	"hf_home_default": "~/AI/huggingface"
+}

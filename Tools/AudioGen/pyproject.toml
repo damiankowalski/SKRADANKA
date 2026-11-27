@@ -1,0 +1,20 @@
+[project]
+name = "penumbra-audiogen"
+version = "0.1.0"
+description = "Local sound effects and ambience for Penumbra (Stable Audio 3 Small SFX)"
+requires-python = "==3.12.*"
+# Core: the checks, the listening room, promotion and provenance. Runs anywhere, no model.
+dependencies = [
+    "numpy==2.3.5",
+    "scipy==1.16.3",
+]
+
+[project.optional-dependencies]
+# Generation: Stable Audio 3 (MIT) pinned to a commit; the model runs on the CPU (PyTorch).
+gen = [
+    "stable-audio-3 @ git+https://github.com/Stability-AI/stable-audio-3@4007b6f2987bcb760626c2b4ae3e3541753984e9 ; sys_platform == 'darwin' and platform_machine == 'arm64'",
+    "soundfile==0.13.1 ; sys_platform == 'darwin' and platform_machine == 'arm64'",
+]
+
+[tool.uv]
+package = false

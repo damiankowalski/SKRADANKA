@@ -1,0 +1,19 @@
+{
+	"description": "The night's wind over the old town: an ambience loop (the game's Wind.wav).",
+	"category": "ambience",
+	"loop": true,
+	"mono": false,
+	"generate_seconds": 64.0,
+	"length": [
+		55.0,
+		65.0
+	],
+	"game_name": "Wind",
+	"prompt": "Night wind blowing through the narrow streets of an old stone town, {variation}, no music, no voices, no birds.",
+	"variations": [
+		"soft steady gusts",
+		"low cold wind with a distant shutter creaking now and then",
+		"gusting wind whistling round corners",
+		"calm air with a faint breeze in the trees"
+	]
+}

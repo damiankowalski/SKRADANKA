@@ -1,0 +1,19 @@
+{
+	"description": "One footstep on stone (Noises.lua: footsteps by floor material; the game's Footstep.wav).",
+	"category": "effect",
+	"mono": true,
+	"first_event": true,
+	"generate_seconds": 2.0,
+	"length": [
+		0.04,
+		0.9
+	],
+	"game_name": "Footstep",
+	"prompt": "A single footstep of a leather boot on a stone floor in a quiet stone hall, recorded close, dry, {variation}, no music, no voices.",
+	"variations": [
+		"a soft careful step",
+		"a firm heel strike",
+		"a short scuffing step",
+		"a light step on gritty flagstones"
+	]
+}

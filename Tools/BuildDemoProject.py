@@ -1729,6 +1729,54 @@ def build_mission1():
     doc.save(M1_SCENE)
 
 
+# --------------------------------------------------------------------------------------------
+# The listening scene (Tools/AudioGen/README.md): the game's sounds where the game plays them. A strip of floors to
+# walk (footsteps by Scripts/AI/Noises.lua), three doors to the east at 3, 10 and 25 m from the strip's end that
+# Scripts/Listening.lua works in turn, the night's wind and fog. Generated sounds the owner accepted are in
+# Assets/Audio/Generated; the wind loop is the newest accepted one (the procedural Wind.wav until there is one).
+# --------------------------------------------------------------------------------------------
+
+LISTENING_FLOORS = ["Stone", "Wood", "Metal", "Carpet", "Grass", "Moss"]  # along +Z, 3 m each
+LISTENING_DOORS = [3, 10, 25]  # metres east of the strip's end
+
+
+def generated_clips(game_name):
+    """Accepted generated clips of one sound (Tools/AudioGen/promote.py), oldest first, as asset paths."""
+    folder = ASSETS / "Audio" / "Generated"
+    return [f"Audio/Generated/{path.name}" for path in sorted(folder.glob(f"{game_name}_[0-9][0-9].wav"))]
+
+
+def build_listening():
+    doc = Document("PenumbraScene")
+    add_environment(doc, ambient=0.03, map_intensity=0.2, fog=0.03, moon=0.12)
+    length = 3.0 * len(LISTENING_FLOORS)
+    end_z = length
+    box(doc, "Ground", (12, -0.5, length / 2), (40, 1, length + 12), (0.3, 0.3, 0.32), surface="Stone")
+    for index, surface in enumerate(LISTENING_FLOORS):
+        z = 3.0 * index + 1.5
+        if surface != "Stone":
+            floor_patch(doc, f"Floor_{surface}", surface, (0, z), (3, 3))
+        lamp(doc, f"Lamp_{surface}", (-2.2, 2.6, z), intensity=6.0, light_range=6.0, shadows=False)
+    add_player(doc, (0, 0.05, -1.5))
+    for distance in LISTENING_DOORS:
+        name = f"Door_{distance}m"
+        # The doorway faces the strip's end (west): the panel runs along -Z from the hinge (yaw 90).
+        add_door(doc, name, (distance, 0, end_z + 0.7), 90, width=1.4, label=f"door {distance} m")
+        for side in (-1, 1):
+            box(doc, f"{name}_Jamb{'N' if side < 0 else 'S'}", (distance, 1.3, end_z + side * 1.3), (0.4, 2.6, 1.0),
+                (0.35, 0.33, 0.3))
+        box(doc, f"{name}_Lintel", (distance, 2.45, end_z), (0.4, 0.3, 1.6), (0.35, 0.33, 0.3))
+        lamp(doc, f"{name}_Lamp", (distance - 1.0, 2.8, end_z - 1.4), intensity=5.0, light_range=5.0, shadows=False)
+    wind = (generated_clips("Wind") or ["Audio/Wind.wav"])[-1]
+    doc.add("Wind", Transform=transform(), AudioSource={"Clip": wind, "Loop": True, "PlayOnStart": True, "Spatial": False,
+                                                        "Volume": 0.5})
+    doc.add("Mist", Transform=transform((12, 0.6, length / 2)),
+            FogVolume={"HalfExtents": [20, 1.2, length / 2 + 6], "Density": 0.06, "EdgeFade": 0.8})
+    doc.add("Listening", Transform=transform(), Script={"Script": "Scripts/Listening.lua",
+                                                         "Properties": {"floors": ",".join(LISTENING_FLOORS)}})
+    doc.save("Scenes/Listening.pscene")
+
+
 def build_project_file():
     project = {"Name": "Penumbra Demo", "StartScene": "Scenes/Menu.pscene", "AssetDirectory": "Assets",
                "WindowWidth": 1600, "WindowHeight": 900}
@@ -1748,4 +1796,5 @@ if __name__ == "__main__":
     build_mood_lab()
     build_mission1()
     build_audio()
+    build_listening()
     print(f"Demo project written to {ROOT}")
