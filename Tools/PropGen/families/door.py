@@ -29,7 +29,8 @@ def build(prop, width, height, boards, material):
         prop.box((0, y, back), (w - 0.08, 0.14, LEDGE), material, grain="x", board=True, lods=(0, 1), name="ledge")
     span, rise = w - 0.2, high - low - 0.14
     angle = math.degrees(math.atan2(rise, span))
-    prop.box((0, (low + high) / 2, back), (math.hypot(span, rise), 0.13, LEDGE), material, rotate=(0, 0, -angle),
+    # Its ends stop short at the ledges' middles.
+    prop.box((0, (low + high) / 2, back), (math.hypot(span, rise) - 0.12, 0.13, LEDGE), material, rotate=(0, 0, -angle),
              grain="x", board=True, lods=(0,), name="brace")
     # In front: strap hinges over the ledges, nails along them, a ring pull and its plate by the latch side.
     front = -THICK / 2 - 0.004

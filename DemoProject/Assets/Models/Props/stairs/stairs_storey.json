@@ -1,0 +1,348 @@
+{
+  "tool": "Penumbra PropGen",
+  "family": "stairs",
+  "variant": "storey",
+  "script": "Tools/PropGen/families/stairs.py",
+  "parameters": {
+    "steps": 25,
+    "rise": 0.16,
+    "tread": 0.28,
+    "width": 1.2,
+    "material": "stone_dark"
+  },
+  "source_hash": "522fcedb3ce227b2",
+  "budget": "big",
+  "triangles": [
+    300,
+    156,
+    48
+  ],
+  "bounds": {
+    "min": [
+      -0.6,
+      0.0,
+      -3.5
+    ],
+    "max": [
+      0.6,
+      4.0,
+      3.5
+    ]
+  },
+  "collision": [
+    {
+      "center": [
+        0,
+        0.08,
+        -3.36
+      ],
+      "half_extents": [
+        0.6,
+        0.08,
+        0.14
+      ]
+    },
+    {
+      "center": [
+        0,
+        0.16,
+        -3.08
+      ],
+      "half_extents": [
+        0.6,
+        0.16,
+        0.14
+      ]
+    },
+    {
+      "center": [
+        0,
+        0.24,
+        -2.8
+      ],
+      "half_extents": [
+        0.6,
+        0.24,
+        0.14
+      ]
+    },
+    {
+      "center": [
+        0,
+        0.32,
+        -2.52
+      ],
+      "half_extents": [
+        0.6,
+        0.32,
+        0.14
+      ]
+    },
+    {
+      "center": [
+        0,
+        0.4,
+        -2.24
+      ],
+      "half_extents": [
+        0.6,
+        0.4,
+        0.14
+      ]
+    },
+    {
+      "center": [
+        0,
+        0.48,
+        -1.96
+      ],
+      "half_extents": [
+        0.6,
+        0.48,
+        0.14
+      ]
+    },
+    {
+      "center": [
+        0,
+        0.56,
+        -1.68
+      ],
+      "half_extents": [
+        0.6,
+        0.56,
+        0.14
+      ]
+    },
+    {
+      "center": [
+        0,
+        0.64,
+        -1.4
+      ],
+      "half_extents": [
+        0.6,
+        0.64,
+        0.14
+      ]
+    },
+    {
+      "center": [
+        0,
+        0.72,
+        -1.12
+      ],
+      "half_extents": [
+        0.6,
+        0.72,
+        0.14
+      ]
+    },
+    {
+      "center": [
+        0,
+        0.8,
+        -0.84
+      ],
+      "half_extents": [
+        0.6,
+        0.8,
+        0.14
+      ]
+    },
+    {
+      "center": [
+        0,
+        0.88,
+        -0.56
+      ],
+      "half_extents": [
+        0.6,
+        0.88,
+        0.14
+      ]
+    },
+    {
+      "center": [
+        0,
+        0.96,
+        -0.28
+      ],
+      "half_extents": [
+        0.6,
+        0.96,
+        0.14
+      ]
+    },
+    {
+      "center": [
+        0,
+        1.04,
+        0.0
+      ],
+      "half_extents": [
+        0.6,
+        1.04,
+        0.14
+      ]
+    },
+    {
+      "center": [
+        0,
+        1.12,
+        0.28
+      ],
+      "half_extents": [
+        0.6,
+        1.12,
+        0.14
+      ]
+    },
+    {
+      "center": [
+        0,
+        1.2,
+        0.56
+      ],
+      "half_extents": [
+        0.6,
+        1.2,
+        0.14
+      ]
+    },
+    {
+      "center": [
+        0,
+        1.28,
+        0.84
+      ],
+      "half_extents": [
+        0.6,
+        1.28,
+        0.14
+      ]
+    },
+    {
+      "center": [
+        0,
+        1.36,
+        1.12
+      ],
+      "half_extents": [
+        0.6,
+        1.36,
+        0.14
+      ]
+    },
+    {
+      "center": [
+        0,
+        1.44,
+        1.4
+      ],
+      "half_extents": [
+        0.6,
+        1.44,
+        0.14
+      ]
+    },
+    {
+      "center": [
+        0,
+        1.52,
+        1.68
+      ],
+      "half_extents": [
+        0.6,
+        1.52,
+        0.14
+      ]
+    },
+    {
+      "center": [
+        0,
+        1.6,
+        1.96
+      ],
+      "half_extents": [
+        0.6,
+        1.6,
+        0.14
+      ]
+    },
+    {
+      "center": [
+        0,
+        1.68,
+        2.24
+      ],
+      "half_extents": [
+        0.6,
+        1.68,
+        0.14
+      ]
+    },
+    {
+      "center": [
+        0,
+        1.76,
+        2.52
+      ],
+      "half_extents": [
+        0.6,
+        1.76,
+        0.14
+      ]
+    },
+    {
+      "center": [
+        0,
+        1.84,
+        2.8
+      ],
+      "half_extents": [
+        0.6,
+        1.84,
+        0.14
+      ]
+    },
+    {
+      "center": [
+        0,
+        1.92,
+        3.08
+      ],
+      "half_extents": [
+        0.6,
+        1.92,
+        0.14
+      ]
+    },
+    {
+      "center": [
+        0,
+        2.0,
+        3.36
+      ],
+      "half_extents": [
+        0.6,
+        2.0,
+        0.14
+      ]
+    }
+  ],
+  "materials": {
+    "stone_dark": {
+      "albedo": "Textures/StoneWall/stone_wall_1002_albedo.png",
+      "normal": "Textures/StoneWall/stone_wall_1002_normal.png",
+      "metallic_roughness": "Textures/StoneWall/stone_wall_1002_mr.png"
+    }
+  },
+  "files": {
+    "lod0": "stairs_storey.glb",
+    "lod1": "stairs_storey_lod1.glb",
+    "lod2": "stairs_storey_lod2.glb"
+  },
+  "license": "the owner's (generated by the repository's scripts)",
+  "ai_generated": false
+}

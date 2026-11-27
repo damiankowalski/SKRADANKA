@@ -1,8 +1,9 @@
 # PropGen: procedural props
 
 Builds the props the world is furnished with (crates, barrels, chests, tables, chairs, stools, benches, shelves,
-wine racks, plank doors, pottery, buckets, candlesticks; later the architecture kit) from scripts: one Python file per family of objects, with parameters per variant. The scripts are the source; the
-generated `.glb` files and their provenance are committed, like the demo's scenes. Agents:
+wine racks, plank doors, pottery, buckets, candlesticks) and the start of the architecture kit (walls with doorways
+and windows, timber, stairs) from scripts: one Python file per family of objects, with parameters per variant. The
+scripts are the source; the generated `.glb` files and their provenance are committed, like the demo's scenes. Agents:
 `.claude/skills/penumbra-generate-props`. Why this way: `docs/research/MissionOne.md`, "Filling the world with 3D
 objects".
 
@@ -32,12 +33,14 @@ Python's standard library only: no Blender, no packages, nothing to install; it 
   (`Prop.lathe`: a barrel's staves, its heads and hoops), flat-shaded, in metres, Y up, with the pivot at the
   middle of the base.
 * **Materials** are the generated texture sheets in `Assets/Textures` (config.json `materials`: oak boards, tarred
-  boards, rusted iron; clay, glaze and wax are plain colours until they have sheets of their own). A `.glb`
-  refers to them by relative URI, never embeds them: the engine loads a sheet once
+  boards, rusted iron, light and dark stone, lime plaster; clay, glaze and wax are plain colours until they have
+  sheets of their own). A `.glb` refers to them by relative URI, never embeds them: the engine loads a sheet once
   and every prop shares it (`AssetManager`), in memory and on the GPU.
 * **UVs** are in metres of the texture (`metres_per_repeat`), along the wood's grain (`grain`, default the
   longest side). The board textures have eight boards per repeat running along V: a board-sized part
-  (`board=True`) is mapped onto exactly one of them, so the texture's dark gaps fall on the part's edges.
+  (`board=True`) is mapped onto exactly one of them, so the texture's dark gaps fall on the part's edges. Stone
+  and plaster stay upright (`grain="y"`), and the pieces of a wall around an opening share the wall's own UVs
+  (`aligned=True`), so the stones run on across them.
 * **LODs** are authored, not decimated: each part says which levels it belongs to (`lods`). LOD0 is every board,
   LOD1 a side as one slab (no nails, braces or straps), LOD2 the silhouette (a crate is one box). The engine draws
   LOD0 until it has LODs and draw distances (`MissionOne.md` A3); the files are ready for it.
@@ -74,6 +77,9 @@ Python's standard library only: no Blender, no packages, nothing to install; it 
 | pottery | bowl, jug, mug, storage_jar | 124-200 / 60-116 / 20-32 |
 | bucket | washtub, well | 176-212 / 22-25 / 16 |
 | candlestick | pricket, table | 126 / 74 / 20 |
+| wall | plaster_4m, plaster_window, stone_2m, stone_4m, stone_door, stone_window | 12-132 / 12-108 / 12-48 |
+| beam | ceiling_4m, ceiling_6m, post, post_braced | 24-60 / 12-60 / 12-24 |
+| stairs | cellar, short, storey | 48-300 / 24-156 / 12-48 |
 
 A new family: copy the closest script, set `FAMILY`, `BUDGET` and `VARIANTS`, build it from boxes and lathes, add
 it to `families/__init__.py`, run `generate.py`, add it to the prop lab (`PROP_LAB_ROWS` in

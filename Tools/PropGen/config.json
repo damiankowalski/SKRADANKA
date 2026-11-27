@@ -40,6 +40,30 @@
 			"base_color": [0.8, 0.8, 0.8],
 			"note": "rusted iron: bands, nails, hinges"
 		},
+		"stone": {
+			"albedo": "Textures/StoneWall/stone_wall_1000_albedo.png",
+			"normal": "Textures/StoneWall/stone_wall_1000_normal.png",
+			"metallic_roughness": "Textures/StoneWall/stone_wall_1000_mr.png",
+			"metres_per_repeat": 2.0,
+			"base_color": [1.0, 1.0, 1.0],
+			"note": "light rubble stone walls (one repeat covers 2 m, as in the mood lab)"
+		},
+		"stone_dark": {
+			"albedo": "Textures/StoneWall/stone_wall_1002_albedo.png",
+			"normal": "Textures/StoneWall/stone_wall_1002_normal.png",
+			"metallic_roughness": "Textures/StoneWall/stone_wall_1002_mr.png",
+			"metres_per_repeat": 2.0,
+			"base_color": [1.0, 1.0, 1.0],
+			"note": "dark stone: plinths, the church, the catacombs"
+		},
+		"plaster": {
+			"albedo": "Textures/Plaster/plaster_1000_albedo.png",
+			"normal": "Textures/Plaster/plaster_1000_normal.png",
+			"metallic_roughness": "Textures/Plaster/plaster_1000_mr.png",
+			"metres_per_repeat": 2.0,
+			"base_color": [1.0, 1.0, 1.0],
+			"note": "lime plaster over the walls of houses"
+		},
 		"clay": {
 			"base_color": [0.46, 0.25, 0.16],
 			"roughness": 0.85,

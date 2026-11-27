@@ -75,6 +75,21 @@ class MeshTests(unittest.TestCase):
         self.assertAlmostEqual(us[1] - us[0], 1 / boards)
         self.assertAlmostEqual((us[0] * boards) % 1, 0.0, places=5)
 
+    def test_aligned_pieces_continue_each_others_texture(self):
+        # Two pieces of one wall side by side: where they meet, both show the same point of the texture.
+        prop = Prop(SETTINGS["materials"], 10)
+        left = prop.box((-1.0, 2.0, 0), (2.0, 4.0, 0.3), "stone", grain="y", aligned=True)
+        right = prop.box((1.0, 2.0, 0), (2.0, 4.0, 0.3), "stone", grain="y", aligned=True)
+        def front_uv_at(part, x, y):
+            face = next(f for f in part.faces if f.normal == (0.0, 0.0, 1.0))
+            return next(uv for p, uv in zip(face.points, face.uvs) if abs(p[0] - x) < 1e-9 and abs(p[1] - y) < 1e-9)
+        for y in (0.0, 4.0):
+            self.assertEqual([round(c, 6) for c in front_uv_at(left, 0.0, y)], [round(c, 6) for c in front_uv_at(right, 0.0, y)])
+        # V runs up the wall (stone kept upright).
+        face = next(f for f in left.faces if f.normal == (0.0, 0.0, 1.0))
+        vs = [uv[1] for uv in face.uvs]
+        self.assertAlmostEqual(max(vs) - min(vs), 4.0 / SETTINGS["materials"]["stone"]["metres_per_repeat"])
+
     def test_a_lathe_faces_out_with_its_caps(self):
         prop = Prop(SETTINGS["materials"], 4)
         prop.lathe([(0.3, 0.0), (0.35, 0.4), (0.3, 0.8)], 12, "wood", caps=(True, True))

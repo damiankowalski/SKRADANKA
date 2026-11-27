@@ -5,7 +5,8 @@ A family module has FAMILY (its name, the folder under Models/Props), BUDGET (a 
 pivot at the middle of the base and may add collision boxes (one box around the prop when it adds none).
 """
 
-from . import barrel, bench, bucket, candlestick, chair, chest, crate, door, pottery, shelf, stool, table, wine_rack
+from . import (barrel, beam, bench, bucket, candlestick, chair, chest, crate, door, pottery, shelf, stairs, stool,
+               table, wall, wine_rack)
 
 FAMILIES = {module.FAMILY: module for module in (crate, barrel, chest, table, chair, stool, bench, shelf, wine_rack, door, pottery, bucket,
-                                                          candlestick)}
+                                                          candlestick, wall, beam, stairs)}

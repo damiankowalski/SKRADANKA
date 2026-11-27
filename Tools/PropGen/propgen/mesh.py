@@ -93,10 +93,12 @@ class Prop:
 
     # ---------------------------------------------------------------- building blocks
 
-    def box(self, centre, size, material, rotate=(0, 0, 0), grain=None, board=False, lods=(0, 1, 2), name="box"):
+    def box(self, centre, size, material, rotate=(0, 0, 0), grain=None, board=False, lods=(0, 1, 2), name="box",
+            aligned=False):
         """A box `size` (x, y, z) metres around `centre`, turned by `rotate` (Euler degrees). `grain`: the local axis
         ("x", "y", "z") the wood runs along (default: the longest). `board`: map the part onto one of the texture's
-        boards across its width."""
+        boards across its width. `aligned`: UVs from the prop's own coordinates rather than the part's, so the pieces
+        of one wall around an opening continue each other's texture (unturned parts only)."""
         part = Part(material, lods, name)
         half = [s / 2.0 for s in size]
         grain_axis = AXIS[grain] if grain else max(range(3), key=lambda i: size[i])
@@ -106,6 +108,8 @@ class Prop:
         boards = spec.get("boards_per_repeat")
         offset = (self.random.random(), self.random.random())
         board_index = self.random.randrange(boards) if boards else 0
+        if aligned:
+            offset = None
         for i in range(3):
             j, k = (i + 1) % 3, (i + 2) % 3
             # V along the grain when the face shows it, else along the face's longer side.
@@ -129,9 +133,12 @@ class Prop:
                     u_local, v_local = local[u_axis], local[v_axis]
                     if board and boards and v_axis == grain_axis:
                         u = ((u_local + half[u_axis]) / (2 * half[u_axis]) + board_index) / boards
+                    elif offset is None:
+                        u = (u_local + centre[u_axis]) * per_metre
                     else:
                         u = u_local * per_metre + offset[0]
-                    uvs.append((u, v_local * per_metre + offset[1]))
+                    v = (v_local + centre[v_axis]) * per_metre if offset is None else v_local * per_metre + offset[1]
+                    uvs.append((u, v))
                 part.faces.append(Face(points, apply(m, normal), uvs))
         self.parts.append(part)
         return part

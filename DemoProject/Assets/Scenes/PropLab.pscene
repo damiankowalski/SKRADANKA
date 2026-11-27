@@ -121,7 +121,7 @@
           "Translation": [
             0,
             -0.5,
-            0
+            -7.5
           ],
           "Rotation": [
             0,
@@ -129,9 +129,9 @@
             0
           ],
           "Scale": [
-            16,
+            24,
             1,
-            32.400000000000006
+            48.400000000000006
           ]
         },
         "Mesh": {
@@ -157,8 +157,8 @@
           "NormalTexture": "Textures/StoneFloor/stone_floor_1000_normal.png",
           "MetallicRoughnessTexture": "Textures/StoneFloor/stone_floor_1000_mr.png",
           "UVScale": [
-            16.2,
-            8.0
+            24.2,
+            12.0
           ]
         },
         "BoxCollider": {
@@ -2950,13 +2950,2323 @@
       "ID": "1088",
       "Components": {
         "Tag": {
-          "Tag": "Lamp1"
+          "Tag": "Kit_stone_4m"
         },
         "Transform": {
           "Translation": [
-            -4.5,
-            3.2,
-            -8.8
+            -5.0,
+            0,
+            -23.2
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/wall/wall_stone_4m.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1089",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0.0,
+            2.0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            2.0,
+            2.0,
+            0.15
+          ]
+        }
+      },
+      "Parent": "1088"
+    },
+    {
+      "ID": "1090",
+      "Components": {
+        "Tag": {
+          "Tag": "Kit_stone_door"
+        },
+        "Transform": {
+          "Translation": [
+            -1.0,
+            0,
+            -23.2
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/wall/wall_stone_door.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1091",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            -1.35,
+            2.0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.65,
+            2.0,
+            0.15
+          ]
+        }
+      },
+      "Parent": "1090"
+    },
+    {
+      "ID": "1092",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider1"
+        },
+        "Transform": {
+          "Translation": [
+            1.35,
+            2.0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.65,
+            2.0,
+            0.15
+          ]
+        }
+      },
+      "Parent": "1090"
+    },
+    {
+      "ID": "1093",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider2"
+        },
+        "Transform": {
+          "Translation": [
+            0.0,
+            3.15,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.7,
+            0.85,
+            0.15
+          ]
+        }
+      },
+      "Parent": "1090"
+    },
+    {
+      "ID": "1094",
+      "Components": {
+        "Tag": {
+          "Tag": "Kit_stone_window"
+        },
+        "Transform": {
+          "Translation": [
+            2.0,
+            0,
+            -23.2
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/wall/wall_stone_window.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1095",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            -0.7,
+            2.0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.3,
+            2.0,
+            0.15
+          ]
+        }
+      },
+      "Parent": "1094"
+    },
+    {
+      "ID": "1096",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider1"
+        },
+        "Transform": {
+          "Translation": [
+            0.7,
+            2.0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.3,
+            2.0,
+            0.15
+          ]
+        }
+      },
+      "Parent": "1094"
+    },
+    {
+      "ID": "1097",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider2"
+        },
+        "Transform": {
+          "Translation": [
+            0.0,
+            3.0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.4,
+            1.0,
+            0.15
+          ]
+        }
+      },
+      "Parent": "1094"
+    },
+    {
+      "ID": "1098",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider3"
+        },
+        "Transform": {
+          "Translation": [
+            0.0,
+            0.5,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.4,
+            0.5,
+            0.15
+          ]
+        }
+      },
+      "Parent": "1094"
+    },
+    {
+      "ID": "1099",
+      "Components": {
+        "Tag": {
+          "Tag": "Kit_stone_2m"
+        },
+        "Transform": {
+          "Translation": [
+            4.0,
+            0,
+            -23.2
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/wall/wall_stone_2m.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1100",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0.0,
+            2.0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            1.0,
+            2.0,
+            0.15
+          ]
+        }
+      },
+      "Parent": "1099"
+    },
+    {
+      "ID": "1101",
+      "Components": {
+        "Tag": {
+          "Tag": "Kit_plaster_4m"
+        },
+        "Transform": {
+          "Translation": [
+            -7.15,
+            0,
+            -21.05
+          ],
+          "Rotation": [
+            0,
+            90,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/wall/wall_plaster_4m.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1102",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0.0,
+            2.0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            2.0,
+            2.0,
+            0.15
+          ]
+        }
+      },
+      "Parent": "1101"
+    },
+    {
+      "ID": "1103",
+      "Components": {
+        "Tag": {
+          "Tag": "Kit_plaster_window"
+        },
+        "Transform": {
+          "Translation": [
+            -7.15,
+            0,
+            -18.049999999999997
+          ],
+          "Rotation": [
+            0,
+            90,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/wall/wall_plaster_window.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1104",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            -0.7,
+            2.0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.3,
+            2.0,
+            0.15
+          ]
+        }
+      },
+      "Parent": "1103"
+    },
+    {
+      "ID": "1105",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider1"
+        },
+        "Transform": {
+          "Translation": [
+            0.7,
+            2.0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.3,
+            2.0,
+            0.15
+          ]
+        }
+      },
+      "Parent": "1103"
+    },
+    {
+      "ID": "1106",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider2"
+        },
+        "Transform": {
+          "Translation": [
+            0.0,
+            3.0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.4,
+            1.0,
+            0.15
+          ]
+        }
+      },
+      "Parent": "1103"
+    },
+    {
+      "ID": "1107",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider3"
+        },
+        "Transform": {
+          "Translation": [
+            0.0,
+            0.5,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.4,
+            0.5,
+            0.15
+          ]
+        }
+      },
+      "Parent": "1103"
+    },
+    {
+      "ID": "1108",
+      "Components": {
+        "Tag": {
+          "Tag": "Kit_post_braced"
+        },
+        "Transform": {
+          "Translation": [
+            2.0,
+            0,
+            -20.7
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/beam/beam_post_braced.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1109",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.8,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.11,
+            1.8,
+            0.11
+          ]
+        }
+      },
+      "Parent": "1108"
+    },
+    {
+      "ID": "1110",
+      "Components": {
+        "Tag": {
+          "Tag": "Kit_post"
+        },
+        "Transform": {
+          "Translation": [
+            -3.0,
+            0,
+            -20.7
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/beam/beam_post.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1111",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.8,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.11,
+            1.8,
+            0.11
+          ]
+        }
+      },
+      "Parent": "1110"
+    },
+    {
+      "ID": "1112",
+      "Components": {
+        "Tag": {
+          "Tag": "Kit_beam"
+        },
+        "Transform": {
+          "Translation": [
+            -0.5,
+            3.6,
+            -20.7
+          ],
+          "Rotation": [
+            0,
+            0.0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/beam/beam_ceiling_4m.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1113",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0.0,
+            0.11,
+            0.0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            2.0,
+            0.11,
+            0.109
+          ]
+        }
+      },
+      "Parent": "1112"
+    },
+    {
+      "ID": "1114",
+      "Components": {
+        "Tag": {
+          "Tag": "Kit_stairs_storey"
+        },
+        "Transform": {
+          "Translation": [
+            8.5,
+            0,
+            -18.7
+          ],
+          "Rotation": [
+            0,
+            180,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/stairs/stairs_storey.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1115",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.08,
+            -3.36
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            0.08,
+            0.14
+          ]
+        }
+      },
+      "Parent": "1114"
+    },
+    {
+      "ID": "1116",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider1"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.16,
+            -3.08
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            0.16,
+            0.14
+          ]
+        }
+      },
+      "Parent": "1114"
+    },
+    {
+      "ID": "1117",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider2"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.24,
+            -2.8
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            0.24,
+            0.14
+          ]
+        }
+      },
+      "Parent": "1114"
+    },
+    {
+      "ID": "1118",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider3"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.32,
+            -2.52
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            0.32,
+            0.14
+          ]
+        }
+      },
+      "Parent": "1114"
+    },
+    {
+      "ID": "1119",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider4"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.4,
+            -2.24
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            0.4,
+            0.14
+          ]
+        }
+      },
+      "Parent": "1114"
+    },
+    {
+      "ID": "1120",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider5"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.48,
+            -1.96
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            0.48,
+            0.14
+          ]
+        }
+      },
+      "Parent": "1114"
+    },
+    {
+      "ID": "1121",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider6"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.56,
+            -1.68
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            0.56,
+            0.14
+          ]
+        }
+      },
+      "Parent": "1114"
+    },
+    {
+      "ID": "1122",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider7"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.64,
+            -1.4
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            0.64,
+            0.14
+          ]
+        }
+      },
+      "Parent": "1114"
+    },
+    {
+      "ID": "1123",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider8"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.72,
+            -1.12
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            0.72,
+            0.14
+          ]
+        }
+      },
+      "Parent": "1114"
+    },
+    {
+      "ID": "1124",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider9"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.8,
+            -0.84
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            0.8,
+            0.14
+          ]
+        }
+      },
+      "Parent": "1114"
+    },
+    {
+      "ID": "1125",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider10"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.88,
+            -0.56
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            0.88,
+            0.14
+          ]
+        }
+      },
+      "Parent": "1114"
+    },
+    {
+      "ID": "1126",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider11"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.96,
+            -0.28
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            0.96,
+            0.14
+          ]
+        }
+      },
+      "Parent": "1114"
+    },
+    {
+      "ID": "1127",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider12"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.04,
+            0.0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            1.04,
+            0.14
+          ]
+        }
+      },
+      "Parent": "1114"
+    },
+    {
+      "ID": "1128",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider13"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.12,
+            0.28
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            1.12,
+            0.14
+          ]
+        }
+      },
+      "Parent": "1114"
+    },
+    {
+      "ID": "1129",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider14"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.2,
+            0.56
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            1.2,
+            0.14
+          ]
+        }
+      },
+      "Parent": "1114"
+    },
+    {
+      "ID": "1130",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider15"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.28,
+            0.84
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            1.28,
+            0.14
+          ]
+        }
+      },
+      "Parent": "1114"
+    },
+    {
+      "ID": "1131",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider16"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.36,
+            1.12
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            1.36,
+            0.14
+          ]
+        }
+      },
+      "Parent": "1114"
+    },
+    {
+      "ID": "1132",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider17"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.44,
+            1.4
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            1.44,
+            0.14
+          ]
+        }
+      },
+      "Parent": "1114"
+    },
+    {
+      "ID": "1133",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider18"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.52,
+            1.68
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            1.52,
+            0.14
+          ]
+        }
+      },
+      "Parent": "1114"
+    },
+    {
+      "ID": "1134",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider19"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.6,
+            1.96
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            1.6,
+            0.14
+          ]
+        }
+      },
+      "Parent": "1114"
+    },
+    {
+      "ID": "1135",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider20"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.68,
+            2.24
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            1.68,
+            0.14
+          ]
+        }
+      },
+      "Parent": "1114"
+    },
+    {
+      "ID": "1136",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider21"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.76,
+            2.52
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            1.76,
+            0.14
+          ]
+        }
+      },
+      "Parent": "1114"
+    },
+    {
+      "ID": "1137",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider22"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.84,
+            2.8
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            1.84,
+            0.14
+          ]
+        }
+      },
+      "Parent": "1114"
+    },
+    {
+      "ID": "1138",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider23"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            1.92,
+            3.08
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            1.92,
+            0.14
+          ]
+        }
+      },
+      "Parent": "1114"
+    },
+    {
+      "ID": "1139",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider24"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            2.0,
+            3.36
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.6,
+            2.0,
+            0.14
+          ]
+        }
+      },
+      "Parent": "1114"
+    },
+    {
+      "ID": "1140",
+      "Components": {
+        "Tag": {
+          "Tag": "Kit_stairs_cellar"
+        },
+        "Transform": {
+          "Translation": [
+            6.2,
+            0,
+            -17.7
+          ],
+          "Rotation": [
+            0,
+            180,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/stairs/stairs_cellar.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1141",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.08,
+            -1.43
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.08,
+            0.13
+          ]
+        }
+      },
+      "Parent": "1140"
+    },
+    {
+      "ID": "1142",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider1"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.16,
+            -1.17
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.16,
+            0.13
+          ]
+        }
+      },
+      "Parent": "1140"
+    },
+    {
+      "ID": "1143",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider2"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.24,
+            -0.91
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.24,
+            0.13
+          ]
+        }
+      },
+      "Parent": "1140"
+    },
+    {
+      "ID": "1144",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider3"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.32,
+            -0.65
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.32,
+            0.13
+          ]
+        }
+      },
+      "Parent": "1140"
+    },
+    {
+      "ID": "1145",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider4"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.4,
+            -0.39
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.4,
+            0.13
+          ]
+        }
+      },
+      "Parent": "1140"
+    },
+    {
+      "ID": "1146",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider5"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.48,
+            -0.13
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.48,
+            0.13
+          ]
+        }
+      },
+      "Parent": "1140"
+    },
+    {
+      "ID": "1147",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider6"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.56,
+            0.13
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.56,
+            0.13
+          ]
+        }
+      },
+      "Parent": "1140"
+    },
+    {
+      "ID": "1148",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider7"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.64,
+            0.39
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.64,
+            0.13
+          ]
+        }
+      },
+      "Parent": "1140"
+    },
+    {
+      "ID": "1149",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider8"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.72,
+            0.65
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.72,
+            0.13
+          ]
+        }
+      },
+      "Parent": "1140"
+    },
+    {
+      "ID": "1150",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider9"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.8,
+            0.91
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.8,
+            0.13
+          ]
+        }
+      },
+      "Parent": "1140"
+    },
+    {
+      "ID": "1151",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider10"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.88,
+            1.17
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.88,
+            0.13
+          ]
+        }
+      },
+      "Parent": "1140"
+    },
+    {
+      "ID": "1152",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider11"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.96,
+            1.43
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.96,
+            0.13
+          ]
+        }
+      },
+      "Parent": "1140"
+    },
+    {
+      "ID": "1153",
+      "Components": {
+        "Tag": {
+          "Tag": "Kit_stairs_short"
+        },
+        "Transform": {
+          "Translation": [
+            -1.0,
+            0,
+            -22.25
+          ],
+          "Rotation": [
+            0,
+            180,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Mesh": {
+          "Mesh": "Models/Props/stairs/stairs_short.glb",
+          "CastShadows": true
+        },
+        "Surface": {
+          "Material": "Wood",
+          "NoiseModifier": 0.5
+        }
+      }
+    },
+    {
+      "ID": "1154",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider0"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.08,
+            -0.48
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.8,
+            0.08,
+            0.16
+          ]
+        }
+      },
+      "Parent": "1153"
+    },
+    {
+      "ID": "1155",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider1"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.16,
+            -0.16
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.8,
+            0.16,
+            0.16
+          ]
+        }
+      },
+      "Parent": "1153"
+    },
+    {
+      "ID": "1156",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider2"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.24,
+            0.16
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.8,
+            0.24,
+            0.16
+          ]
+        }
+      },
+      "Parent": "1153"
+    },
+    {
+      "ID": "1157",
+      "Components": {
+        "Tag": {
+          "Tag": "Collider3"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.32,
+            0.48
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.8,
+            0.32,
+            0.16
+          ]
+        }
+      },
+      "Parent": "1153"
+    },
+    {
+      "ID": "1158",
+      "Components": {
+        "Tag": {
+          "Tag": "KitLamp1"
+        },
+        "Transform": {
+          "Translation": [
+            -3.0,
+            3.0,
+            -22.0
           ],
           "Rotation": [
             0,
@@ -2983,7 +5293,7 @@
       }
     },
     {
-      "ID": "1089",
+      "ID": "1159",
       "Components": {
         "Tag": {
           "Tag": "Glow"
@@ -3027,10 +5337,176 @@
           "Translucent": false
         }
       },
-      "Parent": "1088"
+      "Parent": "1158"
     },
     {
-      "ID": "1090",
+      "ID": "1160",
+      "Components": {
+        "Tag": {
+          "Tag": "KitLamp2"
+        },
+        "Transform": {
+          "Translation": [
+            4.0,
+            3.0,
+            -22.0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.8,
+            0.55
+          ],
+          "Intensity": 14.0,
+          "Range": 9.0,
+          "Flicker": 0.05,
+          "CastShadows": true
+        }
+      }
+    },
+    {
+      "ID": "1161",
+      "Components": {
+        "Tag": {
+          "Tag": "Glow"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.1,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.18,
+            0.24,
+            0.18
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            1.0,
+            0.85,
+            0.6,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 5.0,
+          "EmissiveColor": [
+            1.0,
+            0.8,
+            0.55
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1160"
+    },
+    {
+      "ID": "1162",
+      "Components": {
+        "Tag": {
+          "Tag": "Lamp1"
+        },
+        "Transform": {
+          "Translation": [
+            -4.5,
+            3.2,
+            -8.8
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.8,
+            0.55
+          ],
+          "Intensity": 14.0,
+          "Range": 9.0,
+          "Flicker": 0.05,
+          "CastShadows": true
+        }
+      }
+    },
+    {
+      "ID": "1163",
+      "Components": {
+        "Tag": {
+          "Tag": "Glow"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.1,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.18,
+            0.24,
+            0.18
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            1.0,
+            0.85,
+            0.6,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 5.0,
+          "EmissiveColor": [
+            1.0,
+            0.8,
+            0.55
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1162"
+    },
+    {
+      "ID": "1164",
       "Components": {
         "Tag": {
           "Tag": "Lamp2"
@@ -3066,7 +5542,7 @@
       }
     },
     {
-      "ID": "1091",
+      "ID": "1165",
       "Components": {
         "Tag": {
           "Tag": "Glow"
@@ -3110,10 +5586,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1090"
+      "Parent": "1164"
     },
     {
-      "ID": "1092",
+      "ID": "1166",
       "Components": {
         "Tag": {
           "Tag": "Lamp3"
@@ -3149,7 +5625,7 @@
       }
     },
     {
-      "ID": "1093",
+      "ID": "1167",
       "Components": {
         "Tag": {
           "Tag": "Glow"
@@ -3193,10 +5669,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1092"
+      "Parent": "1166"
     },
     {
-      "ID": "1094",
+      "ID": "1168",
       "Components": {
         "Tag": {
           "Tag": "Lamp4"
@@ -3232,7 +5708,7 @@
       }
     },
     {
-      "ID": "1095",
+      "ID": "1169",
       "Components": {
         "Tag": {
           "Tag": "Glow"
@@ -3276,10 +5752,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1094"
+      "Parent": "1168"
     },
     {
-      "ID": "1096",
+      "ID": "1170",
       "Components": {
         "Tag": {
           "Tag": "Lamp5"
@@ -3315,7 +5791,7 @@
       }
     },
     {
-      "ID": "1097",
+      "ID": "1171",
       "Components": {
         "Tag": {
           "Tag": "Glow"
@@ -3359,10 +5835,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1096"
+      "Parent": "1170"
     },
     {
-      "ID": "1098",
+      "ID": "1172",
       "Components": {
         "Tag": {
           "Tag": "Lamp6"
@@ -3398,7 +5874,7 @@
       }
     },
     {
-      "ID": "1099",
+      "ID": "1173",
       "Components": {
         "Tag": {
           "Tag": "Glow"
@@ -3442,7 +5918,7 @@
           "Translucent": false
         }
       },
-      "Parent": "1098"
+      "Parent": "1172"
     }
   ]
 }

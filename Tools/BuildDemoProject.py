@@ -1768,8 +1768,9 @@ def build_prop_lab():
     add_environment(doc, ambient=0.05, map_intensity=0.35, fog=0.004, moon=0.25)
     depth = PROP_LAB_ROW * (len(PROP_LAB_ROWS) - 1)
     doc.add("Camera", Transform=transform((0, 4.0, depth / 2 + 5), (-22, 0, 0)), Camera={"VerticalFOV": 60.0, "NearClip": 0.05, "FarClip": 200.0})
-    floor_size = (16, 1, depth + 6)
-    box(doc, "Floor", (0, -0.5, 0), floor_size, (0.3, 0.3, 0.3), surface="Stone",
+    kit = -depth / 2 - 6  # the architecture kit's corner, behind the rows
+    floor_size = (24, 1, depth + 22)
+    box(doc, "Floor", (0, -0.5, -7.5), floor_size, (0.3, 0.3, 0.3), surface="Stone",
         mat=tiled_material("Textures/StoneFloor/stone_floor_1000", 1.0, (floor_size[2] / 2, floor_size[0] / 2)))
     for row, (family, variants) in enumerate(PROP_LAB_ROWS):
         z = round(-depth / 2 + row * PROP_LAB_ROW, 3)
@@ -1779,6 +1780,21 @@ def build_prop_lab():
         for variant, width in zip(variants, widths):
             add_prop(doc, family, variant, (round(x + width / 2, 3), 0, z))
             x += width + 0.8
+    # The kit: a stone street front (a wall, a doorway, a window, a short wall), a plaster house end turned towards
+    # it, timber in front, a storey flight and a cellar flight.
+    back = round(kit - 4, 3)
+    for name, x in (("stone_4m", -5.0), ("stone_door", -1.0), ("stone_window", 2.0), ("stone_2m", 4.0)):
+        add_prop(doc, "wall", name, (x, 0, back), name=f"Kit_{name}")
+    add_prop(doc, "wall", "plaster_4m", (-7.15, 0, back + 2.15), yaw=90, name="Kit_plaster_4m")
+    add_prop(doc, "wall", "plaster_window", (-7.15, 0, back + 5.15), yaw=90, name="Kit_plaster_window")
+    add_prop(doc, "beam", "post_braced", (2.0, 0, back + 2.5), name="Kit_post_braced")
+    add_prop(doc, "beam", "post", (-3.0, 0, back + 2.5), name="Kit_post")
+    add_prop(doc, "beam", "ceiling_4m", (-0.5, 3.6, back + 2.5), name="Kit_beam")
+    add_prop(doc, "stairs", "storey", (8.5, 0, round(kit + 0.5, 3)), yaw=180, name="Kit_stairs_storey")
+    add_prop(doc, "stairs", "cellar", (6.2, 0, round(kit + 1.5, 3)), yaw=180, name="Kit_stairs_cellar")
+    add_prop(doc, "stairs", "short", (-1.0, 0, back + 0.95), yaw=180, name="Kit_stairs_short")
+    lamp(doc, "KitLamp1", (-3.0, 3.0, back + 1.2), intensity=14.0, light_range=9.0)
+    lamp(doc, "KitLamp2", (4.0, 3.0, back + 1.2), intensity=14.0, light_range=9.0)
     lamps = [(x, round(z, 3)) for z in (-depth / 3, 0, depth / 3) for x in (-4.5, 4.5)]
     for index, (x, z) in enumerate(lamps):
         lamp(doc, f"Lamp{index + 1}", (x, 3.2, z), intensity=14.0, light_range=9.0)
