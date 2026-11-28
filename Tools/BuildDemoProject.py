@@ -1129,19 +1129,38 @@ SAMPLE_MATERIALS = (
     ("StoneFloor_Wet", "Textures/StoneFloor/stone_floor_2002", "floor", 1.5, 3.5, 0.0),
     ("Ground_Earth", "Textures/Ground/ground_1000", "floor", 2.0, 2.0, 0.0),
 )
+# The second batch (docs/art/mood/README.md, "Sample wall, second batch"): a row behind the first, read from between
+# the two rows. Tints lift the dark albedos part of the way only: black wood, a dark rug and dark grass stay dark.
+SAMPLE_MATERIALS_2 = (
+    ("Brick_Sooty", "Textures/Brick/brick_1001", "wall", 2.0, 3.0, 0.0),
+    ("DressedStone_Sandstone", "Textures/DressedStone/dressed_stone_1000", "wall", 2.5, 0.7, 0.0),
+    ("Rock_Wet", "Textures/Rock/rock_1002", "wall", 2.5, 2.5, 0.0),
+    ("Ossuary_Skulls", "Textures/Ossuary/ossuary_1001", "wall", 2.0, 1.6, 0.0),
+    ("WoodPanel_Oak", "Textures/WoodPanel/wood_panel_1000", "wall", 2.0, 2.5, 0.0),
+    ("WoodPanel_Walnut", "Textures/WoodPanel/wood_panel_1001", "wall", 2.4, 1.8, 0.0),
+    ("Wallpaper_Lilies", "Textures/Wallpaper/wallpaper_2002", "wall", 1.5, 1.5, 0.0),
+    ("PolishedWood_Ebony", "Textures/PolishedWood/polished_wood_1002", "wall", 1.5, 2.0, 0.0),
+    ("Grass_Grounds", "Textures/Grass/grass_1000", "floor", 2.0, 2.5, 0.0),
+    ("Grass_Trodden", "Textures/Grass/grass_1001", "floor", 2.0, 1.8, 0.0),
+    ("Rug_Medallion", "Textures/Rug/rug_2000", "floor", 2.0, 2.5, 0.0),
+    ("Rug_Floral", "Textures/Rug/rug_1001", "floor", 2.0, 1.0, 0.0),
+    ("Tiles_Terracotta", "Textures/CeramicTiles/ceramic_tiles_1000", "floor", 1.5, 1.8, 0.0),
+    ("Tiles_Painted", "Textures/CeramicTiles/ceramic_tiles_1002", "floor", 1.5, 0.7, 0.0),
+)
+SAMPLE_BACK_Z_2 = 28.0
 SAMPLE_BAY_WIDTH = 2.4
 SAMPLE_BAY_DEPTH = 4.0
 SAMPLE_BACK_Z = 22.0
 SAMPLE_WALL_HEIGHT = 3.0
 
 
-def sample_wall(doc):
-    """The bays of SAMPLE_MATERIALS side by side along X, centred on x = 0, their back panels at SAMPLE_BACK_Z, read from
-    left to right by a camera looking south (+Z)."""
+def sample_wall(doc, materials=SAMPLE_MATERIALS, back_z=SAMPLE_BACK_Z):
+    """The bays of `materials` side by side along X, centred on x = 0, their back panels at back_z, read from left to
+    right by a camera looking south (+Z)."""
     neutral = (0.18, 0.18, 0.18)
-    front_z = SAMPLE_BACK_Z - SAMPLE_BAY_DEPTH
-    for index, (name, texture, kind, tile, tint, metallic) in enumerate(SAMPLE_MATERIALS):
-        x = ((len(SAMPLE_MATERIALS) - 1) / 2 - index) * SAMPLE_BAY_WIDTH  # the first on the left, seen from the north
+    front_z = back_z - SAMPLE_BAY_DEPTH
+    for index, (name, texture, kind, tile, tint, metallic) in enumerate(materials):
+        x = ((len(materials) - 1) / 2 - index) * SAMPLE_BAY_WIDTH  # the first on the left, seen from the north
         floor_size = (SAMPLE_BAY_WIDTH, 0.2, SAMPLE_BAY_DEPTH)
         panel_size = (SAMPLE_BAY_WIDTH, SAMPLE_WALL_HEIGHT, 0.2)
         floor_mat = panel_mat = None
@@ -1151,7 +1170,7 @@ def sample_wall(doc):
             panel_mat = tiled_material(texture, tint, (panel_size[0] / tile, panel_size[1] / tile))
             panel_mat["Metallic"] = metallic
         box(doc, f"Sample_{name}_Floor", (x, -0.1, front_z + SAMPLE_BAY_DEPTH / 2), floor_size, neutral, mat=floor_mat)
-        box(doc, f"Sample_{name}", (x, SAMPLE_WALL_HEIGHT / 2, SAMPLE_BACK_Z + 0.1), panel_size, neutral, mat=panel_mat)
+        box(doc, f"Sample_{name}", (x, SAMPLE_WALL_HEIGHT / 2, back_z + 0.1), panel_size, neutral, mat=panel_mat)
         doc.add(f"Sample_{name}_Lamp", Transform=transform((x, 2.6, front_z + 1.2)),
                 PointLight={"Color": [1.0, 0.93, 0.85], "Intensity": 6.0, "Range": 5.0, "Flicker": 0.0, "CastShadows": False})
 
@@ -1162,6 +1181,7 @@ def build_mood_lab():
     doc.add("Camera", Transform=transform((1.5, 1.6, -9.4), (0, -90, 0)), Camera={"VerticalFOV": 65.0, "NearClip": 0.05, "FarClip": 300.0})
     cloister_architecture(doc, textured=True)
     sample_wall(doc)
+    sample_wall(doc, SAMPLE_MATERIALS_2, SAMPLE_BACK_Z_2)
     for index, ((x, z), zone, shadows) in enumerate(MOOD_TORCHES):
         torch_prefab_entities(doc, (x, 0, z), shadows=shadows, name=f"Fire_{zone}_Torch{index + 1}")
     for index, ((x, z), zone) in enumerate(MOOD_BRAZIERS):

@@ -1,0 +1,16 @@
+{
+	"material": "rug",
+	"description": "The manor's floors: woven rugs and carpets seen from above.",
+	"prompt": "{style} A seamless tileable texture of a woven rug seen from directly above: {variation}, worn pile, faded colours.",
+	"variations": [
+		"deep red rug with an intricate geometric medallion pattern and dark blue borders",
+		"faded blue and cream rug with a repeating floral lattice",
+		"dark brown and ochre rug with stripes and small diamond motifs, worn thin in places"
+	],
+	"roughness": [
+		0.85,
+		1.0
+	],
+	"metallic": 0.0,
+	"normal_strength": 2.0
+}

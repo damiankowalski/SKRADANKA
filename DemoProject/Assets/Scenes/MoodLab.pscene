@@ -5089,6 +5089,2064 @@
       "ID": "1097",
       "Components": {
         "Tag": {
+          "Tag": "Sample_Brick_Sooty_Floor"
+        },
+        "Transform": {
+          "Translation": [
+            15.6,
+            -0.1,
+            26.0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            0.2,
+            4.0
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.18,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1098",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Brick_Sooty"
+        },
+        "Transform": {
+          "Translation": [
+            15.6,
+            1.5,
+            28.1
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            3.0,
+            0.2
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            3.0,
+            3.0,
+            3.0,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false,
+          "AlbedoTexture": "Textures/Brick/brick_1001_albedo.png",
+          "NormalTexture": "Textures/Brick/brick_1001_normal.png",
+          "MetallicRoughnessTexture": "Textures/Brick/brick_1001_mr.png",
+          "UVScale": [
+            1.2,
+            1.5
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1099",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Brick_Sooty_Lamp"
+        },
+        "Transform": {
+          "Translation": [
+            15.6,
+            2.6,
+            25.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.93,
+            0.85
+          ],
+          "Intensity": 6.0,
+          "Range": 5.0,
+          "Flicker": 0.0,
+          "CastShadows": false
+        }
+      }
+    },
+    {
+      "ID": "1100",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_DressedStone_Sandstone_Floor"
+        },
+        "Transform": {
+          "Translation": [
+            13.2,
+            -0.1,
+            26.0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            0.2,
+            4.0
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.18,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1101",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_DressedStone_Sandstone"
+        },
+        "Transform": {
+          "Translation": [
+            13.2,
+            1.5,
+            28.1
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            3.0,
+            0.2
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.7,
+            0.7,
+            0.7,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false,
+          "AlbedoTexture": "Textures/DressedStone/dressed_stone_1000_albedo.png",
+          "NormalTexture": "Textures/DressedStone/dressed_stone_1000_normal.png",
+          "MetallicRoughnessTexture": "Textures/DressedStone/dressed_stone_1000_mr.png",
+          "UVScale": [
+            0.96,
+            1.2
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1102",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_DressedStone_Sandstone_Lamp"
+        },
+        "Transform": {
+          "Translation": [
+            13.2,
+            2.6,
+            25.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.93,
+            0.85
+          ],
+          "Intensity": 6.0,
+          "Range": 5.0,
+          "Flicker": 0.0,
+          "CastShadows": false
+        }
+      }
+    },
+    {
+      "ID": "1103",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Rock_Wet_Floor"
+        },
+        "Transform": {
+          "Translation": [
+            10.799999999999999,
+            -0.1,
+            26.0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            0.2,
+            4.0
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.18,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1104",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Rock_Wet"
+        },
+        "Transform": {
+          "Translation": [
+            10.799999999999999,
+            1.5,
+            28.1
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            3.0,
+            0.2
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            2.5,
+            2.5,
+            2.5,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false,
+          "AlbedoTexture": "Textures/Rock/rock_1002_albedo.png",
+          "NormalTexture": "Textures/Rock/rock_1002_normal.png",
+          "MetallicRoughnessTexture": "Textures/Rock/rock_1002_mr.png",
+          "UVScale": [
+            0.96,
+            1.2
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1105",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Rock_Wet_Lamp"
+        },
+        "Transform": {
+          "Translation": [
+            10.799999999999999,
+            2.6,
+            25.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.93,
+            0.85
+          ],
+          "Intensity": 6.0,
+          "Range": 5.0,
+          "Flicker": 0.0,
+          "CastShadows": false
+        }
+      }
+    },
+    {
+      "ID": "1106",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Ossuary_Skulls_Floor"
+        },
+        "Transform": {
+          "Translation": [
+            8.4,
+            -0.1,
+            26.0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            0.2,
+            4.0
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.18,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1107",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Ossuary_Skulls"
+        },
+        "Transform": {
+          "Translation": [
+            8.4,
+            1.5,
+            28.1
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            3.0,
+            0.2
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            1.6,
+            1.6,
+            1.6,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false,
+          "AlbedoTexture": "Textures/Ossuary/ossuary_1001_albedo.png",
+          "NormalTexture": "Textures/Ossuary/ossuary_1001_normal.png",
+          "MetallicRoughnessTexture": "Textures/Ossuary/ossuary_1001_mr.png",
+          "UVScale": [
+            1.2,
+            1.5
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1108",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Ossuary_Skulls_Lamp"
+        },
+        "Transform": {
+          "Translation": [
+            8.4,
+            2.6,
+            25.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.93,
+            0.85
+          ],
+          "Intensity": 6.0,
+          "Range": 5.0,
+          "Flicker": 0.0,
+          "CastShadows": false
+        }
+      }
+    },
+    {
+      "ID": "1109",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_WoodPanel_Oak_Floor"
+        },
+        "Transform": {
+          "Translation": [
+            6.0,
+            -0.1,
+            26.0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            0.2,
+            4.0
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.18,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1110",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_WoodPanel_Oak"
+        },
+        "Transform": {
+          "Translation": [
+            6.0,
+            1.5,
+            28.1
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            3.0,
+            0.2
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            2.5,
+            2.5,
+            2.5,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false,
+          "AlbedoTexture": "Textures/WoodPanel/wood_panel_1000_albedo.png",
+          "NormalTexture": "Textures/WoodPanel/wood_panel_1000_normal.png",
+          "MetallicRoughnessTexture": "Textures/WoodPanel/wood_panel_1000_mr.png",
+          "UVScale": [
+            1.2,
+            1.5
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1111",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_WoodPanel_Oak_Lamp"
+        },
+        "Transform": {
+          "Translation": [
+            6.0,
+            2.6,
+            25.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.93,
+            0.85
+          ],
+          "Intensity": 6.0,
+          "Range": 5.0,
+          "Flicker": 0.0,
+          "CastShadows": false
+        }
+      }
+    },
+    {
+      "ID": "1112",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_WoodPanel_Walnut_Floor"
+        },
+        "Transform": {
+          "Translation": [
+            3.5999999999999996,
+            -0.1,
+            26.0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            0.2,
+            4.0
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.18,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1113",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_WoodPanel_Walnut"
+        },
+        "Transform": {
+          "Translation": [
+            3.5999999999999996,
+            1.5,
+            28.1
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            3.0,
+            0.2
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            1.8,
+            1.8,
+            1.8,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false,
+          "AlbedoTexture": "Textures/WoodPanel/wood_panel_1001_albedo.png",
+          "NormalTexture": "Textures/WoodPanel/wood_panel_1001_normal.png",
+          "MetallicRoughnessTexture": "Textures/WoodPanel/wood_panel_1001_mr.png",
+          "UVScale": [
+            1.0,
+            1.25
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1114",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_WoodPanel_Walnut_Lamp"
+        },
+        "Transform": {
+          "Translation": [
+            3.5999999999999996,
+            2.6,
+            25.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.93,
+            0.85
+          ],
+          "Intensity": 6.0,
+          "Range": 5.0,
+          "Flicker": 0.0,
+          "CastShadows": false
+        }
+      }
+    },
+    {
+      "ID": "1115",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Wallpaper_Lilies_Floor"
+        },
+        "Transform": {
+          "Translation": [
+            1.2,
+            -0.1,
+            26.0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            0.2,
+            4.0
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.18,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1116",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Wallpaper_Lilies"
+        },
+        "Transform": {
+          "Translation": [
+            1.2,
+            1.5,
+            28.1
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            3.0,
+            0.2
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            1.5,
+            1.5,
+            1.5,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false,
+          "AlbedoTexture": "Textures/Wallpaper/wallpaper_2002_albedo.png",
+          "NormalTexture": "Textures/Wallpaper/wallpaper_2002_normal.png",
+          "MetallicRoughnessTexture": "Textures/Wallpaper/wallpaper_2002_mr.png",
+          "UVScale": [
+            1.6,
+            2.0
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1117",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Wallpaper_Lilies_Lamp"
+        },
+        "Transform": {
+          "Translation": [
+            1.2,
+            2.6,
+            25.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.93,
+            0.85
+          ],
+          "Intensity": 6.0,
+          "Range": 5.0,
+          "Flicker": 0.0,
+          "CastShadows": false
+        }
+      }
+    },
+    {
+      "ID": "1118",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_PolishedWood_Ebony_Floor"
+        },
+        "Transform": {
+          "Translation": [
+            -1.2,
+            -0.1,
+            26.0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            0.2,
+            4.0
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.18,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1119",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_PolishedWood_Ebony"
+        },
+        "Transform": {
+          "Translation": [
+            -1.2,
+            1.5,
+            28.1
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            3.0,
+            0.2
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            2.0,
+            2.0,
+            2.0,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false,
+          "AlbedoTexture": "Textures/PolishedWood/polished_wood_1002_albedo.png",
+          "NormalTexture": "Textures/PolishedWood/polished_wood_1002_normal.png",
+          "MetallicRoughnessTexture": "Textures/PolishedWood/polished_wood_1002_mr.png",
+          "UVScale": [
+            1.6,
+            2.0
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1120",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_PolishedWood_Ebony_Lamp"
+        },
+        "Transform": {
+          "Translation": [
+            -1.2,
+            2.6,
+            25.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.93,
+            0.85
+          ],
+          "Intensity": 6.0,
+          "Range": 5.0,
+          "Flicker": 0.0,
+          "CastShadows": false
+        }
+      }
+    },
+    {
+      "ID": "1121",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Grass_Grounds_Floor"
+        },
+        "Transform": {
+          "Translation": [
+            -3.5999999999999996,
+            -0.1,
+            26.0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            0.2,
+            4.0
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            2.5,
+            2.5,
+            2.5,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false,
+          "AlbedoTexture": "Textures/Grass/grass_1000_albedo.png",
+          "NormalTexture": "Textures/Grass/grass_1000_normal.png",
+          "MetallicRoughnessTexture": "Textures/Grass/grass_1000_mr.png",
+          "UVScale": [
+            2.0,
+            1.2
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1122",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Grass_Grounds"
+        },
+        "Transform": {
+          "Translation": [
+            -3.5999999999999996,
+            1.5,
+            28.1
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            3.0,
+            0.2
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.18,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1123",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Grass_Grounds_Lamp"
+        },
+        "Transform": {
+          "Translation": [
+            -3.5999999999999996,
+            2.6,
+            25.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.93,
+            0.85
+          ],
+          "Intensity": 6.0,
+          "Range": 5.0,
+          "Flicker": 0.0,
+          "CastShadows": false
+        }
+      }
+    },
+    {
+      "ID": "1124",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Grass_Trodden_Floor"
+        },
+        "Transform": {
+          "Translation": [
+            -6.0,
+            -0.1,
+            26.0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            0.2,
+            4.0
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            1.8,
+            1.8,
+            1.8,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false,
+          "AlbedoTexture": "Textures/Grass/grass_1001_albedo.png",
+          "NormalTexture": "Textures/Grass/grass_1001_normal.png",
+          "MetallicRoughnessTexture": "Textures/Grass/grass_1001_mr.png",
+          "UVScale": [
+            2.0,
+            1.2
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1125",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Grass_Trodden"
+        },
+        "Transform": {
+          "Translation": [
+            -6.0,
+            1.5,
+            28.1
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            3.0,
+            0.2
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.18,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1126",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Grass_Trodden_Lamp"
+        },
+        "Transform": {
+          "Translation": [
+            -6.0,
+            2.6,
+            25.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.93,
+            0.85
+          ],
+          "Intensity": 6.0,
+          "Range": 5.0,
+          "Flicker": 0.0,
+          "CastShadows": false
+        }
+      }
+    },
+    {
+      "ID": "1127",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Rug_Medallion_Floor"
+        },
+        "Transform": {
+          "Translation": [
+            -8.4,
+            -0.1,
+            26.0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            0.2,
+            4.0
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            2.5,
+            2.5,
+            2.5,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false,
+          "AlbedoTexture": "Textures/Rug/rug_2000_albedo.png",
+          "NormalTexture": "Textures/Rug/rug_2000_normal.png",
+          "MetallicRoughnessTexture": "Textures/Rug/rug_2000_mr.png",
+          "UVScale": [
+            2.0,
+            1.2
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1128",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Rug_Medallion"
+        },
+        "Transform": {
+          "Translation": [
+            -8.4,
+            1.5,
+            28.1
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            3.0,
+            0.2
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.18,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1129",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Rug_Medallion_Lamp"
+        },
+        "Transform": {
+          "Translation": [
+            -8.4,
+            2.6,
+            25.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.93,
+            0.85
+          ],
+          "Intensity": 6.0,
+          "Range": 5.0,
+          "Flicker": 0.0,
+          "CastShadows": false
+        }
+      }
+    },
+    {
+      "ID": "1130",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Rug_Floral_Floor"
+        },
+        "Transform": {
+          "Translation": [
+            -10.799999999999999,
+            -0.1,
+            26.0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            0.2,
+            4.0
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false,
+          "AlbedoTexture": "Textures/Rug/rug_1001_albedo.png",
+          "NormalTexture": "Textures/Rug/rug_1001_normal.png",
+          "MetallicRoughnessTexture": "Textures/Rug/rug_1001_mr.png",
+          "UVScale": [
+            2.0,
+            1.2
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1131",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Rug_Floral"
+        },
+        "Transform": {
+          "Translation": [
+            -10.799999999999999,
+            1.5,
+            28.1
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            3.0,
+            0.2
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.18,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1132",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Rug_Floral_Lamp"
+        },
+        "Transform": {
+          "Translation": [
+            -10.799999999999999,
+            2.6,
+            25.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.93,
+            0.85
+          ],
+          "Intensity": 6.0,
+          "Range": 5.0,
+          "Flicker": 0.0,
+          "CastShadows": false
+        }
+      }
+    },
+    {
+      "ID": "1133",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Tiles_Terracotta_Floor"
+        },
+        "Transform": {
+          "Translation": [
+            -13.2,
+            -0.1,
+            26.0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            0.2,
+            4.0
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            1.8,
+            1.8,
+            1.8,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false,
+          "AlbedoTexture": "Textures/CeramicTiles/ceramic_tiles_1000_albedo.png",
+          "NormalTexture": "Textures/CeramicTiles/ceramic_tiles_1000_normal.png",
+          "MetallicRoughnessTexture": "Textures/CeramicTiles/ceramic_tiles_1000_mr.png",
+          "UVScale": [
+            2.667,
+            1.6
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1134",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Tiles_Terracotta"
+        },
+        "Transform": {
+          "Translation": [
+            -13.2,
+            1.5,
+            28.1
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            3.0,
+            0.2
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.18,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1135",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Tiles_Terracotta_Lamp"
+        },
+        "Transform": {
+          "Translation": [
+            -13.2,
+            2.6,
+            25.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.93,
+            0.85
+          ],
+          "Intensity": 6.0,
+          "Range": 5.0,
+          "Flicker": 0.0,
+          "CastShadows": false
+        }
+      }
+    },
+    {
+      "ID": "1136",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Tiles_Painted_Floor"
+        },
+        "Transform": {
+          "Translation": [
+            -15.6,
+            -0.1,
+            26.0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            0.2,
+            4.0
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.7,
+            0.7,
+            0.7,
+            1.0
+          ],
+          "Roughness": 1.0,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false,
+          "AlbedoTexture": "Textures/CeramicTiles/ceramic_tiles_1002_albedo.png",
+          "NormalTexture": "Textures/CeramicTiles/ceramic_tiles_1002_normal.png",
+          "MetallicRoughnessTexture": "Textures/CeramicTiles/ceramic_tiles_1002_mr.png",
+          "UVScale": [
+            2.667,
+            1.6
+          ]
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1137",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Tiles_Painted"
+        },
+        "Transform": {
+          "Translation": [
+            -15.6,
+            1.5,
+            28.1
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            2.4,
+            3.0,
+            0.2
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.18,
+            0.18,
+            0.18,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "ID": "1138",
+      "Components": {
+        "Tag": {
+          "Tag": "Sample_Tiles_Painted_Lamp"
+        },
+        "Transform": {
+          "Translation": [
+            -15.6,
+            2.6,
+            25.2
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.93,
+            0.85
+          ],
+          "Intensity": 6.0,
+          "Range": 5.0,
+          "Flicker": 0.0,
+          "CastShadows": false
+        }
+      }
+    },
+    {
+      "ID": "1139",
+      "Components": {
+        "Tag": {
           "Tag": "Fire_Warm_Torch1"
         },
         "Transform": {
@@ -5144,7 +7202,7 @@
       }
     },
     {
-      "ID": "1098",
+      "ID": "1140",
       "Components": {
         "Tag": {
           "Tag": "Pole"
@@ -5194,10 +7252,10 @@
           ]
         }
       },
-      "Parent": "1097"
+      "Parent": "1139"
     },
     {
-      "ID": "1099",
+      "ID": "1141",
       "Components": {
         "Tag": {
           "Tag": "Wrap"
@@ -5241,10 +7299,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1097"
+      "Parent": "1139"
     },
     {
-      "ID": "1100",
+      "ID": "1142",
       "Components": {
         "Tag": {
           "Tag": "Flame"
@@ -5296,10 +7354,10 @@
           "IsTrigger": true
         }
       },
-      "Parent": "1097"
+      "Parent": "1139"
     },
     {
-      "ID": "1101",
+      "ID": "1143",
       "Components": {
         "Tag": {
           "Tag": "Fire_Warm_Torch2"
@@ -5357,7 +7415,7 @@
       }
     },
     {
-      "ID": "1102",
+      "ID": "1144",
       "Components": {
         "Tag": {
           "Tag": "Pole"
@@ -5407,10 +7465,10 @@
           ]
         }
       },
-      "Parent": "1101"
+      "Parent": "1143"
     },
     {
-      "ID": "1103",
+      "ID": "1145",
       "Components": {
         "Tag": {
           "Tag": "Wrap"
@@ -5454,10 +7512,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1101"
+      "Parent": "1143"
     },
     {
-      "ID": "1104",
+      "ID": "1146",
       "Components": {
         "Tag": {
           "Tag": "Flame"
@@ -5509,10 +7567,10 @@
           "IsTrigger": true
         }
       },
-      "Parent": "1101"
+      "Parent": "1143"
     },
     {
-      "ID": "1105",
+      "ID": "1147",
       "Components": {
         "Tag": {
           "Tag": "Fire_Warm_Torch3"
@@ -5570,7 +7628,7 @@
       }
     },
     {
-      "ID": "1106",
+      "ID": "1148",
       "Components": {
         "Tag": {
           "Tag": "Pole"
@@ -5620,10 +7678,10 @@
           ]
         }
       },
-      "Parent": "1105"
+      "Parent": "1147"
     },
     {
-      "ID": "1107",
+      "ID": "1149",
       "Components": {
         "Tag": {
           "Tag": "Wrap"
@@ -5667,10 +7725,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1105"
+      "Parent": "1147"
     },
     {
-      "ID": "1108",
+      "ID": "1150",
       "Components": {
         "Tag": {
           "Tag": "Flame"
@@ -5722,10 +7780,10 @@
           "IsTrigger": true
         }
       },
-      "Parent": "1105"
+      "Parent": "1147"
     },
     {
-      "ID": "1109",
+      "ID": "1151",
       "Components": {
         "Tag": {
           "Tag": "Fire_Cold_Torch4"
@@ -5783,7 +7841,7 @@
       }
     },
     {
-      "ID": "1110",
+      "ID": "1152",
       "Components": {
         "Tag": {
           "Tag": "Pole"
@@ -5833,10 +7891,10 @@
           ]
         }
       },
-      "Parent": "1109"
+      "Parent": "1151"
     },
     {
-      "ID": "1111",
+      "ID": "1153",
       "Components": {
         "Tag": {
           "Tag": "Wrap"
@@ -5880,10 +7938,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1109"
+      "Parent": "1151"
     },
     {
-      "ID": "1112",
+      "ID": "1154",
       "Components": {
         "Tag": {
           "Tag": "Flame"
@@ -5935,10 +7993,10 @@
           "IsTrigger": true
         }
       },
-      "Parent": "1109"
+      "Parent": "1151"
     },
     {
-      "ID": "1113",
+      "ID": "1155",
       "Components": {
         "Tag": {
           "Tag": "Fire_Cold_Torch5"
@@ -5996,7 +8054,7 @@
       }
     },
     {
-      "ID": "1114",
+      "ID": "1156",
       "Components": {
         "Tag": {
           "Tag": "Pole"
@@ -6046,10 +8104,10 @@
           ]
         }
       },
-      "Parent": "1113"
+      "Parent": "1155"
     },
     {
-      "ID": "1115",
+      "ID": "1157",
       "Components": {
         "Tag": {
           "Tag": "Wrap"
@@ -6093,10 +8151,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1113"
+      "Parent": "1155"
     },
     {
-      "ID": "1116",
+      "ID": "1158",
       "Components": {
         "Tag": {
           "Tag": "Flame"
@@ -6148,10 +8206,10 @@
           "IsTrigger": true
         }
       },
-      "Parent": "1113"
+      "Parent": "1155"
     },
     {
-      "ID": "1117",
+      "ID": "1159",
       "Components": {
         "Tag": {
           "Tag": "Fire_Cold_Torch6"
@@ -6209,7 +8267,7 @@
       }
     },
     {
-      "ID": "1118",
+      "ID": "1160",
       "Components": {
         "Tag": {
           "Tag": "Pole"
@@ -6259,10 +8317,10 @@
           ]
         }
       },
-      "Parent": "1117"
+      "Parent": "1159"
     },
     {
-      "ID": "1119",
+      "ID": "1161",
       "Components": {
         "Tag": {
           "Tag": "Wrap"
@@ -6306,10 +8364,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1117"
+      "Parent": "1159"
     },
     {
-      "ID": "1120",
+      "ID": "1162",
       "Components": {
         "Tag": {
           "Tag": "Flame"
@@ -6361,10 +8419,10 @@
           "IsTrigger": true
         }
       },
-      "Parent": "1117"
+      "Parent": "1159"
     },
     {
-      "ID": "1121",
+      "ID": "1163",
       "Components": {
         "Tag": {
           "Tag": "Fire_Warm_Brazier1"
@@ -6389,7 +8447,7 @@
       }
     },
     {
-      "ID": "1122",
+      "ID": "1164",
       "Components": {
         "Tag": {
           "Tag": "Leg1"
@@ -6432,10 +8490,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1121"
+      "Parent": "1163"
     },
     {
-      "ID": "1123",
+      "ID": "1165",
       "Components": {
         "Tag": {
           "Tag": "Leg2"
@@ -6478,10 +8536,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1121"
+      "Parent": "1163"
     },
     {
-      "ID": "1124",
+      "ID": "1166",
       "Components": {
         "Tag": {
           "Tag": "Leg3"
@@ -6524,10 +8582,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1121"
+      "Parent": "1163"
     },
     {
-      "ID": "1125",
+      "ID": "1167",
       "Components": {
         "Tag": {
           "Tag": "Bowl"
@@ -6570,10 +8628,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1121"
+      "Parent": "1163"
     },
     {
-      "ID": "1126",
+      "ID": "1168",
       "Components": {
         "Tag": {
           "Tag": "Embers"
@@ -6617,10 +8675,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1121"
+      "Parent": "1163"
     },
     {
-      "ID": "1127",
+      "ID": "1169",
       "Components": {
         "Tag": {
           "Tag": "Flame"
@@ -6659,10 +8717,10 @@
           "CastShadows": true
         }
       },
-      "Parent": "1121"
+      "Parent": "1163"
     },
     {
-      "ID": "1128",
+      "ID": "1170",
       "Components": {
         "Tag": {
           "Tag": "Fire_Warm_Brazier2"
@@ -6687,7 +8745,7 @@
       }
     },
     {
-      "ID": "1129",
+      "ID": "1171",
       "Components": {
         "Tag": {
           "Tag": "Leg1"
@@ -6730,10 +8788,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1128"
+      "Parent": "1170"
     },
     {
-      "ID": "1130",
+      "ID": "1172",
       "Components": {
         "Tag": {
           "Tag": "Leg2"
@@ -6776,10 +8834,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1128"
+      "Parent": "1170"
     },
     {
-      "ID": "1131",
+      "ID": "1173",
       "Components": {
         "Tag": {
           "Tag": "Leg3"
@@ -6822,10 +8880,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1128"
+      "Parent": "1170"
     },
     {
-      "ID": "1132",
+      "ID": "1174",
       "Components": {
         "Tag": {
           "Tag": "Bowl"
@@ -6868,10 +8926,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1128"
+      "Parent": "1170"
     },
     {
-      "ID": "1133",
+      "ID": "1175",
       "Components": {
         "Tag": {
           "Tag": "Embers"
@@ -6915,10 +8973,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1128"
+      "Parent": "1170"
     },
     {
-      "ID": "1134",
+      "ID": "1176",
       "Components": {
         "Tag": {
           "Tag": "Flame"
@@ -6957,10 +9015,10 @@
           "CastShadows": false
         }
       },
-      "Parent": "1128"
+      "Parent": "1170"
     },
     {
-      "ID": "1135",
+      "ID": "1177",
       "Components": {
         "Tag": {
           "Tag": "Fire_Cold_Brazier3"
@@ -6985,7 +9043,7 @@
       }
     },
     {
-      "ID": "1136",
+      "ID": "1178",
       "Components": {
         "Tag": {
           "Tag": "Leg1"
@@ -7028,10 +9086,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1135"
+      "Parent": "1177"
     },
     {
-      "ID": "1137",
+      "ID": "1179",
       "Components": {
         "Tag": {
           "Tag": "Leg2"
@@ -7074,10 +9132,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1135"
+      "Parent": "1177"
     },
     {
-      "ID": "1138",
+      "ID": "1180",
       "Components": {
         "Tag": {
           "Tag": "Leg3"
@@ -7120,10 +9178,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1135"
+      "Parent": "1177"
     },
     {
-      "ID": "1139",
+      "ID": "1181",
       "Components": {
         "Tag": {
           "Tag": "Bowl"
@@ -7166,10 +9224,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1135"
+      "Parent": "1177"
     },
     {
-      "ID": "1140",
+      "ID": "1182",
       "Components": {
         "Tag": {
           "Tag": "Embers"
@@ -7213,10 +9271,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1135"
+      "Parent": "1177"
     },
     {
-      "ID": "1141",
+      "ID": "1183",
       "Components": {
         "Tag": {
           "Tag": "Flame"
@@ -7255,10 +9313,10 @@
           "CastShadows": true
         }
       },
-      "Parent": "1135"
+      "Parent": "1177"
     },
     {
-      "ID": "1142",
+      "ID": "1184",
       "Components": {
         "Tag": {
           "Tag": "Fire_Cold_Brazier4"
@@ -7283,7 +9341,7 @@
       }
     },
     {
-      "ID": "1143",
+      "ID": "1185",
       "Components": {
         "Tag": {
           "Tag": "Leg1"
@@ -7326,10 +9384,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1142"
+      "Parent": "1184"
     },
     {
-      "ID": "1144",
+      "ID": "1186",
       "Components": {
         "Tag": {
           "Tag": "Leg2"
@@ -7372,10 +9430,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1142"
+      "Parent": "1184"
     },
     {
-      "ID": "1145",
+      "ID": "1187",
       "Components": {
         "Tag": {
           "Tag": "Leg3"
@@ -7418,10 +9476,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1142"
+      "Parent": "1184"
     },
     {
-      "ID": "1146",
+      "ID": "1188",
       "Components": {
         "Tag": {
           "Tag": "Bowl"
@@ -7464,10 +9522,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1142"
+      "Parent": "1184"
     },
     {
-      "ID": "1147",
+      "ID": "1189",
       "Components": {
         "Tag": {
           "Tag": "Embers"
@@ -7511,10 +9569,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1142"
+      "Parent": "1184"
     },
     {
-      "ID": "1148",
+      "ID": "1190",
       "Components": {
         "Tag": {
           "Tag": "Flame"
@@ -7553,10 +9611,10 @@
           "CastShadows": false
         }
       },
-      "Parent": "1142"
+      "Parent": "1184"
     },
     {
-      "ID": "1149",
+      "ID": "1191",
       "Components": {
         "Tag": {
           "Tag": "Astral_Warm_Lamp1"
@@ -7581,7 +9639,7 @@
       }
     },
     {
-      "ID": "1150",
+      "ID": "1192",
       "Components": {
         "Tag": {
           "Tag": "Post"
@@ -7624,10 +9682,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1149"
+      "Parent": "1191"
     },
     {
-      "ID": "1151",
+      "ID": "1193",
       "Components": {
         "Tag": {
           "Tag": "Crystal"
@@ -7671,10 +9729,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1149"
+      "Parent": "1191"
     },
     {
-      "ID": "1152",
+      "ID": "1194",
       "Components": {
         "Tag": {
           "Tag": "Glow"
@@ -7708,10 +9766,10 @@
           "CastShadows": true
         }
       },
-      "Parent": "1149"
+      "Parent": "1191"
     },
     {
-      "ID": "1153",
+      "ID": "1195",
       "Components": {
         "Tag": {
           "Tag": "Astral_Warm_Lamp2"
@@ -7736,7 +9794,7 @@
       }
     },
     {
-      "ID": "1154",
+      "ID": "1196",
       "Components": {
         "Tag": {
           "Tag": "Post"
@@ -7779,10 +9837,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1153"
+      "Parent": "1195"
     },
     {
-      "ID": "1155",
+      "ID": "1197",
       "Components": {
         "Tag": {
           "Tag": "Crystal"
@@ -7826,10 +9884,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1153"
+      "Parent": "1195"
     },
     {
-      "ID": "1156",
+      "ID": "1198",
       "Components": {
         "Tag": {
           "Tag": "Glow"
@@ -7863,10 +9921,10 @@
           "CastShadows": false
         }
       },
-      "Parent": "1153"
+      "Parent": "1195"
     },
     {
-      "ID": "1157",
+      "ID": "1199",
       "Components": {
         "Tag": {
           "Tag": "Astral_Warm_Lamp3"
@@ -7891,7 +9949,7 @@
       }
     },
     {
-      "ID": "1158",
+      "ID": "1200",
       "Components": {
         "Tag": {
           "Tag": "Post"
@@ -7934,10 +9992,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1157"
+      "Parent": "1199"
     },
     {
-      "ID": "1159",
+      "ID": "1201",
       "Components": {
         "Tag": {
           "Tag": "Crystal"
@@ -7981,10 +10039,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1157"
+      "Parent": "1199"
     },
     {
-      "ID": "1160",
+      "ID": "1202",
       "Components": {
         "Tag": {
           "Tag": "Glow"
@@ -8018,10 +10076,10 @@
           "CastShadows": false
         }
       },
-      "Parent": "1157"
+      "Parent": "1199"
     },
     {
-      "ID": "1161",
+      "ID": "1203",
       "Components": {
         "Tag": {
           "Tag": "Astral_Warm_Lamp4"
@@ -8046,7 +10104,7 @@
       }
     },
     {
-      "ID": "1162",
+      "ID": "1204",
       "Components": {
         "Tag": {
           "Tag": "Post"
@@ -8089,10 +10147,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1161"
+      "Parent": "1203"
     },
     {
-      "ID": "1163",
+      "ID": "1205",
       "Components": {
         "Tag": {
           "Tag": "Crystal"
@@ -8136,10 +10194,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1161"
+      "Parent": "1203"
     },
     {
-      "ID": "1164",
+      "ID": "1206",
       "Components": {
         "Tag": {
           "Tag": "Glow"
@@ -8173,10 +10231,10 @@
           "CastShadows": false
         }
       },
-      "Parent": "1161"
+      "Parent": "1203"
     },
     {
-      "ID": "1165",
+      "ID": "1207",
       "Components": {
         "Tag": {
           "Tag": "Astral_Cold_Lamp5"
@@ -8201,7 +10259,7 @@
       }
     },
     {
-      "ID": "1166",
+      "ID": "1208",
       "Components": {
         "Tag": {
           "Tag": "Post"
@@ -8244,10 +10302,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1165"
+      "Parent": "1207"
     },
     {
-      "ID": "1167",
+      "ID": "1209",
       "Components": {
         "Tag": {
           "Tag": "Crystal"
@@ -8291,10 +10349,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1165"
+      "Parent": "1207"
     },
     {
-      "ID": "1168",
+      "ID": "1210",
       "Components": {
         "Tag": {
           "Tag": "Glow"
@@ -8328,10 +10386,10 @@
           "CastShadows": true
         }
       },
-      "Parent": "1165"
+      "Parent": "1207"
     },
     {
-      "ID": "1169",
+      "ID": "1211",
       "Components": {
         "Tag": {
           "Tag": "Astral_Cold_Lamp6"
@@ -8356,7 +10414,7 @@
       }
     },
     {
-      "ID": "1170",
+      "ID": "1212",
       "Components": {
         "Tag": {
           "Tag": "Post"
@@ -8399,10 +10457,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1169"
+      "Parent": "1211"
     },
     {
-      "ID": "1171",
+      "ID": "1213",
       "Components": {
         "Tag": {
           "Tag": "Crystal"
@@ -8446,10 +10504,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1169"
+      "Parent": "1211"
     },
     {
-      "ID": "1172",
+      "ID": "1214",
       "Components": {
         "Tag": {
           "Tag": "Glow"
@@ -8483,10 +10541,10 @@
           "CastShadows": false
         }
       },
-      "Parent": "1169"
+      "Parent": "1211"
     },
     {
-      "ID": "1173",
+      "ID": "1215",
       "Components": {
         "Tag": {
           "Tag": "Astral_Cold_Lamp7"
@@ -8511,7 +10569,7 @@
       }
     },
     {
-      "ID": "1174",
+      "ID": "1216",
       "Components": {
         "Tag": {
           "Tag": "Post"
@@ -8554,10 +10612,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1173"
+      "Parent": "1215"
     },
     {
-      "ID": "1175",
+      "ID": "1217",
       "Components": {
         "Tag": {
           "Tag": "Crystal"
@@ -8601,10 +10659,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1173"
+      "Parent": "1215"
     },
     {
-      "ID": "1176",
+      "ID": "1218",
       "Components": {
         "Tag": {
           "Tag": "Glow"
@@ -8638,10 +10696,10 @@
           "CastShadows": false
         }
       },
-      "Parent": "1173"
+      "Parent": "1215"
     },
     {
-      "ID": "1177",
+      "ID": "1219",
       "Components": {
         "Tag": {
           "Tag": "Astral_Cold_Lamp8"
@@ -8666,7 +10724,7 @@
       }
     },
     {
-      "ID": "1178",
+      "ID": "1220",
       "Components": {
         "Tag": {
           "Tag": "Post"
@@ -8709,10 +10767,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1177"
+      "Parent": "1219"
     },
     {
-      "ID": "1179",
+      "ID": "1221",
       "Components": {
         "Tag": {
           "Tag": "Crystal"
@@ -8756,10 +10814,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1177"
+      "Parent": "1219"
     },
     {
-      "ID": "1180",
+      "ID": "1222",
       "Components": {
         "Tag": {
           "Tag": "Glow"
@@ -8793,10 +10851,10 @@
           "CastShadows": false
         }
       },
-      "Parent": "1177"
+      "Parent": "1219"
     },
     {
-      "ID": "1181",
+      "ID": "1223",
       "Components": {
         "Tag": {
           "Tag": "Thief"
@@ -8824,7 +10882,7 @@
       }
     },
     {
-      "ID": "1182",
+      "ID": "1224",
       "Components": {
         "Tag": {
           "Tag": "Model"
@@ -8860,10 +10918,10 @@
           "BlendDuration": 0.2
         }
       },
-      "Parent": "1181"
+      "Parent": "1223"
     },
     {
-      "ID": "1183",
+      "ID": "1225",
       "Components": {
         "Tag": {
           "Tag": "Mist_Garden"
@@ -8898,7 +10956,7 @@
       }
     },
     {
-      "ID": "1184",
+      "ID": "1226",
       "Components": {
         "Tag": {
           "Tag": "MoodLab"

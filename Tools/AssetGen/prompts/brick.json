@@ -1,0 +1,16 @@
+{
+	"material": "brick",
+	"description": "City walls here and there, the manor's kitchen yard, chimneys: brick (docs/art/World.md).",
+	"prompt": "{style} A seamless tileable texture of an old brick wall seen straight on: {variation}, crumbling mortar joints, chipped edges and soot stains.",
+	"variations": [
+		"weathered red-brown bricks in a running bond, uneven fired colours from orange to dark purple",
+		"dark soot-blackened bricks of a city wall, some bricks missing and patched with stone",
+		"pale yellow-grey bricks in an English bond, damp green stains spreading from the bottom"
+	],
+	"roughness": [
+		0.75,
+		0.95
+	],
+	"metallic": 0.0,
+	"normal_strength": 5.0
+}

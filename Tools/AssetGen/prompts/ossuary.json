@@ -1,0 +1,16 @@
+{
+	"material": "ossuary",
+	"description": "The ossuary's walls: bones and skulls stacked in niches.",
+	"prompt": "{style} A seamless tileable texture of an ossuary wall seen straight on: {variation}, old yellowed bone, dust and darkness between them.",
+	"variations": [
+		"long bones stacked tightly in neat horizontal rows with a band of skulls every few rows",
+		"a dense wall of skulls set in old mortar, eye sockets in deep shadow",
+		"rough stone niches filled with piled bones and a few skulls, crumbling plaster around them"
+	],
+	"roughness": [
+		0.7,
+		0.95
+	],
+	"metallic": 0.0,
+	"normal_strength": 5.0
+}
