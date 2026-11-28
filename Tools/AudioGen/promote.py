@@ -12,6 +12,11 @@ out/<series>/feedback.json decides per clip:
           for the next series (the agent rewrites the prompt and generates new variants).
   reject  nothing.
 A clip that failed the checks is never promoted. Clips without a verdict are listed and left alone.
+
+    .venv/bin/python promote.py second --accept-as footstep_soft_1001=Footstep_Gravel
+
+promotes a clip the owner asked to put to another use ("this sounds like gravel") under another game name, as
+accepted, his note kept.
 """
 
 import argparse
@@ -49,7 +54,7 @@ def next_name(destination, game_name, taken):
         n += 1
 
 
-def promote(series, assets=ASSETS, dry_run=False):
+def promote(series, assets=ASSETS, dry_run=False, accept_as=None):
     """Returns a report: {"promoted": [(clip, asset)], "kept": [...], "changes": [...], "rejected": [...],
     "refused": [(clip, why)], "unrated": [...]}."""
     with open(series / "series.json", encoding="utf-8") as f:
@@ -60,6 +65,10 @@ def promote(series, assets=ASSETS, dry_run=False):
     with open(feedback_file, encoding="utf-8") as f:
         verdicts = json.load(f).get("clips", {})
     destination = assets / GENERATED
+    accept_as = accept_as or {}
+    unknown = sorted(set(accept_as) - set(clips))
+    if unknown:
+        raise ValueError(f"--accept-as names clips not in the series: {', '.join(unknown)}")
     report = {"promoted": [], "kept": [], "changes": [], "rejected": [], "refused": [], "unrated": []}
     taken = set()
     for stem, clip in clips.items():
@@ -68,6 +77,9 @@ def promote(series, assets=ASSETS, dry_run=False):
             report["unrated"].append(stem)
             continue
         decision, note = verdict.get("decision"), verdict.get("note", "")
+        game_name = clip["game_name"]
+        if stem in accept_as:
+            decision, game_name = "accept", accept_as[stem]
         if decision == "reject":
             report["rejected"].append(stem)
         elif decision == "change":
@@ -81,7 +93,7 @@ def promote(series, assets=ASSETS, dry_run=False):
             if existing:
                 report["kept"].append((stem, f"{GENERATED}/{existing.name}"))
                 continue
-            name = next_name(destination, clip["game_name"], taken)
+            name = next_name(destination, game_name, taken)
             taken.add(name)
             report["promoted"].append((stem, f"{GENERATED}/{name}.wav"))
             if dry_run:
@@ -91,7 +103,9 @@ def promote(series, assets=ASSETS, dry_run=False):
             provenance = {key: value for key, value in clip.items() if key not in ("file", "raw")}
             provenance["asset"] = f"{GENERATED}/{name}.wav"
             provenance["source"] = {"series": series.name, "file": clip["file"]}
-            provenance["owner"] = {"decision": "accepted", "note": note, "date": verdict.get("date")}
+            provenance["game_name"] = game_name
+            provenance["owner"] = {"decision": "accepted" if game_name == clip["game_name"] else f"accepted as {game_name}",
+                                   "note": note, "date": verdict.get("date")}
             (destination / f"{name}.json").write_text(json.dumps(provenance, indent=2, ensure_ascii=False) + "\n",
                                                       encoding="utf-8")
         else:
@@ -106,10 +120,18 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("series", help="folder under out/")
     parser.add_argument("--dry-run", action="store_true", help="report only, copy nothing")
+    parser.add_argument("--accept-as", action="append", default=[], metavar="CLIP=GAME_NAME",
+                        help="promote a clip under another game name, as the owner's note asks")
     args = parser.parse_args()
+    accept_as = {}
+    for item in args.accept_as:
+        clip, _, name = item.partition("=")
+        if not clip or not name.replace("_", "").isalnum():
+            parser.error(f"--accept-as wants CLIP=GAME_NAME, not {item!r}")
+        accept_as[clip] = name
     try:
-        report = promote(OUT / args.series, dry_run=args.dry_run)
-    except FileNotFoundError as error:
+        report = promote(OUT / args.series, dry_run=args.dry_run, accept_as=accept_as)
+    except (FileNotFoundError, ValueError) as error:
         sys.exit(str(error))
     verb = "would promote" if args.dry_run else "promoted"
     for clip, asset in report["promoted"]:

@@ -9,6 +9,7 @@ import math
 import wave
 
 import numpy as np
+from scipy.ndimage import minimum_filter1d, uniform_filter1d
 from scipy.signal import lfilter
 
 # What each category must meet (docs: Tools/AudioGen/README.md, "Checks"). Loudness in LUFS, peaks in dBFS / dBTP.
@@ -171,6 +172,20 @@ def make_loop(audio, rate, crossfade=2.0):
     return np.concatenate([blend, body], axis=1)
 
 
+def limit(audio, rate, ceiling_dbtp, window=0.005):
+    """A look-ahead peak limiter: gain rides down smoothly (over `window` seconds) just before each peak above the
+    ceiling, so short pops (a fire's crackle) stop holding the whole clip's level down."""
+    audio = np.atleast_2d(np.asarray(audio, dtype=np.float32))
+    ceiling = 10 ** ((ceiling_dbtp - 0.5) / 20)  # sample peaks, with room for the peaks between samples
+    level = np.max(np.abs(audio), axis=0)
+    gain = np.minimum(1.0, ceiling / np.maximum(level, 1e-9))
+    w = max(1, int(window * rate))
+    # The minimum over twice the window, then a moving average over one: the gain is at or under the needed gain
+    # at every sample, and never jumps.
+    gain = uniform_filter1d(minimum_filter1d(gain, 2 * w + 1, mode="nearest"), w, mode="nearest")
+    return (audio * gain[None, :].astype(np.float32)).astype(np.float32)
+
+
 def to_mono(audio):
     return np.mean(np.atleast_2d(audio), axis=0, keepdims=True)
 
@@ -188,8 +203,9 @@ def normalise(audio, rate, target_lufs, ceiling_dbtp):
     return out.astype(np.float32)
 
 
-def prepare(audio, rate, category, loop=False, mono=None):
-    """The clip as the game plays it: trimmed (effects), looped (ambience loops), mono (3D effects), normalised."""
+def prepare(audio, rate, category, loop=False, mono=None, limiter=False):
+    """The clip as the game plays it: trimmed (effects), looped (ambience loops), mono (3D effects), normalised.
+    `limiter`: an ambience of pops (a fire) is brought to its loudness and its peaks limited to the ceiling."""
     rules = CATEGORIES[category]
     audio = np.atleast_2d(np.asarray(audio, dtype=np.float32))
     if (rules["mono"] if mono is None else mono):
@@ -201,6 +217,12 @@ def prepare(audio, rate, category, loop=False, mono=None):
     if rules["normalise"] == "peak":
         peak = true_peak(audio)
         return (audio * 10 ** ((rules["peak_target"] - peak) / 20)).astype(np.float32) if math.isfinite(peak) else audio
+    if limiter:
+        for _ in range(3):  # limiting takes a little loudness away: aim again
+            current = loudness_lufs(audio, rate)
+            if not math.isfinite(current):
+                break
+            audio = limit(audio * 10 ** ((rules["lufs_target"] - current) / 20), rate, rules["true_peak"] - 0.2)
     return normalise(audio, rate, rules["lufs_target"], rules["true_peak"] - 0.2)
 
 

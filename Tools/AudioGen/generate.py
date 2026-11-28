@@ -59,7 +59,8 @@ def finish(raw, rate, template):
     audio = raw
     if template.get("first_event"):
         audio = first_event(checks.trim_silence(audio, rate), rate)
-    return checks.prepare(audio, rate, template["category"], loop=template.get("loop", False), mono=template.get("mono"))
+    return checks.prepare(audio, rate, template["category"], loop=template.get("loop", False), mono=template.get("mono"),
+                          limiter=template.get("limiter", False))
 
 
 def record(template, sound, seed, variation, prompt, settings, rate, wav, measures, failures, seconds_taken):

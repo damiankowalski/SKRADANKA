@@ -1,0 +1,44 @@
+{
+  "sound": "fire_loop",
+  "category": "ambience",
+  "loop": true,
+  "game_name": "Fire",
+  "prompt": "A wood fire burning in a stone hearth, lively crackling with small pops, recorded in the room, no music, no voices.",
+  "variation": "lively crackling with small pops",
+  "seed": 1001,
+  "steps": 8,
+  "cfg_scale": 1.0,
+  "generated_seconds": 64.0,
+  "sample_rate": 44100,
+  "model": "stabilityai/stable-audio-3-small-sfx",
+  "revision": "05ca3857881c94a2b84026b1111c537d78f5f9f0",
+  "license": "Stability AI Community License (with the Gemma Terms of Use for its text encoder)",
+  "library": "stable-audio-3 @ Stability-AI/stable-audio-3 4007b6f2987bcb760626c2b4ae3e3541753984e9 (MIT)",
+  "date": "2026-11-28",
+  "ai_generated": true,
+  "generation_seconds": 9.22,
+  "checks": {
+    "measures": {
+      "seconds": 62.0,
+      "channels": 1,
+      "lufs": -30.58,
+      "true_peak_dbtp": -3.2,
+      "clipped_samples": 0,
+      "lead_silence": 0.0,
+      "tail_silence": 0.0,
+      "loop_seam_db": -28.38
+    },
+    "failures": [],
+    "passed": true
+  },
+  "asset": "Audio/Generated/Fire_01.wav",
+  "source": {
+    "series": "second",
+    "file": "fire_loop_1001.wav"
+  },
+  "owner": {
+    "decision": "accepted",
+    "note": "",
+    "date": "2026-11-28T10:49:21"
+  }
+}

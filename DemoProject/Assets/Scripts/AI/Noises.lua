@@ -15,7 +15,7 @@
 local Noises = {}
 
 -- Footsteps on a neutral floor; the Surface.NoiseModifier of the floor underneath is added
--- (carpet -2, grass -1, moss -3, wood +0.5, metal grate +2.5).
+-- (carpet -2, grass -1, moss -3, wood +0.5, metal grate +2.5; gravel 0 for now, its own sound).
 Noises.footsteps = {
     crouch = { loudness = 1.0, interval = 0.6, volume = 0.12 },
     walk = { loudness = 3.0, interval = 0.5, volume = 0.35 },
@@ -28,7 +28,8 @@ Noises.fall = { per_speed = 1.0, minimum_speed = 3.0, volume = 0.6 }
 -- Footstep clips by floor material (anything else uses the stone step). A clip anywhere in this file may be a
 -- list of variants (generated ones: Audio/Generated, Tools/AudioGen): each play picks one of them.
 Noises.footstep_clips = {
-    Stone = "Audio/Footstep.wav",
+    Stone = { "Audio/Generated/Footstep_01.wav" },
+    Gravel = { "Audio/Generated/Footstep_Gravel_01.wav", "Audio/Generated/Footstep_Gravel_02.wav" },
     Metal = "Audio/Footstep_Metal.wav",
     Wood = "Audio/Footstep_Wood.wav",
     Carpet = "Audio/Footstep_Soft.wav",
@@ -49,7 +50,8 @@ Noises.sounds = {
     Switch = { loudness = 2, clip = "Audio/Click.wav", volume = 0.5 },        -- a light switch flipped
     Moss = { loudness = 1, clip = "Audio/Footstep_Soft.wav", volume = 0.4 },  -- a moss arrow bursting
     DoorOpen = { loudness = 3, clip = "Audio/Door.wav", volume = 0.6 },       -- hinges creaking
-    DoorShut = { loudness = 4, clip = "Audio/Thud.wav", volume = 0.6 },       -- a door falling shut
+    DoorShut = { loudness = 4, volume = 0.6, clip = {                          -- a door falling shut
+        "Audio/Generated/Door_Shut_01.wav", "Audio/Generated/Door_Shut_02.wav", "Audio/Generated/Door_Shut_03.wav" } },
     Unlock = { loudness = 2, clip = "Audio/Click.wav", volume = 0.6 },        -- a key or a pick turning the lock
     Pick = { loudness = 1, clip = "Audio/Click.wav", volume = 0.2 },          -- a pin set while picking
     PickSlip = { loudness = 2, clip = "Audio/Click.wav", volume = 0.5 },      -- the pick slipping: a wrong key

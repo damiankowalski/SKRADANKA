@@ -9,11 +9,12 @@
 		1.0
 	],
 	"game_name": "Footstep_Wood",
-	"prompt": "A single footstep of a leather boot on old wooden floorboards, recorded close, {variation}, no music, no voices.",
+	"prompt": "Close realistic foley recording of a single heavy footstep, a leather boot on old wooden floorboards, {variation}, deep and full, the boards resonating in a wooden room, no music, no voices.",
 	"variations": [
-		"the board creaks softly under the weight",
-		"a dull hollow knock",
-		"a careful slow step",
+		"a deep hollow thud",
+		"the board creaks under the weight",
+		"a slow heavy step",
 		"a firm step on a loose plank"
-	]
+	],
+	"feedback": "2026-11-28 owner: too thin in the first series; prompts now ask for depth and the boards resonating"
 }

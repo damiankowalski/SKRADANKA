@@ -1,0 +1,16 @@
+{
+	"material": "rock",
+	"description": "The catacombs: rough-hewn rock walls and the collapsed tunnel.",
+	"prompt": "{style} A seamless tileable texture of a rough-hewn underground rock wall seen straight on: {variation}, pick marks, cracks and dust.",
+	"variations": [
+		"grey-brown rough rock cut with picks, uneven faces, damp dark patches",
+		"crumbling yellowish tuff carved into a passage wall, soft eroded surface with small holes",
+		"dark wet rock with mineral streaks and seeping water stains, rubble at the base"
+	],
+	"roughness": [
+		0.8,
+		1.0
+	],
+	"metallic": 0.0,
+	"normal_strength": 7.0
+}

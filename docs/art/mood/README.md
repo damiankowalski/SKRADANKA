@@ -61,6 +61,32 @@ build/release/bin/PenumbraEditor --headless --exec docs/art/mood/Samples.jsonl -
 
 The levels themselves are not textured yet: that comes with the decal system and the first mission's layout.
 
+## Sample wall, second batch: the first mission's places
+
+A second row of bays behind the first (`SAMPLE_MATERIALS_2` in `Tools/BuildDemoProject.py`, back panels at z = 28),
+fourteen materials the owner took from batch 2 (2026-11-27), each under its own lamp. Tints lift the dark albedos part
+of the way only, so the black wood, the dark rug and the dark grass stay dark.
+
+| Bay | Texture | Tile (m) | Tint | For |
+|---|---|---|---|---|
+| Brick_Sooty | `Brick/brick_1001` | 2.0 | 3.0 | city walls, chimneys |
+| DressedStone_Sandstone | `DressedStone/dressed_stone_1000` | 2.5 | 0.7 | the church, the manor's facade |
+| Rock_Wet | `Rock/rock_1002` | 2.5 | 2.5 | the catacombs, the tunnel |
+| Ossuary_Skulls | `Ossuary/ossuary_1001` | 2.0 | 1.6 | the ossuary |
+| WoodPanel_Oak, _Walnut | `WoodPanel/wood_panel_1000`, `_1001` | 2.0, 2.4 | 2.5, 1.8 | the library; the drawing room and hall |
+| Wallpaper_Lilies | `Wallpaper/wallpaper_2002` | 1.5 | 1.5 | the bedroom |
+| PolishedWood_Ebony | `PolishedWood/polished_wood_1002` | 1.5 | 2.0 | furniture |
+| Grass_Grounds, _Trodden | `Grass/grass_1000`, `_1001` | 2.0 | 2.5, 1.8 | the grounds and churchyard; the vineyard's paths |
+| Rug_Medallion, _Floral | `Rug/rug_2000`, `_1001` | 2.0 | 2.5, 1.0 | the drawing room; the bedroom |
+| Tiles_Terracotta, _Painted | `CeramicTiles/ceramic_tiles_1000`, `_1002` | 1.5 | 1.8, 0.7 | the kitchen; the bathrooms |
+
+`PenumbraEditor --headless --exec docs/art/mood/Samples2.jsonl --project DemoProject` renders:
+
+| | |
+|---|---|
+| ![Stone walls](samples2/walls_stone.png) | ![Interior walls](samples2/walls_interior.png) |
+| ![Floors](samples2/floors.png) | |
+
 ## v3: textured walls, floor and roofs
 
 The walls wear generated stone (`Tools/AssetGen`, `DemoProject/Assets/Textures/StoneWall`, provenance `.json` beside

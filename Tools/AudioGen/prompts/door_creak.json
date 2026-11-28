@@ -8,11 +8,12 @@
 		3.0
 	],
 	"game_name": "Door",
-	"prompt": "An old heavy wooden door with iron hinges opening, {variation}, inside a stone house, recorded close, no music, no voices.",
+	"prompt": "Close realistic foley recording of an old heavy oak door slowly opening on rusty iron hinges, {variation}, in a quiet stone hallway with a short natural echo, no music, no voices.",
 	"variations": [
-		"a long slow creak",
-		"a short squeak of the hinges",
-		"a low groaning creak",
-		"a quick creak and a soft knock"
-	]
+		"a long slow eerie creak of the wood and the hinges",
+		"the iron latch lifts with a click, then a short hinge squeak",
+		"a deep heavy groan as the door swings open",
+		"a creak in two parts, the door stopping halfway"
+	],
+	"feedback": "2026-11-28 owner: the first series sounded artificial; prompts now name the latch, hinges, hallway and a realistic foley recording"
 }

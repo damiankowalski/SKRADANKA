@@ -1,0 +1,13 @@
+# Mood lab, sample wall of the second batch: the first mission's materials for the old town, the church, the catacombs,
+# the vineyard and the manor, one bay each, in a row behind the first (docs/art/mood/README.md). Run from the repository root:
+#   PenumbraEditor --headless --exec docs/art/mood/Samples2.jsonl --project DemoProject
+# The bays and their lamps come from Tools/BuildDemoProject.py (SAMPLE_MATERIALS_2); the base variant's night lights the rest.
+{"cmd": "scene.open", "path": "Scenes/MoodLab.pscene"}
+{"cmd": "play"}
+{"cmd": "simulate", "seconds": 1.0}
+{"cmd": "script.exec", "code": "return require('Scripts/MoodLab/Variants').apply('Base')"}
+{"cmd": "simulate", "frames": 6}
+{"cmd": "render.screenshot", "path": "docs/art/mood/samples2/walls_stone.png", "width": 1280, "height": 720, "camera": {"position": [12.0, 1.7, 22.6], "target": [12.0, 1.4, 28.0], "fov": 62}}
+{"cmd": "render.screenshot", "path": "docs/art/mood/samples2/walls_interior.png", "width": 1280, "height": 720, "camera": {"position": [2.4, 1.7, 22.6], "target": [2.4, 1.4, 28.0], "fov": 62}}
+{"cmd": "render.screenshot", "path": "docs/art/mood/samples2/floors.png", "width": 1280, "height": 720, "camera": {"position": [-9.6, 3.4, 22.6], "target": [-9.6, 0.0, 26.6], "fov": 70}}
+{"cmd": "stop"}

@@ -73,10 +73,11 @@ SURFACES = {
     "Grass": {"Material": "Grass", "NoiseModifier": -1.0},
     "Moss": {"Material": "Moss", "NoiseModifier": -3.0},
     "Wood": {"Material": "Wood", "NoiseModifier": 0.5},
+    "Gravel": {"Material": "Gravel", "NoiseModifier": 0.0},  # as loud as stone for now (AudioGen brief: noise levels unchanged)
     "Metal": {"Material": "Metal", "NoiseModifier": 2.5},
 }
 SURFACE_COLORS = {"Carpet": (0.35, 0.08, 0.07), "Grass": (0.12, 0.2, 0.08), "Moss": (0.1, 0.17, 0.09),
-                  "Wood": (0.32, 0.22, 0.13), "Metal": (0.3, 0.32, 0.34)}
+                  "Wood": (0.32, 0.22, 0.13), "Metal": (0.3, 0.32, 0.34), "Gravel": (0.34, 0.31, 0.27)}
 
 
 def floor_patch(doc, name, surface, center, size):
@@ -388,7 +389,9 @@ def add_world_events(doc, windows=(), dogs_position=(0, 1, 30)):
     (off between them) and the rain loop."""
     doc.add("Lightning", Transform=transform(rotation=(-60, 30, 0)),
             DirectionalLight={"Color": [0.75, 0.82, 1.0], "Intensity": 0.0, "CastShadows": True, "Enabled": False})
-    doc.add("Rain", Transform=transform(), AudioSource={"Clip": "Audio/Rain.wav", "Loop": True, "Spatial": False, "Volume": 0.35})
+    # A generated rain the owner accepted (Tools/AudioGen), else the procedural one.
+    rain = (generated_clips("Rain") or ["Audio/Rain.wav"])[0]
+    doc.add("Rain", Transform=transform(), AudioSource={"Clip": rain, "Loop": True, "Spatial": False, "Volume": 0.35})
     doc.add("World", Transform=transform(),
             Script={"Script": "Scripts/World/WorldEvents.lua",
                     "Properties": {"windows": ",".join(windows), "dogs_position": list(dogs_position)}})
@@ -1129,19 +1132,38 @@ SAMPLE_MATERIALS = (
     ("StoneFloor_Wet", "Textures/StoneFloor/stone_floor_2002", "floor", 1.5, 3.5, 0.0),
     ("Ground_Earth", "Textures/Ground/ground_1000", "floor", 2.0, 2.0, 0.0),
 )
+# The second batch (docs/art/mood/README.md, "Sample wall, second batch"): a row behind the first, read from between
+# the two rows. Tints lift the dark albedos part of the way only: black wood, a dark rug and dark grass stay dark.
+SAMPLE_MATERIALS_2 = (
+    ("Brick_Sooty", "Textures/Brick/brick_1001", "wall", 2.0, 3.0, 0.0),
+    ("DressedStone_Sandstone", "Textures/DressedStone/dressed_stone_1000", "wall", 2.5, 0.7, 0.0),
+    ("Rock_Wet", "Textures/Rock/rock_1002", "wall", 2.5, 2.5, 0.0),
+    ("Ossuary_Skulls", "Textures/Ossuary/ossuary_1001", "wall", 2.0, 1.6, 0.0),
+    ("WoodPanel_Oak", "Textures/WoodPanel/wood_panel_1000", "wall", 2.0, 2.5, 0.0),
+    ("WoodPanel_Walnut", "Textures/WoodPanel/wood_panel_1001", "wall", 2.4, 1.8, 0.0),
+    ("Wallpaper_Lilies", "Textures/Wallpaper/wallpaper_2002", "wall", 1.5, 1.5, 0.0),
+    ("PolishedWood_Ebony", "Textures/PolishedWood/polished_wood_1002", "wall", 1.5, 2.0, 0.0),
+    ("Grass_Grounds", "Textures/Grass/grass_1000", "floor", 2.0, 2.5, 0.0),
+    ("Grass_Trodden", "Textures/Grass/grass_1001", "floor", 2.0, 1.8, 0.0),
+    ("Rug_Medallion", "Textures/Rug/rug_2000", "floor", 2.0, 2.5, 0.0),
+    ("Rug_Floral", "Textures/Rug/rug_1001", "floor", 2.0, 1.0, 0.0),
+    ("Tiles_Terracotta", "Textures/CeramicTiles/ceramic_tiles_1000", "floor", 1.5, 1.8, 0.0),
+    ("Tiles_Painted", "Textures/CeramicTiles/ceramic_tiles_1002", "floor", 1.5, 0.7, 0.0),
+)
+SAMPLE_BACK_Z_2 = 28.0
 SAMPLE_BAY_WIDTH = 2.4
 SAMPLE_BAY_DEPTH = 4.0
 SAMPLE_BACK_Z = 22.0
 SAMPLE_WALL_HEIGHT = 3.0
 
 
-def sample_wall(doc):
-    """The bays of SAMPLE_MATERIALS side by side along X, centred on x = 0, their back panels at SAMPLE_BACK_Z, read from
-    left to right by a camera looking south (+Z)."""
+def sample_wall(doc, materials=SAMPLE_MATERIALS, back_z=SAMPLE_BACK_Z):
+    """The bays of `materials` side by side along X, centred on x = 0, their back panels at back_z, read from left to
+    right by a camera looking south (+Z)."""
     neutral = (0.18, 0.18, 0.18)
-    front_z = SAMPLE_BACK_Z - SAMPLE_BAY_DEPTH
-    for index, (name, texture, kind, tile, tint, metallic) in enumerate(SAMPLE_MATERIALS):
-        x = ((len(SAMPLE_MATERIALS) - 1) / 2 - index) * SAMPLE_BAY_WIDTH  # the first on the left, seen from the north
+    front_z = back_z - SAMPLE_BAY_DEPTH
+    for index, (name, texture, kind, tile, tint, metallic) in enumerate(materials):
+        x = ((len(materials) - 1) / 2 - index) * SAMPLE_BAY_WIDTH  # the first on the left, seen from the north
         floor_size = (SAMPLE_BAY_WIDTH, 0.2, SAMPLE_BAY_DEPTH)
         panel_size = (SAMPLE_BAY_WIDTH, SAMPLE_WALL_HEIGHT, 0.2)
         floor_mat = panel_mat = None
@@ -1151,7 +1173,7 @@ def sample_wall(doc):
             panel_mat = tiled_material(texture, tint, (panel_size[0] / tile, panel_size[1] / tile))
             panel_mat["Metallic"] = metallic
         box(doc, f"Sample_{name}_Floor", (x, -0.1, front_z + SAMPLE_BAY_DEPTH / 2), floor_size, neutral, mat=floor_mat)
-        box(doc, f"Sample_{name}", (x, SAMPLE_WALL_HEIGHT / 2, SAMPLE_BACK_Z + 0.1), panel_size, neutral, mat=panel_mat)
+        box(doc, f"Sample_{name}", (x, SAMPLE_WALL_HEIGHT / 2, back_z + 0.1), panel_size, neutral, mat=panel_mat)
         doc.add(f"Sample_{name}_Lamp", Transform=transform((x, 2.6, front_z + 1.2)),
                 PointLight={"Color": [1.0, 0.93, 0.85], "Intensity": 6.0, "Range": 5.0, "Flicker": 0.0, "CastShadows": False})
 
@@ -1162,6 +1184,7 @@ def build_mood_lab():
     doc.add("Camera", Transform=transform((1.5, 1.6, -9.4), (0, -90, 0)), Camera={"VerticalFOV": 65.0, "NearClip": 0.05, "FarClip": 300.0})
     cloister_architecture(doc, textured=True)
     sample_wall(doc)
+    sample_wall(doc, SAMPLE_MATERIALS_2, SAMPLE_BACK_Z_2)
     for index, ((x, z), zone, shadows) in enumerate(MOOD_TORCHES):
         torch_prefab_entities(doc, (x, 0, z), shadows=shadows, name=f"Fire_{zone}_Torch{index + 1}")
     for index, ((x, z), zone) in enumerate(MOOD_BRAZIERS):
@@ -1804,11 +1827,11 @@ def build_prop_lab():
 # --------------------------------------------------------------------------------------------
 # The listening scene (Tools/AudioGen/README.md): the game's sounds where the game plays them. A strip of floors to
 # walk (footsteps by Scripts/AI/Noises.lua), three doors to the east at 3, 10 and 25 m from the strip's end that
-# Scripts/Listening.lua works in turn, the night's wind and fog. Generated sounds the owner accepted are in
-# Assets/Audio/Generated; the wind loop is the newest accepted one (the procedural Wind.wav until there is one).
+# Scripts/Listening.lua works in turn, the night's wind (R switches to the rain), a hearth's fire, and fog. Generated
+# sounds the owner accepted are in Assets/Audio/Generated; the loops here are accepted ones where there are any.
 # --------------------------------------------------------------------------------------------
 
-LISTENING_FLOORS = ["Stone", "Wood", "Metal", "Carpet", "Grass", "Moss"]  # along +Z, 3 m each
+LISTENING_FLOORS = ["Stone", "Wood", "Metal", "Gravel", "Carpet", "Grass", "Moss"]  # along +Z, 3 m each
 LISTENING_DOORS = [3, 10, 25]  # metres east of the strip's end
 
 
@@ -1842,6 +1865,18 @@ def build_listening():
     wind = (generated_clips("Wind") or ["Audio/Wind.wav"])[-1]
     doc.add("Wind", Transform=transform(), AudioSource={"Clip": wind, "Loop": True, "PlayOnStart": True, "Spatial": False,
                                                         "Volume": 0.5})
+    rain = (generated_clips("Rain") or ["Audio/Rain.wav"])[0]
+    doc.add("Rain", Transform=transform(), AudioSource={"Clip": rain, "Loop": True, "Spatial": False, "Volume": 0.45})
+    # A hearth at the strip's start, west of it: the fire loop heard from close and from the far end.
+    fire = (generated_clips("Fire") or [None])[0]
+    if fire:
+        hearth = doc.add("Hearth", Transform=transform((-4.5, 0, 1.5)),
+                         AudioSource={"Clip": fire, "Loop": True, "PlayOnStart": True, "Spatial": True, "Volume": 0.8,
+                                      "MinDistance": 1.0, "MaxDistance": 20.0})
+        box(doc, "HearthStones", (0, 0.25, 0), (1.2, 0.5, 0.8), (0.25, 0.24, 0.23), parent=hearth)
+        doc.add("HearthFlame", hearth, Transform=transform((0, 0.8, 0)),
+                Flame={"Height": 0.5, "Radius": 0.25, "Intensity": 6.0, "Speed": 0.9},
+                PointLight={"Color": [1.0, 0.55, 0.25], "Intensity": 12.0, "Range": 7.0, "Flicker": 0.2, "CastShadows": False})
     doc.add("Mist", Transform=transform((12, 0.6, length / 2)),
             FogVolume={"HalfExtents": [20, 1.2, length / 2 + 6], "Density": 0.06, "EdgeFade": 0.8})
     doc.add("Listening", Transform=transform(), Script={"Script": "Scripts/Listening.lua",

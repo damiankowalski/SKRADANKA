@@ -1258,7 +1258,7 @@
           ]
         },
         "AudioSource": {
-          "Clip": "Audio/Rain.wav",
+          "Clip": "Audio/Generated/Rain_01.wav",
           "Loop": true,
           "Spatial": false,
           "Volume": 0.35

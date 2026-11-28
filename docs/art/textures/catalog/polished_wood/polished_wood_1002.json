@@ -1,0 +1,80 @@
+{
+  "tool": "Penumbra AssetGen",
+  "ai_generated": true,
+  "generated_at": "2026-11-27T20:52:54+00:00",
+  "material": "polished_wood",
+  "template": "prompts/polished_wood.json",
+  "prompt": "Hand-painted stylised realism for a dark medieval stealth game: painterly brushwork over believable materials, muted earthy colours, worn and lived-in surfaces. An albedo texture: flat even light, no cast shadows, no highlights, no vignette, no perspective, viewed straight on, the material fills the whole square edge to edge. A seamless tileable texture of polished furniture wood seen straight on: almost black ebonised wood with faint grain, long straight grain, fine scratches and wear.",
+  "seed": 1002,
+  "steps": 4,
+  "blend_steps": 4,
+  "size": 1024,
+  "quantize": 8,
+  "model": {
+    "id": "black-forest-labs/FLUX.2-klein-4B",
+    "revision": "e7b7dc27f91deacad38e78976d1f2b499d76a294",
+    "license": "Apache-2.0"
+  },
+  "mflux_version": "0.24.0",
+  "license": "Apache-2.0",
+  "timing": {
+    "model_load_seconds": 0.7,
+    "image_seconds": 234.3,
+    "mlx_peak_gb": 6.57,
+    "process_peak_rss_gb": 1.59
+  },
+  "seamless": {
+    "method": "generation",
+    "seam_limit": 1.6,
+    "detail_limit": 0.55,
+    "x": {
+      "wrap_step": 0.686,
+      "interior_step_p99": 1.875,
+      "weakest_detail": 0.791,
+      "weakest_detail_at": 858,
+      "detail_at_edge": 0.86,
+      "detail_at_centre": 1.005,
+      "line_at_edge": 0.335,
+      "line_at_centre": 0.999,
+      "line_limit": 2.908,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "y": {
+      "wrap_step": 1.156,
+      "interior_step_p99": 1.345,
+      "weakest_detail": 0.891,
+      "weakest_detail_at": 676,
+      "detail_at_edge": 1.076,
+      "detail_at_centre": 0.992,
+      "line_at_edge": 1.55,
+      "line_at_centre": 1.05,
+      "line_limit": 2.5,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "passed": true,
+    "fallback_can_help": false
+  },
+  "maps": {
+    "height": "albedo luminance (approximation)",
+    "normal_convention": "glTF: +X right, +Y up (green), +Z out",
+    "normal_strength": 2.5,
+    "metallic_roughness": "glTF: G roughness, B metallic",
+    "roughness": [
+      0.3,
+      0.6
+    ],
+    "metallic": 0.0
+  },
+  "files": {
+    "albedo": "polished_wood_1002_albedo.png",
+    "normal": "polished_wood_1002_normal.png",
+    "metallic_roughness": "polished_wood_1002_mr.png",
+    "preview": "polished_wood_1002_preview.png"
+  },
+  "catalog": {
+    "note": "Near-black ebonised wood: furniture (the desk, the bookcases).",
+    "preview": "polished_wood_1002.png"
+  }
+}

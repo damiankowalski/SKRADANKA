@@ -1,0 +1,80 @@
+{
+  "tool": "Penumbra AssetGen",
+  "ai_generated": true,
+  "generated_at": "2026-11-27T18:59:05+00:00",
+  "material": "brick",
+  "template": "prompts/brick.json",
+  "prompt": "Hand-painted stylised realism for a dark medieval stealth game: painterly brushwork over believable materials, muted earthy colours, worn and lived-in surfaces. An albedo texture: flat even light, no cast shadows, no highlights, no vignette, no perspective, viewed straight on, the material fills the whole square edge to edge. A seamless tileable texture of an old brick wall seen straight on: dark soot-blackened bricks of a city wall, some bricks missing and patched with stone, crumbling mortar joints, chipped edges and soot stains.",
+  "seed": 1001,
+  "steps": 4,
+  "blend_steps": 4,
+  "size": 1024,
+  "quantize": 8,
+  "model": {
+    "id": "black-forest-labs/FLUX.2-klein-4B",
+    "revision": "e7b7dc27f91deacad38e78976d1f2b499d76a294",
+    "license": "Apache-2.0"
+  },
+  "mflux_version": "0.24.0",
+  "license": "Apache-2.0",
+  "timing": {
+    "model_load_seconds": 0.7,
+    "image_seconds": 245.6,
+    "mlx_peak_gb": 6.57,
+    "process_peak_rss_gb": 1.4
+  },
+  "seamless": {
+    "method": "generation",
+    "seam_limit": 1.6,
+    "detail_limit": 0.55,
+    "x": {
+      "wrap_step": 0.97,
+      "interior_step_p99": 2.449,
+      "weakest_detail": 0.832,
+      "weakest_detail_at": 574,
+      "detail_at_edge": 1.256,
+      "detail_at_centre": 1.129,
+      "line_at_edge": 0.937,
+      "line_at_centre": 6.262,
+      "line_limit": 6.797,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "y": {
+      "wrap_step": 2.267,
+      "interior_step_p99": 6.402,
+      "weakest_detail": 0.637,
+      "weakest_detail_at": 838,
+      "detail_at_edge": 1.564,
+      "detail_at_centre": 1.592,
+      "line_at_edge": 4.249,
+      "line_at_centre": 5.178,
+      "line_limit": 15.042,
+      "steps_ok": true,
+      "lines_ok": true
+    },
+    "passed": true,
+    "fallback_can_help": false
+  },
+  "maps": {
+    "height": "albedo luminance (approximation)",
+    "normal_convention": "glTF: +X right, +Y up (green), +Z out",
+    "normal_strength": 5.0,
+    "metallic_roughness": "glTF: G roughness, B metallic",
+    "roughness": [
+      0.75,
+      0.95
+    ],
+    "metallic": 0.0
+  },
+  "files": {
+    "albedo": "brick_1001_albedo.png",
+    "normal": "brick_1001_normal.png",
+    "metallic_roughness": "brick_1001_mr.png",
+    "preview": "brick_1001_preview.png"
+  },
+  "catalog": {
+    "note": "Dark soot-blackened red brick in running bond: city walls, chimneys, the kitchen yard.",
+    "preview": "brick_1001.png"
+  }
+}
