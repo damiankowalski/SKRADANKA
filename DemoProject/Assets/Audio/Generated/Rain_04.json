@@ -1,0 +1,44 @@
+{
+  "sound": "rain_loop",
+  "category": "ambience",
+  "loop": true,
+  "game_name": "Rain",
+  "prompt": "Steady night rain falling on the stone streets and tiled roofs of an old town, soft rain on wooden shutters, no music, no voices, no thunder.",
+  "variation": "soft rain on wooden shutters",
+  "seed": 1003,
+  "steps": 8,
+  "cfg_scale": 1.0,
+  "generated_seconds": 64.0,
+  "sample_rate": 44100,
+  "model": "stabilityai/stable-audio-3-small-sfx",
+  "revision": "05ca3857881c94a2b84026b1111c537d78f5f9f0",
+  "license": "Stability AI Community License (with the Gemma Terms of Use for its text encoder)",
+  "library": "stable-audio-3 @ Stability-AI/stable-audio-3 4007b6f2987bcb760626c2b4ae3e3541753984e9 (MIT)",
+  "date": "2026-11-28",
+  "ai_generated": true,
+  "generation_seconds": 8.88,
+  "checks": {
+    "measures": {
+      "seconds": 62.0,
+      "channels": 2,
+      "lufs": -30.0,
+      "true_peak_dbtp": -10.6,
+      "clipped_samples": 0,
+      "lead_silence": 0.0,
+      "tail_silence": 0.0,
+      "loop_seam_db": -7.13
+    },
+    "failures": [],
+    "passed": true
+  },
+  "asset": "Audio/Generated/Rain_04.wav",
+  "source": {
+    "series": "second",
+    "file": "rain_loop_1003.wav"
+  },
+  "owner": {
+    "decision": "accepted",
+    "note": "",
+    "date": "2026-11-28T10:53:36"
+  }
+}

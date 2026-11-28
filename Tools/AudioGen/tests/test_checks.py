@@ -254,6 +254,31 @@ class PromoteTests(unittest.TestCase):
             self.assertEqual(len(again["kept"]), 2)
             self.assertEqual(len(list(generated.glob("*.wav"))), 2)
 
+    def test_a_clip_can_be_accepted_under_another_name(self):
+        with tempfile.TemporaryDirectory() as folder:
+            series = make_series(folder, [("soft_1000", "Footstep_Soft", True)])
+            review.set_verdict(series, "soft_1000", "change", "sounds like gravel: reclassify it")
+            assets = Path(folder) / "Assets"
+            with self.assertRaisesRegex(ValueError, "not in the series"):
+                promote.promote(series, assets, accept_as={"soft_9": "Footstep_Gravel"})
+            report = promote.promote(series, assets, accept_as={"soft_1000": "Footstep_Gravel"})
+            self.assertEqual(report["promoted"], [("soft_1000", "Audio/Generated/Footstep_Gravel_01.wav")])
+            self.assertEqual(report["changes"], [])
+            provenance = json.loads((assets / promote.GENERATED / "Footstep_Gravel_01.json").read_text(encoding="utf-8"))
+            self.assertEqual(provenance["owner"]["decision"], "accepted as Footstep_Gravel")
+            self.assertEqual(provenance["game_name"], "Footstep_Gravel")
+            self.assertIn("gravel", provenance["owner"]["note"])
+
+    def test_the_limiter_lets_a_crackling_loop_reach_its_loudness(self):
+        rng = np.random.default_rng(4)
+        body = 0.01 * rng.standard_normal((1, 20 * RATE)).astype(np.float32)
+        body[0, ::RATE // 3] = 0.9  # pops three times a second
+        plain = checks.prepare(body, RATE, "ambience", loop=True, mono=True)
+        limited = checks.prepare(body, RATE, "ambience", loop=True, mono=True, limiter=True)
+        self.assertLess(checks.loudness_lufs(plain, RATE), -36)
+        self.assertAlmostEqual(checks.loudness_lufs(limited, RATE), -30.0, delta=1.0)
+        self.assertLessEqual(checks.true_peak(limited), -3.0)
+
     def test_nothing_happens_before_the_owner_listened(self):
         with tempfile.TemporaryDirectory() as folder:
             series = make_series(folder, [("door_1000", "Door", True)])

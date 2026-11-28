@@ -1,5 +1,5 @@
 {
-	"description": "A hearth fire crackling: a loop played at the hearth (3D, mono). Its pops reach the peak ceiling first, so it may sit quieter than other ambience.",
+	"description": "A hearth fire crackling: a loop played at the hearth (3D, mono). Its pops are limited so the fire's body reaches ambience loudness.",
 	"category": "ambience",
 	"loop": true,
 	"mono": true,
@@ -9,15 +9,13 @@
 		65.0
 	],
 	"game_name": "Fire",
-	"prompt": "A wood fire burning in a stone hearth, {variation}, recorded in the room, no music, no voices.",
+	"prompt": "A clean close recording of a wood fire burning in a stone hearth, {variation}, natural and quiet, no background noise, no hiss, no hum, no music, no voices.",
 	"variations": [
-		"calm crackling and soft hissing",
-		"lively crackling with small pops",
-		"low embers glowing with a quiet hiss",
-		"a big fire roaring gently with crackles"
+		"soft natural crackling of dry logs",
+		"gentle flames with occasional small pops",
+		"a steady fire with logs settling",
+		"warm embers crackling softly"
 	],
-	"lufs_range": [
-		-38.0,
-		-27.0
-	]
+	"limiter": true,
+	"feedback": "2026-11-28 owner: distortion and noise in the background of the second series; prompts now ask for a clean, natural recording"
 }

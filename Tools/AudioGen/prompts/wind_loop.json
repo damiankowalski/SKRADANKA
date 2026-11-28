@@ -9,11 +9,12 @@
 		65.0
 	],
 	"game_name": "Wind",
-	"prompt": "Night wind blowing through the narrow streets of an old stone town, {variation}, no music, no voices, no birds.",
+	"prompt": "Eerie howling night wind around an old stone town, {variation}, ominous horror atmosphere, constant, no music, no voices, no birds.",
 	"variations": [
-		"soft steady gusts",
-		"low cold wind with a distant shutter creaking now and then",
-		"gusting wind whistling round corners",
-		"calm air with a faint breeze in the trees"
-	]
+		"a hollow moaning wind whistling through gaps in wooden shutters",
+		"a deep mournful howl rising and falling",
+		"strange breathing gusts wailing round the corners",
+		"a low drone of wind with a ghostly whistle now and then"
+	],
+	"feedback": "2026-11-28 owner: wanted more wailing, horror-like; prompts now ask for howling, moaning and an ominous mood"
 }

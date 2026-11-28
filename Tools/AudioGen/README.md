@@ -75,6 +75,8 @@ Close `PenumbraEditor` before generating on a 16 GB Mac.
    * change: `out/<series>/changes.json` lists the clip, its prompt and the note. The agent rewrites the template's
      prompt or variations along the note and generates a new series.
    * reject: nothing.
+   * accept under another name: `--accept-as footstep_soft_1001=Footstep_Gravel` when the owner's note puts a
+     clip to another use ("this sounds like gravel"); its provenance says "accepted as Footstep_Gravel".
 
 4. **Use** the sounds: scenes and scripts reference `Audio/Generated/...` (the listening scene first,
    `Scenes/Listening.pscene`), and the commit carries the WAV and its provenance.
@@ -84,8 +86,9 @@ Close `PenumbraEditor` before generating on a 16 GB Mac.
 A sound is `prompts/<sound>.json`: `category` (`effect` or `ambience`), `prompt` with `{variation}`, `variations`
 (one per variant), `generate_seconds` (what the model is asked for), `length` (the finished clip's allowed range),
 `game_name` (the asset's name), and for effects `mono` and `first_event` (keep only the first sound of a clip:
-one footstep out of the few the model makes), for ambience `loop`; an impulsive
-loop (a crackling fire, whose pops meet the peak ceiling first) may set its own `lufs_range`. Describe sounds plainly (material, place,
+one footstep out of the few the model makes), for ambience `loop`. An impulsive
+loop (a crackling fire, whose pops meet the peak ceiling first) sets `limiter` (a look-ahead peak limiter lets its
+body reach the loudness) or its own `lufs_range`. `feedback` records what the owner's notes changed in the prompt. Describe sounds plainly (material, place,
 distance, "no music, no voices"); never name games, films, studios or living people.
 
 ## Checks
@@ -144,3 +147,13 @@ Tools/AudioGen/setup.sh uninstall --with-model         # also the model in HF_HO
 
 uv's cache and Python 3.12 are shared with AssetGen: `Tools/AssetGen/setup.sh uninstall --with-uv-cache`. The token
 is never removed by the script (Tools/AssetGen/README.md, "Removing everything").
+
+## The first cycle (2026-11-28)
+
+The owner listened to the series `first` and `second` (37 clips) and accepted 10: a stone footstep, three door
+shuts, four rain loops, a fire loop (after the limiter) and two soft steps reclassified as gravel. They are in
+`Assets/Audio/Generated` and play in the game (`Scripts/AI/Noises.lua`: stone and gravel steps, doors falling shut;
+the rain in the levels) and in `Scenes/Listening.pscene` (a gravel floor, R for the rain, a hearth). The notes
+(door creaks too artificial, footsteps too thin, a more wailing wind, a cleaner fire, boots on metal) rewrote the
+templates; the series `third` (24 clips, all passing the checks) waits for a listen. The reference pages linked in the notes
+were read for their wording only (their sounds are licensed and cannot be heard by the agent).

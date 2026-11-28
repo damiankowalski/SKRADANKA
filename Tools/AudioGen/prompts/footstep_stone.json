@@ -9,11 +9,12 @@
 		0.9
 	],
 	"game_name": "Footstep",
-	"prompt": "A single footstep of a leather boot on a stone floor in a quiet stone hall, recorded close, dry, {variation}, no music, no voices.",
+	"prompt": "Close realistic foley recording of a single heavy footstep, a leather boot with a hard heel on a stone floor, {variation}, deep and full with a short natural echo of a stone corridor, no music, no voices.",
 	"variations": [
-		"a soft careful step",
 		"a firm heel strike",
-		"a short scuffing step",
-		"a light step on gritty flagstones"
-	]
+		"a slow deliberate step",
+		"a heavy tired step",
+		"a step that scuffs the grit on the stones"
+	],
+	"feedback": "2026-11-28 owner: too thin in the first series; prompts now ask for a heavy heel, depth and the corridor's echo"
 }

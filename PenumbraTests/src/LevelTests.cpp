@@ -814,6 +814,11 @@ TEST_SUITE("World")
 		Level listening("Scenes/Listening.pscene");
 		listening.Run(0.5f);
 		CHECK(listening.Lua("return audio.is_playing(scene.find('Wind'))") == "true");
+		CHECK(listening.Lua("return audio.is_playing(scene.find('Hearth'))") == "true");
+		listening.Lua("scene.find('Listening'):script():toggle_rain()");
+		CHECK(listening.Lua("return audio.is_playing(scene.find('Rain')) and not audio.is_playing(scene.find('Wind'))") == "true");
+		listening.Lua("scene.find('Listening'):script():toggle_rain()");
+		CHECK(listening.Lua("return audio.is_playing(scene.find('Wind')) and not audio.is_playing(scene.find('Rain'))") == "true");
 		CHECK(listening.Lua("return scene.find('Door_3m'):script():is_open()") == "false");
 
 		// The cycle: every 4 s a door sound, each door opened and shut before the next.
@@ -826,7 +831,7 @@ TEST_SUITE("World")
 		CHECK(listening.Lua("return scene.find('Listening'):script().worked") == "3");
 
 		// Walking the strip: each floor under the thief is the one its lamp names.
-		for (const char* floor : { "Stone", "Wood", "Metal", "Carpet", "Grass", "Moss" })
+		for (const char* floor : { "Stone", "Wood", "Metal", "Gravel", "Carpet", "Grass", "Moss" })
 		{
 			CAPTURE(floor);
 			const glm::vec3 lamp = listening.Position(std::string("Lamp_") + floor);
@@ -877,7 +882,7 @@ TEST_SUITE("World")
 			const nlohmann::json data = nlohmann::json::parse(stream, nullptr, false);
 			REQUIRE_FALSE(data.is_discarded());
 			CHECK(data.value("ai_generated", false));
-			CHECK(data["owner"].value("decision", "") == "accepted");
+			CHECK(data["owner"].value("decision", "").starts_with("accepted")); // "accepted", or "accepted as Footstep_Gravel"
 			CHECK_FALSE(data.value("model", "").empty());
 			CHECK_FALSE(data.value("license", "").empty());
 			CHECK(data["checks"].value("passed", false));

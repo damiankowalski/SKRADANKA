@@ -9,11 +9,12 @@
 		1.0
 	],
 	"game_name": "Footstep_Metal",
-	"prompt": "A single footstep of a leather boot on an iron floor grate, recorded close, {variation}, no music, no voices.",
+	"prompt": "Close realistic foley recording of a single footstep, a heavy leather boot on an iron floor grate, {variation}, a metallic clank as the boot lands, no music, no voices.",
 	"variations": [
-		"a sharp metallic clank",
-		"a dull ringing step",
-		"a careful step with a faint rattle",
-		"a heavy step that rings briefly"
-	]
+		"a sharp clank and a short ring",
+		"a heavy step, the grate rattling slightly",
+		"a careful step with a dull clank",
+		"a firm step, the iron ringing briefly"
+	],
+	"feedback": "2026-11-28 owner: changed or rejected in the second series; prompts follow boots-on-an-industrial-floor recordings: a clank on each step"
 }

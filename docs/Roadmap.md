@@ -297,17 +297,19 @@ catalog; the owner took fourteen for the game, in `DemoProject/Assets/Textures` 
 lab (docs/art/mood/README.md, "Sample wall, second batch"). Still missing: red damask and a checkerboard (regular
 patterns fail the seam test most).
 
-## In progress
-
-**AudioGen, package A: effects and ambience with a listening room** (M, branch `feature/audiogen`, the owner's
+**AudioGen, package A: effects and ambience with a listening room** (2026-11-28, the owner's
 brief [`research/AudioGenBrief.md`](research/AudioGenBrief.md)): `Tools/AudioGen` generates sound effects and
 ambience loops on the Mac with Stable Audio 3 Small SFX (on the CPU: a 10 s clip in 3.9 s, 60 s in 8.8 s, 4.5 GB
 at most), checks them (BS.1770 loudness, true peak, leading silence, mono for 3D effects, loop seams; a broken
 file is rejected), plays a series in a local listening room where the owner accepts, rejects or asks for a change
 with a note, and promotes accepted sounds to `Assets/Audio/Generated` with their provenance. `Scenes/Listening.pscene`
-plays them in place: a strip of six floors, doors at 3, 10 and 25 m, the night's wind in fog. The first series
-(footsteps on stone and wood, a door, a 60 s wind loop, 16 variants) waits for the owner's ears; the cycle and
-wiring the accepted sounds into the game finish the package. See `Tools/AudioGen/README.md`.
+plays them in place: a strip of seven floors, doors at 3, 10 and 25 m, wind or rain, a hearth, fog. The first cycle
+is done: of 37 clips the owner accepted 10 (a stone and two gravel footsteps, three door shuts, four rain loops, a
+fire), now in the game; the third series, rewritten from the owner's notes, waits for a listen. See `Tools/AudioGen/README.md`.
+
+## In progress
+
+The prop pipeline, part 1 (PropGen, branch `feature/propgen`): its PR follows AudioGen's.
 
 ## Known bugs
 

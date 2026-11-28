@@ -91,7 +91,7 @@
           "Translation": [
             12,
             -0.5,
-            9.0
+            10.5
           ],
           "Rotation": [
             0,
@@ -101,7 +101,7 @@
           "Scale": [
             40,
             1,
-            30.0
+            33.0
           ]
         },
         "Mesh": {
@@ -502,7 +502,7 @@
       "ID": "1011",
       "Components": {
         "Tag": {
-          "Tag": "Floor_Carpet"
+          "Tag": "Floor_Gravel"
         },
         "Transform": {
           "Translation": [
@@ -526,9 +526,9 @@
         },
         "Material": {
           "BaseColor": [
-            0.35,
-            0.08,
-            0.07,
+            0.34,
+            0.31,
+            0.27,
             1.0
           ],
           "Roughness": 0.9,
@@ -549,8 +549,8 @@
           ]
         },
         "Surface": {
-          "Material": "Carpet",
-          "NoiseModifier": -2.0
+          "Material": "Gravel",
+          "NoiseModifier": 0.0
         }
       }
     },
@@ -558,7 +558,7 @@
       "ID": "1012",
       "Components": {
         "Tag": {
-          "Tag": "Lamp_Carpet"
+          "Tag": "Lamp_Gravel"
         },
         "Transform": {
           "Translation": [
@@ -641,7 +641,7 @@
       "ID": "1014",
       "Components": {
         "Tag": {
-          "Tag": "Floor_Grass"
+          "Tag": "Floor_Carpet"
         },
         "Transform": {
           "Translation": [
@@ -665,9 +665,9 @@
         },
         "Material": {
           "BaseColor": [
-            0.12,
-            0.2,
+            0.35,
             0.08,
+            0.07,
             1.0
           ],
           "Roughness": 0.9,
@@ -688,8 +688,8 @@
           ]
         },
         "Surface": {
-          "Material": "Grass",
-          "NoiseModifier": -1.0
+          "Material": "Carpet",
+          "NoiseModifier": -2.0
         }
       }
     },
@@ -697,7 +697,7 @@
       "ID": "1015",
       "Components": {
         "Tag": {
-          "Tag": "Lamp_Grass"
+          "Tag": "Lamp_Carpet"
         },
         "Transform": {
           "Translation": [
@@ -780,7 +780,7 @@
       "ID": "1017",
       "Components": {
         "Tag": {
-          "Tag": "Floor_Moss"
+          "Tag": "Floor_Grass"
         },
         "Transform": {
           "Translation": [
@@ -804,9 +804,9 @@
         },
         "Material": {
           "BaseColor": [
-            0.1,
-            0.17,
-            0.09,
+            0.12,
+            0.2,
+            0.08,
             1.0
           ],
           "Roughness": 0.9,
@@ -827,8 +827,8 @@
           ]
         },
         "Surface": {
-          "Material": "Moss",
-          "NoiseModifier": -3.0
+          "Material": "Grass",
+          "NoiseModifier": -1.0
         }
       }
     },
@@ -836,7 +836,7 @@
       "ID": "1018",
       "Components": {
         "Tag": {
-          "Tag": "Lamp_Moss"
+          "Tag": "Lamp_Grass"
         },
         "Transform": {
           "Translation": [
@@ -919,6 +919,145 @@
       "ID": "1020",
       "Components": {
         "Tag": {
+          "Tag": "Floor_Moss"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.01,
+            19.5
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            3,
+            0.02,
+            3
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.1,
+            0.17,
+            0.09,
+            1.0
+          ],
+          "Roughness": 0.9,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        },
+        "Surface": {
+          "Material": "Moss",
+          "NoiseModifier": -3.0
+        }
+      }
+    },
+    {
+      "ID": "1021",
+      "Components": {
+        "Tag": {
+          "Tag": "Lamp_Moss"
+        },
+        "Transform": {
+          "Translation": [
+            -2.2,
+            2.6,
+            19.5
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.8,
+            0.55
+          ],
+          "Intensity": 6.0,
+          "Range": 6.0,
+          "Flicker": 0.05,
+          "CastShadows": false
+        }
+      }
+    },
+    {
+      "ID": "1022",
+      "Components": {
+        "Tag": {
+          "Tag": "Glow"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.1,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            0.18,
+            0.24,
+            0.18
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube",
+          "CastShadows": false
+        },
+        "Material": {
+          "BaseColor": [
+            1.0,
+            0.85,
+            0.6,
+            1.0
+          ],
+          "Roughness": 0.8,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 5.0,
+          "EmissiveColor": [
+            1.0,
+            0.8,
+            0.55
+          ],
+          "Translucent": false
+        }
+      },
+      "Parent": "1021"
+    },
+    {
+      "ID": "1023",
+      "Components": {
+        "Tag": {
           "Tag": "Player"
         },
         "Transform": {
@@ -953,7 +1092,7 @@
       }
     },
     {
-      "ID": "1021",
+      "ID": "1024",
       "Components": {
         "Tag": {
           "Tag": "Model"
@@ -989,10 +1128,10 @@
           "BlendDuration": 0.2
         }
       },
-      "Parent": "1020"
+      "Parent": "1023"
     },
     {
-      "ID": "1022",
+      "ID": "1025",
       "Components": {
         "Tag": {
           "Tag": "Door_3m"
@@ -1001,7 +1140,7 @@
           "Translation": [
             3,
             0,
-            18.7
+            21.7
           ],
           "Rotation": [
             0,
@@ -1028,7 +1167,7 @@
       }
     },
     {
-      "ID": "1023",
+      "ID": "1026",
       "Components": {
         "Tag": {
           "Tag": "Panel"
@@ -1086,10 +1225,10 @@
           "SoundLoss": 2.5
         }
       },
-      "Parent": "1022"
+      "Parent": "1025"
     },
     {
-      "ID": "1024",
+      "ID": "1027",
       "Components": {
         "Tag": {
           "Tag": "Lock"
@@ -1133,10 +1272,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1022"
+      "Parent": "1025"
     },
     {
-      "ID": "1025",
+      "ID": "1028",
       "Components": {
         "Tag": {
           "Tag": "Door_3m_JambN"
@@ -1145,7 +1284,7 @@
           "Translation": [
             3,
             1.3,
-            16.7
+            19.7
           ],
           "Rotation": [
             0,
@@ -1188,7 +1327,7 @@
       }
     },
     {
-      "ID": "1026",
+      "ID": "1029",
       "Components": {
         "Tag": {
           "Tag": "Door_3m_JambS"
@@ -1197,7 +1336,7 @@
           "Translation": [
             3,
             1.3,
-            19.3
+            22.3
           ],
           "Rotation": [
             0,
@@ -1240,7 +1379,7 @@
       }
     },
     {
-      "ID": "1027",
+      "ID": "1030",
       "Components": {
         "Tag": {
           "Tag": "Door_3m_Lintel"
@@ -1249,7 +1388,7 @@
           "Translation": [
             3,
             2.45,
-            18.0
+            21.0
           ],
           "Rotation": [
             0,
@@ -1292,7 +1431,7 @@
       }
     },
     {
-      "ID": "1028",
+      "ID": "1031",
       "Components": {
         "Tag": {
           "Tag": "Door_3m_Lamp"
@@ -1301,7 +1440,7 @@
           "Translation": [
             2.0,
             2.8,
-            16.6
+            19.6
           ],
           "Rotation": [
             0,
@@ -1328,7 +1467,7 @@
       }
     },
     {
-      "ID": "1029",
+      "ID": "1032",
       "Components": {
         "Tag": {
           "Tag": "Glow"
@@ -1372,10 +1511,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1028"
+      "Parent": "1031"
     },
     {
-      "ID": "1030",
+      "ID": "1033",
       "Components": {
         "Tag": {
           "Tag": "Door_10m"
@@ -1384,7 +1523,7 @@
           "Translation": [
             10,
             0,
-            18.7
+            21.7
           ],
           "Rotation": [
             0,
@@ -1411,7 +1550,7 @@
       }
     },
     {
-      "ID": "1031",
+      "ID": "1034",
       "Components": {
         "Tag": {
           "Tag": "Panel"
@@ -1469,10 +1608,10 @@
           "SoundLoss": 2.5
         }
       },
-      "Parent": "1030"
+      "Parent": "1033"
     },
     {
-      "ID": "1032",
+      "ID": "1035",
       "Components": {
         "Tag": {
           "Tag": "Lock"
@@ -1516,10 +1655,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1030"
+      "Parent": "1033"
     },
     {
-      "ID": "1033",
+      "ID": "1036",
       "Components": {
         "Tag": {
           "Tag": "Door_10m_JambN"
@@ -1528,7 +1667,7 @@
           "Translation": [
             10,
             1.3,
-            16.7
+            19.7
           ],
           "Rotation": [
             0,
@@ -1571,7 +1710,7 @@
       }
     },
     {
-      "ID": "1034",
+      "ID": "1037",
       "Components": {
         "Tag": {
           "Tag": "Door_10m_JambS"
@@ -1580,7 +1719,7 @@
           "Translation": [
             10,
             1.3,
-            19.3
+            22.3
           ],
           "Rotation": [
             0,
@@ -1623,7 +1762,7 @@
       }
     },
     {
-      "ID": "1035",
+      "ID": "1038",
       "Components": {
         "Tag": {
           "Tag": "Door_10m_Lintel"
@@ -1632,7 +1771,7 @@
           "Translation": [
             10,
             2.45,
-            18.0
+            21.0
           ],
           "Rotation": [
             0,
@@ -1675,7 +1814,7 @@
       }
     },
     {
-      "ID": "1036",
+      "ID": "1039",
       "Components": {
         "Tag": {
           "Tag": "Door_10m_Lamp"
@@ -1684,7 +1823,7 @@
           "Translation": [
             9.0,
             2.8,
-            16.6
+            19.6
           ],
           "Rotation": [
             0,
@@ -1711,7 +1850,7 @@
       }
     },
     {
-      "ID": "1037",
+      "ID": "1040",
       "Components": {
         "Tag": {
           "Tag": "Glow"
@@ -1755,10 +1894,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1036"
+      "Parent": "1039"
     },
     {
-      "ID": "1038",
+      "ID": "1041",
       "Components": {
         "Tag": {
           "Tag": "Door_25m"
@@ -1767,7 +1906,7 @@
           "Translation": [
             25,
             0,
-            18.7
+            21.7
           ],
           "Rotation": [
             0,
@@ -1794,7 +1933,7 @@
       }
     },
     {
-      "ID": "1039",
+      "ID": "1042",
       "Components": {
         "Tag": {
           "Tag": "Panel"
@@ -1852,10 +1991,10 @@
           "SoundLoss": 2.5
         }
       },
-      "Parent": "1038"
+      "Parent": "1041"
     },
     {
-      "ID": "1040",
+      "ID": "1043",
       "Components": {
         "Tag": {
           "Tag": "Lock"
@@ -1899,10 +2038,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1038"
+      "Parent": "1041"
     },
     {
-      "ID": "1041",
+      "ID": "1044",
       "Components": {
         "Tag": {
           "Tag": "Door_25m_JambN"
@@ -1911,7 +2050,7 @@
           "Translation": [
             25,
             1.3,
-            16.7
+            19.7
           ],
           "Rotation": [
             0,
@@ -1954,7 +2093,7 @@
       }
     },
     {
-      "ID": "1042",
+      "ID": "1045",
       "Components": {
         "Tag": {
           "Tag": "Door_25m_JambS"
@@ -1963,7 +2102,7 @@
           "Translation": [
             25,
             1.3,
-            19.3
+            22.3
           ],
           "Rotation": [
             0,
@@ -2006,7 +2145,7 @@
       }
     },
     {
-      "ID": "1043",
+      "ID": "1046",
       "Components": {
         "Tag": {
           "Tag": "Door_25m_Lintel"
@@ -2015,7 +2154,7 @@
           "Translation": [
             25,
             2.45,
-            18.0
+            21.0
           ],
           "Rotation": [
             0,
@@ -2058,7 +2197,7 @@
       }
     },
     {
-      "ID": "1044",
+      "ID": "1047",
       "Components": {
         "Tag": {
           "Tag": "Door_25m_Lamp"
@@ -2067,7 +2206,7 @@
           "Translation": [
             24.0,
             2.8,
-            16.6
+            19.6
           ],
           "Rotation": [
             0,
@@ -2094,7 +2233,7 @@
       }
     },
     {
-      "ID": "1045",
+      "ID": "1048",
       "Components": {
         "Tag": {
           "Tag": "Glow"
@@ -2138,10 +2277,10 @@
           "Translucent": false
         }
       },
-      "Parent": "1044"
+      "Parent": "1047"
     },
     {
-      "ID": "1046",
+      "ID": "1049",
       "Components": {
         "Tag": {
           "Tag": "Wind"
@@ -2173,7 +2312,168 @@
       }
     },
     {
-      "ID": "1047",
+      "ID": "1050",
+      "Components": {
+        "Tag": {
+          "Tag": "Rain"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "AudioSource": {
+          "Clip": "Audio/Generated/Rain_01.wav",
+          "Loop": true,
+          "Spatial": false,
+          "Volume": 0.45
+        }
+      }
+    },
+    {
+      "ID": "1051",
+      "Components": {
+        "Tag": {
+          "Tag": "Hearth"
+        },
+        "Transform": {
+          "Translation": [
+            -4.5,
+            0,
+            1.5
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "AudioSource": {
+          "Clip": "Audio/Generated/Fire_01.wav",
+          "Loop": true,
+          "PlayOnStart": true,
+          "Spatial": true,
+          "Volume": 0.8,
+          "MinDistance": 1.0,
+          "MaxDistance": 20.0
+        }
+      }
+    },
+    {
+      "ID": "1052",
+      "Components": {
+        "Tag": {
+          "Tag": "HearthStones"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.25,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1.2,
+            0.5,
+            0.8
+          ]
+        },
+        "Mesh": {
+          "Mesh": "builtin:cube"
+        },
+        "Material": {
+          "BaseColor": [
+            0.25,
+            0.24,
+            0.23,
+            1.0
+          ],
+          "Roughness": 0.85,
+          "Metallic": 0.0,
+          "EmissiveIntensity": 0.0,
+          "EmissiveColor": [
+            1,
+            1,
+            1
+          ],
+          "Translucent": false
+        },
+        "BoxCollider": {
+          "HalfExtents": [
+            0.5,
+            0.5,
+            0.5
+          ]
+        }
+      },
+      "Parent": "1051"
+    },
+    {
+      "ID": "1053",
+      "Components": {
+        "Tag": {
+          "Tag": "HearthFlame"
+        },
+        "Transform": {
+          "Translation": [
+            0,
+            0.8,
+            0
+          ],
+          "Rotation": [
+            0,
+            0,
+            0
+          ],
+          "Scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "Flame": {
+          "Height": 0.5,
+          "Radius": 0.25,
+          "Intensity": 6.0,
+          "Speed": 0.9
+        },
+        "PointLight": {
+          "Color": [
+            1.0,
+            0.55,
+            0.25
+          ],
+          "Intensity": 12.0,
+          "Range": 7.0,
+          "Flicker": 0.2,
+          "CastShadows": false
+        }
+      },
+      "Parent": "1051"
+    },
+    {
+      "ID": "1054",
       "Components": {
         "Tag": {
           "Tag": "Mist"
@@ -2182,7 +2482,7 @@
           "Translation": [
             12,
             0.6,
-            9.0
+            10.5
           ],
           "Rotation": [
             0,
@@ -2199,7 +2499,7 @@
           "HalfExtents": [
             20,
             1.2,
-            15.0
+            16.5
           ],
           "Density": 0.06,
           "EdgeFade": 0.8
@@ -2207,7 +2507,7 @@
       }
     },
     {
-      "ID": "1048",
+      "ID": "1055",
       "Components": {
         "Tag": {
           "Tag": "Listening"
@@ -2232,7 +2532,7 @@
         "Script": {
           "Script": "Scripts/Listening.lua",
           "Properties": {
-            "floors": "Stone,Wood,Metal,Carpet,Grass,Moss"
+            "floors": "Stone,Wood,Metal,Gravel,Carpet,Grass,Moss"
           }
         }
       }
