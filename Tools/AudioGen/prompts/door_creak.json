@@ -1,0 +1,19 @@
+{
+	"description": "A wooden door opening (Door.lua's creak, the game's Door.wav).",
+	"category": "effect",
+	"mono": true,
+	"generate_seconds": 3.0,
+	"length": [
+		0.4,
+		3.0
+	],
+	"game_name": "Door",
+	"prompt": "Close realistic foley recording of an old heavy oak door slowly opening on rusty iron hinges, {variation}, in a quiet stone hallway with a short natural echo, no music, no voices.",
+	"variations": [
+		"a long slow eerie creak of the wood and the hinges",
+		"the iron latch lifts with a click, then a short hinge squeak",
+		"a deep heavy groan as the door swings open",
+		"a creak in two parts, the door stopping halfway"
+	],
+	"feedback": "2026-11-28 owner: the first series sounded artificial; prompts now name the latch, hinges, hallway and a realistic foley recording"
+}

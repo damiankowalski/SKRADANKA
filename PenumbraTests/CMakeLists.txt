@@ -72,6 +72,13 @@ if(PENUMBRA_UV_EXECUTABLE)
                 python -m unittest discover -s "${PROJECT_SOURCE_DIR}/Tools/AssetGen/tests"
         WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")
     set_tests_properties(Tools.AssetGen PROPERTIES TIMEOUT 600)
+    # AudioGen (Tools/AudioGen): loudness, true peak, loop seams, broken files, the listening room's feedback,
+    # promotion, the model allow-list. numpy and scipy only, no model.
+    add_test(NAME Tools.AudioGen
+        COMMAND "${PENUMBRA_UV_EXECUTABLE}" run --project "${PROJECT_SOURCE_DIR}/Tools/AudioGen" --frozen
+                python -m unittest discover -s "${PROJECT_SOURCE_DIR}/Tools/AudioGen/tests"
+        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}")
+    set_tests_properties(Tools.AudioGen PROPERTIES TIMEOUT 600)
 else()
-    message(STATUS "uv not found: the Tools.AssetGen test is skipped (Tools/AssetGen/README.md)")
+    message(STATUS "uv not found: the Tools.AssetGen and Tools.AudioGen tests are skipped (their README.md)")
 endif()

@@ -12,6 +12,9 @@
 #include "Penumbra/Scene/SceneSerializer.h"
 #include "Penumbra/Scripting/ScriptEngine.h"
 
+#include <nlohmann/json.hpp>
+
+#include <fstream>
 #include <set>
 
 using namespace Penumbra;
@@ -804,5 +807,85 @@ TEST_SUITE("World")
 		cloister.Run(0.5f);
 		CHECK(cloister.Lua("return require('Scripts/Mission/Mission').current.state") == "\"complete\"");
 		CHECK(cloister.SceneInstance.GetScriptEngine()->GetErrors().empty());
+	}
+
+	TEST_CASE("Listening: the wind plays, the doors creak in turn, the floors sound; every clip the game's noises name loads")
+	{
+		Level listening("Scenes/Listening.pscene");
+		listening.Run(0.5f);
+		CHECK(listening.Lua("return audio.is_playing(scene.find('Wind'))") == "true");
+		CHECK(listening.Lua("return audio.is_playing(scene.find('Hearth'))") == "true");
+		listening.Lua("scene.find('Listening'):script():toggle_rain()");
+		CHECK(listening.Lua("return audio.is_playing(scene.find('Rain')) and not audio.is_playing(scene.find('Wind'))") == "true");
+		listening.Lua("scene.find('Listening'):script():toggle_rain()");
+		CHECK(listening.Lua("return audio.is_playing(scene.find('Wind')) and not audio.is_playing(scene.find('Rain'))") == "true");
+		CHECK(listening.Lua("return scene.find('Door_3m'):script():is_open()") == "false");
+
+		// The cycle: every 4 s a door sound, each door opened and shut before the next.
+		listening.Run(4.0f);
+		CHECK(listening.Lua("return scene.find('Door_3m'):script():is_open()") == "true");
+		listening.Run(4.0f);
+		CHECK(listening.Lua("return scene.find('Door_3m'):script():is_open()") == "false");
+		listening.Run(4.0f);
+		CHECK(listening.Lua("return scene.find('Door_10m'):script():is_open()") == "true");
+		CHECK(listening.Lua("return scene.find('Listening'):script().worked") == "3");
+
+		// Walking the strip: each floor under the thief is the one its lamp names.
+		for (const char* floor : { "Stone", "Wood", "Metal", "Gravel", "Carpet", "Grass", "Moss" })
+		{
+			CAPTURE(floor);
+			const glm::vec3 lamp = listening.Position(std::string("Lamp_") + floor);
+			listening.Lua("scene.find('Player'):set_position(vec3(0, 0.05, " + std::to_string(lamp.z) + "))");
+			listening.Run(0.2f);
+			CHECK(listening.Lua("return (require('Scripts/AI/Noises').surface_under(scene.find('Player')))") ==
+				  std::string("\"") + floor + "\"");
+		}
+
+		// A list of variants: each play picks one of them (the scene's seeded math.random), all of them in time.
+		CHECK(listening.Lua("local N = require('Scripts/AI/Noises'); local seen = {}; "
+								"for i = 1, 60 do seen[N.clip({ 'a', 'b', 'c' })] = true end; "
+								"return N.clip('x') == 'x' and seen.a and seen.b and seen.c and N.clip({ 'y' }) == 'y'") == "true");
+
+		// Every clip Noises.lua names (a clip or a list of generated variants) decodes and plays.
+		const std::string failed = listening.Lua(R"(
+			local Noises = require('Scripts/AI/Noises')
+			local clips, failed = {}, {}
+			local function add(clip)
+				if type(clip) == 'table' then for _, c in ipairs(clip) do clips[c] = true end
+				elseif clip then clips[clip] = true end
+			end
+			for _, clip in pairs(Noises.footstep_clips) do add(clip) end
+			for _, sound in pairs(Noises.sounds) do add(sound.clip) end
+			add(Noises.arrow.clip)
+			for clip in pairs(clips) do
+				if not audio.play_at(clip, vec3(0, 0, 0), 0.0) then table.insert(failed, clip) end
+			end
+			return table.concat(failed, ','))");
+		CHECK(failed == "\"\"");
+		CHECK(listening.SceneInstance.GetScriptEngine()->GetErrors().empty());
+	}
+
+	TEST_CASE("Generated sounds: every one in the demo has its provenance, accepted by the owner (Tools/AudioGen)")
+	{
+		const std::filesystem::path folder = std::filesystem::path(PENUMBRA_DEMO_PROJECT_DIR) / "Assets/Audio/Generated";
+		if (!std::filesystem::exists(folder))
+			return;
+		for (const auto& file : std::filesystem::directory_iterator(folder))
+		{
+			if (file.path().extension() != ".wav")
+				continue;
+			CAPTURE(file.path().string());
+			std::filesystem::path provenance = file.path();
+			provenance.replace_extension(".json");
+			REQUIRE(std::filesystem::exists(provenance));
+			std::ifstream stream(provenance);
+			const nlohmann::json data = nlohmann::json::parse(stream, nullptr, false);
+			REQUIRE_FALSE(data.is_discarded());
+			CHECK(data.value("ai_generated", false));
+			CHECK(data["owner"].value("decision", "").starts_with("accepted")); // "accepted", or "accepted as Footstep_Gravel"
+			CHECK_FALSE(data.value("model", "").empty());
+			CHECK_FALSE(data.value("license", "").empty());
+			CHECK(data["checks"].value("passed", false));
+		}
 	}
 }

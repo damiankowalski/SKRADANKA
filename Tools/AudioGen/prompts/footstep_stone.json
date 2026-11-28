@@ -1,0 +1,20 @@
+{
+	"description": "One footstep on stone (Noises.lua: footsteps by floor material; the game's Footstep.wav).",
+	"category": "effect",
+	"mono": true,
+	"first_event": true,
+	"generate_seconds": 2.0,
+	"length": [
+		0.04,
+		0.9
+	],
+	"game_name": "Footstep",
+	"prompt": "Close realistic foley recording of a single heavy footstep, a leather boot with a hard heel on a stone floor, {variation}, deep and full with a short natural echo of a stone corridor, no music, no voices.",
+	"variations": [
+		"a firm heel strike",
+		"a slow deliberate step",
+		"a heavy tired step",
+		"a step that scuffs the grit on the stones"
+	],
+	"feedback": "2026-11-28 owner: too thin in the first series; prompts now ask for a heavy heel, depth and the corridor's echo"
+}

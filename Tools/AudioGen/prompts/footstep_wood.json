@@ -1,0 +1,20 @@
+{
+	"description": "One footstep on boards (the game's Footstep_Wood.wav).",
+	"category": "effect",
+	"mono": true,
+	"first_event": true,
+	"generate_seconds": 2.0,
+	"length": [
+		0.08,
+		1.0
+	],
+	"game_name": "Footstep_Wood",
+	"prompt": "Close realistic foley recording of a single heavy footstep, a leather boot on old wooden floorboards, {variation}, deep and full, the boards resonating in a wooden room, no music, no voices.",
+	"variations": [
+		"a deep hollow thud",
+		"the board creaks under the weight",
+		"a slow heavy step",
+		"a firm step on a loose plank"
+	],
+	"feedback": "2026-11-28 owner: too thin in the first series; prompts now ask for depth and the boards resonating"
+}

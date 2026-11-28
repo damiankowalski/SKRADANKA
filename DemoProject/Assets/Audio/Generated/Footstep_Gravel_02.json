@@ -1,0 +1,43 @@
+{
+  "sound": "footstep_soft",
+  "category": "effect",
+  "loop": false,
+  "game_name": "Footstep_Gravel",
+  "prompt": "A single quiet footstep of a leather boot on soft moss, recorded close, no music, no voices.",
+  "variation": "on soft moss",
+  "seed": 1002,
+  "steps": 8,
+  "cfg_scale": 1.0,
+  "generated_seconds": 2.0,
+  "sample_rate": 44100,
+  "model": "stabilityai/stable-audio-3-small-sfx",
+  "revision": "05ca3857881c94a2b84026b1111c537d78f5f9f0",
+  "license": "Stability AI Community License (with the Gemma Terms of Use for its text encoder)",
+  "library": "stable-audio-3 @ Stability-AI/stable-audio-3 4007b6f2987bcb760626c2b4ae3e3541753984e9 (MIT)",
+  "date": "2026-11-28",
+  "ai_generated": true,
+  "generation_seconds": 2.69,
+  "checks": {
+    "measures": {
+      "seconds": 0.116,
+      "channels": 1,
+      "lufs": -22.14,
+      "true_peak_dbtp": -3.0,
+      "clipped_samples": 0,
+      "lead_silence": 0.002,
+      "tail_silence": 0.004
+    },
+    "failures": [],
+    "passed": true
+  },
+  "asset": "Audio/Generated/Footstep_Gravel_02.wav",
+  "source": {
+    "series": "second",
+    "file": "footstep_soft_1002.wav"
+  },
+  "owner": {
+    "decision": "accepted as Footstep_Gravel",
+    "note": "ten bardziej brzmi jak krok na żwirze - możesz go przekwalifikować",
+    "date": "2026-11-28T10:52:54"
+  }
+}

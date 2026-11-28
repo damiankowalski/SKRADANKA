@@ -1,0 +1,20 @@
+{
+	"description": "One footstep on an iron grate (the game's Footstep_Metal.wav).",
+	"category": "effect",
+	"mono": true,
+	"first_event": true,
+	"generate_seconds": 2.0,
+	"length": [
+		0.04,
+		1.0
+	],
+	"game_name": "Footstep_Metal",
+	"prompt": "Close realistic foley recording of a single footstep, a heavy leather boot on an iron floor grate, {variation}, a metallic clank as the boot lands, no music, no voices.",
+	"variations": [
+		"a sharp clank and a short ring",
+		"a heavy step, the grate rattling slightly",
+		"a careful step with a dull clank",
+		"a firm step, the iron ringing briefly"
+	],
+	"feedback": "2026-11-28 owner: changed or rejected in the second series; prompts follow boots-on-an-industrial-floor recordings: a clank on each step"
+}

@@ -1,0 +1,19 @@
+{
+	"description": "Rain at night on the old town: an ambience loop (the game's Rain.wav).",
+	"category": "ambience",
+	"loop": true,
+	"mono": false,
+	"generate_seconds": 64.0,
+	"length": [
+		55.0,
+		65.0
+	],
+	"game_name": "Rain",
+	"prompt": "Steady night rain falling on the stone streets and tiled roofs of an old town, {variation}, no music, no voices, no thunder.",
+	"variations": [
+		"light drizzle with drips from the eaves",
+		"a steady even rain",
+		"heavy rain with water running in a gutter",
+		"soft rain on wooden shutters"
+	]
+}

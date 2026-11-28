@@ -1,0 +1,43 @@
+{
+  "sound": "door_shut",
+  "category": "effect",
+  "loop": false,
+  "game_name": "Door_Shut",
+  "prompt": "A heavy wooden door with iron fittings closing, a solid thud and the latch clicking, inside a stone house, recorded close, no music, no voices.",
+  "variation": "a solid thud and the latch clicking",
+  "seed": 1000,
+  "steps": 8,
+  "cfg_scale": 1.0,
+  "generated_seconds": 2.0,
+  "sample_rate": 44100,
+  "model": "stabilityai/stable-audio-3-small-sfx",
+  "revision": "05ca3857881c94a2b84026b1111c537d78f5f9f0",
+  "license": "Stability AI Community License (with the Gemma Terms of Use for its text encoder)",
+  "library": "stable-audio-3 @ Stability-AI/stable-audio-3 4007b6f2987bcb760626c2b4ae3e3541753984e9 (MIT)",
+  "date": "2026-11-28",
+  "ai_generated": true,
+  "generation_seconds": 3.1,
+  "checks": {
+    "measures": {
+      "seconds": 1.663,
+      "channels": 1,
+      "lufs": -26.37,
+      "true_peak_dbtp": -3.0,
+      "clipped_samples": 0,
+      "lead_silence": 0.003,
+      "tail_silence": 0.016
+    },
+    "failures": [],
+    "passed": true
+  },
+  "asset": "Audio/Generated/Door_Shut_01.wav",
+  "source": {
+    "series": "second",
+    "file": "door_shut_1000.wav"
+  },
+  "owner": {
+    "decision": "accepted",
+    "note": "",
+    "date": "2026-11-28T10:48:24"
+  }
+}

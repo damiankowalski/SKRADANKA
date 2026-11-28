@@ -73,10 +73,11 @@ SURFACES = {
     "Grass": {"Material": "Grass", "NoiseModifier": -1.0},
     "Moss": {"Material": "Moss", "NoiseModifier": -3.0},
     "Wood": {"Material": "Wood", "NoiseModifier": 0.5},
+    "Gravel": {"Material": "Gravel", "NoiseModifier": 0.0},  # as loud as stone for now (AudioGen brief: noise levels unchanged)
     "Metal": {"Material": "Metal", "NoiseModifier": 2.5},
 }
 SURFACE_COLORS = {"Carpet": (0.35, 0.08, 0.07), "Grass": (0.12, 0.2, 0.08), "Moss": (0.1, 0.17, 0.09),
-                  "Wood": (0.32, 0.22, 0.13), "Metal": (0.3, 0.32, 0.34)}
+                  "Wood": (0.32, 0.22, 0.13), "Metal": (0.3, 0.32, 0.34), "Gravel": (0.34, 0.31, 0.27)}
 
 
 def floor_patch(doc, name, surface, center, size):
@@ -388,7 +389,9 @@ def add_world_events(doc, windows=(), dogs_position=(0, 1, 30)):
     (off between them) and the rain loop."""
     doc.add("Lightning", Transform=transform(rotation=(-60, 30, 0)),
             DirectionalLight={"Color": [0.75, 0.82, 1.0], "Intensity": 0.0, "CastShadows": True, "Enabled": False})
-    doc.add("Rain", Transform=transform(), AudioSource={"Clip": "Audio/Rain.wav", "Loop": True, "Spatial": False, "Volume": 0.35})
+    # A generated rain the owner accepted (Tools/AudioGen), else the procedural one.
+    rain = (generated_clips("Rain") or ["Audio/Rain.wav"])[0]
+    doc.add("Rain", Transform=transform(), AudioSource={"Clip": rain, "Loop": True, "Spatial": False, "Volume": 0.35})
     doc.add("World", Transform=transform(),
             Script={"Script": "Scripts/World/WorldEvents.lua",
                     "Properties": {"windows": ",".join(windows), "dogs_position": list(dogs_position)}})
@@ -1749,6 +1752,66 @@ def build_mission1():
     doc.save(M1_SCENE)
 
 
+# --------------------------------------------------------------------------------------------
+# The listening scene (Tools/AudioGen/README.md): the game's sounds where the game plays them. A strip of floors to
+# walk (footsteps by Scripts/AI/Noises.lua), three doors to the east at 3, 10 and 25 m from the strip's end that
+# Scripts/Listening.lua works in turn, the night's wind (R switches to the rain), a hearth's fire, and fog. Generated
+# sounds the owner accepted are in Assets/Audio/Generated; the loops here are accepted ones where there are any.
+# --------------------------------------------------------------------------------------------
+
+LISTENING_FLOORS = ["Stone", "Wood", "Metal", "Gravel", "Carpet", "Grass", "Moss"]  # along +Z, 3 m each
+LISTENING_DOORS = [3, 10, 25]  # metres east of the strip's end
+
+
+def generated_clips(game_name):
+    """Accepted generated clips of one sound (Tools/AudioGen/promote.py), oldest first, as asset paths."""
+    folder = ASSETS / "Audio" / "Generated"
+    return [f"Audio/Generated/{path.name}" for path in sorted(folder.glob(f"{game_name}_[0-9][0-9].wav"))]
+
+
+def build_listening():
+    doc = Document("PenumbraScene")
+    add_environment(doc, ambient=0.03, map_intensity=0.2, fog=0.03, moon=0.12)
+    length = 3.0 * len(LISTENING_FLOORS)
+    end_z = length
+    box(doc, "Ground", (12, -0.5, length / 2), (40, 1, length + 12), (0.3, 0.3, 0.32), surface="Stone")
+    for index, surface in enumerate(LISTENING_FLOORS):
+        z = 3.0 * index + 1.5
+        if surface != "Stone":
+            floor_patch(doc, f"Floor_{surface}", surface, (0, z), (3, 3))
+        lamp(doc, f"Lamp_{surface}", (-2.2, 2.6, z), intensity=6.0, light_range=6.0, shadows=False)
+    add_player(doc, (0, 0.05, -1.5))
+    for distance in LISTENING_DOORS:
+        name = f"Door_{distance}m"
+        # The doorway faces the strip's end (west): the panel runs along -Z from the hinge (yaw 90).
+        add_door(doc, name, (distance, 0, end_z + 0.7), 90, width=1.4, label=f"door {distance} m")
+        for side in (-1, 1):
+            box(doc, f"{name}_Jamb{'N' if side < 0 else 'S'}", (distance, 1.3, end_z + side * 1.3), (0.4, 2.6, 1.0),
+                (0.35, 0.33, 0.3))
+        box(doc, f"{name}_Lintel", (distance, 2.45, end_z), (0.4, 0.3, 1.6), (0.35, 0.33, 0.3))
+        lamp(doc, f"{name}_Lamp", (distance - 1.0, 2.8, end_z - 1.4), intensity=5.0, light_range=5.0, shadows=False)
+    wind = (generated_clips("Wind") or ["Audio/Wind.wav"])[-1]
+    doc.add("Wind", Transform=transform(), AudioSource={"Clip": wind, "Loop": True, "PlayOnStart": True, "Spatial": False,
+                                                        "Volume": 0.5})
+    rain = (generated_clips("Rain") or ["Audio/Rain.wav"])[0]
+    doc.add("Rain", Transform=transform(), AudioSource={"Clip": rain, "Loop": True, "Spatial": False, "Volume": 0.45})
+    # A hearth at the strip's start, west of it: the fire loop heard from close and from the far end.
+    fire = (generated_clips("Fire") or [None])[0]
+    if fire:
+        hearth = doc.add("Hearth", Transform=transform((-4.5, 0, 1.5)),
+                         AudioSource={"Clip": fire, "Loop": True, "PlayOnStart": True, "Spatial": True, "Volume": 0.8,
+                                      "MinDistance": 1.0, "MaxDistance": 20.0})
+        box(doc, "HearthStones", (0, 0.25, 0), (1.2, 0.5, 0.8), (0.25, 0.24, 0.23), parent=hearth)
+        doc.add("HearthFlame", hearth, Transform=transform((0, 0.8, 0)),
+                Flame={"Height": 0.5, "Radius": 0.25, "Intensity": 6.0, "Speed": 0.9},
+                PointLight={"Color": [1.0, 0.55, 0.25], "Intensity": 12.0, "Range": 7.0, "Flicker": 0.2, "CastShadows": False})
+    doc.add("Mist", Transform=transform((12, 0.6, length / 2)),
+            FogVolume={"HalfExtents": [20, 1.2, length / 2 + 6], "Density": 0.06, "EdgeFade": 0.8})
+    doc.add("Listening", Transform=transform(), Script={"Script": "Scripts/Listening.lua",
+                                                         "Properties": {"floors": ",".join(LISTENING_FLOORS)}})
+    doc.save("Scenes/Listening.pscene")
+
+
 def build_project_file():
     project = {"Name": "Penumbra Demo", "StartScene": "Scenes/Menu.pscene", "AssetDirectory": "Assets",
                "WindowWidth": 1600, "WindowHeight": 900}
@@ -1768,4 +1831,5 @@ if __name__ == "__main__":
     build_mood_lab()
     build_mission1()
     build_audio()
+    build_listening()
     print(f"Demo project written to {ROOT}")

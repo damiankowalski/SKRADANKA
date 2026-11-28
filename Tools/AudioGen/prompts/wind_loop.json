@@ -1,0 +1,20 @@
+{
+	"description": "The night's wind over the old town: an ambience loop (the game's Wind.wav).",
+	"category": "ambience",
+	"loop": true,
+	"mono": false,
+	"generate_seconds": 64.0,
+	"length": [
+		55.0,
+		65.0
+	],
+	"game_name": "Wind",
+	"prompt": "Eerie howling night wind around an old stone town, {variation}, ominous horror atmosphere, constant, no music, no voices, no birds.",
+	"variations": [
+		"a hollow moaning wind whistling through gaps in wooden shutters",
+		"a deep mournful howl rising and falling",
+		"strange breathing gusts wailing round the corners",
+		"a low drone of wind with a ghostly whistle now and then"
+	],
+	"feedback": "2026-11-28 owner: wanted more wailing, horror-like; prompts now ask for howling, moaning and an ominous mood"
+}
