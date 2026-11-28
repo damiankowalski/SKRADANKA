@@ -1,0 +1,16 @@
+{
+	"material": "ceramic_tiles",
+	"description": "The manor's kitchen and bathrooms: glazed ceramic floor and wall tiles.",
+	"prompt": "{style} A seamless tileable texture of a tiled floor seen from directly above: {variation}, thin grout lines, chipped corners, grime in the grout.",
+	"variations": [
+		"small square terracotta tiles in warm reds and browns, unevenly fired",
+		"black and white glazed tiles in a checkerboard, some cracked",
+		"pale glazed tiles with hand-painted blue patterns, worn in the middle"
+	],
+	"roughness": [
+		0.3,
+		0.8
+	],
+	"metallic": 0.0,
+	"normal_strength": 3.0
+}

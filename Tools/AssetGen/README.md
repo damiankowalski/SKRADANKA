@@ -67,9 +67,11 @@ Prompts are templates in `prompts/`. `style.txt` is the shared art direction (ha
 muted, flat light: `docs/art/mood/README.md`). `<material>.json` holds the prompt with `{style}` and `{variation}`,
 one variation per variant, `roughness` [smooth, rough], `metallic` and `normal_strength`. Describe the material.
 Never name games, studios or living artists.
-Templates so far: `stone_wall` (walls), `cobblestone` (floors seen from above), `roof_tiles` (roofs seen from
-above), `wood_ceiling` (ceilings seen from below), and for the first mission `planks`, `plaster`, `stone_floor`,
-`ground` and `metal`, three variations each.
+Templates so far: `stone_wall` (walls), `cobblestone` (floors seen from above), `roof_tiles` (roofs seen from above),
+`wood_ceiling` (ceilings seen from below), and for the first mission `planks`, `plaster`, `stone_floor`, `ground` and
+`metal`, three variations each; for the first mission's second batch `brick`, `dressed_stone`, `rock`, `ossuary`,
+`grass`, `wood_panel`, `wallpaper`, `rug`, `ceramic_tiles` and `polished_wood`, three variations each. Regular
+patterns (bricks in bond, checkerboards, damask) fail the seam test most often: expect to regenerate them.
 
 ## The catalog
 

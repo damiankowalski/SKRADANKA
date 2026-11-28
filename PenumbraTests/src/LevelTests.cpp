@@ -497,14 +497,14 @@ TEST_SUITE("World")
 		CHECK(medium.DensityAt({ 10.0f, 1.0f, -8.2f }) == doctest::Approx(medium.Density * 0.5f));
 	}
 
-	TEST_CASE("MoodLab: the sample wall shows every material of the first mission; each generated texture loads and has its provenance")
+	TEST_CASE("MoodLab: the sample walls show every material of the first mission; each generated texture loads and has its provenance")
 	{
 		std::string error;
 		REQUIRE_MESSAGE(Project::Load(std::filesystem::path(PENUMBRA_DEMO_PROJECT_DIR) / "project.json", error), error);
 		Scene scene;
 		REQUIRE_MESSAGE(SceneSerializer::Deserialize(scene, Project::GetAssetDirectory() / "Scenes/MoodLab.pscene", error), error);
 
-		// Tools/BuildDemoProject.py SAMPLE_MATERIALS: (bay, texture stem).
+		// Tools/BuildDemoProject.py SAMPLE_MATERIALS and SAMPLE_MATERIALS_2: (bay, texture stem).
 		const std::vector<std::pair<std::string, std::string>> samples = {
 			{ "Planks_Oak", "Textures/Planks/planks_1000" },
 			{ "Planks_Tarred", "Textures/Planks/planks_1002" },
@@ -515,6 +515,20 @@ TEST_SUITE("World")
 			{ "StoneFloor_Flags", "Textures/StoneFloor/stone_floor_1000" },
 			{ "StoneFloor_Wet", "Textures/StoneFloor/stone_floor_2002" },
 			{ "Ground_Earth", "Textures/Ground/ground_1000" },
+			{ "Brick_Sooty", "Textures/Brick/brick_1001" },
+			{ "DressedStone_Sandstone", "Textures/DressedStone/dressed_stone_1000" },
+			{ "Rock_Wet", "Textures/Rock/rock_1002" },
+			{ "Ossuary_Skulls", "Textures/Ossuary/ossuary_1001" },
+			{ "WoodPanel_Oak", "Textures/WoodPanel/wood_panel_1000" },
+			{ "WoodPanel_Walnut", "Textures/WoodPanel/wood_panel_1001" },
+			{ "Wallpaper_Lilies", "Textures/Wallpaper/wallpaper_2002" },
+			{ "PolishedWood_Ebony", "Textures/PolishedWood/polished_wood_1002" },
+			{ "Grass_Grounds", "Textures/Grass/grass_1000" },
+			{ "Grass_Trodden", "Textures/Grass/grass_1001" },
+			{ "Rug_Medallion", "Textures/Rug/rug_2000" },
+			{ "Rug_Floral", "Textures/Rug/rug_1001" },
+			{ "Tiles_Terracotta", "Textures/CeramicTiles/ceramic_tiles_1000" },
+			{ "Tiles_Painted", "Textures/CeramicTiles/ceramic_tiles_1002" },
 		};
 		for (const auto& [bay, stem] : samples)
 		{

@@ -1,0 +1,16 @@
+{
+	"material": "dressed_stone",
+	"description": "The church and the manor's facade: dressed light stone (ashlar).",
+	"prompt": "{style} A seamless tileable texture of a wall of dressed stone blocks seen straight on: {variation}, fine thin mortar joints, slightly worn arrises.",
+	"variations": [
+		"large pale sandstone ashlar blocks in even courses, warm cream and ochre tones, chisel marks",
+		"light grey limestone ashlar of a church, smooth faces weathered with dark streaks of rain",
+		"honey-coloured stone blocks of uneven heights, a few blocks darker, lichen in the joints"
+	],
+	"roughness": [
+		0.6,
+		0.9
+	],
+	"metallic": 0.0,
+	"normal_strength": 4.0
+}

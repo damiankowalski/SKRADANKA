@@ -291,6 +291,12 @@ alarm bell's reach, the exit's `remind`, the playtester at doors, street lantern
 frames instead of 8 drawn every frame (a lamp's map is drawn again only when something in its reach moves), so a
 street of lanterns is lit and the picture and the light gem agree under every lamp (a test with sixteen lamps).
 
+**Materials, batch 2** (2026-11-27, the first package of the asset library): ten AssetGen templates (brick, dressed
+stone, rock, ossuary, grass, wood panelling, wallpaper, rugs, ceramic tiles, polished wood), 22 of 30 variants in the
+catalog; the owner took fourteen for the game, in `DemoProject/Assets/Textures` and on a second sample row in the mood
+lab (docs/art/mood/README.md, "Sample wall, second batch"). Still missing: red damask and a checkerboard (regular
+patterns fail the seam test most).
+
 ## In progress
 
 Nothing.
@@ -327,7 +333,7 @@ follow it.
 Each package still needs its own brief and the owner's approval before it starts. The first mission comes first
 (`research/MissionOne.md`, "Order"); the earlier list follows it.
 
-1. **The asset library** (the owner, 2026-11-27: before the places): materials batch 2, the prop pipeline (3 below),
+1. **The asset library** (the owner, 2026-11-27: before the places): materials batch 2 (done), the prop pipeline (3 below),
    the characters (4 below), AudioGen A and B (7 below), each into its catalog.
 2. **The engine for a big map** (about 6 PRs, M-L in all), starting with the stress-test district: instancing, light
    culling, LOD and draw distance, room-bounded lights, alpha-tested materials, texture compression, collision

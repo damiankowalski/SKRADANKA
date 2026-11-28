@@ -1,0 +1,16 @@
+{
+	"material": "wood_panel",
+	"description": "The manor's rooms: carved wood panelling on the lower part of the walls.",
+	"prompt": "{style} A seamless tileable texture of wooden wall panelling seen straight on: {variation}, worn varnish, small scratches.",
+	"variations": [
+		"dark oak raised panels in a regular grid with moulded frames",
+		"warm walnut linenfold panels, carved vertical folds in each panel",
+		"reddish polished wood panels with thin inlaid lines, darker frames"
+	],
+	"roughness": [
+		0.35,
+		0.7
+	],
+	"metallic": 0.0,
+	"normal_strength": 3.5
+}
